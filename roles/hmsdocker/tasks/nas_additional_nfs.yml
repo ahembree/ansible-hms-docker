@@ -1,0 +1,59 @@
+---
+- name: Ensure RedHat NFS packages.
+  package:
+    name:
+      - nfs-utils
+    state: "{{ nas_client_package_state }}"
+  when: family_override | lower == "redhat"
+
+- name: Ensure Debian NFS packages.
+  package:
+    name:
+      - nfs-common
+    state: "{{ nas_client_package_state }}"
+  when: ansible_facts['os_family'] | lower == "debian"
+
+- name: Ensure additional NFS paths exist if defined
+  file:
+    path: "{{ mount_path.local_mount_path }}"
+    state: directory
+  with_items:
+    - "{{ nas_client_remote_additional_paths }}"
+  loop_control:
+    loop_var: mount_path
+  when:
+    - nas_client_remote_additional_paths is defined
+    - mount_path.type == "nfs"
+  register: nfs_additional_paths
+
+- name: Ensure additional NFS fstab entries if defined
+  mount:
+    backup: yes
+    boot: "{{ nas_client_mount_on_boot }}"
+    path: "{{ nfs_mount.path }}"
+    src: "{{ nfs_mount.mount_path.remote_path }}"
+    fstype: nfs
+    opts: "{{ nfs_mount.mount_path.nfs_opts }}"
+    state: "{{ nas_client_mount_state }}"
+  with_items:
+    - "{{ nfs_additional_paths.results }}"
+  loop_control:
+    loop_var: nfs_mount
+  when:
+    - nfs_additional_paths is defined
+    - nfs_mount.mount_path.type == "nfs"
+    - not ansible_check_mode
+
+- name: Ensure library folders for additional paths
+  file:
+    path: "{{ library_folders[0].path }}/{{ hms_docker_library_folder_name }}/{{ library_folders[1].folder_name }}"
+    state: directory
+  with_nested:
+    - "{{ nfs_additional_paths.results }}"
+    - "{{ hms_docker_library_folders }}"
+  loop_control:
+    loop_var: library_folders
+  when:
+    - nfs_additional_paths is defined
+    - library_folders[0].mount_path.type == "nfs"
+    - not ansible_check_mode

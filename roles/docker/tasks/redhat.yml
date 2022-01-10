@@ -1,0 +1,55 @@
+---
+- name: Ensure previous RHEL Docker packages are absent.
+  package:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+    state: absent
+
+- name: Ensure RHEL required packages.
+  package:
+    name:
+      - epel-release
+    state: "{{ docker_prereq_packages_state }}"
+
+- name: Ensure CentOS requirements.
+  block:
+    - name: Ensure yum-utils.
+      package:
+        name: yum-utils
+        state: "{{ docker_prereq_packages_state }}"
+  when:
+    - distribution_override == "centos"
+
+- name: Ensure Fedora requirements.
+  block:
+    - name: Ensure previous Fedora Docker packages are absent.
+      package:
+        name:
+          - docker-selinux
+          - docker-engine-selinux
+        state: absent
+
+    - name: Ensure Fedora dnf-plugins-core.
+      package:
+        name: dnf-plugins-core
+        state: "{{ docker_prereq_packages_state }}"
+  when:
+    - ansible_facts['distribution'] | lower == "fedora"
+
+- name: Ensure RHEL Docker repo.
+  yum_repository:
+    name: docker-ce-stable
+    description: "Docker CE Stable - $basearch"
+    baseurl: https://download.docker.com/linux/{{ distribution_override | lower }}/$releasever/$basearch/stable
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: https://download.docker.com/linux/{{ distribution_override | lower }}/gpg
+    state: "{{ docker_repo_state }}"
+

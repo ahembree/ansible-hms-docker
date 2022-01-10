@@ -1,0 +1,12 @@
+---
+docker_platform_agnostic_requirements_state: present # default: present // valid: present, absent
+docker_prereq_packages_state: present # default: present // valid: present, absent
+docker_package_state: present # default: present
+docker_service_state: started # default: started
+docker_service_enabled: yes # default: yes
+docker_compose_version: "1.29.2" # default: '1.29.2'
+docker_repo_state: present # default: present
+docker_enable_live_restore: no # default: no
+docker_pip_package_state: present # default: present
+distribution_override: "{{ 'centos' if ansible_distribution | lower == 'almalinux' else ansible_distribution | lower }}"
+family_override: "{{ 'redhat' if ansible_os_family | lower == 'almalinux' else ansible_os_family | lower }}"

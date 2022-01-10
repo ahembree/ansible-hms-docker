@@ -1,0 +1,72 @@
+---
+- name: Ensure platform agnostic requirements.
+  package:
+    name:
+      - python3-pip
+    state: "{{ docker_platform_agnostic_requirements_state }}"
+
+- name: Run RHEL-based Docker install.
+  import_tasks: redhat.yml
+  when: family_override | lower == "redhat"
+
+- name: Run Debian-based Docker install.
+  import_tasks: debian.yml
+  when: ansible_facts["os_family"] | lower == "debian"
+
+- name: Ensure Docker packages.
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: "{{ docker_package_state }}"
+  when: not ansible_check_mode
+
+- name: Ensure Docker daemon config
+  template:
+    src: docker-daemon.json
+    dest: /etc/docker/daemon.json
+  notify: Restart docker
+  when: docker_enable_live_restore
+
+- name: Ensure docker-compose.
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+    dest: /usr/local/bin/docker-compose
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Ensure docker-compose symlink.
+  file:
+    src: /usr/local/bin/docker-compose
+    dest: /usr/bin/docker-compose
+    owner: root
+    group: root
+    state: link
+  when: not ansible_check_mode
+
+- name: Ensure pip Docker packages.
+  pip:
+    name:
+      - docker
+      - docker-compose
+    state: "{{ docker_pip_package_state }}"
+
+- name: Ensure Docker service.
+  service:
+    name: docker
+    state: "{{ docker_service_state }}"
+    enabled: "{{ docker_service_enabled }}"
+  when: not ansible_check_mode
+
+- name: Ensure docker users are in the docker group.
+  user:
+    name: "{{ item }}"
+    groups:
+      - docker
+    append: yes
+  with_items: "{{ docker_users }}"
+  when:
+    - docker_users is defined
+    - not ansible_check_mode

@@ -1,0 +1,4 @@
+---
+- name: Using local path
+  debug:
+    msg: Using local path for media files

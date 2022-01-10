@@ -1,0 +1,30 @@
+---
+- name: Ensure previous Debian Docker packages are absent.
+  package:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+
+- name: Ensure Debian Docker requirements.
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: "{{ docker_prereq_packages_state }}"
+
+- name: Ensure Debian Docker GPG Key.
+  apt_key:
+    url: https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}/gpg
+    state: "{{ docker_repo_state }}"
+
+- name: Ensure Debian Docker stable repository.
+  apt_repository:
+    repo: deb https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }} stable
+    state: "{{ docker_repo_state }}"

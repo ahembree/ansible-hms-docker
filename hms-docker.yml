@@ -1,0 +1,36 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: yes
+  vars:
+    regex: '[^A-Za-z0-9._-]'
+    replace: '_'
+
+  vars_files:
+    - vars/default.yml
+
+  roles:
+    - docker
+
+  tasks:
+  - name: Ensure Nvidia GPU role if enabled
+    import_role:
+      name: gpu
+    when: enable_nvidia_gpu is defined and enable_nvidia_gpu
+
+  - name: Ensure HMS-Docker role
+    import_role:
+      name: hmsdocker
+
+  - name: Verify all Traefik endpoints are accessible
+    uri:
+      url: http://{{ item.key }}.{{ hms_docker_domain }}
+      status_code: 200,302,401,403
+      validate_certs: no
+    with_dict:
+      - "{{ hms_docker_container_map }}"
+    when:
+      - item.value.traefik is defined and item.value.traefik
+      - item.value.enabled is defined and item.value.enabled
+      - hms_docker_container_map['traefik']['enabled'] is defined and hms_docker_container_map['traefik']['enabled']
+      - traefik_verify_endpoints is defined and traefik_verify_endpoints

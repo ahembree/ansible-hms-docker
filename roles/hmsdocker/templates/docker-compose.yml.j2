@@ -1,0 +1,558 @@
+version: '3'
+services:
+{% if hms_docker_container_map['portainer']['enabled'] %}
+  # Portainer container, webgui for docker
+  portainer:
+    image: portainer/portainer:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "traefik_net"
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 9000:9000
+{% endif %}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ hms_docker_apps_path }}/portainer/config:/data
+{% if hms_docker_container_map['portainer']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.portainer-{{ project_name }}.loadbalancer.server.port=9000
+      - "traefik.http.routers.portainer-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if container_enable_auto_updates %}
+  # Watchtower container, automatic updates
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "traefik_net"
+    command: --cleanup --schedule "{{ container_auto_update_schedule }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+{% endif %}
+
+{% if hms_docker_container_map['traefik']['enabled'] %}
+  # Traefik container, loadbalancer/reverse proxy/ssl
+  traefik:
+    image: traefik:v2.5.5
+    container_name: traefik
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    environment:
+      - TZ={{ container_timezone }}
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+{% if traefik_ssl_dns_provider_environment_vars %}
+{% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+      - {{ key }}={{ value }}
+{% endfor %}
+{% endif %}
+    networks:
+      - "traefik_net"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ hms_docker_apps_path }}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
+      - {{ hms_docker_apps_path }}/traefik/config/certs/:/certs/
+{% if hms_docker_container_map['traefik']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.traefik-{{ project_name }}.loadbalancer.server.port=8080
+      - "traefik.http.middlewares.internal-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, {{ traefik_subnet_allow_list }}"
+      - "traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0"
+      - "traefik.http.routers.traefik-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['transmission']['enabled'] and transmission_vpn_provider is defined and transmission_vpn_user is defined and transmission_vpn_pass is defined %}
+  # Transmission container, torrent client/VPN
+  transmission:
+    image: haugene/transmission-openvpn:latest
+    container_name: transmission
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+    cap_add:
+      - NET_ADMIN
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 9091:9091
+      - 8888:8888
+{% endif %}
+    dns:
+      - '{{ transmission_dns_1 }}'
+      - '{{ transmission_dns_2 }}'
+    volumes:
+      - {{ hms_docker_apps_path }}/transmission/config:/data/transmission-home
+{% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
+      - {{ hms_docker_mount_path }}/apps/transmission/incomplete:/incomplete
+      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+{% else %}
+      - {{ hms_docker_apps_path }}/transmission/incomplete:/incomplete
+      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+{% endif %}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    environment:
+      - OPENVPN_PROVIDER={{ transmission_vpn_provider }}
+      - OPENVPN_USERNAME={{ transmission_vpn_user  }}
+      - OPENVPN_PASSWORD={{ transmission_vpn_pass }}
+      - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
+      - TRANSMISSION_WEB_UI=transmission-web-control
+      - TRANSMISSION_DOWNLOAD_DIR=/completed
+      - TRANSMISSION_INCOMPLETE_DIR=/incomplete
+      - TRANSMISSION_WATCH_DIR_ENABLED=false
+      - TZ={{ container_timezone }}
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - WEBPROXY_ENABLED=true
+      - WEBPROXY_PORT=8888
+      - HEALTH_CHECK_HOST=google.com
+      - TRANSMISSION_RATIO_LIMIT={{ transmission_ratio_limit }}
+      - TRANSMISSION_RATIO_LIMIT_ENABLED={{ transmission_ratio_enabled }}
+      - LOCAL_NETWORK={{ hms_docker_network_subnet }}
+{% for key, value in transmission_additional_env_vars.items() %}
+      - {{ key }}={{ value }}
+{% endfor %}
+
+  # Proxy container, for Transmission, also hosts HTTP proxy to route traffic through the VPN
+  proxy:
+    image: haugene/transmission-openvpn-proxy:latest
+    container_name: proxy
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    depends_on:
+      - transmission
+    environment:
+      - TZ={{ container_timezone }}
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 8081:8080
+{% endif %}
+{% if hms_docker_container_map['transmission']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      # This is an "override" rule since the traefik config, by default, will use the container name, but this container is the proxy
+      # for the transmission container web UI, so we have traefik point to this one instead when trying to access the transmission web UI
+      - traefik.http.routers.proxy-{{ project_name }}.rule=Host(`transmission.{{ hms_docker_domain }}`)
+      - traefik.http.services.proxy-{{ project_name }}.loadbalancer.server.port=8080
+      - "traefik.http.routers.proxy-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['jackett']['enabled'] %}
+  # Jackett container, torrent indexer
+  jackett:
+    image: linuxserver/jackett:latest
+    container_name: jackett
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/jackett/config:/config
+{% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
+      - {{ hms_docker_mount_path }}/apps/jackett/blackhole:/downloads
+{% else %}
+      - {{ hms_docker_apps_path }}/jackett/blackhole:/downloads
+{% endif %}
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 9117:9117
+{% endif %}
+{% if hms_docker_container_map['jackett']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.jackett-{{ project_name }}.loadbalancer.server.port=9117
+      - "traefik.http.routers.jackett-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['sonarr']['enabled'] %}
+  # Sonarr container, tv show indexer
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+{% if hms_docker_container_map['sonarr']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.sonarr-{{ project_name }}.loadbalancer.server.port=8989
+      - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/sonarr/config:/config
+      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+{% for folder in hms_docker_library_folders %}
+{% if folder.type == "tv_shows" %}
+      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
+{% endif %}
+{% endfor %}
+{% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
+{% for path in nas_client_remote_additional_paths %}
+{% for folder in hms_docker_library_folders %}
+{% if folder.type == "tv_shows" %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 8989:8989
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['radarr']['enabled'] %}
+  # Radarr container, movie indexer
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+{% if hms_docker_container_map['radarr']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.radarr-{{ project_name }}.loadbalancer.server.port=7878
+      - "traefik.http.routers.radarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/radarr/config:/config
+      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+{% for folder in hms_docker_library_folders %}
+{% if folder.type == "movies" %}
+      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
+{% endif %}
+{% endfor %}
+{% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
+{% for path in nas_client_remote_additional_paths %}
+{% for folder in hms_docker_library_folders %}
+{% if folder.type == "movies" %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 7878:7878
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['bazarr']['enabled'] %}
+  # Bazarr container, subtitle indexer
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "traefik_net"
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 6767:6767
+{% endif %}
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/bazarr/config:/config
+{% for folder in hms_docker_library_folders %}
+{% if folder.type == "tv_shows" %}
+      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_tv_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
+{% endif %}
+{% if folder.type == "movies" %}
+      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_movies_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
+{% endif %}
+{% endfor %}
+{% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
+{% for path in nas_client_remote_additional_paths %}
+{% for folder in hms_docker_library_folders %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if hms_docker_container_map['bazarr']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.bazarr-{{ project_name }}.loadbalancer.server.port=6767
+      - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['ombi']['enabled'] %}
+  # Ombi container, request platform
+  ombi:
+    image: linuxserver/ombi:latest
+    container_name: ombi
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+{% if ombi_db_host == 'ombi_mysql' %}
+    depends_on:
+      - mysql
+{% endif %}
+    networks:
+      - "media_net"
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+{% if hms_docker_container_map['ombi']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.ombi-{{ project_name }}.loadbalancer.server.port=3579
+      - "traefik.http.routers.ombi-{{ project_name }}.middlewares=external-ipwhitelist"
+{% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/ombi/config:/config
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 3579:3579
+{% endif %}
+{% endif %}
+
+{% if ombi_db_host == 'ombi_mysql' %}
+  # Ombi MySQL container
+  mysql:
+    image: mysql:8.0.22
+    container_name: ombi_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+{% if ombi_mysql_db_expose_ports and container_expose_ports %}
+    ports:
+      - 3306:3306
+{% endif %}
+    networks:
+      - "media_net"
+    environment:
+      MYSQL_ROOT_PASSWORD: '{{ ombi_mysql_container_db_root_pass }}'
+    volumes:
+      # initializes database on first run
+      - {{ hms_docker_apps_path }}/ombi_mysql/entrypoint:/docker-entrypoint-initdb.d
+      # folder where database data is stored
+      - {{ hms_docker_apps_path }}/ombi_mysql/database:/var/lib/mysql
+
+{% if hms_docker_container_map['adminer']['enabled'] %}
+  # Adminer container, webgui for ombi_mysql container
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "media_net"
+      - "traefik_net"
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 8082:8080
+{% endif %}
+{% if hms_docker_container_map['adminer']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.adminer-{{ project_name }}.loadbalancer.server.port=8080
+      - "traefik.http.routers.adminer-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['plex']['enabled'] %}
+  # Plex container, media server
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    restart: {{ container_restart_policy }}
+{% if enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+{% endif %}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "media_net"
+      - "traefik_net"
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    environment:
+      - VERSION=docker
+      - TZ={{ container_timezone }}
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - PLEX_CLAIM={{ plex_claim_token }}
+      - ADVERTISE_IP={{ plex_advertise_ip }}:32400
+      - ALLOWED_NETWORKS={{ hms_docker_network_subnet }}
+{% if enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+{% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/plex/config:/config
+      # temp folder for Plex transcoding
+      - {{ plex_transcode_folder }}:/transcode
+      # media folder where all movies and series are stored
+      - {{ hms_docker_media_path }}:/data_media
+{% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
+{% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+{% endfor %}
+{% endif %}
+{% if hms_docker_container_map['plex']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.plex-{{ project_name }}.loadbalancer.server.port=32400
+      - "traefik.http.routers.plex-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['tautulli']['enabled'] %}
+  # Tautulli container, analytics
+  tautulli:
+    image: tautulli/tautulli:latest
+    container_name: tautulli
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "media_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+{% if hms_docker_container_map['tautulli']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.tautulli-{{ project_name }}.loadbalancer.server.port=8181
+      - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 8181:8181
+{% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/tautulli/config:/config
+      # Plex logs location
+      - {{ hms_docker_apps_path }}/plex/config/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro
+{% endif %}
+
+{% if cloudflare_ddns_enabled %}
+  # Cloudflare DDNS container
+  cloudflare-ddns:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    restart: '{{ container_restart_policy }}'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    environment:
+      - API_KEY={{ cloudflare_api_token }}
+      - ZONE={{ cloudflare_ddns_domain }}
+      - DELETE_ON_STOP={{ cloudflare_ddns_delete_record_on_stop }}
+{% if cloudflare_ddns_create_ipv6_aaaa_record %}
+      - RRTYPE=AAAA
+{% endif %}
+{% if cloudflare_ddns_subdomain %}
+      - SUBDOMAIN={{ cloudflare_ddns_subdomain }}
+{% endif %}
+      - PROXIED={{ cloudflare_ddns_proxied }}
+{% endif %}
+
+networks:
+  "download_net":
+    driver: bridge
+    attachable: false
+  "media_net":
+    driver: bridge
+    attachable: false
+  "traefik_net":
+    driver: bridge
+    attachable: false

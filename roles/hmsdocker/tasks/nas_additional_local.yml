@@ -1,0 +1,26 @@
+---
+- name: Ensure additional local paths exist if defined
+  file:
+    path: "{{ mount_path.local_mount_path }}"
+    state: directory
+  with_items:
+    - "{{ nas_client_remote_additional_paths }}"
+  loop_control:
+    loop_var: mount_path
+  when:
+    - nas_client_remote_additional_paths is defined
+    - mount_path.type == "local"
+  register: local_additional_paths
+
+- name: Ensure library folders for additional paths
+  file:
+    path: "{{ library_folders[0].path }}/{{ hms_docker_library_folder_name }}/{{ library_folders[1].folder_name }}"
+    state: directory
+  with_nested:
+    - "{{ local_additional_paths.results }}"
+    - "{{ hms_docker_library_folders }}"
+  loop_control:
+    loop_var: library_folders
+  when:
+    - local_additional_paths is defined
+    - library_folders[0].mount_path.type == "local"

@@ -1,0 +1,32 @@
+---
+- name: Wait for VPN init
+  command: sleep 15
+  changed_when: False
+
+- name: Get public IP from Transmission VPN container.
+  command: docker exec transmission curl -s icanhazip.com
+  register: vpn_public_ip
+  changed_when: false
+
+- name: Ensure public IP and transmission VPN public IP are different.
+  debug:
+    msg:
+      - Your public IP is protected!
+      - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
+      - "Current VPN IP: {{ vpn_public_ip.stdout }}"
+  when: ansible_facts['ipify_public_ip'] != vpn_public_ip.stdout
+
+- name: Public IP and VPN IP are identical, stop container
+  block:
+    - name: Stop transmission if public IP and VPN IP are identical.
+      command: docker stop transmission
+
+    - name: Print error message if public IP and VPN IP are identical.
+      debug:
+        msg:
+          - Your public IP is NOT protected!
+          - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
+          - "Current VPN IP: {{ vpn_public_ip.stdout }}"
+          - The Transmission container has been stopped
+
+  when: ansible_facts['ipify_public_ip'] == vpn_public_ip.stdout

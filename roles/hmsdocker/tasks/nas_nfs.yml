@@ -1,0 +1,24 @@
+---
+- name: Ensure RedHat NFS packages.
+  package:
+    name:
+      - nfs-utils
+    state: "{{ nas_client_package_state }}"
+  when: family_override | lower == "redhat"
+
+- name: Ensure Debian NFS packages.
+  package:
+    name:
+      - nfs-common
+    state: "{{ nas_client_package_state }}"
+  when: ansible_facts['os_family'] | lower == "debian"
+
+- name: Ensure NFS fstab entry and mount.
+  mount:
+    backup: yes
+    boot: "{{ nas_client_mount_on_boot }}"
+    path: "{{ hms_docker_mount_path }}"
+    src: "{{ nas_client_remote_nfs_path }}"
+    fstype: nfs
+    opts: "{{ nas_client_nfs_opts }}"
+    state: "{{ nas_client_mount_state }}"

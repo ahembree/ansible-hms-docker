@@ -1,0 +1,36 @@
+---
+- name: Run RHEL-based install.
+  import_tasks: redhat.yml
+  when: family_override | lower == "redhat"
+
+- name: Run Debian-based install.
+  import_tasks: debian.yml
+  when: ansible_facts["os_family"] | lower == "debian"
+
+- name: Verify nvidia-container-runtime-hook is in $PATH
+  shell: "which nvidia-container-runtime-hook"
+  register: nvidia_container_runtime_hook_path
+  changed_when: False
+
+- name: Exit if nvidia-container-runtime-hook is not in $PATH
+  fail:
+    msg: "nvidia-container-runtime-hook not found in $PATH"
+  when: nvidia_container_runtime_hook_path.rc != 0
+
+- name: Ensure the nvidia-docker2 package
+  package:
+    name: nvidia-docker2
+    state: "{{ gpu_prereq_packages_state }}"
+  notify:
+    - restart docker
+
+- name: Verify CUDA container works
+  shell:
+    cmd: "docker run --name nvidia-gpu-test --rm --gpus all nvidia/cuda:11.0-base nvidia-smi"
+  register: nvidia_gpu_test
+  changed_when: False
+
+- name: Exit if CUDA container fails
+  fail:
+    msg: "CUDA container failed to run"
+  when: nvidia_gpu_test.rc != 0

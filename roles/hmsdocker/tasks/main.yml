@@ -1,0 +1,67 @@
+---
+- name: Obtain public IP.
+  ipify_facts:
+  register: public_ip
+
+- name: Ensure paths exists locally.
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ hms_docker_data_path }}"
+    - "{{ hms_docker_apps_path }}"
+    - "{{ hms_docker_mount_path }}"
+    - "{{ hms_docker_media_path }}"
+
+- name: NAS base configuration tasks.
+  include_tasks: "nas_{{ hms_docker_media_share_type | lower }}.yml"
+
+- name: Ensure additional NAS configuration
+  include_tasks: "nas_additional_{{ item.type | lower }}.yml"
+  with_items: "{{ nas_client_remote_additional_paths }}"
+  when:
+    - nas_client_remote_additional_paths is defined
+    - nas_client_use_additional_paths is defined and nas_client_use_additional_paths
+  no_log: yes
+
+- name: Ensure library folders.
+  file:
+    path: "{{ hms_docker_media_path }}/{{ item.folder_name }}"
+    state: directory
+  with_items: "{{ hms_docker_library_folders }}"
+
+- name: Ensure container config directories exist.
+  file:
+    path: "{{ hms_docker_apps_path }}/{{ item.key }}/config"
+    state: directory
+  with_dict: "{{ hms_docker_container_map }}"
+  when: item.value.directory and (item.value.enabled is defined and item.value.enabled)
+
+- name: Ensure Traefik
+  import_tasks: "traefik.yml"
+  when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
+
+- name: Ensure Ombi MySQL config if configured.
+  import_tasks: "ombi_mysql.yml"
+  when: ombi_db_host == "ombi_mysql"
+
+- name: Ensure docker-compose.yml file.
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ hms_docker_data_path }}/docker-compose.yml"
+    group: docker
+    mode: 0644
+    backup: yes
+
+- name: Ensure containers defined in compose file.
+  docker_compose:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    pull: "{{ container_pull_images_first }}"
+    state: "{{ hms_docker_compose_container_state }}"
+    remove_orphans: "{{ container_remove_orphans }}"
+  when: not ansible_check_mode
+
+- name: Ensure Transmission and VPN connection
+  import_tasks: "transmission.yml"
+  when: hms_docker_container_map.transmission.enabled is defined and hms_docker_container_map.transmission.enabled

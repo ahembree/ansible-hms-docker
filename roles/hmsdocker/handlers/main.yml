@@ -1,0 +1,4 @@
+---
+- name: restart traefik
+  shell: docker restart traefik
+  when: not traefik_certs_dir.changed

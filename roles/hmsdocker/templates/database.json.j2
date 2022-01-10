@@ -1,0 +1,14 @@
+{
+  "OmbiDatabase": {
+    "Type": "MySQL",
+    "ConnectionString": "Server={{ ombi_db_host }};Port={{ ombi_mysql_db_port }};Database={{ ombi_mysql_db_name_prefix }};User={{ ombi_mysql_db_username }};Password={{ ombi_mysql_db_password }}"
+  },
+  "SettingsDatabase": {
+    "Type": "MySQL",
+    "ConnectionString": "Server={{ ombi_db_host }};Port={{ ombi_mysql_db_port }};Database={{ ombi_mysql_db_name_prefix }}_Settings;User={{ ombi_mysql_db_username }};Password={{ ombi_mysql_db_password }}"
+  },
+  "ExternalDatabase": {
+    "Type": "MySQL",
+    "ConnectionString": "Server={{ ombi_db_host }};Port={{ ombi_mysql_db_port }};Database={{ ombi_mysql_db_name_prefix }}_External;User={{ ombi_mysql_db_username }};Password={{ ombi_mysql_db_password }}"
+  }
+}

@@ -1,0 +1,417 @@
+---
+### Any variables such as "{{ <variable> }}" will reference the variable that was defined earlier in this file
+
+#######################################################################
+### GPU settings
+# Requires supported hardware
+
+# Enables Nvidia GPU hardware accelleration within the Plex container // default: "no"
+# Requires the Nvidia drivers to already be installed and working
+enable_nvidia_gpu: no
+
+# Enables Intel GPU hardware accelleration within the Plex container // default: "no"
+enable_intel_gpu: no
+### End of GPU settings
+#######################################################################
+
+
+
+#######################################################################
+### Plex Settings
+# Visit https://plex.tv/claim to obtain this token specific to your account
+plex_claim_token: ""
+
+# This will grab the default interface IPv4 address of the host // default: "{{ ansible_default_ipv4.address }}"
+plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
+### End of Plex Settings
+#######################################################################
+
+
+
+#######################################################################
+### HMS-Docker settings
+
+# The `project_name` controls the name of the base folders created (e.g. /opt/<project_name>/ and /mnt/<project_name>/) // default: "hms-docker"
+project_name: hms-docker
+
+# Where container data and configs are stored // default: "/opt/{{ project_name }}"
+hms_docker_data_path: "/opt/{{ project_name }}"
+
+# Where the container data is stored // default: "{{ hms_docker_data_path }}/apps"
+hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
+
+# The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"
+#    `local`: local folder path
+#    `cifs`: CIFS or SMB share
+#    `nfs`: NFS share
+hms_docker_media_share_type: local
+
+# Where the media share will be mounted locally // default: "/opt/{{ project_name }}/media_data"
+# Recommended to change this if using `cifs` or `nfs` to a local mount point, such as "/mnt/{{ project_name }}"
+hms_docker_mount_path: "/opt/{{ project_name }}/media_data"
+
+# The name of the folder that will have the library folders defined below// default: "_library"
+hms_docker_library_folder_name: "_library"
+
+# This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"
+hms_docker_media_path: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"
+
+# The name of the library folders that will be created within the library folder that was defined above
+#  Valid `type` values are:
+#   `movies`
+#   `tv_shows`
+
+# The `type` value controls which containers the folders get mounted to (such as `movies` for Radarr, `tv_shows` for Sonarr)
+
+# The `folder_name` is the name of the folder that will be created for that `type` of library
+hms_docker_library_folders:
+  [
+    {
+      type: "movies",
+      folder_name: "Movies"
+    },
+    {
+      type: "tv_shows",
+      folder_name: "TV_Shows"
+    },
+  ]
+
+# The domain used for the Traefik proxy Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
+hms_docker_domain: home.local
+
+# Most home networks are a "/24" network, so this is the default // default: "24"
+# If you don't know what this means, leave the next 2 lines alone
+# If you know your specific network mask, you can change that here
+# These are used to generate Traefik allow-list rules for the proxy so only internal networks are permitted to access certain containers
+# Also controls how some containers treat local network traffic (e.g. Plex, transmission)
+hms_docker_subnet_mask: "24"
+hms_docker_network_subnet: "{{ ansible_default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
+### End of HMS-Docker settings
+#######################################################################
+
+
+
+#######################################################################
+### Container settings
+
+# Controls how the containers are restarted upon server or docker restart // default: "unless-stopped" // valid: "always", "unless-stopped", "on-failure"
+container_restart_policy: unless-stopped
+
+# Enables the "watchtower" container to automatically download and apply container updates // default: "yes"
+container_enable_auto_updates: yes
+
+# The cron-style schedule for the watchtower container to check for updates in UTC time // default: "0 0 9 * * *"
+container_auto_update_schedule: "0 0 9 * * *"
+
+# Will stop and remove containers that you disable within the container map (defined below) // default: "yes"
+container_remove_orphans: yes
+
+# The timezone to use for the containers // default: "America/New_York"
+container_timezone: America/New_York
+
+# User and Group ID's to use for the running processes in the containers (may cause or be the cause of permissions issues)
+#  default: "1234"
+container_uid: 1234
+container_gid: 1234
+
+# This will download all of the containers before attempting to start them // default: "yes"
+container_pull_images_first: yes
+
+# This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
+# If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
+container_expose_ports: no
+### End of Container settings
+#######################################################################
+
+
+
+#######################################################################
+### NAS settings
+## Only used if the `hms_docker_media_share_type` is not set to `local`
+## NAS client general settings
+# Controls the "install state" of the required package // default: "present" // valid: "present", "latest", "absent"
+nas_client_package_state: present
+
+# Controls the "mount state" of the remote share // default: "mounted" // valid: present, absent, mounted, unmounted, remounted
+nas_client_mount_state: mounted
+
+# Controls if the mount will be enabled on boot // default: "yes"
+nas_client_mount_on_boot: yes
+
+## NAS client CIFS settings, only if `hms_docker_media_share_type` is set to `cifs`
+# The CIFS/SMB remote share path to connect to // default: "//nas.example.com/share"
+nas_client_remote_cifs_path: "//nas.example.com/share"
+
+## WARNING: these credentials will be stored in plaintext within the `hms_docker_data_path` folder, but will be owned by `root:root` with `0600` permissions, so only those with root or sudo access can read
+# The username to use when connecting to the remote share
+nas_client_cifs_username: ""
+# The password to use when connecting to the remote share
+nas_client_cifs_password: ""
+
+# The CIFS options to use for the mount, Google should be able to help troubleshoot // default: "rw,soft"
+nas_client_cifs_opts: rw,soft
+
+## NAS client NFS settings, only if `hms_docker_media_share_type` is set to `nfs`
+# The NFS remote share path to connect to // default: "nas.example.com:/share"
+nas_client_remote_nfs_path: "nas.example.com:/share"
+
+# The NFS options to use for the mount, Google should be able to help troubleshoot // default: "defaults"
+nas_client_nfs_opts: defaults
+
+# If you have more than one remote share path to use, you can enable this setting and define them below, please be sure to read the required values for each share type (CIFS, NFS, local)
+nas_client_use_additional_paths: no
+
+### Follow the example template after these required values
+# Required values for `local` folder type:
+# `name`: Friendly name of the path
+# `local_mount_path`: Local path to the folder
+# `type`: Type of path, valid: local
+
+# Required values for `nfs` folder type:
+# `name`: Friendly name of the path
+# `remote_path`: Remote path to the folder
+# `local_mount_path`: Local path to where it will be mounted
+# `type`: Type of path, valid: nfs
+# `nfs_opts`: NFS options, default: defaults
+
+# Required values for `cifs` folder type:
+# `name`: Friendly name of the path
+# `remote_path`: Remote path to the folder
+# `local_mount_path`: Local path to where it will be mounted
+# `type`: Type of path, valid: cifs
+# `cifs_username`: CIFS username, default: ""
+# `cifs_password`: CIFS password, default: ""
+# `cifs_opts`: CIFS options, default: rw,soft
+
+# This should be scalable to as many different shares as you want
+# This is an example template
+nas_client_remote_additional_paths:
+  [
+    {
+      name: "Media NAS 2",
+      remote_path: "nas.example.com:/volume1/media_2",
+      local_mount_path: "{{ hms_docker_mount_path }}_custom_path_2",
+      type: nfs,
+      nfs_opts: defaults,
+    },
+    {
+      name: "Media NAS 3",
+      remote_path: "//nas.example.com/media_3",
+      local_mount_path: "{{ hms_docker_mount_path }}_custom_path_3",
+      type: cifs,
+      cifs_username: "",
+      cifs_password: "",
+      cifs_opts: "rw,soft",
+    },
+  ]
+### End of NAS settings
+#######################################################################
+
+
+
+#######################################################################
+### Cloudflare DDNS settings
+# Enables or disables the Cloudflare DDNS container // default: "no"
+cloudflare_ddns_enabled: no
+
+# Your Cloudflare API token that has read/write permissions for your DNS zone
+cloudflare_api_token: ""
+
+# The domain that will be used for the Cloudflare DDNS container // default: "{{ hms_docker_domain }}"
+# Automatically uses the same domain defined above
+cloudflare_ddns_domain: "{{ hms_docker_domain }}"
+
+# The A (or AAAA) record to be created // default: "ombi"
+# May cause issues if not set to "ombi" due to the Traefik Host rules
+cloudflare_ddns_subdomain: ombi
+
+# Whether to proxy the above record through Cloudflare // default: "true"
+cloudflare_ddns_proxied: "true"
+
+# Deletes the record when the container is stopped // default: "false"
+cloudflare_ddns_delete_record_on_stop: "false"
+
+# Creates an AAAA record for IPv6 // default: "no"
+cloudflare_ddns_create_ipv6_aaaa_record: no
+### End of Cloudflare DDNS settings
+#######################################################################
+
+
+
+#######################################################################
+### SSL and Traefik settings
+# Enables or Disables SSL wildcard certificate generation // default: "no"
+traefik_ssl_enabled: no
+
+# Whether to use the staging/testing URL or production URL // default: "yes"
+# If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
+traefik_ssl_use_letsencrypt_staging_url: yes
+
+# The DNS provider to use for SSL generation, check this for supported providers: https://doc.traefik.io/traefik/https/acme/#providers
+traefik_ssl_dns_provider_code: ""
+
+# The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hms_docker_domain }}"
+traefik_ssl_dns_provider_zone: "{{ hms_docker_domain }}"
+
+# The environment variables for your DNS provider found at the provider link above
+# This is an example if using Cloudflare
+traefik_ssl_dns_provider_environment_vars:
+  {
+    "CF_DNS_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+    "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+  }
+
+# The DNS servers to use when generating your SSL certificate, recommended to set to your DNS providers servers
+traefik_ssl_dns_resolver_1: "1.1.1.1"
+traefik_ssl_dns_resolver_2: "1.0.0.1"
+
+# Required for Let's Encrypt, the email address to use when generating your SSL certificate
+traefik_ssl_letsencrypt_email: ""
+
+# The Traefik log level, helpful for troubleshooting SSL issues // default: "INFO"
+traefik_log_level: "INFO"
+
+# Enable or disable to check if all possible Traefik routes are available (requires all FQDN DNS records to be valid) // default: "no"
+traefik_verify_endpoints: no
+
+# The Traefik allow-list for all containers EXCEPT the Ombi container, the Ombi container allows ALL IP's by default
+# This allows all RFC1918 addresses by default, you can change this to further restrict or allow greater access
+traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
+
+# The Traefik Pilot token (only available after first run)
+traefik_pilot_token: ""
+### End of SSL and Traefik settings
+#######################################################################
+
+
+
+#######################################################################
+### VPN and Transmission settings
+# Visit https://haugene.github.io/docker-transmission-openvpn/supported-providers/ for supported VPN providers
+# The VPN provider to use and the credentials to use for the VPN connection
+transmission_vpn_provider: ""
+transmission_vpn_user: ""
+transmission_vpn_pass: ""
+
+# Transmissoin seed ratio settings
+transmission_ratio_limit: "1" # default: "1"
+transmission_ratio_enabled: "true" # default: "true"
+
+# DNS servers to use for the transmission container
+transmission_dns_1: "8.8.8.8"
+transmission_dns_2: "8.8.4.4"
+
+# This will cause Transmission to download the files to your NAS instead of a local folder (useful if you download a lot at once and your server doesn't have a lot of space)
+# If enabled, a new "apps" folder will be created within your library folder
+transmission_use_nas_for_downloads: no
+
+# Additional environment variables for Transmission (can be found at link above)
+transmission_additional_env_vars:
+  {
+    "TRANSMISSION_DOWNLOAD_QUEUE_SIZE": "25",
+    "TRANSMISSION_MAX_PEERS_GLOBAL": "3000",
+    "TRANSMISSION_PEER_LIMIT_GLOBAL": "3000",
+    "TRANSMISSION_PEER_LIMIT_PER_TORRENT": "300",
+  }
+### End of VPN and Transmission settings
+#######################################################################
+
+
+
+#######################################################################
+### Database settings
+# Valid options: local // ombi_mysql
+ombi_db_host: local
+# `local` option uses a local sqlite database file
+# `ombi_mysql` option uses a mysql container running version 8.0.22 (the mysql container name is `ombi_mysql`)
+
+# Only required if using `ombi_mysql` option
+# Safe to leave as-is, unless you're an advanced MySQL user and know what you are doing
+ombi_mysql_db_port: "3306"
+ombi_mysql_db_name_prefix: Ombi_{{ project_name }}
+ombi_mysql_db_username: ombimysqluser
+ombi_mysql_db_password: ombimysqluserp4ssw0rd
+ombi_mysql_container_db_root_pass: hmsdockerr00tp4ssw0rd
+# Where the db user can login from, only change if you're a very advanced user familiar with MySQL user accounts and restricting where they can login from
+ombi_mysql_db_user_login_from: "%"
+# If using `ombi_mysql`, the database port is NOT exposed by default and will only be accessible within the Docker network
+ombi_mysql_db_expose_ports: no
+### End of Database settings
+#######################################################################
+
+
+
+#######################################################################
+### Misc HMS Docker settings
+# The "state" of all containers // default: "present" // valid: "present" // "absent"
+hms_docker_compose_container_state: present
+
+# The container map, use this to disable specific containers from running or being accessible by Traefik
+# Values:
+#  `enabled`: Enables or disables the container
+#  `directory`: Creates the container directory within the apps folder
+#  `traefik`: Enables or disables accessing the container via Traefik
+hms_docker_container_map:
+  traefik:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  sonarr:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  radarr:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  bazarr:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  transmission:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  portainer:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  ombi:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  ombi_mysql:
+    directory: yes
+    traefik: no
+  adminer:
+    enabled: yes
+    directory: no
+    traefik: yes
+  jackett:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  plex:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  tautulli:
+    enabled: yes
+    directory: yes
+    traefik: yes
+
+plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
+
+### End of Misc HMS Docker settings
+#######################################################################
+
+
+
+#######################################################################
+### Advanced Ansible settings
+# Overrides the family to 'redhat' if running Alma Linux
+family_override: "{{ 'redhat' if ansible_os_family | lower == 'almalinux' else ansible_os_family | lower }}"
+
+# Which python interpreter to use, only change if you're an advanced user and know what you're doing
+ansible_python_interpreter: /usr/bin/python3
+#######################################################################

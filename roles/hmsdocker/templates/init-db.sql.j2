@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS `{{ ombi_mysql_db_name_prefix }}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+CREATE DATABASE IF NOT EXISTS `{{ ombi_mysql_db_name_prefix }}_Settings` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+CREATE DATABASE IF NOT EXISTS `{{ ombi_mysql_db_name_prefix }}_External` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+CREATE USER IF NOT EXISTS '{{ ombi_mysql_db_username }}'@'{{ ombi_mysql_db_user_login_from }}' IDENTIFIED BY '{{ ombi_mysql_db_password }}';
+GRANT ALL PRIVILEGES ON `{{ ombi_mysql_db_name_prefix }}`.* TO '{{ ombi_mysql_db_username }}'@'{{ ombi_mysql_db_user_login_from }}' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON `{{ ombi_mysql_db_name_prefix }}_Settings`.* TO '{{ ombi_mysql_db_username }}'@'{{ ombi_mysql_db_user_login_from }}' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON `{{ ombi_mysql_db_name_prefix }}_External`.* TO '{{ ombi_mysql_db_username }}'@'{{ ombi_mysql_db_user_login_from }}' WITH GRANT OPTION;

@@ -1,0 +1,17 @@
+---
+- name: Ensure database.json file for Ombi exists
+  template:
+    src: "database.json.j2"
+    dest: "{{ hms_docker_apps_path }}/ombi/config/database.json"
+    mode: 0644
+
+- name: Ensure database entrypoint directory exists.
+  file:
+    path: "{{ hms_docker_apps_path }}/ombi_mysql/entrypoint"
+    state: directory
+
+- name: Ensure database entrypoint SQL file.
+  template:
+    src: init-db.sql.j2
+    dest: "{{ hms_docker_apps_path }}/ombi_mysql/entrypoint/init-db.sql"
+    mode: 0644
