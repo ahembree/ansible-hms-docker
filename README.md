@@ -2,6 +2,14 @@
 
 Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms with support for GPUs, SSL, DDNS, and more.
 
+## Getting Started
+
+- [Installation](#installation)
+- [Content layout](#content-layout)
+- [Configuration](#configuration)
+- [Connecting the containers](#connecting-the-containers)
+- [Only generate config files](#only-generate-config-files)
+
 ## Container List
 
 - Plex: media server
@@ -29,8 +37,9 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 ## Supported Platforms
 
-- Ubuntu (18.04+)
 - RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux)
+- Debian based systems (Debian 9, Ubuntu 18.04+, etc.)
+- Possibly Raspberry Pi (need someone to volunteer to help development)
 
 ## Requirements
 
@@ -43,8 +52,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - `root` or `sudo` access
 - Supported Platform
 - 4 CPU Cores
-- Minimum 8GB RAM
-- Minimum 16GB free disk space
+- Minimum 4GB RAM
+- Minimum 8GB free disk space
 - Nvidia GPU drivers already installed (if using Nvidia GPU acceleration)
 - Python 3.8 (Recommended, minimum Python 3.6)
 - Ansible (minimum 2.9)
@@ -86,7 +95,7 @@ TV Show folder: `<media path>/TV_Shows`
 
 ---
 
-## First Steps
+## Installation
 
 It is recommended to read and follow this guide entirely as there is a lot of configuration options that are required to get the system up and running to its full potential.
 
@@ -132,6 +141,8 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 3. Edit the `vars/default.yml` file to configure settings and variables used in the playbook.
 
+## Configuration
+
 - Settings to configure:
 
   - `plex_claim_token` : (optional) your Plex claim code from https://plex.tv/claim
@@ -175,7 +186,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 - Optional settings to configure:
   - If you with to use a more advanced configuration, you can run this command to replace the standard config with the default advanced config:
-  
+
   ```bash
   cp roles/hmsdocker/defaults/main.yml vars/default.yml
   ```
@@ -220,10 +231,7 @@ Traefik: `https://traefik.{{ domain }}`
 
 Adminer: `http://adminer.{{ domain }}`
 
-
-
-
-### Connecting the Containers
+## Connecting the Containers
 
 When connecting Jackett to Sonarr and Radarr and etc, you can use the name of the container (e.g. `jackett` or `radarr`) and then defining the container port to connect to (e.g. `jackett:9117` or `radarr:7878`).
 
@@ -245,35 +253,13 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Traefik            | `traefik`            | `8080`                 | `8080`         | &#9745;                |
 | MySQL (if enabled) | `ombi_mysql`         | `3306` (if enabled)    | `3306`         | &#9744;                |
 
-### Created Docker Networks
 
-This playbook creates the following Docker networks with the containers listed:
+## Only generate config files
 
-- `traefik_net` : the network for connecting containers to Traefik
+If you only want to generate the config files for docker-compose and Traefik, you can run the following command:
 
-  - `portainer`
-  - `traefik`
-  - `transmission_proxy`
-  - `jackett`
-  - `radarr`
-  - `sonarr`
-  - `plex`
-  - `ombi`
-  - `bazarr`
-  - `tautulli`
-  - `adminer`
+```bash
+ansible-playbook -i inventory --connection local generate-configs.yml
+```
 
-- `media_net` : the network for the Plex container
-
-  - `plex`
-  - `ombi_mysql`
-  - `ombi`
-  - `adminer`
-  - `tautulli`
-
-- `download_net` : the network for connecting containers to Transmission
-  - `transmission`
-  - `transmission_proxy`
-  - `jackett`
-  - `radarr`
-  - `sonarr`
+By default, it will output these configs into `/opt/hms-docker/`
