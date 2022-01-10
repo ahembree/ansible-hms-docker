@@ -1,6 +1,6 @@
 # ansible-hms-docker
 
-Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms.
+Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms with support for GPUs, SSL, DDNS, and more.
 
 ## Container List
 
