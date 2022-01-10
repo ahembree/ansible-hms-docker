@@ -71,11 +71,17 @@ Setting up the individual container configurations, such as for Sonarr, Radarr, 
 ## Content Layout
 
 By default, the content is laid out in the following directory structure:
+
 Generated compose file location: `/opt/hms-docker/docker-compose.yml`
+
 Container data directory: `/opt/hms-docker/apps`
-Mounted folder for network shares: `/mnt/hms-docker`
+
+Default mount path for local share: `/opt/hms-docker/media_data/`
+
 Media folder that contains movie and tv show folders: `<mount path>/_library`
+
 Movie folder: `<media path>/Movies`
+
 TV Show folder: `<media path>/TV_Shows`
 
 ---
@@ -126,10 +132,10 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 3. Edit the `vars/default.yml` file to configure settings and variables used in the playbook.
 
-- Required settings to configure:
+- Settings to configure:
 
-  - `plex_claim_token` : your Plex claim code from https://plex.tv/claim
-  - `hms_docker_domain` : the local domain name of the server (e.g. `home.local`)
+  - `plex_claim_token` : (optional) your Plex claim code from https://plex.tv/claim
+  - `hms_docker_domain` : the local domain name of the server to be used for proxy rules and SSL certificates (e.g. `home.local`)
   - `transmission_vpn_user` : the username of the VPN user
   - `transmission_vpn_pass` : the password of the VPN user
   - `transmission_vpn_provider` : the VPN provider (e.g. `nordvpn`, [see this page for the list of supported providers](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers))
@@ -168,8 +174,11 @@ It is recommended to read and follow this guide entirely as there is a lot of co
   - `cloudflare_ddns_proxied` : `'true'` or `'false'` to enable/disable proxying the traffic through Cloudflare (default: `'true'`)
 
 - Optional settings to configure:
-  - All other possible settings have a default value, but you can change them if you wish by editing the `roles/hmsdocker/defaults/main.yml` file and changing its value.
-  - If you with to use a more advanced configuration, you can run `cp roles/hmsdocker/defaults/main.yml vars/default.yml` to copy all default values and then edit the `vars/default.yml` file to your liking.
+  - If you with to use a more advanced configuration, you can run this command to replace the standard config with the default advanced config:
+  
+  ```bash
+  cp roles/hmsdocker/defaults/main.yml vars/default.yml
+  ```
 
 ---
 
@@ -177,7 +186,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 ```bash
 # If you're running against the local system (to check for any changes made, add `--check` to the end of the command):
-ansible-playbook -i inventory --connection local hms-docker.yaml
+ansible-playbook -i inventory --connection local hms-docker.yml
 
 # If you wish to run it against a remote host, add the host to the `inventory` file and then run the command:
 ansible-playbook -i inventory hms-docker.yml
@@ -186,6 +195,8 @@ ansible-playbook -i inventory hms-docker.yml
 Once the playbook has finished running, it may take up to a few minutes for the SSL certificate to be generated (if enabled).
 
 If you do not already have a "wildcard" DNS record setup for the domain you used on your LOCAL DNS server (such as `*.home.local`), create this record to point to the IP address of the server. If you enabled Cloudflare DDNS, an "ombi" public A record will be created.
+
+You can also create individual A records for each container listed in the table below.
 
 If the above DNS requirements are met, you can then access the containers by using the following URLs (substituting `{{ domain }}` for the domain you used):
 
