@@ -348,20 +348,16 @@ services:
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['ombi']['enabled'] %}
-  # Ombi container, request platform
-  ombi:
-    image: linuxserver/ombi:latest
-    container_name: ombi
+{% if hms_docker_container_map['overseerr']['enabled'] %}
+  # Overseer container, request platform
+  overseerr:
+    image: linuxserver/overseerr:latest
+    container_name: overseerr
     restart: {{ container_restart_policy }}
     logging:
       driver: json-file
       options:
         max-size: 10m
-{% if ombi_db_host == 'ombi_mysql' %}
-    depends_on:
-      - mysql
-{% endif %}
     networks:
       - "media_net"
       - "download_net"
@@ -370,68 +366,17 @@ services:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
       - TZ={{ container_timezone }}
-{% if hms_docker_container_map['ombi']['traefik'] %}
+{% if hms_docker_container_map['overseerr']['traefik'] %}
     labels:
       - traefik.enable=true
-      - traefik.http.services.ombi-{{ project_name }}.loadbalancer.server.port=3579
-      - "traefik.http.routers.ombi-{{ project_name }}.middlewares=external-ipwhitelist"
+      - traefik.http.services.overseerr-{{ project_name }}.loadbalancer.server.port=5055
+      - "traefik.http.routers.overseerr-{{ project_name }}.middlewares=external-ipwhitelist"
 {% endif %}
     volumes:
-      - {{ hms_docker_apps_path }}/ombi/config:/config
+      - {{ hms_docker_apps_path }}/overseerr/config:/config
 {% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
     ports:
-      - 3579:3579
-{% endif %}
-{% endif %}
-
-{% if ombi_db_host == 'ombi_mysql' %}
-  # Ombi MySQL container
-  mysql:
-    image: mysql:8.0.22
-    container_name: ombi_mysql
-    command: --default-authentication-plugin=mysql_native_password
-    restart: {{ container_restart_policy }}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-{% if ombi_mysql_db_expose_ports and container_expose_ports %}
-    ports:
-      - 3306:3306
-{% endif %}
-    networks:
-      - "media_net"
-    environment:
-      MYSQL_ROOT_PASSWORD: '{{ ombi_mysql_container_db_root_pass }}'
-    volumes:
-      # initializes database on first run
-      - {{ hms_docker_apps_path }}/ombi_mysql/entrypoint:/docker-entrypoint-initdb.d
-      # folder where database data is stored
-      - {{ hms_docker_apps_path }}/ombi_mysql/database:/var/lib/mysql
-
-{% if hms_docker_container_map['adminer']['enabled'] %}
-  # Adminer container, webgui for ombi_mysql container
-  adminer:
-    image: adminer:latest
-    container_name: adminer
-    restart: {{ container_restart_policy }}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-    networks:
-      - "media_net"
-      - "traefik_net"
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
-    ports:
-      - 8082:8080
-{% endif %}
-{% if hms_docker_container_map['adminer']['traefik'] %}
-    labels:
-      - traefik.enable=true
-      - traefik.http.services.adminer-{{ project_name }}.loadbalancer.server.port=8080
-      - "traefik.http.routers.adminer-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% endif %}
+      - 5055:5055
 {% endif %}
 {% endif %}
 

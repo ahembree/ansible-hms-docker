@@ -135,9 +135,9 @@ cloudflare_api_token: ""
 # Automatically uses the same domain defined above
 cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 
-# The A (or AAAA) record to be created // default: "ombi"
-# May cause issues if not set to "ombi" due to the Traefik Host rules
-cloudflare_ddns_subdomain: ombi
+# The A (or AAAA) record to be created // default: "overseerr"
+# May cause issues if not set to "overseerr" due to the Traefik Host rules
+cloudflare_ddns_subdomain: overseerr
 
 ### End of Cloudflare DDNS settings
 #######################################################################
@@ -201,14 +201,3 @@ transmission_dns_2: "8.8.4.4"
 ### End of VPN and Transmission settings
 #######################################################################
 
-
-
-#######################################################################
-### Database settings
-# Valid options: local // ombi_mysql
-ombi_db_host: local
-# `local` option uses a local sqlite database file
-# `ombi_mysql` option uses a mysql container running version 8.0.22 (the mysql container name is `ombi_mysql`)
-
-### End of Database settings
-#######################################################################

@@ -221,9 +221,9 @@ cloudflare_api_token: ""
 # Automatically uses the same domain defined above
 cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 
-# The A (or AAAA) record to be created // default: "ombi"
-# May cause issues if not set to "ombi" due to the Traefik Host rules
-cloudflare_ddns_subdomain: ombi
+# The A (or AAAA) record to be created // default: "overseerr"
+# May cause issues if not set to "overseerr" due to the Traefik Host rules
+cloudflare_ddns_subdomain: overseerr
 
 # Whether to proxy the above record through Cloudflare // default: "true"
 cloudflare_ddns_proxied: "true"
@@ -274,7 +274,7 @@ traefik_log_level: "INFO"
 # Enable or disable to check if all possible Traefik routes are available (requires all FQDN DNS records to be valid) // default: "no"
 traefik_verify_endpoints: no
 
-# The Traefik allow-list for all containers EXCEPT the Ombi container, the Ombi container allows ALL IP's by default
+# The Traefik allow-list for all containers EXCEPT the Overseerr container, the Overseerr container allows ALL IP's by default
 # This allows all RFC1918 addresses by default, you can change this to further restrict or allow greater access
 traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
 
@@ -319,29 +319,6 @@ transmission_additional_env_vars:
 
 
 #######################################################################
-### Database settings
-# Valid options: local // ombi_mysql
-ombi_db_host: local
-# `local` option uses a local sqlite database file
-# `ombi_mysql` option uses a mysql container running version 8.0.22 (the mysql container name is `ombi_mysql`)
-
-# Only required if using `ombi_mysql` option
-# Safe to leave as-is, unless you're an advanced MySQL user and know what you are doing
-ombi_mysql_db_port: "3306"
-ombi_mysql_db_name_prefix: Ombi_{{ project_name }}
-ombi_mysql_db_username: ombimysqluser
-ombi_mysql_db_password: ombimysqluserp4ssw0rd
-ombi_mysql_container_db_root_pass: hmsdockerr00tp4ssw0rd
-# Where the db user can login from, only change if you're a very advanced user familiar with MySQL user accounts and restricting where they can login from
-ombi_mysql_db_user_login_from: "%"
-# If using `ombi_mysql`, the database port is NOT exposed by default and will only be accessible within the Docker network
-ombi_mysql_db_expose_ports: no
-### End of Database settings
-#######################################################################
-
-
-
-#######################################################################
 ### Misc HMS Docker settings
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present
@@ -376,13 +353,10 @@ hms_docker_container_map:
     enabled: yes
     directory: yes
     traefik: yes
-  ombi:
+  overseerr:
     enabled: yes
     directory: yes
     traefik: yes
-  ombi_mysql:
-    directory: yes
-    traefik: no
   adminer:
     enabled: yes
     directory: no

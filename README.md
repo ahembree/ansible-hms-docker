@@ -21,7 +21,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Tautulli: analytics
 - Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
 - Portainer: container management GUI
-- Ombi: request platform
+- Overseerr: request platform
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
 
@@ -57,7 +57,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Nvidia GPU drivers already installed (if using Nvidia GPU acceleration)
 - Python 3.8 (Recommended, minimum Python 3.6)
 - Ansible (minimum 2.9)
-- If you plan to make Plex and/or Ombi available outside your local network, the following ports must be forwarded in your router to the IP of the server that will be running these containers:
+- If you plan to make Plex and/or Overseerr available outside your local network, the following ports must be forwarded in your router to the IP of the server that will be running these containers:
   - Instructions for forwarding ports to the correct device is outside the scope of this project as every router/gateway has different instructions.
   - This is in no way guaranteed to be the best or most secure way to do this, and this assumes your ISP does not block these ports
   - `80/tcp` (HTTP)
@@ -75,7 +75,7 @@ To ensure no conflicting changes with an existing system, you can run this playb
 
 ## Please note
 
-Setting up the individual container configurations, such as for Sonarr, Radarr, Ombi, Prowlarr, etc. are outside the scope of this project. The purpose of this project is to ensure the necessary base containers are running.
+Setting up the individual container configurations, such as for Sonarr, Radarr, Overseerr, Prowlarr, etc. are outside the scope of this project. The purpose of this project is to ensure the necessary base containers are running.
 
 ## Content Layout
 
@@ -181,7 +181,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
   - `cloudflare_ddns_enabled` : `yes` or `no` to enable/disable Cloudflare DDNS (default: `no`)
   - `cloudflare_api_token` : the API token of the Cloudflare account
   - `cloudflare_zone` : the domain name of the Cloudflare zone (e.g. `example.com`)
-  - `cloudflare_ddns_subdomain` : the subdomain record (e.g. `ombi` would be created as `ombi.example.com`) (default: `ombi`)
+  - `cloudflare_ddns_subdomain` : the subdomain record (e.g. `overseerr` would be created as `overseerr.example.com`) (default: `overseerr`)
   - `cloudflare_ddns_proxied` : `'true'` or `'false'` to enable/disable proxying the traffic through Cloudflare (default: `'true'`)
 
 - Optional settings to configure:
@@ -205,7 +205,7 @@ ansible-playbook -i inventory hms-docker.yml
 
 Once the playbook has finished running, it may take up to a few minutes for the SSL certificate to be generated (if enabled).
 
-If you do not already have a "wildcard" DNS record setup for the domain you used on your LOCAL DNS server (such as `*.home.local`), create this record to point to the IP address of the server. If you enabled Cloudflare DDNS, an "ombi" public A record will be created.
+If you do not already have a "wildcard" DNS record setup for the domain you used on your LOCAL DNS server (such as `*.home.local`), create this record to point to the IP address of the server. If you enabled Cloudflare DDNS, an "overseerr" public A record will be created.
 
 You can also create individual A records for each container listed in the table below.
 
@@ -219,7 +219,7 @@ Radarr: `https://radarr.{{ domain }}`
 
 Bazarr: `https://bazarr.{{ domain }}`
 
-Ombi: `https://ombi.{{ domain }}`
+Overseerr: `https://overseerr.{{ domain }}`
 
 Prowlarr: `https://prowlarr.{{ domain }}`
 
@@ -243,7 +243,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Sonarr             | `sonarr`             | `8989`                 | `8989`         | &#9745;                |
 | Radarr             | `radarr`             | `7878`                 | `7878`         | &#9745;                |
 | Prowlarr           | `prowlarr`           | `9696`                 | `9696`         | &#9745;                |
-| Ombi               | `ombi`               | `3579`                 | `3579`         | &#9745;                |
+| Overseerr          | `Overseerr`          | `5055`                 | `5055`         | &#9745;                |
 | Transmission       | `transmission`       | `9091`                 | `9091`         | &#9745;                |
 | Transmission Proxy | `transmission-proxy` | `8081`                 | `8080`         | &#9744;                |
 | Portainer          | `portainer`          | `9000`                 | `9000`         | &#9745;                |
@@ -251,7 +251,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Tautulli           | `tautulli`           | `8181`                 | `8181`         | &#9745;                |
 | Adminer            | `adminer`            | `8082`                 | `8080`         | &#9745;                |
 | Traefik            | `traefik`            | `8080`                 | `8080`         | &#9745;                |
-| MySQL (if enabled) | `ombi_mysql`         | `3306` (if enabled)    | `3306`         | &#9744;                |
 
 
 ## Only generate config files

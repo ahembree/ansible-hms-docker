@@ -41,10 +41,6 @@
   import_tasks: "traefik.yml"
   when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
 
-- name: Ensure Ombi MySQL config if configured.
-  import_tasks: "ombi_mysql.yml"
-  when: ombi_db_host == "ombi_mysql"
-
 - name: Ensure docker-compose.yml file.
   template:
     src: docker-compose.yml.j2
