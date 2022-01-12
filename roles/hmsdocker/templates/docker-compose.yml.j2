@@ -115,10 +115,6 @@ services:
       - {{ hms_docker_apps_path }}/transmission/incomplete:/incomplete
       - {{ hms_docker_apps_path }}/transmission/completed:/completed
 {% endif %}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
     environment:
       - OPENVPN_PROVIDER={{ transmission_vpn_provider }}
       - OPENVPN_USERNAME={{ transmission_vpn_user  }}
