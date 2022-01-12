@@ -357,10 +357,6 @@ hms_docker_container_map:
     enabled: yes
     directory: yes
     traefik: yes
-  adminer:
-    enabled: yes
-    directory: no
-    traefik: yes
   prowlarr:
     enabled: yes
     directory: yes

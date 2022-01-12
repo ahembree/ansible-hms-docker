@@ -229,8 +229,6 @@ Tautulli: `https://tautulli.{{ domain }}`
 
 Traefik: `https://traefik.{{ domain }}`
 
-Adminer: `http://adminer.{{ domain }}`
-
 ## Connecting the Containers
 
 When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
@@ -249,7 +247,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Portainer          | `portainer`          | `9000`                 | `9000`         | &#9745;                |
 | Bazarr             | `bazarr`             | `6767`                 | `6767`         | &#9745;                |
 | Tautulli           | `tautulli`           | `8181`                 | `8181`         | &#9745;                |
-| Adminer            | `adminer`            | `8082`                 | `8080`         | &#9745;                |
 | Traefik            | `traefik`            | `8080`                 | `8080`         | &#9745;                |
 
 
