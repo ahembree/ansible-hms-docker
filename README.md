@@ -16,7 +16,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Sonarr: tv series management
 - Radarr: movie management
 - Bazarr: subtitle management
-- Jackett: tracker management
+- Prowlarr: tracker management
 - Transmission: download client with VPN and HTTP proxy
 - Tautulli: analytics
 - Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
@@ -75,7 +75,7 @@ To ensure no conflicting changes with an existing system, you can run this playb
 
 ## Please note
 
-Setting up the individual container configurations, such as for Sonarr, Radarr, Ombi, Jackett, etc. are outside the scope of this project. The purpose of this project is to ensure the necessary base containers are running.
+Setting up the individual container configurations, such as for Sonarr, Radarr, Ombi, Prowlarr, etc. are outside the scope of this project. The purpose of this project is to ensure the necessary base containers are running.
 
 ## Content Layout
 
@@ -221,7 +221,7 @@ Bazarr: `https://bazarr.{{ domain }}`
 
 Ombi: `https://ombi.{{ domain }}`
 
-Jackett: `https://jackett.{{ domain }}`
+Prowlarr: `https://prowlarr.{{ domain }}`
 
 Transmission: `https://transmission.{{ domain }}`
 
@@ -233,7 +233,7 @@ Adminer: `http://adminer.{{ domain }}`
 
 ## Connecting the Containers
 
-When connecting Jackett to Sonarr and Radarr and etc, you can use the name of the container (e.g. `jackett` or `radarr`) and then defining the container port to connect to (e.g. `jackett:9117` or `radarr:7878`).
+When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
 
 If you choose to expose the container ports on the host (by setting `container_expose_ports: yes` in the `vars/default.yml` file), see below for which ports are mapped to which container on the host.
 
@@ -242,7 +242,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Plex               | `plex`               | `32400`                | `32400`        | &#9745;                |
 | Sonarr             | `sonarr`             | `8989`                 | `8989`         | &#9745;                |
 | Radarr             | `radarr`             | `7878`                 | `7878`         | &#9745;                |
-| Jackett            | `jackett`            | `9117`                 | `9117`         | &#9745;                |
+| Prowlarr           | `prowlarr`           | `9696`                 | `9696`         | &#9745;                |
 | Ombi               | `ombi`               | `3579`                 | `3579`         | &#9745;                |
 | Transmission       | `transmission`       | `9091`                 | `9091`         | &#9745;                |
 | Transmission Proxy | `transmission-proxy` | `8081`                 | `8080`         | &#9744;                |

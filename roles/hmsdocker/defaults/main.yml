@@ -387,7 +387,7 @@ hms_docker_container_map:
     enabled: yes
     directory: no
     traefik: yes
-  jackett:
+  prowlarr:
     enabled: yes
     directory: yes
     traefik: yes
