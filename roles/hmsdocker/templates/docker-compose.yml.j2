@@ -228,7 +228,11 @@ services:
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/sonarr/config:/config
+{% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
       - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+{% else %}
+      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+{% endif %}
 {% for folder in hms_docker_library_folders %}
 {% if folder.type == "tv_shows" %}
       - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
@@ -274,7 +278,11 @@ services:
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/radarr/config:/config
+{% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
       - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+{% else %}
+      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+{% endif %}
 {% for folder in hms_docker_library_folders %}
 {% if folder.type == "movies" %}
       - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
