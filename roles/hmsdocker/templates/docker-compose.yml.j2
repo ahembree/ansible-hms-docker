@@ -142,9 +142,9 @@ services:
 {% endfor %}
 
   # Proxy container, for Transmission, also hosts HTTP proxy to route traffic through the VPN
-  proxy:
+  transmission-proxy:
     image: haugene/transmission-openvpn-proxy:latest
-    container_name: proxy
+    container_name: transmission-proxy
     restart: {{ container_restart_policy }}
     logging:
       driver: json-file
