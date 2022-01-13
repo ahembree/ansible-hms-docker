@@ -18,6 +18,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Bazarr: subtitle management
 - Prowlarr: tracker management
 - Transmission: download client with VPN and HTTP proxy
+- NZBGet: download client
 - Tautulli: analytics
 - Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
 - Portainer: container management GUI
@@ -141,7 +142,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 3. Edit the `vars/default.yml` file to configure settings and variables used in the playbook.
 
-## Configuration
+## Configuration of the `vars/default.yml` file
 
 - Settings to configure:
 
@@ -229,6 +230,8 @@ Tautulli: `https://tautulli.{{ domain }}`
 
 Traefik: `https://traefik.{{ domain }}`
 
+NZBGet: `https://nzbget.{{ domain }}`
+
 ## Connecting the Containers
 
 When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
@@ -248,7 +251,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Bazarr             | `bazarr`             | `6767`                 | `6767`         | &#9745;                |
 | Tautulli           | `tautulli`           | `8181`                 | `8181`         | &#9745;                |
 | Traefik            | `traefik`            | `8080`                 | `8080`         | &#9745;                |
-
+| NZBGet             | `nzbget`             | `6789`                 | `6789`         | &#9745;                |
 
 ## Only generate config files
 

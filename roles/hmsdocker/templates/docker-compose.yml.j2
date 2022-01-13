@@ -84,6 +84,40 @@ services:
 {% endif %}
 {% endif %}
 
+{% if hms_docker_container_map['nzbget']['enabled'] %}
+  # NZBGet container
+  nzbget:
+    image: lscr.io/linuxserver/nzbget:latest
+    container_name: nzbget
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "traefik_net"
+      - "download_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/nzbget/config:/config
+{% if nzbget_enable_downloads_mount %}
+      - {{ hms_docker_apps_path }}/nzbget/downloads:/downloads
+{% endif %}
+{% if container_expose_ports %}
+    ports:
+      - 6789:6789
+{% endif %}
+{% if hms_docker_container_map['nzbget']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.nzbget-{{ project_name }}.loadbalancer.server.port=6789
+      - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
 {% if hms_docker_container_map['transmission']['enabled'] and transmission_vpn_provider is defined and transmission_vpn_user is defined and transmission_vpn_pass is defined %}
   # Transmission container, torrent client/VPN
   transmission:

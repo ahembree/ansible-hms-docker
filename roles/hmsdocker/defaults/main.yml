@@ -319,6 +319,15 @@ transmission_additional_env_vars:
 
 
 #######################################################################
+### NZBGet settings
+nzbget_enable_downloads_mount: yes
+
+### End of NZBGet settings
+#######################################################################
+
+
+
+#######################################################################
 ### Misc HMS Docker settings
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present
@@ -366,6 +375,10 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
   tautulli:
+    enabled: yes
+    directory: yes
+    traefik: yes
+  nzbget:
     enabled: yes
     directory: yes
     traefik: yes
