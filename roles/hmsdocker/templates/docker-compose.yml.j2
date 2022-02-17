@@ -104,7 +104,7 @@ services:
     volumes:
       - {{ hms_docker_apps_path }}/nzbget/config:/config
 {% if nzbget_enable_downloads_mount %}
-      - {{ hms_docker_apps_path }}/nzbget/downloads:/downloads
+      - {{ hms_docker_apps_path }}/nzbget/downloads:/data/usenet
 {% endif %}
 {% if container_expose_ports %}
     ports:
@@ -143,14 +143,11 @@ services:
     volumes:
       - {{ hms_docker_apps_path }}/transmission/config:/data/transmission-home
 {% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
-      - {{ hms_docker_mount_path }}/apps/transmission/incomplete:/incomplete
-      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
 {% elif (transmission_custom_download_path is defined and transmission_custom_download_path) and (transmission_use_custom_download_path is defined and transmission_use_custom_download_path) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads) %}
-      - {{ transmission_custom_download_path }}/incomplete:/incomplete
-      - {{ transmission_custom_download_path }}/completed:/completed
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
 {% else %}
-      - {{ hms_docker_apps_path }}/transmission/incomplete:/incomplete
-      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+      - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
 {% endif %}
     environment:
       - OPENVPN_PROVIDER={{ transmission_vpn_provider }}
@@ -158,8 +155,9 @@ services:
       - OPENVPN_PASSWORD={{ transmission_vpn_pass }}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
-      - TRANSMISSION_DOWNLOAD_DIR=/completed
-      - TRANSMISSION_INCOMPLETE_DIR=/incomplete
+      - TRANSMISSION_DOWNLOAD_DIR=/data/torrents
+      - TRANSMISSION_INCOMPLETE_DIR=/data/torrents/incomplete
+      - TRANSMISSION_INCOMPLETE_DIR_ENABLED=true
       - TRANSMISSION_WATCH_DIR_ENABLED=false
       - TZ={{ container_timezone }}
       - PUID={{ container_uid }}
@@ -262,24 +260,16 @@ services:
     volumes:
       - {{ hms_docker_apps_path }}/sonarr/config:/config
 {% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
-      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
 {% elif (transmission_custom_download_path is defined and transmission_custom_download_path) and (transmission_use_custom_download_path is defined and transmission_use_custom_download_path) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads) %}
-      - {{ transmission_custom_download_path }}/completed:/completed
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
 {% else %}
-      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+      - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
 {% endif %}
-{% for folder in hms_docker_library_folders %}
-{% if folder.type == "tv_shows" %}
-      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
-{% endif %}
-{% endfor %}
+      - {{ hms_docker_media_path }}:/data/media
 {% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
 {% for path in nas_client_remote_additional_paths %}
-{% for folder in hms_docker_library_folders %}
-{% if folder.type == "tv_shows" %}
-      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
-{% endif %}
-{% endfor %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
 {% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
@@ -314,24 +304,16 @@ services:
     volumes:
       - {{ hms_docker_apps_path }}/radarr/config:/config
 {% if (transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs') %}
-      - {{ hms_docker_mount_path }}/apps/transmission/completed:/completed
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
 {% elif (transmission_custom_download_path is defined and transmission_custom_download_path) and (transmission_use_custom_download_path is defined and transmission_use_custom_download_path) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads) %}
-      - {{ transmission_custom_download_path }}/completed:/completed
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
 {% else %}
-      - {{ hms_docker_apps_path }}/transmission/completed:/completed
+      - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
 {% endif %}
-{% for folder in hms_docker_library_folders %}
-{% if folder.type == "movies" %}
-      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
-{% endif %}
-{% endfor %}
+      - {{ hms_docker_media_path }}:/data/media
 {% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
 {% for path in nas_client_remote_additional_paths %}
-{% for folder in hms_docker_library_folders %}
-{% if folder.type == "movies" %}
-      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
-{% endif %}
-{% endfor %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
 {% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
@@ -362,19 +344,10 @@ services:
       - TZ={{ container_timezone }}
     volumes:
       - {{ hms_docker_apps_path }}/bazarr/config:/config
-{% for folder in hms_docker_library_folders %}
-{% if folder.type == "tv_shows" %}
-      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_tv_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
-{% endif %}
-{% if folder.type == "movies" %}
-      - {{ hms_docker_media_path }}/{{ folder.folder_name }}:/data_movies_{{ folder.folder_name | map('regex_replace', regex, replace) | list | join }}
-{% endif %}
-{% endfor %}
+      - {{ hms_docker_media_path }}:/data/media
 {% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
 {% for path in nas_client_remote_additional_paths %}
-{% for folder in hms_docker_library_folders %}
-      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}/{{ folder.folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}/{{ folder.folder_name }}
-{% endfor %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
 {% if hms_docker_container_map['bazarr']['traefik'] %}
@@ -461,10 +434,10 @@ services:
       # temp folder for Plex transcoding
       - {{ plex_transcode_folder }}:/transcode
       # media folder where all movies and series are stored
-      - {{ hms_docker_media_path }}:/data_media
+      - {{ hms_docker_media_path }}:/data/media
 {% if nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths %}
 {% for path in nas_client_remote_additional_paths %}
-      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data_nas_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
 {% if hms_docker_container_map['plex']['traefik'] %}
