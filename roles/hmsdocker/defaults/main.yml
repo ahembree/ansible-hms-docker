@@ -374,6 +374,10 @@ hms_docker_container_map:
     enabled: yes
     directory: yes
     traefik: yes
+  requestrr:
+    enabled: yes
+    directory: yes
+    traefik: yes
   plex:
     enabled: yes
     directory: yes

@@ -23,6 +23,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
 - Portainer: container management GUI
 - Overseerr: request platform
+- Requestrr: chat client for requests
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
 
@@ -222,6 +223,8 @@ Bazarr: `https://bazarr.{{ domain }}`
 
 Overseerr: `https://overseerr.{{ domain }}`
 
+Requestrr: `https://requestrr.{{ domain }}`
+
 Prowlarr: `https://prowlarr.{{ domain }}`
 
 Transmission: `https://transmission.{{ domain }}`
@@ -245,6 +248,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Radarr             | `radarr`             | `7878`                 | `7878`         | &#9745;                |
 | Prowlarr           | `prowlarr`           | `9696`                 | `9696`         | &#9745;                |
 | Overseerr          | `Overseerr`          | `5055`                 | `5055`         | &#9745;                |
+| Requestrr          | `Requestrr`          | `4545`                 | `4545`         | &#9745;                |
 | Transmission       | `transmission`       | `9091`                 | `9091`         | &#9745;                |
 | Transmission Proxy | `transmission-proxy` | `8081`                 | `8080`         | &#9744;                |
 | Portainer          | `portainer`          | `9000`                 | `9000`         | &#9745;                |

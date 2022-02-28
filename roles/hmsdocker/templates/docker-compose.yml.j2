@@ -203,6 +203,37 @@ services:
 {% endif %}
 {% endif %}
 
+{% if hms_docker_container_map['requestrr']['enabled'] %}
+  # Requestrr container, chat client for requests
+  requestrr:
+    image: darkalfx/requestrr:latest
+    container_name: requestrr
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/requestrr/config:/root/config
+{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+    ports:
+      - 4545:4545
+{% endif %}
+{% if hms_docker_container_map['requestrr']['traefik'] %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.requestrr-{{ project_name }}.loadbalancer.server.port=4545
+      - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% endif %}
+
 {% if hms_docker_container_map['prowlarr']['enabled'] %}
   # Prowlarr container, torrent indexer
   prowlarr:
