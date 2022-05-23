@@ -1,1 +1,8 @@
+# cache files
 .dccache
+
+# env stuff
+.venv/
+
+# python stuff
+__pycache__/
