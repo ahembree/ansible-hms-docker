@@ -24,7 +24,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.portainer-{{ project_name }}.loadbalancer.server.port=9000
+{% if not hms_docker_container_map['portainer']['expose_to_public'] %}
       - "traefik.http.routers.portainer-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -114,7 +116,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.nzbget-{{ project_name }}.loadbalancer.server.port=6789
+{% if not hms_docker_container_map['nzbget']['expose_to_public'] %}
       - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -199,7 +203,9 @@ services:
       # for the transmission container web UI, so we have traefik point to this one instead when trying to access the transmission web UI
       - traefik.http.routers.proxy-{{ project_name }}.rule=Host(`transmission.{{ hms_docker_domain }}`)
       - traefik.http.services.proxy-{{ project_name }}.loadbalancer.server.port=8080
+{% if not hms_docker_container_map['transmission']['expose_to_public'] %}
       - "traefik.http.routers.proxy-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -230,7 +236,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.requestrr-{{ project_name }}.loadbalancer.server.port=4545
+{% if not hms_docker_container_map['requestrr']['expose_to_public'] %}
       - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -261,7 +269,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.prowlarr-{{ project_name }}.loadbalancer.server.port=9696
+{% if not hms_docker_container_map['prowlarr']['expose_to_public'] %}
       - "traefik.http.routers.prowlarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -286,7 +296,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.sonarr-{{ project_name }}.loadbalancer.server.port=8989
+{% if not hms_docker_container_map['sonarr']['expose_to_public'] %}
       - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/sonarr/config:/config
@@ -330,7 +342,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.radarr-{{ project_name }}.loadbalancer.server.port=7878
+{% if not hms_docker_container_map['radarr']['expose_to_public'] %}
       - "traefik.http.routers.radarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/radarr/config:/config
@@ -385,7 +399,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.bazarr-{{ project_name }}.loadbalancer.server.port=6767
+{% if not hms_docker_container_map['bazarr']['expose_to_public'] %}
       - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -475,7 +491,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.plex-{{ project_name }}.loadbalancer.server.port=32400
+{% if not hms_docker_container_map['plex']['expose_to_public'] %}
       - "traefik.http.routers.plex-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -500,7 +518,9 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.tautulli-{{ project_name }}.loadbalancer.server.port=8181
+{% if not hms_docker_container_map['tautulli']['expose_to_public'] %}
       - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
 {% endif %}
 {% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
     ports:
