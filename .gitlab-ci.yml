@@ -6,6 +6,8 @@ stages:
 ansible-lint:
   stage: lint-check
   image: ahembree/ansible
+  tags:
+    - docker
   script:
     - ansible-lint -v *.yml
     - ansible-playbook --inventory inventory --connection local --syntax-check *.yml
