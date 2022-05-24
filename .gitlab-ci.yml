@@ -12,13 +12,7 @@ ansible-lint:
     - ansible-lint -v *.yml
     - ansible-playbook --inventory inventory --connection local --syntax-check *.yml
 
-check centos_8:
-  stage: check
-  tags:
-    - cent8
-    - virtualbox
-  script:
-    - ansible-playbook -i inventory --connection local hms-docker.yml --check
+
 
 check alma_8:
   stage: check
@@ -45,14 +39,6 @@ check ubuntu_20.04:
     - ansible-playbook -i inventory --connection local hms-docker.yml --check
 
 
-
-build centos_8:
-  stage: build
-  tags:
-    - cent8
-    - virtualbox
-  script:
-    - ansible-playbook -i inventory --connection local hms-docker.yml
 
 build alma_8:
   stage: build
