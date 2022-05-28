@@ -25,6 +25,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.portainer-{{ project_name }}.loadbalancer.server.port=9000
       - "traefik.http.routers.portainer-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['portainer']['authelia'] %}
+      - "traefik.http.routers.portainer-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -81,7 +84,40 @@ services:
       - "traefik.http.middlewares.internal-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, {{ traefik_subnet_allow_list }}"
       - "traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0"
       - "traefik.http.routers.traefik-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled %}
+      - 'traefik.http.routers.api.rule=Host(`traefik.{{ hms_docker_domain }}`)'
+      - 'traefik.http.routers.api.entrypoints=websecure'
+      - 'traefik.http.routers.api.service=api@internal'
 {% endif %}
+{% endif %}
+{% endif %}
+
+{% if hms_docker_container_map['authelia']['enabled'] or authelia_enabled %}
+  # Authelia container, authentication
+  authelia:
+    image: authelia/authelia
+    restart: {{ container_restart_policy }}
+    container_name: authelia
+    networks:
+      - "traefik_net"
+    expose:
+      - 9091
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/authelia:/config
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.authelia-{{ project_name }}.loadbalancer.server.port=9091'
+      - 'traefik.http.routers.authelia-{{ project_name }}.middlewares=internal-ipwhitelist'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.address=http://authelia:9091/api/verify?rd={{ authelia_redirect_url }}'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.trustForwardHeader=true'
+      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
 {% endif %}
 
 {% if hms_docker_container_map['nzbget']['enabled'] %}
@@ -115,6 +151,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.nzbget-{{ project_name }}.loadbalancer.server.port=6789
       - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['nzbget']['authelia'] %}
+      - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -200,6 +239,9 @@ services:
       - traefik.http.routers.proxy-{{ project_name }}.rule=Host(`transmission.{{ hms_docker_domain }}`)
       - traefik.http.services.proxy-{{ project_name }}.loadbalancer.server.port=8080
       - "traefik.http.routers.proxy-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['transmission']['authelia'] %}
+      - "traefik.http.routers.proxy-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -231,6 +273,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.requestrr-{{ project_name }}.loadbalancer.server.port=4545
       - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['requestrr']['authelia'] %}
+      - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -262,6 +307,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.prowlarr-{{ project_name }}.loadbalancer.server.port=9696
       - "traefik.http.routers.prowlarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['prowlarr']['authelia'] %}
+      - "traefik.http.routers.prowlarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -287,6 +335,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.sonarr-{{ project_name }}.loadbalancer.server.port=8989
       - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['sonarr']['authelia'] %}
+      - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/sonarr/config:/config
@@ -331,6 +382,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.radarr-{{ project_name }}.loadbalancer.server.port=7878
       - "traefik.http.routers.radarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['radarr']['authelia'] %}
+      - "traefik.http.routers.radarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/radarr/config:/config
@@ -386,6 +440,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.bazarr-{{ project_name }}.loadbalancer.server.port=6767
       - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['bazarr']['authelia'] %}
+      - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -412,6 +469,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.overseerr-{{ project_name }}.loadbalancer.server.port=5055
       - "traefik.http.routers.overseerr-{{ project_name }}.middlewares=external-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['overseerr']['authelia'] %}
+      - "traefik.http.routers.overseerr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/overseerr/config:/config
@@ -476,6 +536,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.plex-{{ project_name }}.loadbalancer.server.port=32400
       - "traefik.http.routers.plex-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['plex']['authelia'] %}
+      - "traefik.http.routers.plex-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% endif %}
 
@@ -501,6 +564,9 @@ services:
       - traefik.enable=true
       - traefik.http.services.tautulli-{{ project_name }}.loadbalancer.server.port=8181
       - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['tautulli']['authelia'] %}
+      - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
 {% endif %}
 {% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
     ports:

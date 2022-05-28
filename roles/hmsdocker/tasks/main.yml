@@ -43,6 +43,12 @@
   import_tasks: "traefik.yml"
   when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
 
+- name: Ensure Authelia
+  import_tasks: "authelia.yml"
+  when: ((hms_docker_container_map.authelia.enabled is defined and hms_docker_container_map.authelia.enabled) or 
+        (authelia_enabled)) and 
+        (traefik_ssl_enabled)
+
 - name: Ensure docker-compose.yml file.
   template:
     src: docker-compose.yml.j2
