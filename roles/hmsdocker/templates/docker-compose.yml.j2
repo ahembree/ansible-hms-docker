@@ -1,6 +1,6 @@
 version: '3'
 services:
-{% if hms_docker_container_map['portainer']['enabled'] %}
+{% if container_enabled_portainer %}
   # Portainer container, webgui for docker
   portainer:
     image: portainer/portainer-ce:latest
@@ -13,23 +13,23 @@ services:
         max-size: 10m
     networks:
       - "traefik_net"
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_portainer %}
     ports:
       - 9000:9000
 {% endif %}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - {{ hms_docker_apps_path }}/portainer/config:/data
-{% if hms_docker_container_map['portainer']['traefik'] %}
+{% if traefik_enabled_portainer %}
     labels:
       - traefik.enable=true
       - traefik.http.services.portainer-{{ project_name }}.loadbalancer.server.port=9000
-{% if not hms_docker_container_map['portainer']['expose_to_public'] %}
-      - "traefik.http.routers.portainer-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['portainer']['authelia'] %}
-      - "traefik.http.routers.portainer-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+      - traefik.http.routers.portainer-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_portainer %}
+      - traefik.http.routers.portainer-{{ project_name }}.middlewares=internal-ipwhitelist
 {% endif %}
-{% endif %}
+{% if authentik_enabled_portainer %}
+      - traefik.http.routers.portainer-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-portainer-router@docker
 {% endif %}
 {% endif %}
 
@@ -50,7 +50,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 {% endif %}
 
-{% if hms_docker_container_map['traefik']['enabled'] %}
+{% if container_enabled_traefik %}
   # Traefik container, loadbalancer/reverse proxy/ssl
   traefik:
     image: traefik:v2.6.1
@@ -79,50 +79,150 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - {{ hms_docker_apps_path }}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
       - {{ hms_docker_apps_path }}/traefik/config/certs/:/certs/
-{% if hms_docker_container_map['traefik']['traefik'] %}
+{% if traefik_enabled_traefik %}
     labels:
       - traefik.enable=true
+      - traefik.http.routers.traefik-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - traefik.http.services.traefik-{{ project_name }}.loadbalancer.server.port=8080
       - "traefik.http.middlewares.internal-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, {{ traefik_subnet_allow_list }}"
       - "traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0"
       - "traefik.http.routers.traefik-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled %}
-      - 'traefik.http.routers.api.rule=Host(`traefik.{{ hms_docker_domain }}`)'
-      - 'traefik.http.routers.api.entrypoints=websecure'
-      - 'traefik.http.routers.api.service=api@internal'
+{% if authentik_enabled_traefik %}
+      - traefik.http.routers.traefik-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-traefik-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['authelia']['enabled'] or authelia_enabled %}
-  # Authelia container, authentication
-  authelia:
-    image: authelia/authelia
+{% if authentik_enabled_globally %}
+  # Authentik container, authentication/authorization
+  authentik-postgresql:
+    container_name: authentik-postgresql
+    image: postgres:12-alpine
     restart: {{ container_restart_policy }}
-    container_name: authelia
     networks:
-      - "traefik_net"
-    expose:
-      - 9091
-    environment:
-      - PUID={{ container_uid }}
-      - PGID={{ container_gid }}
-      - TZ={{ container_timezone }}
+      - authentik_net
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     volumes:
-      - {{ hms_docker_apps_path }}/authelia:/config
+      - authentik_database:/var/lib/postgresql/data
+    env_file:
+      - .authentik.env
+    environment:
+      - POSTGRES_PASSWORD=${PG_PASS:?database password required}
+      - POSTGRES_USER=${PG_USER:-authentik}
+      - POSTGRES_DB=${PG_DB:-authentik}
+    
+  authentik-redis:
+    container_name: authentik-redis
+    image: redis:alpine
+    restart: {{ container_restart_policy }}
+    networks:
+      - authentik_net
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+
+  authentik-server:
+    container_name: authentik-server
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.5.2}
+    restart: {{ container_restart_policy }}
+    networks:
+      - authentik_net
+      - traefik_net
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    command: server
+    env_file:
+      - .authentik.env
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+      # WORKERS: 2
+    volumes:
+      - {{ hms_docker_apps_path }}/authentik/media:/media
+      - {{ hms_docker_apps_path }}/authentik/custom-templates:/templates
+      - authentik_geoip:/geoip
+{% if expose_ports_enabled_authentik %}
+    ports:
+      - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9001}:9000"
+      - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+{% endif %}
+{% if traefik_enabled_authentik %}
     labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.services.authelia-{{ project_name }}.loadbalancer.server.port=9091'
-      - 'traefik.http.routers.authelia-{{ project_name }}.middlewares=internal-ipwhitelist'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.address=http://authelia:9091/api/verify?rd={{ authelia_redirect_url }}'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.address=http://authelia:9091/api/verify?auth=basic'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia-{{ project_name }}-basic.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Remote-Name, Remote-Email'
+      - traefik.enable=true
+      - traefik.http.services.authentik-server-{{ project_name }}.loadbalancer.server.port=9000
+      - traefik.http.routers.authentik-server-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_authentik %}
+      - "traefik.http.routers.authentik-server-{{ project_name }}.middlewares=internal-ipwhitelist"
+{% endif %}
+{% if authentik_enabled_authentik %}
+      - traefik.http.routers.authentik-server-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-authentik-server-router@docker
+{% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['nzbget']['enabled'] %}
+  authentik-worker:
+    container_name: authentik-worker
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.5.2}
+    restart: {{ container_restart_policy }}
+    networks:
+      - authentik_net
+    command: worker
+    env_file:
+      - .authentik.env
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+    # This is optional, and can be removed. If you remove this, the following will happen
+    # - The permissions for the /media folders aren't fixed, so make sure they are 1000:1000
+    # - The docker socket can't be accessed anymore
+    user: root
+    volumes:
+      - {{ hms_docker_apps_path }}/authentik/media:/media
+      - {{ hms_docker_apps_path }}/authentik/certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ hms_docker_apps_path }}/authentik/custom-templates:/templates
+      - authentik_geoip:/geoip
+
+  authentik-geoipupdate:
+    container_name: authentik-geoipupdate
+    image: "maxmindinc/geoipupdate:latest"
+    networks:
+      - authentik_net
+    volumes:
+      - "authentik_geoip:/usr/share/GeoIP"
+    env_file:
+      - .authentik.env
+    environment:
+      GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
+      GEOIPUPDATE_FREQUENCY: "8"
+{% endif %}
+
+{% if container_enabled_nzbget %}
   # NZBGet container
   nzbget:
     image: lscr.io/linuxserver/nzbget:latest
@@ -144,24 +244,25 @@ services:
 {% if nzbget_enable_downloads_mount %}
       - {{ hms_docker_apps_path }}/nzbget/downloads:/data/usenet
 {% endif %}
-{% if container_expose_ports %}
+{% if expose_ports_enabled_nzbget %}
     ports:
       - 6789:6789
 {% endif %}
-{% if hms_docker_container_map['nzbget']['traefik'] %}
+{% if traefik_enabled_nzbget %}
     labels:
       - traefik.enable=true
       - traefik.http.services.nzbget-{{ project_name }}.loadbalancer.server.port=6789
-{% if not hms_docker_container_map['nzbget']['expose_to_public'] %}
+      - traefik.http.routers.nzbget-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if expose_public_enabled_nzbget %}
       - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['nzbget']['authelia'] %}
-      - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_nzbget %}
+      - traefik.http.routers.nzbget-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-nzbget-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['transmission']['enabled'] and transmission_vpn_provider is defined and transmission_vpn_user is defined and transmission_vpn_pass is defined %}
+{% if container_enabled_transmission %}
   # Transmission container, torrent client/VPN
   transmission:
     image: haugene/transmission-openvpn:latest
@@ -175,7 +276,7 @@ services:
       - "download_net"
     cap_add:
       - NET_ADMIN
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_transmission %}
     ports:
       - 9091:9091
       - 8888:8888
@@ -231,27 +332,25 @@ services:
       - transmission
     environment:
       - TZ={{ container_timezone }}
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_transmission %}
     ports:
       - 8081:8080
 {% endif %}
-{% if hms_docker_container_map['transmission']['traefik'] %}
+{% if traefik_enabled_transmission %}
     labels:
       - traefik.enable=true
-      # This is an "override" rule since the traefik config, by default, will use the container name, but this container is the proxy
-      # for the transmission container web UI, so we have traefik point to this one instead when trying to access the transmission web UI
-      - traefik.http.routers.proxy-{{ project_name }}.rule=Host(`transmission.{{ hms_docker_domain }}`)
+      - traefik.http.routers.proxy-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - traefik.http.services.proxy-{{ project_name }}.loadbalancer.server.port=8080
-{% if not hms_docker_container_map['transmission']['expose_to_public'] %}
+{% if not expose_public_enabled_transmission %}
       - "traefik.http.routers.proxy-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['transmission']['authelia'] %}
-      - "traefik.http.routers.proxy-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_transmission %}
+      - traefik.http.routers.transmission-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-transmission-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['requestrr']['enabled'] %}
+{% if container_enabled_requestrr %}
   # Requestrr container, chat client for requests
   requestrr:
     image: darkalfx/requestrr:latest
@@ -270,24 +369,25 @@ services:
       - TZ={{ container_timezone }}
     volumes:
       - {{ hms_docker_apps_path }}/requestrr/config:/root/config
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_requestrr %}
     ports:
       - 4545:4545
 {% endif %}
-{% if hms_docker_container_map['requestrr']['traefik'] %}
+{% if traefik_enabled_requestrr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.requestrr-{{ project_name }}.loadbalancer.server.port=4545
-{% if not hms_docker_container_map['requestrr']['expose_to_public'] %}
+      - traefik.http.routers.requestrr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_requestrr %}
       - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['requestrr']['authelia'] %}
-      - "traefik.http.routers.requestrr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_requestrr %}
+      - traefik.http.routers.requestrr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-requestrr-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['prowlarr']['enabled'] %}
+{% if container_enabled_prowlarr %}
   # Prowlarr container, torrent indexer
   prowlarr:
     image: linuxserver/prowlarr:develop
@@ -306,24 +406,25 @@ services:
       - TZ={{ container_timezone }}
     volumes:
       - {{ hms_docker_apps_path }}/prowlarr/config:/config
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_prowlarr %}
     ports:
       - 9696:9696
 {% endif %}
-{% if hms_docker_container_map['prowlarr']['traefik'] %}
+{% if traefik_enabled_prowlarr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.prowlarr-{{ project_name }}.loadbalancer.server.port=9696
-{% if not hms_docker_container_map['prowlarr']['expose_to_public'] %}
+      - traefik.http.routers.prowlarr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_prowlarr %}
       - "traefik.http.routers.prowlarr-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['prowlarr']['authelia'] %}
-      - "traefik.http.routers.prowlarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_prowlarr %}
+      - traefik.http.routers.prowlarr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-prowlarr-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['sonarr']['enabled'] %}
+{% if container_enabled_sonarr %}
   # Sonarr container, tv show indexer
   sonarr:
     image: linuxserver/sonarr:latest
@@ -340,15 +441,16 @@ services:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
       - TZ={{ container_timezone }}
-{% if hms_docker_container_map['sonarr']['traefik'] %}
+{% if traefik_enabled_sonarr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.sonarr-{{ project_name }}.loadbalancer.server.port=8989
-{% if not hms_docker_container_map['sonarr']['expose_to_public'] %}
+      - traefik.http.routers.sonarr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_sonarr %}
       - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['sonarr']['authelia'] %}
-      - "traefik.http.routers.sonarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-sonarr-router@docker
 {% endif %}
 {% endif %}
     volumes:
@@ -366,13 +468,13 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_sonarr %}
     ports:
       - 8989:8989
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['radarr']['enabled'] %}
+{% if container_enabled_radarr %}
   # Radarr container, movie indexer
   radarr:
     image: linuxserver/radarr:latest
@@ -389,15 +491,16 @@ services:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
       - TZ={{ container_timezone }}
-{% if hms_docker_container_map['radarr']['traefik'] %}
+{% if traefik_enabled_radarr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.radarr-{{ project_name }}.loadbalancer.server.port=7878
-{% if not hms_docker_container_map['radarr']['expose_to_public'] %}
+      - traefik.http.routers.radarr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_radarr %}
       - "traefik.http.routers.radarr-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['radarr']['authelia'] %}
-      - "traefik.http.routers.radarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_radarr %}
+      - traefik.http.routers.radarr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-radarr-router@docker
 {% endif %}
 {% endif %}
     volumes:
@@ -415,13 +518,13 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_radarr %}
     ports:
       - 7878:7878
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['bazarr']['enabled'] %}
+{% if container_enabled_bazarr %}
   # Bazarr container, subtitle indexer
   bazarr:
     image: linuxserver/bazarr:latest
@@ -433,7 +536,7 @@ services:
         max-size: 10m
     networks:
       - "traefik_net"
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_bazarr %}
     ports:
       - 6767:6767
 {% endif %}
@@ -449,20 +552,21 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
-{% if hms_docker_container_map['bazarr']['traefik'] %}
+{% if traefik_enabled_bazarr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.bazarr-{{ project_name }}.loadbalancer.server.port=6767
-{% if not hms_docker_container_map['bazarr']['expose_to_public'] %}
+      - traefik.http.routers.bazarr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_bazarr %}
       - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['bazarr']['authelia'] %}
-      - "traefik.http.routers.bazarr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_bazarr %}
+      - traefik.http.routers.bazarr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-bazarr-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['overseerr']['enabled'] %}
+{% if container_enabled_overseerr %}
   # Overseer container, request platform
   overseerr:
     image: linuxserver/overseerr:latest
@@ -480,24 +584,25 @@ services:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
       - TZ={{ container_timezone }}
-{% if hms_docker_container_map['overseerr']['traefik'] %}
+{% if traefik_enabled_overseerr %}
     labels:
       - traefik.enable=true
       - traefik.http.services.overseerr-{{ project_name }}.loadbalancer.server.port=5055
+      - traefik.http.routers.overseerr-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - "traefik.http.routers.overseerr-{{ project_name }}.middlewares=external-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['overseerr']['authelia'] %}
-      - "traefik.http.routers.overseerr-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% if authentik_enabled_overseerr %}
+      - traefik.http.routers.overseerr-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-overseerr-router@docker
 {% endif %}
 {% endif %}
     volumes:
       - {{ hms_docker_apps_path }}/overseerr/config:/config
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_overseerr %}
     ports:
       - 5055:5055
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['plex']['enabled'] %}
+{% if container_enabled_plex %}
   # Plex container, media server
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -547,20 +652,21 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
 {% endfor %}
 {% endif %}
-{% if hms_docker_container_map['plex']['traefik'] %}
+{% if traefik_enabled_plex %}
     labels:
       - traefik.enable=true
       - traefik.http.services.plex-{{ project_name }}.loadbalancer.server.port=32400
-{% if not hms_docker_container_map['plex']['expose_to_public'] %}
+      - traefik.http.routers.plex-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_plex %}
       - "traefik.http.routers.plex-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['plex']['authelia'] %}
-      - "traefik.http.routers.plex-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
 {% endif %}
+{% if authentik_enabled_plex %}
+      - traefik.http.routers.plex-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-plex-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
 
-{% if hms_docker_container_map['tautulli']['enabled'] %}
+{% if container_enabled_tautulli %}
   # Tautulli container, analytics
   tautulli:
     image: tautulli/tautulli:latest
@@ -573,22 +679,25 @@ services:
     networks:
       - "media_net"
       - "traefik_net"
+      - "authentik_net"
     environment:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
       - TZ={{ container_timezone }}
-{% if hms_docker_container_map['tautulli']['traefik'] %}
+{% if traefik_enabled_tautulli %}
     labels:
       - traefik.enable=true
       - traefik.http.services.tautulli-{{ project_name }}.loadbalancer.server.port=8181
-{% if not hms_docker_container_map['tautulli']['expose_to_public'] %}
+      - traefik.http.routers.tautulli-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+{% if not expose_public_enabled_tautulli %}
       - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=internal-ipwhitelist"
-{% if (hms_docker_container_map['authelia']['enabled'] or authelia_enabled) and traefik_ssl_enabled and hms_docker_container_map['tautulli']['authelia'] %}
-      - "traefik.http.routers.tautulli-{{ project_name }}.middlewares=authelia-{{ project_name }}@docker"
+{% endif %}
+{% if authentik_enabled_tautulli %}
+      - traefik.http.routers.tautulli-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-tautulli-router@docker
 {% endif %}
 {% endif %}
 {% endif %}
-{% if container_expose_ports or not hms_docker_container_map['traefik']['enabled'] %}
+{% if expose_ports_enabled_tautulli %}
     ports:
       - 8181:8181
 {% endif %}
@@ -630,4 +739,17 @@ networks:
     attachable: false
   "traefik_net":
     driver: bridge
+    attachable: true
+{% if authentik_enabled_globally %}
+  "authentik_net":
+    driver: bridge
     attachable: false
+{% endif %}
+
+{% if authentik_enabled_globally %}
+volumes:
+  authentik_database:
+    driver: local
+  authentik_geoip:
+    driver: local
+{% endif %}

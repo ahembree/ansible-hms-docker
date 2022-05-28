@@ -332,16 +332,6 @@ nzbget_enable_downloads_mount: yes
 
 
 #######################################################################
-### Authelia settings
-# This OR the option in the container map will enable or disable the Authelia container
-authelia_enabled: no
-authelia_redirect_url: "https://authelia.{{ hms_docker_domain }}"
-### End of Authelia settings
-#######################################################################
-
-
-
-#######################################################################
 ### Misc HMS Docker settings
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present
@@ -355,83 +345,108 @@ hms_docker_compose_container_state: present
 hms_docker_container_map:
   traefik:
     enabled: yes
+    proxy_host_rule: traefik
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
   sonarr:
     enabled: yes
+    proxy_host_rule: sonarr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   radarr:
     enabled: yes
+    proxy_host_rule: radarr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   bazarr:
     enabled: yes
+    proxy_host_rule: bazarr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   transmission:
     enabled: yes
+    proxy_host_rule: transmission
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   portainer:
     enabled: yes
+    proxy_host_rule: portainer
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   overseerr:
     enabled: yes
+    proxy_host_rule: overseerr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   prowlarr:
     enabled: yes
+    proxy_host_rule: prowlarr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   requestrr:
     enabled: yes
+    proxy_host_rule: requestrr
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   plex:
     enabled: yes
+    proxy_host_rule: plex
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   tautulli:
     enabled: yes
+    proxy_host_rule: tautulli
     directory: yes
     traefik: yes
-    authelia: no
+    authentik: no
     expose_to_public: no
   nzbget:
     enabled: yes
+    proxy_host_rule: nzbget
     directory: yes
     traefik: yes
-    authelia: no
-  authelia:
+    authentik: no
+  authentik:
     enabled: no
+    proxy_host_rule: authentik
     directory: yes
     traefik: yes
+    authentik: no
     expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
 
 ### End of Misc HMS Docker settings
+#######################################################################
+
+
+
+#######################################################################
+### Authentik settings
+# This OR the option in the container map will enable or disable the Authentik container
+authentik_enabled: no
+authentik_host: "http://authentik-server:9000" # leave this as default if you're using the default hms-docker configuration (really only used if you have a separate authentik server) default: "http://authentik-server:9000"
+authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+### End of authentik settings
 #######################################################################
 
 
