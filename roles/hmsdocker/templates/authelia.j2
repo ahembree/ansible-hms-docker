@@ -16,7 +16,7 @@ theme: light
 
 ## The secret used to generate JWT tokens when validating user identity by email confirmation. JWT Secret can also be
 ## set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-jwt_secret: a_very_important_secret
+jwt_secret: {{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}
 
 ## Default redirection URL
 ##
