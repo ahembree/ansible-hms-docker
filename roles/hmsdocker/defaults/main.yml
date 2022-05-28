@@ -351,6 +351,7 @@ hms_docker_compose_container_state: present
 #  `enabled`: Enables or disables the container
 #  `directory`: Creates the container directory within the apps folder
 #  `traefik`: Enables or disables accessing the container via Traefik
+#  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions)
 hms_docker_container_map:
   traefik:
     enabled: yes
@@ -362,51 +363,61 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   radarr:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   bazarr:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   transmission:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   portainer:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   overseerr:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   prowlarr:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   requestrr:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   plex:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   tautulli:
     enabled: yes
     directory: yes
     traefik: yes
     authelia: no
+    expose_to_public: no
   nzbget:
     enabled: yes
     directory: yes
@@ -416,6 +427,7 @@ hms_docker_container_map:
     enabled: no
     directory: yes
     traefik: yes
+    expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
 
