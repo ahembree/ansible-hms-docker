@@ -69,19 +69,35 @@ expose_ports_enabled_nzbget: "{{ True if (container_expose_ports or not containe
 # Authentik computed variables
 authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) else False }}"
 
-authentik_enabled_traefik: "{{ True if ((hms_docker_container_map['traefik']['authentik'] is defined and hms_docker_container_map['traefik']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_sonarr: "{{ True if ((hms_docker_container_map['sonarr']['authentik'] is defined and hms_docker_container_map['sonarr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_radarr: "{{ True if ((hms_docker_container_map['radarr']['authentik'] is defined and hms_docker_container_map['radarr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_bazarr: "{{ True if ((hms_docker_container_map['bazarr']['authentik'] is defined and hms_docker_container_map['bazarr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_transmission: "{{ True if ((hms_docker_container_map['transmission']['authentik'] is defined and hms_docker_container_map['transmission']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_portainer: "{{ True if ((hms_docker_container_map['portainer']['authentik'] is defined and hms_docker_container_map['portainer']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_overseerr: "{{ True if ((hms_docker_container_map['overseerr']['authentik'] is defined and hms_docker_container_map['overseerr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_prowlarr: "{{ True if ((hms_docker_container_map['prowlarr']['authentik'] is defined and hms_docker_container_map['prowlarr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_requestrr: "{{ True if ((hms_docker_container_map['requestrr']['authentik'] is defined and hms_docker_container_map['requestrr']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_plex: "{{ True if ((hms_docker_container_map['plex']['authentik'] is defined and hms_docker_container_map['plex']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_tautulli: "{{ True if ((hms_docker_container_map['tautulli']['authentik'] is defined and hms_docker_container_map['tautulli']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_nzbget: "{{ True if ((hms_docker_container_map['nzbget']['authentik'] is defined and hms_docker_container_map['nzbget']['authentik']) and authentik_enabled_globally) else False }}"
-authentik_enabled_authentik: "{{ True if ((hms_docker_container_map['authentik']['authentik'] is defined and hms_docker_container_map['authentik']['authentik']) and authentik_enabled_globally) else False }}"
+authentik_http_proxy_portainer: "{{ True if (hms_docker_container_map['portainer']['authentik_http_proxy'] is defined and hms_docker_container_map['portainer']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_traefik: "{{ True if (hms_docker_container_map['traefik']['authentik_http_proxy'] is defined and hms_docker_container_map['traefik']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_authentik: "{{ True if (hms_docker_container_map['authentik']['authentik_http_proxy'] is defined and hms_docker_container_map['authentik']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_sonarr: "{{ True if (hms_docker_container_map['sonarr']['authentik_http_proxy'] is defined and hms_docker_container_map['sonarr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_radarr: "{{ True if (hms_docker_container_map['radarr']['authentik_http_proxy'] is defined and hms_docker_container_map['radarr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_bazarr: "{{ True if (hms_docker_container_map['bazarr']['authentik_http_proxy'] is defined and hms_docker_container_map['bazarr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_transmission: "{{ True if (hms_docker_container_map['transmission']['authentik_http_proxy'] is defined and hms_docker_container_map['transmission']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_overseerr: "{{ True if (hms_docker_container_map['overseerr']['authentik_http_proxy'] is defined and hms_docker_container_map['overseerr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_prowlarr: "{{ True if (hms_docker_container_map['prowlarr']['authentik_http_proxy'] is defined and hms_docker_container_map['prowlarr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_requestrr: "{{ True if (hms_docker_container_map['requestrr']['authentik_http_proxy'] is defined and hms_docker_container_map['requestrr']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_plex: "{{ True if (hms_docker_container_map['plex']['authentik_http_proxy'] is defined and hms_docker_container_map['plex']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_tautulli: "{{ True if (hms_docker_container_map['tautulli']['authentik_http_proxy'] is defined and hms_docker_container_map['tautulli']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_nzbget: "{{ True if (hms_docker_container_map['nzbget']['authentik_http_proxy'] is defined and hms_docker_container_map['nzbget']['authentik_http_proxy']) else False }}"
+
+
+
+authentik_enabled_traefik: "{{ True if ((hms_docker_container_map['traefik']['authentik'] is defined and hms_docker_container_map['traefik']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_traefik)) else False }}"
+authentik_enabled_sonarr: "{{ True if ((hms_docker_container_map['sonarr']['authentik'] is defined and hms_docker_container_map['sonarr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_sonarr)) else False }}"
+authentik_enabled_radarr: "{{ True if ((hms_docker_container_map['radarr']['authentik'] is defined and hms_docker_container_map['radarr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_radarr)) else False }}"
+authentik_enabled_bazarr: "{{ True if ((hms_docker_container_map['bazarr']['authentik'] is defined and hms_docker_container_map['bazarr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_bazarr)) else False }}"
+authentik_enabled_transmission: "{{ True if ((hms_docker_container_map['transmission']['authentik'] is defined and hms_docker_container_map['transmission']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_transmission)) else False }}"
+authentik_enabled_portainer: "{{ True if ((hms_docker_container_map['portainer']['authentik'] is defined and hms_docker_container_map['portainer']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_portainer)) else False }}"
+authentik_enabled_overseerr: "{{ True if ((hms_docker_container_map['overseerr']['authentik'] is defined and hms_docker_container_map['overseerr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_overseerr)) else False }}"
+authentik_enabled_prowlarr: "{{ True if ((hms_docker_container_map['prowlarr']['authentik'] is defined and hms_docker_container_map['prowlarr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_prowlarr)) else False }}"
+authentik_enabled_requestrr: "{{ True if ((hms_docker_container_map['requestrr']['authentik'] is defined and hms_docker_container_map['requestrr']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_requestrr)) else False }}"
+authentik_enabled_plex: "{{ True if ((hms_docker_container_map['plex']['authentik'] is defined and hms_docker_container_map['plex']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_plex)) else False }}"
+authentik_enabled_tautulli: "{{ True if ((hms_docker_container_map['tautulli']['authentik'] is defined and hms_docker_container_map['tautulli']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_tautulli)) else False }}"
+authentik_enabled_nzbget: "{{ True if ((hms_docker_container_map['nzbget']['authentik'] is defined and hms_docker_container_map['nzbget']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_nzbget)) else False }}"
+authentik_enabled_authentik: "{{ True if ((hms_docker_container_map['authentik']['authentik'] is defined and hms_docker_container_map['authentik']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_authentik)) else False }}"
 
 
 #######################################################################

@@ -23,4 +23,7 @@
     dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}.outpost.yml"
     mode: 0644
   with_dict: "{{ hms_docker_container_map }}"
-  when: item.value.enabled and (item.value.authentik is defined and item.value.authentik)
+  when: 
+    - item.value.enabled 
+    - item.value.authentik is defined and item.value.authentik
+    - item.value.authentik_http_proxy is defined and item.value.authentik_http_proxy
