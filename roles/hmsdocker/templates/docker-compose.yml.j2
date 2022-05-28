@@ -3,7 +3,7 @@ services:
 {% if hms_docker_container_map['portainer']['enabled'] %}
   # Portainer container, webgui for docker
   portainer:
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     container_name: portainer
     command: -H unix:///var/run/docker.sock
     restart: {{ container_restart_policy }}
