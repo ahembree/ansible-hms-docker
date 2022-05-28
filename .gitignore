@@ -6,3 +6,5 @@
 
 # python stuff
 __pycache__/
+
+vars/custom.yml
