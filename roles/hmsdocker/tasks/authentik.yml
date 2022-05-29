@@ -2,7 +2,7 @@
 - name: Ensure authentik env
   template:
     src: authentik_env.j2
-    dest: "{{ hms_docker_data_path }}/.authentik.env"
+    dest: "{{ hms_docker_data_path }}/.env"
     mode: 0600
     owner: root
     group: root

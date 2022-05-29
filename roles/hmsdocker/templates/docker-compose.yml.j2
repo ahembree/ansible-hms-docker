@@ -114,7 +114,7 @@ services:
     volumes:
       - authentik_database:/var/lib/postgresql/data
     env_file:
-      - .authentik.env
+      - .env
     environment:
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
       - POSTGRES_USER=${PG_USER:-authentik}
@@ -150,7 +150,7 @@ services:
         max-size: 10m
     command: server
     env_file:
-      - .authentik.env
+      - .env
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
@@ -189,7 +189,7 @@ services:
       - authentik_net
     command: worker
     env_file:
-      - .authentik.env
+      - .env
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
@@ -216,7 +216,7 @@ services:
     volumes:
       - "authentik_geoip:/usr/share/GeoIP"
     env_file:
-      - .authentik.env
+      - .env
     environment:
       GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
       GEOIPUPDATE_FREQUENCY: "8"
