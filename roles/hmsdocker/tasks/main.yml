@@ -56,6 +56,8 @@
     group: docker
     mode: 0644
     backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
 
 - name: Ensure containers defined in compose file.
   docker_compose:
