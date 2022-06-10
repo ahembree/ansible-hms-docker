@@ -1,0 +1,29 @@
+---
+- name: Ensure authentik env
+  template:
+    src: authentik_env.j2
+    dest: "{{ hms_docker_data_path }}/.env"
+    mode: 0600
+    owner: root
+    group: root
+    backup: yes
+    force: no
+
+- name: Ensure Outposts directory
+  file:
+    path: "{{ hms_docker_apps_path }}/authentik/outposts"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Ensure authentik Outpost configs
+  template:
+    src: authentik_outpost.j2
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}.outpost.yml"
+    mode: 0644
+  with_dict: "{{ hms_docker_container_map }}"
+  when: 
+    - item.value.enabled 
+    - item.value.authentik is defined and item.value.authentik
+    - item.value.authentik_http_proxy is defined and item.value.authentik_http_proxy

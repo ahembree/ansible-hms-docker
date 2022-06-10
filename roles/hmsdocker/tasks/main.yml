@@ -43,6 +43,12 @@
   import_tasks: "traefik.yml"
   when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
 
+- name: Ensure Authentik
+  import_tasks: "authentik.yml"
+  when: ((hms_docker_container_map.authentik.enabled is defined and hms_docker_container_map.authentik.enabled) or 
+        (authentik_enabled)) and 
+        (traefik_ssl_enabled)
+
 - name: Ensure docker-compose.yml file.
   template:
     src: docker-compose.yml.j2
@@ -50,6 +56,8 @@
     group: docker
     mode: 0644
     backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
 
 - name: Ensure containers defined in compose file.
   docker_compose:

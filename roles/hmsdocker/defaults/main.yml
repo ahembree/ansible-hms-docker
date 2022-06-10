@@ -339,61 +339,130 @@ hms_docker_compose_container_state: present
 # The container map, use this to disable specific containers from running or being accessible by Traefik
 # Values:
 #  `enabled`: Enables or disables the container
+#  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
 #  `directory`: Creates the container directory within the apps folder
 #  `traefik`: Enables or disables accessing the container via Traefik
+#  `authentik`: Enables or disables accessing the container via Authentik
+#  `authentik_http_proxy`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
+#  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions)
 hms_docker_container_map:
   traefik:
     enabled: yes
+    proxy_host_rule: traefik
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
   sonarr:
     enabled: yes
+    proxy_host_rule: sonarr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   radarr:
     enabled: yes
+    proxy_host_rule: radarr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   bazarr:
     enabled: yes
+    proxy_host_rule: bazarr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   transmission:
     enabled: yes
+    proxy_host_rule: transmission
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   portainer:
     enabled: yes
+    proxy_host_rule: portainer
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: no
+    expose_to_public: no
   overseerr:
     enabled: yes
+    proxy_host_rule: overseerr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   prowlarr:
     enabled: yes
+    proxy_host_rule: prowlarr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   requestrr:
     enabled: yes
+    proxy_host_rule: requestrr
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   plex:
     enabled: yes
+    proxy_host_rule: plex
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   tautulli:
     enabled: yes
+    proxy_host_rule: tautulli
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
   nzbget:
     enabled: yes
+    proxy_host_rule: nzbget
     directory: yes
     traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+  authentik:
+    enabled: no
+    proxy_host_rule: authentik
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_http_proxy: yes
+    expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
 
 ### End of Misc HMS Docker settings
+#######################################################################
+
+
+
+#######################################################################
+### Authentik settings
+# This OR the option in the container map will enable or disable the Authentik container
+authentik_enabled: no
+authentik_host: "http://authentik-server:9000" # leave this as default if you're using the default hms-docker configuration (really only used if you have a separate authentik server) default: "http://authentik-server:9000"
+authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+### End of authentik settings
 #######################################################################
 
 
