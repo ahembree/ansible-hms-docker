@@ -100,4 +100,9 @@ authentik_enabled_nzbget: "{{ True if ((hms_docker_container_map['nzbget']['auth
 authentik_enabled_authentik: "{{ True if ((hms_docker_container_map['authentik']['authentik'] is defined and hms_docker_container_map['authentik']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_authentik)) else False }}"
 
 
+
+# Misc variables
+nas_enable_additional_paths: "{{ True if (nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths) else False }}"
+transmission_custom_download_path_enabled: "{{ True if ((transmission_custom_download_path is defined and transmission_custom_download_path) and (transmission_use_custom_download_path is defined and transmission_use_custom_download_path) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads)) else False }}"
+transmission_use_nas_enabled: "{{ True if ((transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs')) else False }}"
 #######################################################################
