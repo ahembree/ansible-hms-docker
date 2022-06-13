@@ -266,7 +266,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Tautulli           | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
 | Traefik            | `traefik`            | `8080`                 | `8080`            | &#9745;                |
 | NZBGet             | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
-| Authentik          | `authentic-server`   | `9000` and `9443`      | `9000` and `9443` | &#9745;                |
+| Authentik          | `authentic-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
 
 ## Only generate config files
 
