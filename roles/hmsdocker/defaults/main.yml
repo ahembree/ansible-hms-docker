@@ -343,7 +343,7 @@ hms_docker_compose_container_state: present
 #  `directory`: Creates the container directory within the apps folder
 #  `traefik`: Enables or disables accessing the container via Traefik
 #  `authentik`: Enables or disables accessing the container via Authentik
-#  `authentik_http_proxy`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
+#  `authentik_provider_type`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
 #  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions)
 hms_docker_container_map:
   traefik:
@@ -352,14 +352,14 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
   sonarr:
     enabled: yes
     proxy_host_rule: sonarr
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   radarr:
     enabled: yes
@@ -367,7 +367,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   bazarr:
     enabled: yes
@@ -375,7 +375,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   transmission:
     enabled: yes
@@ -383,7 +383,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   portainer:
     enabled: yes
@@ -391,7 +391,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: no
+    authentik_provider_type: oauth2
     expose_to_public: no
   overseerr:
     enabled: yes
@@ -399,7 +399,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   prowlarr:
     enabled: yes
@@ -407,7 +407,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   requestrr:
     enabled: yes
@@ -415,7 +415,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   plex:
     enabled: yes
@@ -423,7 +423,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   tautulli:
     enabled: yes
@@ -431,7 +431,7 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
   nzbget:
     enabled: yes
@@ -439,14 +439,14 @@ hms_docker_container_map:
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
   authentik:
     enabled: no
     proxy_host_rule: authentik
     directory: yes
     traefik: yes
     authentik: no
-    authentik_http_proxy: yes
+    authentik_provider_type: proxy
     expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
@@ -460,6 +460,8 @@ plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # defaul
 ### Authentik settings
 # This OR the option in the container map will enable or disable the Authentik container
 authentik_enabled: no
+authentik_provision_config: no
+authentik_api_token: ""
 authentik_host: "http://authentik-server:9000" # leave this as default if you're using the default hms-docker configuration (really only used if you have a separate authentik server) default: "http://authentik-server:9000"
 authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
 ### End of authentik settings

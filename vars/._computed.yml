@@ -69,19 +69,19 @@ expose_ports_enabled_nzbget: "{{ True if (container_expose_ports or not containe
 # Authentik computed variables
 authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) else False }}"
 
-authentik_http_proxy_portainer: "{{ True if (hms_docker_container_map['portainer']['authentik_http_proxy'] is defined and hms_docker_container_map['portainer']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_traefik: "{{ True if (hms_docker_container_map['traefik']['authentik_http_proxy'] is defined and hms_docker_container_map['traefik']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_authentik: "{{ True if (hms_docker_container_map['authentik']['authentik_http_proxy'] is defined and hms_docker_container_map['authentik']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_sonarr: "{{ True if (hms_docker_container_map['sonarr']['authentik_http_proxy'] is defined and hms_docker_container_map['sonarr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_radarr: "{{ True if (hms_docker_container_map['radarr']['authentik_http_proxy'] is defined and hms_docker_container_map['radarr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_bazarr: "{{ True if (hms_docker_container_map['bazarr']['authentik_http_proxy'] is defined and hms_docker_container_map['bazarr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_transmission: "{{ True if (hms_docker_container_map['transmission']['authentik_http_proxy'] is defined and hms_docker_container_map['transmission']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_overseerr: "{{ True if (hms_docker_container_map['overseerr']['authentik_http_proxy'] is defined and hms_docker_container_map['overseerr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_prowlarr: "{{ True if (hms_docker_container_map['prowlarr']['authentik_http_proxy'] is defined and hms_docker_container_map['prowlarr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_requestrr: "{{ True if (hms_docker_container_map['requestrr']['authentik_http_proxy'] is defined and hms_docker_container_map['requestrr']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_plex: "{{ True if (hms_docker_container_map['plex']['authentik_http_proxy'] is defined and hms_docker_container_map['plex']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_tautulli: "{{ True if (hms_docker_container_map['tautulli']['authentik_http_proxy'] is defined and hms_docker_container_map['tautulli']['authentik_http_proxy']) else False }}"
-authentik_http_proxy_nzbget: "{{ True if (hms_docker_container_map['nzbget']['authentik_http_proxy'] is defined and hms_docker_container_map['nzbget']['authentik_http_proxy']) else False }}"
+authentik_http_proxy_portainer: "{{ True if (hms_docker_container_map['portainer']['authentik_provider_type'] is defined and hms_docker_container_map['portainer']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_traefik: "{{ True if (hms_docker_container_map['traefik']['authentik_provider_type'] is defined and hms_docker_container_map['traefik']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_authentik: "{{ True if (hms_docker_container_map['authentik']['authentik_provider_type'] is defined and hms_docker_container_map['authentik']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_sonarr: "{{ True if (hms_docker_container_map['sonarr']['authentik_provider_type'] is defined and hms_docker_container_map['sonarr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_radarr: "{{ True if (hms_docker_container_map['radarr']['authentik_provider_type'] is defined and hms_docker_container_map['radarr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_bazarr: "{{ True if (hms_docker_container_map['bazarr']['authentik_provider_type'] is defined and hms_docker_container_map['bazarr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_transmission: "{{ True if (hms_docker_container_map['transmission']['authentik_provider_type'] is defined and hms_docker_container_map['transmission']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_overseerr: "{{ True if (hms_docker_container_map['overseerr']['authentik_provider_type'] is defined and hms_docker_container_map['overseerr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_prowlarr: "{{ True if (hms_docker_container_map['prowlarr']['authentik_provider_type'] is defined and hms_docker_container_map['prowlarr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_requestrr: "{{ True if (hms_docker_container_map['requestrr']['authentik_provider_type'] is defined and hms_docker_container_map['requestrr']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_plex: "{{ True if (hms_docker_container_map['plex']['authentik_provider_type'] is defined and hms_docker_container_map['plex']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_tautulli: "{{ True if (hms_docker_container_map['tautulli']['authentik_provider_type'] is defined and hms_docker_container_map['tautulli']['authentik_provider_type'] == 'proxy') else False }}"
+authentik_http_proxy_nzbget: "{{ True if (hms_docker_container_map['nzbget']['authentik_provider_type'] is defined and hms_docker_container_map['nzbget']['authentik_provider_type'] == 'proxy') else False }}"
 
 
 

@@ -26,4 +26,7 @@
   when: 
     - item.value.enabled 
     - item.value.authentik is defined and item.value.authentik
-    - item.value.authentik_http_proxy is defined and item.value.authentik_http_proxy
+    - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
+
+#### if authentik_provision_config is defined and authentik_provision_config:
+#### do the logic to configure providers, applications, etc
