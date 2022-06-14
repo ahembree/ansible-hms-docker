@@ -780,7 +780,6 @@ services:
     networks:
       - "media_net"
       - "traefik_net"
-      - "authentik_net"
     environment:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
