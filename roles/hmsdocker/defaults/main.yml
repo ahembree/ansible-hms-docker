@@ -332,6 +332,18 @@ nzbget_enable_downloads_mount: yes
 
 
 #######################################################################
+### Sonarr and Radarr settings
+separate_4k_instances_enable: no
+
+# This will be used for container names, file/folder names and Traefik Host rules and labels
+separate_4k_instances_suffix: "4k"
+
+### End of Sonarr and Radarr settings
+#######################################################################
+
+
+
+#######################################################################
 ### Misc HMS Docker settings
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present

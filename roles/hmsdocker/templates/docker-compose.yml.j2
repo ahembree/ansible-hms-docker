@@ -475,6 +475,56 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_sonarr and separate_4k_instances_enable is defined and separate_4k_instances_enable %}
+  # Sonarr container, tv show indexer
+  sonarr-{{ separate_4k_instances_suffix }}:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr-{{ separate_4k_instances_suffix }}
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    {% if traefik_enabled_sonarr %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.sonarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`)
+        {% if not expose_public_enabled_sonarr %}
+      - "traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.middlewares=internal-ipwhitelist"
+        {% endif %}
+        {% if authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-sonarr-{{ separate_4k_instances_suffix }}-router@docker
+        {% endif %}
+    {% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/sonarr-{{ separate_4k_instances_suffix }}/config:/config
+    {% if transmission_use_nas_enabled %}
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
+    {% elif transmission_custom_download_path_enabled %}
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
+    {% else %}
+      - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
+    {% endif %}
+      - {{ hms_docker_media_path }}:/data/media
+    {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+    {% endif %}
+    {% if expose_ports_enabled_sonarr %}
+    ports:
+      - 8990:8989
+    {% endif %}
+{% endif %}
+
 {% if container_enabled_radarr %}
   # Radarr container, movie indexer
   radarr:
@@ -522,6 +572,56 @@ services:
     {% if expose_ports_enabled_radarr %}
     ports:
       - 7878:7878
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_radarr and separate_4k_instances_enable is defined and separate_4k_instances_enable %}
+  # Radarr container, movie indexer
+  radarr-{{ separate_4k_instances_suffix }}:
+    image: linuxserver/radarr:latest
+    container_name: radarr-{{ separate_4k_instances_suffix }}
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+      - "traefik_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    {% if traefik_enabled_radarr %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.radarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`)
+        {% if not expose_public_enabled_radarr %}
+      - "traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.middlewares=internal-ipwhitelist"
+        {% endif %}
+        {% if authentik_enabled_radarr %}
+      - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-radarr-{{ separate_4k_instances_suffix }}-router@docker
+        {% endif %}
+    {% endif %}
+    volumes:
+      - {{ hms_docker_apps_path }}/radarr-{{ separate_4k_instances_suffix }}/config:/config
+    {% if transmission_use_nas_enabled %}
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
+    {% elif transmission_custom_download_path_enabled %}
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
+    {% else %}
+      - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
+    {% endif %}
+      - {{ hms_docker_media_path }}:/data/media
+    {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+    {% endif %}
+    {% if expose_ports_enabled_radarr %}
+    ports:
+      - 7879:7878
     {% endif %}
 {% endif %}
 

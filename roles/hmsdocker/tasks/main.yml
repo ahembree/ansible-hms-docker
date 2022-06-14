@@ -39,6 +39,17 @@
   with_dict: "{{ hms_docker_container_map }}"
   when: item.value.directory and (item.value.enabled is defined and item.value.enabled)
 
+- name: Ensure separate 4K container config directories exist if enabled.
+  file:
+    path: "{{ hms_docker_apps_path }}/{{ item.key }}-{{ separate_4k_instances_suffix }}/config"
+    state: directory
+  with_dict: "{{ hms_docker_container_map }}"
+  when: 
+    - item.value.directory
+    - item.value.enabled is defined and item.value.enabled
+    - item.key == 'sonarr' or item.key == 'radarr'
+    - separate_4k_instances_enable is defined and separate_4k_instances_enable
+
 - name: Ensure Traefik
   import_tasks: "traefik.yml"
   when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
