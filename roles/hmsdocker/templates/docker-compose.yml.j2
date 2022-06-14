@@ -780,7 +780,9 @@ services:
     networks:
       - "media_net"
       - "traefik_net"
+    {% if authentik_enabled_tautulli %}
       - "authentik_net"
+    {% endif %}
     environment:
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
