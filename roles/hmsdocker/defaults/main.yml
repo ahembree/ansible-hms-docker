@@ -475,6 +475,8 @@ authentik_enabled: no
 authentik_provision_config: no
 authentik_host: "http://authentik-server:9000" # leave this as default if you're using the default hms-docker configuration (really only used if you have a separate authentik server) default: "http://authentik-server:9000"
 authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+authentik_geoip_account_id: ""
+authentik_geoip_license_key: ""
 ### End of authentik settings
 #######################################################################
 

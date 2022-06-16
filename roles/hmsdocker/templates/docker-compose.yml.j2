@@ -209,6 +209,7 @@ services:
       - {{ hms_docker_apps_path }}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
 
+  {% if authentik_geoip_enabled %}
   authentik-geoipupdate:
     container_name: authentik-geoipupdate
     image: "maxmindinc/geoipupdate:latest"
@@ -221,6 +222,9 @@ services:
     environment:
       GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
       GEOIPUPDATE_FREQUENCY: "8"
+      GEOIPUPDATE_LICENSE_KEY: "${GEOIP_LICENSE_KEY:?GeoIP license key required}"
+      GEOIPUPDATE_ACCOUNT_ID: "${GEOIP_ACCOUNT_ID:?GeoIP account id required}"
+  {% endif %}
 {% endif %}
 
 {% if container_enabled_nzbget %}

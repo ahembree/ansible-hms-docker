@@ -99,7 +99,7 @@ authentik_enabled_tautulli: "{{ True if ((hms_docker_container_map['tautulli']['
 authentik_enabled_nzbget: "{{ True if ((hms_docker_container_map['nzbget']['authentik'] is defined and hms_docker_container_map['nzbget']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_nzbget)) else False }}"
 authentik_enabled_authentik: "{{ True if ((hms_docker_container_map['authentik']['authentik'] is defined and hms_docker_container_map['authentik']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_authentik)) else False }}"
 
-
+authentik_geoip_enabled: "{{ True if ((authentik_geoip_account_id is defined and authentik_geoip_account_id != '') and (authentik_geoip_license_key is defined and authentik_geoip_license_key != '')) else False }}"
 
 # Misc variables
 nas_enable_additional_paths: "{{ True if (nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths) else False }}"
