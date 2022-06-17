@@ -222,8 +222,8 @@ services:
     environment:
       GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
       GEOIPUPDATE_FREQUENCY: "8"
-      GEOIPUPDATE_LICENSE_KEY: "{{ authentik_geoip_account_id }}"
-      GEOIPUPDATE_ACCOUNT_ID: "{{ authentik_geoip_license_key }}"
+      GEOIPUPDATE_ACCOUNT_ID: "{{ authentik_geoip_account_id }}"
+      GEOIPUPDATE_LICENSE_KEY: "{{ authentik_geoip_license_key }}"
   {% endif %}
 {% endif %}
 
