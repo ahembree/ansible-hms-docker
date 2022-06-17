@@ -5,6 +5,3 @@ PG_USER=authentik
 PG_DB=authentik
 
 AUTHENTIK_SECRET_KEY={{ lookup('password', '/dev/null length=50 chars=ascii_letters') }}
-
-GEOIP_ACCOUNT_ID={{ authentik_geoip_account_id }}
-GEOIP_LICENSE_KEY={{ authentik_geoip_license_key }}
