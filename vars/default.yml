@@ -175,8 +175,6 @@ traefik_ssl_dns_resolver_2: "1.0.0.1"
 # Required for Let's Encrypt, the email address to use when generating your SSL certificate
 traefik_ssl_letsencrypt_email: ""
 
-# The Traefik Pilot token (only available after first run)
-traefik_pilot_token: ""
 ### End of SSL and Traefik settings
 #######################################################################
 

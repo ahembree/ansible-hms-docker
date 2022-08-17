@@ -278,8 +278,6 @@ traefik_verify_endpoints: no
 # This allows all RFC1918 addresses by default, you can change this to further restrict or allow greater access
 traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
 
-# The Traefik Pilot token (only available after first run)
-traefik_pilot_token: ""
 ### End of SSL and Traefik settings
 #######################################################################
 

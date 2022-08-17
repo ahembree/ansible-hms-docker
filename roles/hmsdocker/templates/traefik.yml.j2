@@ -52,8 +52,3 @@ providers:
     endpoint: unix:///var/run/docker.sock
     exposedByDefault: false
     defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw %}
-
-{% if traefik_pilot_token %}
-pilot:
-  token: "{{ traefik_pilot_token }}"
-{% endif %}
