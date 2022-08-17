@@ -9,6 +9,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Configuration](#configuration)
 - [Connecting the containers](#connecting-the-containers)
 - [Only generate config files](#only-generate-config-files)
+- [Using Cloudflare Tunnel](#using-cloudflare-tunnel)
 - [Using Authentik](#using-authentik)
 
 ## Container List
@@ -27,6 +28,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Requestrr: chat client for requests
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
+- Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 - Authentik: SSO
 
 ## Other Features
@@ -269,7 +271,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
 | Traefik                                  | `traefik`            | `8080`                 | `8080`            | &#9745;                |
 | NZBGet                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
-| Authentik                                | `authentic-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
+| Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
 
 ## Only generate config files
 
@@ -281,6 +283,22 @@ ansible-playbook -i inventory --connection local generate-configs.yml
 
 By default, it will output these configs into `/opt/hms-docker/`
 
+## Using Cloudflare Tunnel
+
+1. You will need to first generate a token by following the steps [here](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote/#1-create-a-tunnel)
+
+2. Once you've generated the token, update the variables `cloudflare_tunnel_enabled` to `yes` and `cloudflare_tunnel_token` to your token
+
+3. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
+
+4. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote/#2-connect-an-application) to link containers to the tunnel, following the [table above](#connecting-the-containers) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
+
+### Important Notes
+
+The "public hostname" you use for the container does not matter as this traffic does *NOT pass through Traefik*.
+
+This also means that SSO using Authentik *will not work for any container configured to go through the Tunnel* due to the middleware being applied by Traefik. In order to use Authentik with a publicly accessible container, you will need to port-forward.
+
 ## Using Authentik
 
 In order to use Authentik, you must be using the [advanced configuration outlined above](#optional-settings-to-configure).
@@ -290,6 +308,10 @@ This Authentik installation is based on the [single application](https://goauthe
 There are no authentik proxy containers defined in the `docker-compose.yml` file. This is because authentik will auto-detect the Docker socket and be able to start/stop its own proxy containers by using the configurations below.
 
 Authentik is able to be controlled on a per-container basis, but requires a bit of configuration as outlined below:
+
+### Important Note
+
+If you are using [Cloudflare Tunnel](#using-cloudflare-tunnel) **AND** you have disabled port forwarding to 80/443, you **MUST** create a new "public hostname" in Tunnel in order for SSO to work since the SSO server needs to be publicly accessible. If your tunnel is online and working, follow [step 4 when setting up Tunnel](#using-cloudflare-tunnel) and configure it for the `authentik-server` container.
 
 1. Within the advanced variable settings (as outlined in the [optional settings setup](#optional-settings-to-configure)), enable the authentik container and enable authentik for the containers you want using the `hms_docker_container_map` variable
 

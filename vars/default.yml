@@ -124,11 +124,21 @@ nas_client_nfs_opts: defaults
 
 
 #######################################################################
-### Cloudflare DDNS settings
+### Cloudflare settings
+## Tunnel
+# Enables or disables the Cloudflare Tunnel container // default: "no"
+cloudflare_tunnel_enabled: no
+
+# Your Cloudflare Tunnel token, see https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
+# Be sure to only add the actual token, it will be a very long string of random characters
+cloudflare_tunnel_token: ""
+
+## DDNS
 # Enables or disables the Cloudflare DDNS container // default: "no"
 cloudflare_ddns_enabled: no
 
 # Your Cloudflare API token that has read/write permissions for your DNS zone
+# This will also be provided to Traefik if using SSL (assuming Cloudflare is your DNS provider)
 cloudflare_api_token: ""
 
 # The domain that will be used for the Cloudflare DDNS container // default: "{{ hms_docker_domain }}"
@@ -139,7 +149,7 @@ cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 # May cause issues if not set to "overseerr" due to the Traefik Host rules
 cloudflare_ddns_subdomain: overseerr
 
-### End of Cloudflare DDNS settings
+### End of Cloudflare settings
 #######################################################################
 
 

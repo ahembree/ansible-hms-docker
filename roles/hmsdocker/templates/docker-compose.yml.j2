@@ -833,6 +833,21 @@ services:
       - PROXIED={{ cloudflare_ddns_proxied }}
 {% endif %}
 
+{% if cloudflare_tunnel_enabled and cloudflare_tunnel_token != "" %}
+  # Cloudflare Tunnel container
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: '{{ container_restart_policy }}'
+    networks:
+      - "traefik_net"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    command: tunnel --no-autoupdate run --token {{ cloudflare_tunnel_token }}
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge
