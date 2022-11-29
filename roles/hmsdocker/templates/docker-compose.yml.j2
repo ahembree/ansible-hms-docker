@@ -140,7 +140,7 @@ services:
 
   authentik-server:
     container_name: authentik-server
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.6.2}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
     restart: {{ container_restart_policy }}
     networks:
       - authentik_net
@@ -184,7 +184,7 @@ services:
 
   authentik-worker:
     container_name: authentik-worker
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2022.6.2}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
     restart: {{ container_restart_policy }}
     networks:
       - authentik_net
