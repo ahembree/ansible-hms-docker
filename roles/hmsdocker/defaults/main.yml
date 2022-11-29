@@ -357,6 +357,10 @@ separate_4k_instances_suffix: "4k"
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present
 
+# Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
+tautulli_include_jbops: false
+tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
+
 # The container map, use this to disable specific containers from running or being accessible by Traefik
 # Values:
 #  `enabled`: Enables or disables the container

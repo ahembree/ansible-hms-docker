@@ -60,6 +60,14 @@
         (authentik_enabled)) and 
         (traefik_ssl_enabled)
 
+- name: Ensure JBOPS if enabled
+  git:
+    repo: https://github.com/blacktwin/JBOPS
+    clone: true
+    dest: "{{ tautulli_jbops_install_path }}"
+  diff: false
+  when: tautulli_jbops_enabled
+
 - name: Ensure docker-compose.yml file.
   template:
     src: docker-compose.yml.j2

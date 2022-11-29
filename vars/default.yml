@@ -191,6 +191,16 @@ traefik_ssl_letsencrypt_email: ""
 
 
 #######################################################################
+### Tautulli settings
+# Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
+tautulli_jbops_enabled: false
+
+### End of Tautulli settings
+#######################################################################
+
+
+
+#######################################################################
 ### VPN and Transmission settings
 # Visit https://haugene.github.io/docker-transmission-openvpn/supported-providers/ for supported VPN providers
 # The VPN provider to use and the credentials to use for the VPN connection
