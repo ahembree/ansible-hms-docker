@@ -52,11 +52,11 @@
 
 - name: Ensure Traefik
   import_tasks: "traefik.yml"
-  when: hms_docker_container_map.traefik.enabled is defined and hms_docker_container_map.traefik.enabled
+  when: container_enabled_traefik
 
 - name: Ensure Authentik
   import_tasks: "authentik.yml"
-  when: ((hms_docker_container_map.authentik.enabled is defined and hms_docker_container_map.authentik.enabled) or 
+  when: ((container_enabled_authentik) or 
         (authentik_enabled)) and 
         (traefik_ssl_enabled)
 
@@ -89,4 +89,4 @@
 
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
-  when: hms_docker_container_map.transmission.enabled is defined and hms_docker_container_map.transmission.enabled
+  when: container_enabled_transmission
