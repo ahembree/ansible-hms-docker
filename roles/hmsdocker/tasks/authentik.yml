@@ -1,13 +1,81 @@
 ---
-- name: Ensure authentik env
+### BEGIN Process required for migrating old Authentik-specific env to current
+- name: Check for existing .env file
+  stat:
+    path: "{{ hms_docker_data_path }}/.env"
+  register: env_file_path
+
+- name: Check for existing authentik key file
+  stat:
+    path: "{{ authentik_key_path }}"
+  register: authentik_key_precheck
+
+- name: Check for existing authentik postgres password file
+  stat:
+    path: "{{ authentik_pgpass_path }}"
+  register: authentik_pg_pass_precheck
+
+- name: Slurp existing authentik secret key data
+  slurp:
+    path: "{{ env_file_path.stat.path }}"
+  register: slurped_old_authentik_data
+  no_log: true
+  when: env_file_path.stat.exists and not authentik_pg_pass_precheck.stat.exists and not authentik_key_precheck.stat.exists
+
+- name: Pull authentik items from previous install
+  set_fact:
+    authentik_old_key: "{{ slurped_old_authentik_data['content'] | b64decode | regex_search('(?<=AUTHENTIK_SECRET_KEY=).*') }}"
+    authentik_old_pg_user: "{{ slurped_old_authentik_data['content'] | b64decode | regex_search('(?<=PG_USER=).*') }}"
+    authentik_old_pg_pass: "{{ slurped_old_authentik_data['content'] | b64decode | regex_search('(?<=PG_PASS=).*') }}"
+    authentik_old_pg_db: "{{ slurped_old_authentik_data['content'] | b64decode | regex_search('(?<=PG_DB=).*') }}"
+    cacheable: false
+  when: slurped_old_authentik_data['content'] is defined
+  no_log: true
+### END Upgrade process for Authentik env file
+
+- name: Ensure authentik secret key file
   template:
-    src: authentik_env.j2
-    dest: "{{ hms_docker_data_path }}/.env"
+    src: authentik_secret.j2
+    dest: "{{ authentik_key_path }}"
     mode: 0600
     owner: root
     group: root
     backup: yes
     force: no
+  register: authentik_key_template_output
+  no_log: true
+  vars:
+    - key: "{{ authentik_old_key if authentik_old_key is defined and authentik_old_key != '' else lookup('password', '/dev/null length=50 chars=ascii_letters') }}"
+
+- name: Ensure authentik postgres password file
+  template:
+    src: authentik_secret.j2
+    dest: "{{ authentik_pgpass_path }}"
+    mode: 0600
+    owner: root
+    group: root
+    backup: yes
+    force: no
+  register: authentik_pgpass_template_output
+  no_log: true
+  vars:
+    - key: "{{ authentik_old_pg_pass if authentik_old_pg_pass is defined and authentik_old_pg_pass != '' else lookup('password', '/dev/null length=50 chars=ascii_letters') }}"
+
+- name: Slurp authentik secret key data
+  slurp:
+    src: "{{ authentik_key_template_output.dest }}"
+  register: slurped_key_data
+  check_mode: false
+  when: authentik_key_template_output.dest is defined
+  no_log: true
+
+- name: Slurp authentik postgres password data
+  slurp:
+    src: "{{ authentik_pgpass_template_output.dest }}"
+  register: slurped_pg_pass_data
+  check_mode: false
+  when: authentik_pgpass_template_output.dest is defined
+  no_log: true
 
 - name: Ensure Outposts directory
   file:

@@ -1,7 +1,0 @@
-AUTHENTIK_TAG=2022.11
-
-PG_PASS={{ lookup('password', '/dev/null length=40 chars=ascii_letters') }}
-PG_USER=authentik
-PG_DB=authentik
-
-AUTHENTIK_SECRET_KEY={{ lookup('password', '/dev/null length=50 chars=ascii_letters') }}

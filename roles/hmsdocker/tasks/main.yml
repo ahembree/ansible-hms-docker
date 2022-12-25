@@ -68,6 +68,24 @@
   diff: false
   when: tautulli_jbops_enabled
 
+- name: Ensure env
+  template:
+    src: env.j2
+    dest: "{{ hms_docker_data_path }}/.env"
+    mode: 0600
+    owner: root
+    group: root
+    backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
+  # no_log: true
+  register: compose_env
+  vars:
+  - authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
+  - authentik_pgpass: "{{ (slurped_pg_pass_data['content'] | b64decode) if slurped_pg_pass_data['content'] is defined else '### Will be obtained during full run ###' }}"
+  - authentik_pgu: "{{ authentik_old_pg_user if authentik_old_pg_user is defined and authentik_old_pg_user != '' else authentik_pg_user }}"
+  - authentik_pgdb: "{{ authentik_old_pg_db if authentik_old_pg_db is defined and authentik_old_pg_db != '' else authentik_pg_db }}"
+
 - name: Ensure docker-compose.yml file.
   template:
     src: docker-compose.yml.j2
@@ -85,6 +103,7 @@
     pull: "{{ container_pull_images_first }}"
     state: "{{ hms_docker_compose_container_state }}"
     remove_orphans: "{{ container_remove_orphans }}"
+    env_file: "{{ compose_env.dest }}"
   when: not ansible_check_mode
 
 - name: Ensure Transmission and VPN connection

@@ -71,7 +71,8 @@ services:
       - PGID={{ container_gid }}
     {% if traefik_ssl_dns_provider_environment_vars %}
         {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
-      - {{ key }}={{ value }}
+        {# Due to how Ansible interprets curly brackets, I had to use 'raw' statements in order to render the ${} around the ansible 'key' variable to reference the .env file variable #}
+      - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
         {% endfor %}
     {% endif %}
     networks:
@@ -114,8 +115,6 @@ services:
       timeout: 5s
     volumes:
       - authentik_database:/var/lib/postgresql/data
-    env_file:
-      - .env
     environment:
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
       - POSTGRES_USER=${PG_USER:-authentik}
@@ -150,14 +149,13 @@ services:
       options:
         max-size: 10m
     command: server
-    env_file:
-      - .env
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?database password required}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
       # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
       # WORKERS: 2
     volumes:
@@ -189,14 +187,12 @@ services:
     networks:
       - authentik_net
     command: worker
-    env_file:
-      - .env
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?database password required}
       # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
     # This is optional, and can be removed. If you remove this, the following will happen
     # - The permissions for the /media folders aren't fixed, so make sure they are 1000:1000
@@ -217,13 +213,11 @@ services:
       - authentik_net
     volumes:
       - "authentik_geoip:/usr/share/GeoIP"
-    env_file:
-      - .env
     environment:
       GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
       GEOIPUPDATE_FREQUENCY: "8"
-      GEOIPUPDATE_ACCOUNT_ID: "{{ authentik_geoip_account_id }}"
-      GEOIPUPDATE_LICENSE_KEY: "{{ authentik_geoip_license_key }}"
+      GEOIPUPDATE_ACCOUNT_ID: "${GEOIP_ACC_ID}"
+      GEOIPUPDATE_LICENSE_KEY: "${GEOIP_LIC_KEY}"
   {% endif %}
 {% endif %}
 
@@ -299,9 +293,9 @@ services:
       - {{ hms_docker_apps_path }}/transmission/torrents:/data/torrents
     {% endif %}
     environment:
-      - OPENVPN_PROVIDER={{ transmission_vpn_provider }}
-      - OPENVPN_USERNAME={{ transmission_vpn_user  }}
-      - OPENVPN_PASSWORD={{ transmission_vpn_pass }}
+      - OPENVPN_PROVIDER=${VPN_PROVIDER}
+      - OPENVPN_USERNAME=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASS}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
       - TRANSMISSION_DOWNLOAD_DIR=/data/torrents
@@ -739,7 +733,7 @@ services:
       - TZ={{ container_timezone }}
       - PUID={{ container_uid }}
       - PGID={{ container_gid }}
-      - PLEX_CLAIM={{ plex_claim_token }}
+      - PLEX_CLAIM=${PLEX_CLAIM_TOKEN}
       - ADVERTISE_IP={{ plex_advertise_ip }}:32400
       - ALLOWED_NETWORKS={{ hms_docker_network_subnet }}
     {% if enable_nvidia_gpu %}
@@ -821,8 +815,8 @@ services:
       options:
         max-size: 10m
     environment:
-      - API_KEY={{ cloudflare_api_token }}
-      - ZONE={{ cloudflare_ddns_domain }}
+      - API_KEY=${CLOUDFLARE_API_TOKEN}
+      - ZONE=${CLOUDFLARE_DOMAIN}
       - DELETE_ON_STOP={{ cloudflare_ddns_delete_record_on_stop }}
     {% if cloudflare_ddns_create_ipv6_aaaa_record %}
       - RRTYPE=AAAA
@@ -845,7 +839,7 @@ services:
       driver: json-file
       options:
         max-size: 10m
-    command: tunnel --no-autoupdate run --token {{ cloudflare_tunnel_token }}
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 {% endif %}
 
 networks:
