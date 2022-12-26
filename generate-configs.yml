@@ -7,55 +7,52 @@
 
   vars_files:
     - roles/hmsdocker/defaults/main.yml
+    - roles/hmsdocker/vars/main.yml
     - vars/default.yml
-    - vars/._computed.yml
 
   tasks:
     - name: Ensure hms_docker_data_path exists
-      file:
+      ansible.builtin.file:
         path: "{{ hms_docker_data_path }}"
         state: directory
         mode: 0755
 
     - name: Ensure Traefik config.
-      template:
+      ansible.builtin.template:
         src: roles/hmsdocker/templates/traefik.yml.j2
-        dest: "{{ hms_docker_data_path }}/traefik.yml"
+        dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
         mode: 0644
-
-    - name: Ensure authentik env
-      template:
-        src: authentik_env.j2
-        dest: "{{ hms_docker_data_path }}/.env"
-        mode: 0600
-        owner: root
-        group: root
+        group: docker
         backup: yes
-        force: no
+      when: container_enabled_traefik
 
     - name: Ensure Outposts directory
-      file:
+      ansible.builtin.file:
         path: "{{ hms_docker_apps_path }}/authentik/outposts"
         state: directory
         mode: 0755
         owner: root
         group: root
+      when: authentik_enabled_globally
 
     - name: Ensure authentik Outpost configs
-      template:
-        src: authentik_outpost.j2
+      ansible.builtin.template:
+        src: roles/hmsdocker/templates/authentik_outpost.j2
         dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}.outpost.yml"
         mode: 0644
       with_dict: "{{ hms_docker_container_map }}"
-      when: 
+      when:
+        - authentik_enabled_globally
         - item.value.enabled 
         - item.value.authentik is defined and item.value.authentik
         - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
 
     - name: Ensure docker-compose.yml file.
-      template:
+      ansible.builtin.template:
         src: roles/hmsdocker/templates/docker-compose.yml.j2
         dest: "{{ hms_docker_data_path }}/docker-compose.yml"
         group: docker
         mode: 0644
         backup: yes
+        lstrip_blocks: yes
+        trim_blocks: yes
