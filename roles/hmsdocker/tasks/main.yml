@@ -73,9 +73,9 @@
   ansible.builtin.template:
     src: env.j2
     dest: "{{ hms_docker_data_path }}/.env"
-    mode: 0600
-    owner: root
-    group: root
+    mode: "{{ secrets_env_mode }}"
+    owner: "{{ secrets_env_user }}"
+    group: "{{ secrets_env_group }}"
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes

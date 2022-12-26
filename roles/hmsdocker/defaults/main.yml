@@ -357,6 +357,11 @@ separate_4k_instances_suffix: "4k"
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
 hms_docker_compose_container_state: present
 
+# Ownership of the secrets (.env) file
+secrets_env_user: root
+secrets_env_group: root
+secrets_env_mode: "0600"
+
 # Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
 tautulli_include_jbops: false
 tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
