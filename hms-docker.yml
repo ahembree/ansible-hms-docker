@@ -14,16 +14,16 @@
 
   tasks:
   - name: Ensure Nvidia GPU role if enabled
-    import_role:
+    ansible.builtin.import_role:
       name: gpu
     when: enable_nvidia_gpu is defined and enable_nvidia_gpu
 
   - name: Ensure HMS-Docker role
-    import_role:
+    ansible.builtin.import_role:
       name: hmsdocker
 
   - name: Verify all Traefik endpoints are accessible
-    uri:
+    ansible.builtin.uri:
       url: http://{{ item.key }}.{{ hms_docker_domain }}
       status_code: 200,302,401,403
       validate_certs: no

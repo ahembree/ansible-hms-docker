@@ -1,4 +1,4 @@
 ---
 - name: Using local path
-  debug:
+  ansible.builtin.debug:
     msg: Using local path for media files

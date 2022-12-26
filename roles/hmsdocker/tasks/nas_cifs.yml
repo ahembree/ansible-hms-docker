@@ -1,6 +1,6 @@
 ---
 - name: Ensure CIFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - cifs-utils
       - samba-client
@@ -8,7 +8,7 @@
     state: "{{ nas_client_package_state }}"
 
 - name: Ensure CIFS credentials file.
-  template:
+  ansible.builtin.template:
     dest: "{{ hms_docker_data_path }}/.{{ project_name }}.cifs_creds"
     src: cifs_creds.j2
     owner: root

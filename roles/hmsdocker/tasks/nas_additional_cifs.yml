@@ -1,6 +1,6 @@
 ---
 - name: Ensure CIFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - cifs-utils
       - samba-client
@@ -8,7 +8,7 @@
     state: "{{ nas_client_package_state }}"
 
 - name: Ensure additional CIFS paths exist if defined
-  file:
+  ansible.builtin.file:
     path: "{{ mount_path.local_mount_path }}"
     state: directory
   with_items:
@@ -21,7 +21,7 @@
   register: cifs_additional_paths
 
 - name: Ensure additional CIFS credential files if defined
-  template:
+  ansible.builtin.template:
     dest: "{{ hms_docker_data_path }}/.{{ project_name }}.{{ cifs_creds.name | map('regex_replace', regex, replace) | list | join }}.cifs_creds"
     src: cifs_creds.j2
     owner: root
@@ -40,7 +40,7 @@
   register: cifs_additional_creds
 
 - name: Ensure additional CIFS fstab entries if defined
-  mount:
+  ansible.builtin.mount:
     backup: yes
     boot: "{{ nas_client_mount_on_boot }}"
     path: "{{ cifs_mount[0].path }}"
@@ -60,7 +60,7 @@
     - not ansible_check_mode
 
 - name: Ensure library folders for additional paths
-  file:
+  ansible.builtin.file:
     path: "{{ cifs_library_folder[0].path }}/{{ hms_docker_library_folder_name }}/{{ cifs_library_folder[1].folder_name }}"
     state: directory
   with_nested:

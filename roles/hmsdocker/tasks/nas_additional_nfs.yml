@@ -1,20 +1,20 @@
 ---
 - name: Ensure RedHat NFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - nfs-utils
     state: "{{ nas_client_package_state }}"
   when: family_override | lower == "redhat"
 
 - name: Ensure Debian NFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - nfs-common
     state: "{{ nas_client_package_state }}"
   when: ansible_facts['os_family'] | lower == "debian"
 
 - name: Ensure additional NFS paths exist if defined
-  file:
+  ansible.builtin.file:
     path: "{{ mount_path.local_mount_path }}"
     state: directory
   with_items:
@@ -45,7 +45,7 @@
     - not ansible_check_mode
 
 - name: Ensure library folders for additional paths
-  file:
+  ansible.builtin.file:
     path: "{{ library_folders[0].path }}/{{ hms_docker_library_folder_name }}/{{ library_folders[1].folder_name }}"
     state: directory
   with_nested:

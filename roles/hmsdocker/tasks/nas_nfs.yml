@@ -1,13 +1,13 @@
 ---
 - name: Ensure RedHat NFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - nfs-utils
     state: "{{ nas_client_package_state }}"
   when: family_override | lower == "redhat"
 
 - name: Ensure Debian NFS packages.
-  package:
+  ansible.builtin.package:
     name:
       - nfs-common
     state: "{{ nas_client_package_state }}"

@@ -4,7 +4,7 @@
   register: public_ip
 
 - name: Ensure paths exists locally.
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
   loop:
@@ -27,20 +27,20 @@
   no_log: yes
 
 - name: Ensure library folders.
-  file:
+  ansible.builtin.file:
     path: "{{ hms_docker_media_path }}/{{ item.folder_name }}"
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
 
 - name: Ensure container config directories exist.
-  file:
+  ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/{{ item.key }}/config"
     state: directory
   with_dict: "{{ hms_docker_container_map }}"
   when: item.value.directory and (item.value.enabled is defined and item.value.enabled)
 
 - name: Ensure separate 4K container config directories exist if enabled.
-  file:
+  ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/{{ item.key }}-{{ separate_4k_instances_suffix }}/config"
     state: directory
   with_dict: "{{ hms_docker_container_map }}"
@@ -61,15 +61,16 @@
         (traefik_ssl_enabled)
 
 - name: Ensure JBOPS if enabled
-  git:
+  ansible.builtin.git:
     repo: https://github.com/blacktwin/JBOPS
     clone: true
     dest: "{{ tautulli_jbops_install_path }}"
   diff: false
+  changed_when: false
   when: tautulli_jbops_enabled
 
 - name: Ensure env
-  template:
+  ansible.builtin.template:
     src: env.j2
     dest: "{{ hms_docker_data_path }}/.env"
     mode: 0600
@@ -87,7 +88,7 @@
   - authentik_pgdb: "{{ authentik_old_pg_db if authentik_old_pg_db is defined and authentik_old_pg_db != '' else authentik_pg_db }}"
 
 - name: Ensure docker-compose.yml file.
-  template:
+  ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ hms_docker_data_path }}/docker-compose.yml"
     group: docker
