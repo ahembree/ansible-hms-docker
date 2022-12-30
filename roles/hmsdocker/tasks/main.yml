@@ -79,7 +79,7 @@
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
-  # no_log: true
+  no_log: true
   register: compose_env
   vars:
   - authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
