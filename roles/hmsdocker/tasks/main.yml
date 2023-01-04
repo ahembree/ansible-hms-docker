@@ -98,7 +98,7 @@
     trim_blocks: yes
 
 - name: Ensure containers defined in compose file.
-  docker_compose:
+  community.docker.docker_compose:
     project_src: "{{ hms_docker_data_path }}"
     project_name: "{{ project_name }}"
     pull: "{{ container_pull_images_first }}"
