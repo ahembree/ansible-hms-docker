@@ -286,6 +286,8 @@ When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of t
 
 If you choose to expose the container ports on the host (by setting `container_expose_ports: yes` in the `vars/default.yml` file), see below for which ports are mapped to which container on the host.
 
+**NOTE:** Ports are _NOT_ exposed by default
+
 | Service Name                             | Container Name       | Host Port (if enabled) | Container Port    | Accessible via Traefik |
 | ---------------------------------------- | -------------------- | ---------------------- | ----------------- | ---------------------- |
 | Plex                                     | `plex`               | `32400`                | `32400`           | &#9745;                |
@@ -333,7 +335,7 @@ This also means that **SSO using Authentik will not work for any container confi
 
 ## Using Authentik
 
-In order to use Authentik, you must be using the [advanced configuration outlined above](#using-the-advanced-configuration).
+In order to use Authentik, you must be using the [advanced configuration outlined above](#using-the-advanced-configuration) **AND** you must be using SSL as outlined in this project.
 
 This Authentik installation is based on the [single application](https://goauthentik.io/docs/providers/proxy/forward_auth#single-application) proxy provider configuration.
 
