@@ -858,6 +858,11 @@ networks:
     driver: bridge
     attachable: false
 {% endif %}
+{% if backblaze_enabled_globally %}
+  "backup_net":
+    driver: bridge
+    attachable: false
+{% endif %}
 
 {% if authentik_enabled_globally %}
 volumes:
