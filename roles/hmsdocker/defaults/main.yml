@@ -479,8 +479,19 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+  tdarr:
+    enabled: no
+    proxy_host_rule: tdarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
+tdarr_transcode_folder: "{{ hms_docker_apps_path }}/tdarr/transcode_temp" # default: "{{ hms_docker_apps_path }}/tdarr/transcode_temp"
+tdarr_enable_nvidia_gpu: "{{ enable_nvidia_gpu }}"
+tdarr_enable_intel_gpu: "{{ enable_intel_gpu }}"
 
 ### End of Misc HMS Docker settings
 #######################################################################

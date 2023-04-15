@@ -31,6 +31,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Portainer: container management GUI
 - Overseerr: request platform
 - Requestrr: chat client for requests
+- Tdarr: media transcoding
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
@@ -280,6 +281,8 @@ NZBGet: `https://nzbget.{{ domain }}`
 
 Authentik: `https://authentik.{{ domain }}`
 
+Tdarr: `https://tdarr.{{ domain }}`
+
 ## Connecting the Containers
 
 When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
@@ -306,6 +309,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Traefik                                  | `traefik`            | `8080`                 | `8080`            | &#9745;                |
 | NZBGet                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
+| Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
 
 ## Only generate config files
 
