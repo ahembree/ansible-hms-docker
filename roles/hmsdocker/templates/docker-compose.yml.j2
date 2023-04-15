@@ -902,6 +902,28 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_tailscale %}
+  tailscale:
+    image: tailscale/tailscale
+    container_name: tailscale
+    restart: '{{ container_restart_policy }}'
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - '/var/lib:/var/lib'
+      - '/dev/net/tun:/dev/net/tun'
+    network_mode: host
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
+    {% if tailscale_enable_subnet_routes %}
+      - TS_ROUTES={{ tailscale_subnet_routes }}
+    {% endif %}
+    {% if tailscale_advertise_exit_node %}
+      - TS_EXTRA_ARGS=--advertise-exit-node
+    {% endif %}
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge

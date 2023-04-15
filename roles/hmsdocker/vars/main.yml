@@ -19,6 +19,7 @@ container_enabled_plex: "{{ True if (hms_docker_container_map['plex']['enabled']
 container_enabled_tautulli: "{{ True if (hms_docker_container_map['tautulli']['enabled'] is defined and hms_docker_container_map['tautulli']['enabled']) else False }}"
 container_enabled_nzbget: "{{ True if (hms_docker_container_map['nzbget']['enabled'] is defined and hms_docker_container_map['nzbget']['enabled']) else False }}"
 container_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['enabled'] is defined and hms_docker_container_map['tdarr']['enabled']) else False }}"
+container_enabled_tailscale: "{{ True if (tailscale_enabled is defined and tailscale_enabled) else False }}"
 
 
 # Traefik computed variables

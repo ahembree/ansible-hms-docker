@@ -36,6 +36,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Cloudflare-ddns: dynamic dns (if enabled)
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 - Authentik: SSO
+- Tailscale: mesh VPN
 
 ## Other Features
 
@@ -424,3 +425,11 @@ If you are using [Cloudflare Tunnel](#using-cloudflare-tunnel) **AND** you have 
     b. If you're getting a `404 not found` error, this is likely due to the `authentik-proxy` containers not working, running, or not being configured correctly. If you just configured a new application output, wait a couple more minutes.
 
     c. If you're getting a `500` server error, this is possibly due to having duplicate Traefik routes for the same host rules
+
+## Using Tailscale
+
+### Important Notes
+
+- You must generate an Ephemeral auth key in the Tailscale admin console, you can find [instructions here](https://tailscale.com/kb/1111/ephemeral-nodes/#step-1-generate-an-ephemeral-auth-key).
+
+- Tailscale auth keys are only able to be valid for up to 90 days.
