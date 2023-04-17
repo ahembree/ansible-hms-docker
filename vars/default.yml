@@ -162,6 +162,10 @@ cloudflare_ddns_subdomain: overseerr
 # Enables or Disables SSL wildcard certificate generation // default: "no"
 traefik_ssl_enabled: no
 
+# This option implements a number of additional security features for Traefik, such as:
+# * Disable TLS1.0
+traefik_security_hardening: no # default: no
+
 # Whether to use the staging/testing URL or production URL // default: "yes"
 # If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
 traefik_ssl_use_letsencrypt_staging_url: yes

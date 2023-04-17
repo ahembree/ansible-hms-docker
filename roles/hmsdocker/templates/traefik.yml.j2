@@ -46,6 +46,16 @@ certificatesResolvers:
           - "{{ traefik_ssl_dns_resolver_2 }}"
 {% endif %}
 
+{% if traefik_security_hardening and traefik_ssl_enabled %}
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+
+    mintls13:
+      minVersion: VersionTLS13
+{% endif %}
+
 providers:
   docker:
     network: "{{ project_name }}_traefik_net"
