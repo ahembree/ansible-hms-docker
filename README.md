@@ -27,6 +27,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Prowlarr: tracker management
 - Transmission: download client with VPN and HTTP proxy
 - NZBGet: download client
+- Sabnzbd: download client
 - Tautulli: analytics
 - Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
 - Portainer: container management GUI
@@ -309,7 +310,8 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
 | Traefik                                  | `traefik`            | `8080`                 | `8080`            | &#9745;                |
-| NZBGet                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
+| Sabnzb                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
+| Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
 | Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
 

@@ -361,10 +361,10 @@ transmission_additional_env_vars:
 
 
 #######################################################################
-### NZBGet settings
+### NZB settings
 nzbget_enable_downloads_mount: yes
-
-### End of NZBGet settings
+sabnzbd_enable_downloads_mount: yes
+### End of NZB settings
 #######################################################################
 
 
@@ -493,8 +493,16 @@ hms_docker_container_map:
     authentik_provider_type: proxy
     expose_to_public: no
   nzbget:
-    enabled: yes
+    enabled: no
     proxy_host_rule: nzbget
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  sabnzbd:
+    enabled: no
+    proxy_host_rule: sabnzbd
     directory: yes
     traefik: yes
     authentik: no

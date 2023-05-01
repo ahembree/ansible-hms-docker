@@ -256,11 +256,51 @@ services:
       - traefik.enable=true
       - traefik.http.services.nzbget-{{ project_name }}.loadbalancer.server.port=6789
       - traefik.http.routers.nzbget-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
-        {% if expose_public_enabled_nzbget %}
+        {% if not expose_public_enabled_nzbget %}
       - "traefik.http.routers.nzbget-{{ project_name }}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_nzbget %}
       - traefik.http.routers.nzbget-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-nzbget-router@docker
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_sabnzbd %}
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    restart: {{ container_restart_policy }}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "traefik_net"
+      - "download_net"
+    environment:
+      - PUID={{ container_uid }}
+      - PGID={{ container_gid }}
+      - TZ={{ container_timezone }}
+    volumes:
+      - {{ hms_docker_apps_path }}/sabnzbd/config:/config
+      {% if sabnzbd_enable_downloads_mount %}
+      - {{ hms_docker_apps_path }}/sabnzbd/downloads:/downloads
+      - {{ hms_docker_apps_path }}/sabnzbd/incomplete-downloads:/incomplete-downloads
+      {% endif %}
+    {% if expose_ports_enabled_sabnzbd %}
+    ports:
+      - 8082:8080
+    {% endif %}
+    {% if traefik_enabled_sabnzbd %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.sabnzbd-{{ project_name }}.loadbalancer.server.port=8080
+      - traefik.http.routers.sabnzbd-{{ project_name }}.rule=Host(`{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+        {% if not expose_public_enabled_sabnzbd %}
+      - "traefik.http.routers.sabnzbd-{{ project_name }}.middlewares=internal-ipwhitelist"
+        {% endif %}
+        {% if authentik_enabled_sabnzbd %}
+      - traefik.http.routers.sabnzbd-{{ project_name }}.middlewares=authentik-proxy-{{ project_name }}-sabnzbd-router@docker
         {% endif %}
     {% endif %}
 {% endif %}
