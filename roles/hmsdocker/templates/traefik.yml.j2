@@ -61,4 +61,9 @@ providers:
     network: "{{ project_name }}_traefik_net"
     endpoint: unix:///var/run/docker.sock
     exposedByDefault: false
-    defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw %}
+    defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw +%}
+{% if traefik_ext_hosts_enabled %}
+  file:
+    directory: /etc/traefik/static_files
+    watch: true
+{% endif %}

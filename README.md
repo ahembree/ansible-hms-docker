@@ -16,6 +16,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Only generate config files](#only-generate-config-files)
 - [Using Cloudflare Tunnel](#using-cloudflare-tunnel)
 - [Using Authentik](#using-authentik)
+- [Adding External Services to Traefik](#adding-external-services-to-traefik)
 
 ## Container List
 
@@ -433,3 +434,11 @@ If you are using [Cloudflare Tunnel](#using-cloudflare-tunnel) **AND** you have 
 - You must generate an Ephemeral auth key in the Tailscale admin console, you can find [instructions here](https://tailscale.com/kb/1111/ephemeral-nodes/#step-1-generate-an-ephemeral-auth-key).
 
 - Tailscale auth keys are only able to be valid for up to 90 days.
+
+## Adding External Services to Traefik
+
+You can add external services (such as services running on another host/server, like an external grafana server) to this projects Traefik config.
+
+You _must_ be using the [Advanced Config](#using-the-advanced-configuration), set `traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `traefik_ext_hosts_list` array.
+
+**NOTE**: All traffic between the host that runs Traefik and the target external service will be **unencrypted**. [Source](https://doc.traefik.io/traefik/routing/routers/#general)

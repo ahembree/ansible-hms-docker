@@ -1,0 +1,18 @@
+http:
+  routers:
+    {{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}:
+      entryPoints:
+      {% if traefik_ssl_enabled -%}
+      - websecure
+      {% else -%}
+      - web
+      {% endif -%}
+      service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}
+      rule: Host(`{{ item.subdomain_name }}.{{ hms_docker_domain }}`)
+
+  services:
+    {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}:
+      loadBalancer:
+        servers:
+        - url: {{ item.backend_url }}
+        passHostHeader: false

@@ -81,6 +81,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - {{ hms_docker_apps_path }}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
       - {{ hms_docker_apps_path }}/traefik/config/certs/:/certs/
+    {% if traefik_ext_hosts_enabled %}
+      - {{ traefik_ext_hosts_configs_path }}:/etc/traefik/static_files
+    {% endif %}
     {% if traefik_enabled_traefik %}
     labels:
       - traefik.enable=true
