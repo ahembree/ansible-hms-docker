@@ -255,7 +255,6 @@ cloudflare_ddns_create_ipv6_aaaa_record: no
 traefik_ssl_enabled: no
 
 # Enables or Disables watching a directory for Traefik static file configs, see https://doc.traefik.io/traefik/providers/file/#configuration-examples // default: "no"
-# NOTE: Traefik is configured to use YAML syntax
 traefik_ext_hosts_enabled: no
 traefik_ext_hosts_configs_path: "{{ hms_docker_apps_path }}/traefik/config/static_confs/"
 # Settings for each external host:
@@ -273,7 +272,7 @@ traefik_ext_hosts_list: [
   },
   #{
   #  friendly_name: host2,
-  #  subdomain_name: example.com,
+  #  subdomain_name: sub-2,
   #  backend_url: http://example.com,
   #  enabled: yes,
   #},
