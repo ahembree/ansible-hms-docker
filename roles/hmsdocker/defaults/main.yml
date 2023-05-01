@@ -260,7 +260,7 @@ traefik_ext_hosts_enabled: no
 traefik_ext_hosts_configs_path: "{{ hms_docker_apps_path }}/traefik/config/static_confs/"
 # Settings for each external host:
 #    friendly_name: host1, # just a friendly name for it
-#    subdomain_name: example.com, # the subdomain that will be used to access the service
+#    subdomain_name: sub-example, # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)
 #    backend_url: http://example.com, # the url of the service you want to proxy through traefik
 #    enabled: yes, # enables or disables the route
 
