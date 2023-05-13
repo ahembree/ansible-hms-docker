@@ -172,7 +172,7 @@ Secrets file (where all sensitive key material is stored): `/opt/hms-docker/.env
 
     - `secrets_env_user: root`
 
-    - `secrest_env_group: docker`
+    - `secrets_env_group: docker`
 
     - `secrets_env_mode: 0640`
 
