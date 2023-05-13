@@ -286,6 +286,13 @@ traefik_security_hardening: no # default: no
 # If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
 traefik_ssl_use_letsencrypt_staging_url: yes
 
+# SANs (Subject Alternative Names) to also provision certificates for
+# By default, this will create a "wildcard" (*) certificate
+# If you wish to create a certificate for another subdomain (such as '*.public'), you can add them here
+traefik_ssl_sans: [
+  '*.{{ hms_docker_domain }}',
+]
+
 # The DNS provider to use for SSL generation, check this for supported providers: https://doc.traefik.io/traefik/https/acme/#providers
 traefik_ssl_dns_provider_code: ""
 
