@@ -251,6 +251,8 @@ cloudflare_ddns_create_ipv6_aaaa_record: no
 
 #######################################################################
 ### SSL and Traefik settings
+traefik_container_tag: v2.10.1
+
 # Enables or Disables SSL wildcard certificate generation // default: "no"
 traefik_ssl_enabled: no
 
