@@ -3,9 +3,9 @@ docker_labels:
   traefik.enable: "true"
   traefik.http.services.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-service.loadbalancer.server.port: "9000"
   traefik.http.routers.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-router.rule: Host(`{{ item.value.proxy_host_rule }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`) && PathPrefix(`/outpost.goauthentik.io/`)
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-router.forwardauth.address: http://authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}:9000/outpost.goauthentik.io/auth/traefik
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-router.forwardauth.trustForwardHeader: "true"
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-router.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.address: http://authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}:9000/outpost.goauthentik.io/auth/traefik
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.trustForwardHeader: "true"
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.key }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
 authentik_host: {{ authentik_host }}
 authentik_host_browser: {{ authentik_external_host }}
 docker_network: {{ project_name }}_traefik_net
