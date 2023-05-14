@@ -27,7 +27,7 @@
     - name: Ensure Traefik static file configs
       ansible.builtin.template:
         src: traefik_additional_routes.yml.j2
-        dest: "{{ traefik_additional_routes_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+        dest: "{{ traefik_ext_hosts_configs_path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
         mode: 0644
         group: docker
         backup: yes
@@ -41,7 +41,7 @@
 
 - name: Ensure disabled Traefik static file configs are removed
   ansible.builtin.file:
-    path: "{{ traefik_additional_routes_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    path: "{{ traefik_ext_hosts_configs_path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     state: absent
   with_items: "{{ traefik_ext_hosts_list }}"
   when: 
