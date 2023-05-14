@@ -58,6 +58,9 @@ tls:
       minVersion: VersionTLS13
 {% endif %}
 
+serversTransport:
+  insecureSkipVerify: true
+
 providers:
   docker:
     network: "{{ project_name }}_traefik_net"

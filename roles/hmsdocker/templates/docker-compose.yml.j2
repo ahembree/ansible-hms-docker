@@ -799,6 +799,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
+      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
         {% if not expose_public_enabled_plex %}
       - "traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
