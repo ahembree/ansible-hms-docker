@@ -6,7 +6,7 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer
     command: -H unix:///var/run/docker.sock
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -39,7 +39,7 @@ services:
   watchtower:
     image: containrrr/watchtower:latest
     container_name: watchtower
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -56,7 +56,7 @@ services:
   traefik:
     image: traefik:${TRAEFIK_TAG}
     container_name: traefik
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -103,7 +103,7 @@ services:
   authentik-postgresql:
     container_name: authentik-postgresql
     image: postgres:12-alpine
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     networks:
       - authentik_net
     logging:
@@ -126,7 +126,7 @@ services:
   authentik-redis:
     container_name: authentik-redis
     image: redis:alpine
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     networks:
       - authentik_net
     logging:
@@ -143,7 +143,7 @@ services:
   authentik-server:
     container_name: authentik-server
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     networks:
       - authentik_net
       - traefik_net
@@ -186,7 +186,7 @@ services:
   authentik-worker:
     container_name: authentik-worker
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     networks:
       - authentik_net
     command: worker
@@ -230,7 +230,7 @@ services:
   nzbget:
     image: lscr.io/linuxserver/nzbget:latest
     container_name: nzbget
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -269,7 +269,7 @@ services:
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -310,7 +310,7 @@ services:
   transmission:
     image: haugene/transmission-openvpn:latest
     container_name: transmission
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -363,7 +363,7 @@ services:
   transmission-proxy:
     image: haugene/transmission-openvpn-proxy:latest
     container_name: transmission-proxy
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -398,7 +398,7 @@ services:
   requestrr:
     image: darkalfx/requestrr:latest
     container_name: requestrr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -435,7 +435,7 @@ services:
   prowlarr:
     image: linuxserver/prowlarr:develop
     container_name: prowlarr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -472,7 +472,7 @@ services:
   sonarr:
     image: linuxserver/sonarr:latest
     container_name: sonarr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -522,7 +522,7 @@ services:
   sonarr-{{ separate_4k_instances_suffix }}:
     image: linuxserver/sonarr:latest
     container_name: sonarr-{{ separate_4k_instances_suffix }}
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -572,7 +572,7 @@ services:
   radarr:
     image: linuxserver/radarr:latest
     container_name: radarr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -622,7 +622,7 @@ services:
   radarr-{{ separate_4k_instances_suffix }}:
     image: linuxserver/radarr:latest
     container_name: radarr-{{ separate_4k_instances_suffix }}
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -672,7 +672,7 @@ services:
   bazarr:
     image: linuxserver/bazarr:latest
     container_name: bazarr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -714,7 +714,7 @@ services:
   overseerr:
     image: linuxserver/overseerr:latest
     container_name: overseerr
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -750,7 +750,7 @@ services:
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
@@ -815,7 +815,7 @@ services:
   tautulli:
     image: tautulli/tautulli:latest
     container_name: tautulli
-    restart: {{ container_restart_policy }}
+    restart: ${RESTART_POLICY}
     logging:
       driver: json-file
       options:
@@ -854,7 +854,7 @@ services:
   cloudflare-ddns:
     image: oznu/cloudflare-ddns:latest
     container_name: cloudflare-ddns
-    restart: '{{ container_restart_policy }}'
+    restart: '${RESTART_POLICY}'
     logging:
       driver: json-file
       options:
@@ -877,7 +877,7 @@ services:
   cloudflare-tunnel:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare-tunnel
-    restart: '{{ container_restart_policy }}'
+    restart: '${RESTART_POLICY}'
     networks:
       - "traefik_net"
     logging:
@@ -896,7 +896,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     {% endif %}
-    restart: '{{ container_restart_policy }}'
+    restart: '${RESTART_POLICY}'
     networks:
       - "traefik_net"
     {% if expose_ports_enabled_tdarr %}
@@ -947,10 +947,11 @@ services:
 {% endif %}
 
 {% if container_enabled_tailscale %}
+  # tailscale container, VPN
   tailscale:
     image: tailscale/tailscale
     container_name: tailscale
-    restart: '{{ container_restart_policy }}'
+    restart: '${RESTART_POLICY}'
     cap_add:
       - NET_ADMIN
       - NET_RAW
