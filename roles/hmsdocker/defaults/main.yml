@@ -86,6 +86,23 @@ hms_docker_domain: home.local
 # Also controls how some containers treat local network traffic (e.g. Plex, transmission)
 hms_docker_subnet_mask: "24"
 hms_docker_network_subnet: "{{ ansible_default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
+
+# Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex
+# This script will also automatically update the Plex config file to point to the converted certificate file (if enabled a little further below)
+# This script runs at 5am
+# NOTE: You must also have "traefik_ssl_enabled" set to "yes"
+# Enables the script and other resources // default: no // valid: yes, no
+hms_docker_plex_ssl_enabled: no
+# The subdomain that will be published to Plex and is within scope of the certificates being generated // default: plex
+# Example: "plex" if the subdomain record were "plex.example.com"
+hms_docker_plex_ssl_subdomain: plex
+# If the script should update the Plex server config file to point to the newly converted script // default: no // valid: yes, no
+hms_docker_plex_ssl_update_config: no
+# If the script should restart the Plex server after modifying the config // default: no // valid yes, no
+hms_docker_plex_ssl_restart_plex: no
+# The passphrase used to protect the certificate, leave as "null" if there should not be one // default: null
+hms_docker_plex_ssl_cert_pass: null
+
 ### End of HMS-Docker settings
 #######################################################################
 

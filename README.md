@@ -51,6 +51,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Support for multiple network shares
 - Single Sign-On with Authentik
 - Support for separate 4K instances for Sonarr and Radarr
+- Script to convert a Traefik certificate file to a Plex-supported certificate file (PKCS12)
 
 ## Supported Platforms
 

@@ -132,6 +132,10 @@
       when: hms_docker_container_map['sabnzbd']['proxy_host_rule'] + "." + hms_docker_domain not in slurped_sabnzbd_hostlist
       notify: restart sabnzbd
 
+- name: Ensure Plex SSL script and resources
+  ansible.builtin.import_tasks: "plex_ssl.yml"
+  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
+
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
   when: container_enabled_transmission
