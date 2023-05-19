@@ -549,6 +549,14 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+  homarr:
+    enabled: no
+    proxy_host_rule: homarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
 
 plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
 tdarr_transcode_folder: "{{ hms_docker_apps_path }}/tdarr/transcode_temp" # default: "{{ hms_docker_apps_path }}/tdarr/transcode_temp"
