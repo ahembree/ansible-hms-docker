@@ -96,6 +96,17 @@
     - item.value.authentik is defined and item.value.authentik
     - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
 
+- name: Ensure authentik Outpost configs for static traefik configs
+  ansible.builtin.template:
+    src: authentik_outpost_ext_host.j2
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.outpost.yml"
+    mode: 0644
+  with_items: "{{ traefik_ext_hosts_list }}"
+  when: 
+    - item.enabled 
+    - item.authentik is defined and item.authentik
+    - item.authentik_provider_type is defined and item.authentik_provider_type == 'proxy'
+
 - name: Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
     src: authentik_outpost_4k.j2
