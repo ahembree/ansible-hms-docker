@@ -29,7 +29,7 @@ services:
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_portainer %}
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-router@docker
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -133,7 +133,7 @@ services:
       - "traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0"
       - "traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% if authentik_enabled_traefik %}
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-router@docker
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -219,7 +219,7 @@ services:
       - "traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_authentik %}
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-router@docker
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
         {% endif %}
     {% endif %}
 
@@ -300,7 +300,7 @@ services:
       - "traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_nzbget %}
-      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-router@docker
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -340,7 +340,7 @@ services:
       - "traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_sabnzbd %}
-      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-router@docker
+      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -428,7 +428,7 @@ services:
       - "traefik.http.routers.proxy-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-router@docker
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -465,7 +465,7 @@ services:
       - "traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_requestrr %}
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-router@docker
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -502,7 +502,7 @@ services:
       - "traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_prowlarr %}
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-router@docker
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -533,6 +533,7 @@ services:
       - "traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-router@docker
         {% endif %}
     {% endif %}
@@ -583,6 +584,7 @@ services:
       - "traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-router@docker
         {% endif %}
     {% endif %}
@@ -633,6 +635,7 @@ services:
       - "traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_radarr %}
+      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-router@docker
         {% endif %}
     {% endif %}
@@ -683,6 +686,7 @@ services:
       - "traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_radarr %}
+      - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-midware@docker
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-router@docker
         {% endif %}
     {% endif %}
@@ -744,6 +748,7 @@ services:
       - "traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_bazarr %}
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-router@docker
         {% endif %}
     {% endif %}
@@ -774,6 +779,7 @@ services:
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - "traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=external-ipwhitelist"
         {% if authentik_enabled_overseerr %}
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-router@docker
         {% endif %}
     {% endif %}
@@ -845,6 +851,7 @@ services:
       - "traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_plex %}
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-router@docker
         {% endif %}
     {% endif %}
@@ -876,6 +883,7 @@ services:
       - "traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_tautulli %}
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-router@docker
         {% endif %}
     {% endif %}
@@ -970,7 +978,7 @@ services:
       - "traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
         {% endif %}
         {% if authentik_enabled_tdarr %}
-      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-router@docker
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
         {% endif %}
     {% endif %}
     volumes:
