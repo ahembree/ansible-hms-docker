@@ -1,8 +1,4 @@
 ---
-- name: Obtain public IP.
-  ipify_facts:
-  register: public_ip
-
 - name: Ensure paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"

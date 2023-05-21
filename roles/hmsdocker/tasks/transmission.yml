@@ -1,4 +1,9 @@
 ---
+- name: Obtain public IP.
+  ipify_facts:
+  register: public_ip
+  ignore_errors: true
+
 - name: Wait for VPN init
   ansible.builtin.command: sleep 15
   changed_when: False
@@ -28,5 +33,4 @@
           - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
           - "Current VPN IP: {{ vpn_public_ip.stdout }}"
           - The Transmission container has been stopped
-
-  when: ansible_facts['ipify_public_ip'] == vpn_public_ip.stdout
+  when: ansible_facts['ipify_public_ip'] == vpn_public_ip.stdout or ansible_facts['ipify_public_ip'] == '' or ansible_facts['ipify_public_ip'] is undefined
