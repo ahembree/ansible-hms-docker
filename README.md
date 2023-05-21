@@ -252,6 +252,16 @@ ansible-playbook -i inventory --connection local hms-docker.yml
 ansible-playbook -i inventory hms-docker.yml
 ```
 
+There is also a `run.sh` script that will only run against the local system so you don't have to keep typing out the long commands above:
+
+```bash
+# Check mode
+./run.sh check
+
+# Apply changes
+./run.sh apply
+```
+
 Once the playbook has finished running, it may take up to a few minutes for the SSL certificate to be generated (if enabled).
 
 If you do not already have a "wildcard" DNS record (`*`) setup for the domain you used on your LOCAL DNS server (such as `*.home.local`), create this `A` record to point to the IP address of the server. If you enabled Cloudflare DDNS, an "overseerr" public A record will be created automatically.
