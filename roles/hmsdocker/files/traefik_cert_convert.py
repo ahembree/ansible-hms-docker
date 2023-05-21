@@ -189,8 +189,6 @@ def get_container_by_image(image: str):
         return container_list
 
 def main():
-    
-
     parser = argparse.ArgumentParser(
         prog='traefik-to-plex-pkcs12',
         description='Converts a Traefik certificate file to PKCS12 format and applies it to a Plex server'
