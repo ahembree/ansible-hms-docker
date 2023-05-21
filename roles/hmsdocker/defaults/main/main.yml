@@ -1,0 +1,44 @@
+---
+### Any variables such as "{{ <variable> }}" will reference the variable that was defined earlier in this file
+
+#######################################################################
+### HMS-Docker settings
+
+# The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"
+# Options:
+#    `local`: local folder path
+#    `cifs`: CIFS or SMB share
+#    `nfs`: NFS share
+hms_docker_media_share_type: local
+
+# Where the media share will be mounted locally // default: "/opt/{{ project_name }}/media_data"
+# Recommended to change this if using `cifs` or `nfs` to a local mount point, such as "/mnt/{{ project_name }}"
+hms_docker_mount_path: "/opt/{{ project_name }}/media_data"
+
+# The name of the folder that will have the library folders defined below// default: "_library"
+hms_docker_library_folder_name: "_library"
+
+# The name of the library folders that will be created within the library folder that was defined above
+#  Valid `type` values are:
+#   `movies`
+#   `tv_shows`
+
+# The `type` value controls which containers the folders get mounted to (such as `movies` for Radarr, `tv_shows` for Sonarr)
+# The `folder_name` is the name of the folder that will be created for that `type` of library
+hms_docker_library_folders:
+  [
+    {
+      type: "movies",
+      folder_name: "Movies"
+    },
+    {
+      type: "tv_shows",
+      folder_name: "TV_Shows"
+    },
+  ]
+
+# The domain used for the Traefik proxy Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
+hms_docker_domain: home.local
+
+### End of HMS-Docker settings
+#######################################################################

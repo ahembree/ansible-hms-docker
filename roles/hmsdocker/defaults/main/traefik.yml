@@ -1,0 +1,82 @@
+### SSL and Traefik settings
+traefik_container_tag: v2.10.1
+
+# Enables or Disables SSL wildcard certificate generation // default: "no"
+traefik_ssl_enabled: no
+
+# This option implements a number of additional security features for Traefik, such as:
+# * Disable TLS1.0
+traefik_security_hardening: no # default: no
+
+# Whether to use the staging/testing URL or production URL // default: "yes"
+# If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
+traefik_ssl_use_letsencrypt_staging_url: yes
+
+# SANs (Subject Alternative Names) to also provision certificates for
+# By default, this will create a "wildcard" (*) certificate
+# If you wish to create a certificate for another subdomain (such as '*.public'), you can add them here
+traefik_ssl_sans: [
+  '*.{{ hms_docker_domain }}',
+]
+
+# The DNS provider to use for SSL generation, check this for supported providers: https://doc.traefik.io/traefik/https/acme/#providers
+traefik_ssl_dns_provider_code: ""
+
+# The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hms_docker_domain }}"
+traefik_ssl_dns_provider_zone: "{{ hms_docker_domain }}"
+
+# The environment variables for your DNS provider found at the provider link above
+# This is an example if using Cloudflare
+traefik_ssl_dns_provider_environment_vars:
+  {
+    "CF_DNS_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+    "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+  }
+
+# The DNS servers to use when generating your SSL certificate, recommended to set to your DNS providers servers
+traefik_ssl_dns_resolver_1: "1.1.1.1"
+traefik_ssl_dns_resolver_2: "1.0.0.1"
+
+# Required for Let's Encrypt, the email address to use when generating your SSL certificate
+traefik_ssl_letsencrypt_email: ""
+
+# Enables or Disables watching a directory for Traefik static file configs, see https://doc.traefik.io/traefik/providers/file/#configuration-examples // default: "no"
+traefik_ext_hosts_enabled: no
+traefik_ext_hosts_configs_path: "{{ hms_docker_apps_path }}/traefik/config/static_confs/"
+# Settings for each external host:
+#    friendly_name: host1, # just a friendly name for it
+#    subdomain_name: sub-example, # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)
+#    backend_url: http://example.com, # the url of the service you want to proxy through traefik
+#    enabled: yes, # enables or disables the route
+#    authentik: no, # whether or not to apply authentik settings to the service
+#    authentik_provider_type: proxy # typically proxy unless you know it's oauth2
+
+traefik_ext_hosts_list: [
+  {
+    friendly_name: host1,
+    subdomain_name: example-sub,
+    backend_url: http://example.com,
+    enabled: yes,
+    authentik: no,
+    authentik_provider_type: proxy
+  },
+  #{
+  #  friendly_name: host2,
+  #  subdomain_name: sub-2,
+  #  backend_url: http://example.com,
+  #  enabled: yes,
+  #  authentik: no,
+  #  authentik_provider_type: proxy
+  #},
+]
+
+
+# The Traefik log level, helpful for troubleshooting SSL issues // default: "INFO"
+traefik_log_level: "INFO"
+
+# Enable or disable to check if all possible Traefik routes are available (requires all FQDN DNS records to be valid) // default: "no"
+traefik_verify_endpoints: no
+
+# The Traefik allow-list for all containers EXCEPT the Overseerr container, the Overseerr container allows ALL IP's by default
+# This allows all RFC1918 addresses by default, you can change this to further restrict or allow greater access
+traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"

@@ -1,0 +1,39 @@
+#######################################################################
+### Sonarr and Radarr settings
+separate_4k_instances_enable: no
+
+# This will be used for container names, file/folder names and Traefik Host rules and labels
+separate_4k_instances_suffix: "4k"
+### End of Sonarr and Radarr settings
+#######################################################################
+
+
+
+#######################################################################
+### NZB settings
+nzbget_enable_downloads_mount: yes
+sabnzbd_enable_downloads_mount: yes
+### End of NZB settings
+#######################################################################
+
+
+
+#######################################################################
+### Tdarr settings
+tdarr_transcode_folder: "{{ hms_docker_apps_path }}/tdarr/transcode_temp" # default: "{{ hms_docker_apps_path }}/tdarr/transcode_temp"
+tdarr_enable_nvidia_gpu: "{{ enable_nvidia_gpu }}"
+tdarr_enable_intel_gpu: "{{ enable_intel_gpu }}"
+### End Tdarr
+#######################################################################
+
+
+
+#######################################################################
+### Tautulli settings
+# Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
+tautulli_include_jbops: false
+
+# This path will automatically mount the JBOPS scripts to Tautulli, recommended to leave as-is
+tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
+### End Tautulli settings
+#######################################################################

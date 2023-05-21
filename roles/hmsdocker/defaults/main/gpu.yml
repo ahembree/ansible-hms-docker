@@ -1,0 +1,9 @@
+### GPU settings
+# Requires supported hardware
+
+# Enables Nvidia GPU hardware accelleration within the Plex container // default: "no"
+# Requires the Nvidia drivers to already be installed and working
+enable_nvidia_gpu: no
+
+# Enables Intel GPU hardware accelleration within the Plex container // default: "no"
+enable_intel_gpu: no

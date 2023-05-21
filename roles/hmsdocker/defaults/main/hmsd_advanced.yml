@@ -1,0 +1,24 @@
+# The `project_name` controls the name of the base folders created (e.g. /opt/<project_name>/ and /mnt/<project_name>/) // default: "hms-docker"
+project_name: hms-docker
+
+# Where container data and configs are stored // default: "/opt/{{ project_name }}"
+hms_docker_data_path: "/opt/{{ project_name }}"
+
+# Where the container data is stored // default: "{{ hms_docker_data_path }}/apps"
+hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
+
+# Ownership of the secrets (.env) file
+secrets_env_user: root
+secrets_env_group: root
+secrets_env_mode: "0600"
+
+# Most home networks are a "/24" network, so this is the default // default: "24"
+# If you don't know what this means, leave the next 2 lines alone
+# If you know your specific network mask, you can change that here
+# These are used to generate Traefik allow-list rules for the proxy so only internal networks are permitted to access certain containers
+# Also controls how some containers treat local network traffic (e.g. Plex, transmission)
+hms_docker_subnet_mask: "24"
+hms_docker_network_subnet: "{{ ansible_default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
+
+# This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"
+hms_docker_media_path: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"

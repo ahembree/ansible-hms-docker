@@ -1,0 +1,25 @@
+### Plex Settings
+
+# Visit https://plex.tv/claim to obtain this token specific to your account
+plex_claim_token: ""
+
+# This will grab the default interface IPv4 address of the host // default: "{{ ansible_default_ipv4.address }}"
+plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
+
+plex_transcode_folder: "{{ hms_docker_apps_path }}/plex/transcode_temp" # default: "{{ hms_docker_apps_path }}/plex/transcode_temp"
+
+# Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex
+# This script will also automatically update the Plex config file to point to the converted certificate file (if enabled a little further below)
+# This script runs at 5am
+# NOTE: You must also have "traefik_ssl_enabled" set to "yes"
+# Enables the script and other resources // default: no // valid: yes, no
+hms_docker_plex_ssl_enabled: no
+# The subdomain that will be published to Plex and is within scope of the certificates being generated // default: plex
+# Example: "plex" if the subdomain record were "plex.example.com"
+hms_docker_plex_ssl_subdomain: plex
+# If the script should update the Plex server config file to point to the newly converted script // default: no // valid: yes, no
+hms_docker_plex_ssl_update_config: no
+# If the script should restart the Plex server after modifying the config // default: no // valid yes, no
+hms_docker_plex_ssl_restart_plex: no
+# The passphrase used to protect the certificate, leave as "null" if there should not be one // default: null
+hms_docker_plex_ssl_cert_pass: null

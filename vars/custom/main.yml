@@ -1,0 +1,6 @@
+---
+# This file is intentionally left blank
+
+# If there are no other variable files next to this one, please run:
+
+# cp <this repo folder path>/roles/hmsdocker/defaults/main/*.yml <this repo folder path>/vars/custom

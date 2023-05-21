@@ -1,0 +1,33 @@
+### SSL and Traefik settings
+# Enables or Disables SSL wildcard certificate generation // default: "no"
+traefik_ssl_enabled: no
+
+# This option implements a number of additional security features for Traefik, such as:
+# * Disable TLS1.0
+traefik_security_hardening: no # default: no
+
+# Whether to use the staging/testing URL or production URL // default: "yes"
+# If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
+traefik_ssl_use_letsencrypt_staging_url: yes
+
+# The DNS provider to use for SSL generation, check this for supported providers: https://doc.traefik.io/traefik/https/acme/#providers
+traefik_ssl_dns_provider_code: ""
+
+# The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hms_docker_domain }}"
+traefik_ssl_dns_provider_zone: "{{ hms_docker_domain }}"
+
+# The environment variables for your DNS provider found at the provider link above
+# This is an example if using Cloudflare
+traefik_ssl_dns_provider_environment_vars:
+  {
+    "CF_DNS_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+    "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+  }
+
+# The DNS servers to use when generating your SSL certificate
+# Recommended to set to your DNS providers servers
+traefik_ssl_dns_resolver_1: "1.1.1.1"
+traefik_ssl_dns_resolver_2: "1.0.0.1"
+
+# Required for Let's Encrypt, the email address to use when generating your SSL certificate
+traefik_ssl_letsencrypt_email: ""

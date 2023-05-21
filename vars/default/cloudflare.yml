@@ -1,0 +1,8 @@
+### Cloudflare settings
+## Tunnel
+# Enables or disables the Cloudflare Tunnel container // default: "no"
+cloudflare_tunnel_enabled: no
+
+# Your Cloudflare Tunnel token, see https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
+# Be sure to only add the actual token, it will be a very long string of random characters
+cloudflare_tunnel_token: ""

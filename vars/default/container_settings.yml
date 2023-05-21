@@ -1,0 +1,16 @@
+### Container settings
+
+# Enables the "watchtower" container to automatically download and apply container updates // default: "yes"
+container_enable_auto_updates: yes
+
+# The timezone to use for the containers // default: "America/New_York"
+container_timezone: America/New_York
+
+# User and Group ID's to use for the running processes in the containers (may cause or be the cause of permissions issues)
+#  default: "1234"
+container_uid: 1234
+container_gid: 1234
+
+# This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
+# If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
+container_expose_ports: no

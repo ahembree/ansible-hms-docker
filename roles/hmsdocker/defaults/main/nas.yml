@@ -1,0 +1,12 @@
+### NAS settings
+## Only used if the `hms_docker_media_share_type` is NOT set to `local`
+
+## NAS client general settings
+# Controls the "install state" of the required package // default: "present" // valid: "present", "latest", "absent"
+nas_client_package_state: present
+
+# Controls the "mount state" of the remote share // default: "mounted" // valid: present, absent, mounted, unmounted, remounted
+nas_client_mount_state: mounted
+
+# Controls if the mount will be enabled on boot // default: "yes"
+nas_client_mount_on_boot: yes

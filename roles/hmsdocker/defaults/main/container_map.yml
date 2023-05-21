@@ -1,0 +1,137 @@
+# The container map, use this to disable specific containers from running or being accessible by Traefik
+# Values:
+#  `enabled`: Enables or disables the container
+#  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
+#  `directory`: Creates the container directory within the apps folder
+#  `traefik`: Enables or disables accessing the container via Traefik
+#  `authentik`: Enables or disables accessing the container via Authentik
+#  `authentik_provider_type`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
+#  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions, does not expose the container port)
+hms_docker_container_map:
+  traefik:
+    enabled: yes
+    proxy_host_rule: traefik
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+  sonarr:
+    enabled: yes
+    proxy_host_rule: sonarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  radarr:
+    enabled: yes
+    proxy_host_rule: radarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  bazarr:
+    enabled: yes
+    proxy_host_rule: bazarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  transmission:
+    enabled: yes
+    proxy_host_rule: transmission
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  portainer:
+    enabled: yes
+    proxy_host_rule: portainer
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: oauth2
+    expose_to_public: no
+  overseerr:
+    enabled: yes
+    proxy_host_rule: overseerr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  prowlarr:
+    enabled: yes
+    proxy_host_rule: prowlarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  requestrr:
+    enabled: yes
+    proxy_host_rule: requestrr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  plex:
+    enabled: yes
+    proxy_host_rule: plex
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  tautulli:
+    enabled: yes
+    proxy_host_rule: tautulli
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  nzbget:
+    enabled: no
+    proxy_host_rule: nzbget
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  sabnzbd:
+    enabled: no
+    proxy_host_rule: sabnzbd
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  authentik:
+    enabled: no
+    proxy_host_rule: authentik
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  tdarr:
+    enabled: no
+    proxy_host_rule: tdarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  homepage:
+    enabled: no
+    proxy_host_rule: homepage
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no

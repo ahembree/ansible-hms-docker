@@ -126,3 +126,12 @@ transmission_custom_download_path_enabled: "{{ True if ((transmission_custom_dow
 transmission_use_nas_enabled: "{{ True if ((transmission_use_nas_for_downloads is defined and transmission_use_nas_for_downloads) and (hms_docker_media_share_type == 'nfs' or hms_docker_media_share_type == 'cifs')) else False }}"
 tautulli_jbops_enabled: "{{ True if (tautulli_include_jbops is defined and tautulli_include_jbops) else False }}"
 #######################################################################
+
+#######################################################################
+### Advanced Ansible settings
+# Overrides the family to 'redhat' if running Alma Linux
+family_override: "{{ 'redhat' if ansible_os_family | lower == 'almalinux' else ansible_os_family | lower }}"
+
+# Which python interpreter to use, only change if you're an advanced user and know what you're doing
+ansible_python_interpreter: /usr/bin/python3
+#######################################################################

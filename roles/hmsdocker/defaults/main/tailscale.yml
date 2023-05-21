@@ -1,0 +1,6 @@
+### Tailscale Settings
+tailscale_enabled: no # default: `no`
+tailscale_auth_key: 
+tailscale_enable_subnet_routes: no # default: `no`
+tailscale_subnet_routes: '{{ hms_docker_network_subnet }}' # comma-separated list of subnets to expose (such as '192.168.1.0/24,192.168.2.0/24'), default: '{{ hms_docker_network_subnet }}'
+tailscale_advertise_exit_node: no # default: `no`

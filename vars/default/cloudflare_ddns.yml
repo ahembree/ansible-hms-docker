@@ -1,0 +1,15 @@
+## DDNS
+# Enables or disables the Cloudflare DDNS container // default: "no"
+cloudflare_ddns_enabled: no
+
+# Your Cloudflare API token that has read/write permissions for your DNS zone
+# This will also be provided to Traefik if using SSL (assuming Cloudflare is your DNS provider)
+cloudflare_api_token: ""
+
+# The domain that will be used for the Cloudflare DDNS container // default: "{{ hms_docker_domain }}"
+# Automatically uses the same domain defined above
+cloudflare_ddns_domain: "{{ hms_docker_domain }}"
+
+# The A (or AAAA) record to be created // default: "overseerr"
+# May cause issues if not set to "overseerr" due to the Traefik Host rules
+cloudflare_ddns_subdomain: overseerr

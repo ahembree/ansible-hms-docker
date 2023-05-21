@@ -6,13 +6,14 @@
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
 
-  vars_files:
-    - vars/default.yml
-
   roles:
     - docker
 
   tasks:
+  - name: Ensure vars are loaded
+    ansible.builtin.include_vars:
+      dir: vars/custom
+
   - name: Ensure Nvidia GPU role if enabled
     ansible.builtin.import_role:
       name: gpu

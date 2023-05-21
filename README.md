@@ -148,9 +148,21 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
 ## Configuration
 
+Copy the base configuration to the `vars/custom` directory by running:
+
+```bash
+make basic
+```
+
+You can also quickly copy the advanced configuration by running:
+
+```bash
+make advanced
+```
+
 ### Content Layout
 
-By default, the content is laid out in the following directory structure, if you wish to change the install location, you must use the [advanced configuration](#using-the-advanced-configuration)
+By default, the content is laid out in the following directory structure, if you wish to change the install location, you must use the advanced configuration
 
 Generated compose file location: `/opt/hms-docker/docker-compose.yml`
 
@@ -168,7 +180,7 @@ Secrets file (where all sensitive key material is stored): `/opt/hms-docker/.env
 
 - This files default ownership and permissions requires you to enter the sudo/root password every time you run a `docker-compose` command within the project directory
 
-  - If you wish to get around this (and reduce security), you can change the `secrets_env_user`, `secrets_env_group`, and `secrets_env_mode` within the [advanced configuration](#using-the-advanced-configuration) to the values you prefer, or...
+  - If you wish to get around this (and reduce security), you can change the `secrets_env_user`, `secrets_env_group`, and `secrets_env_mode` within the advanced configuration files to the values you prefer, or...
 
   - These recommended values (if you wish to do this) will allow all users with `docker` access to read the file, and thus run `docker-compose` commands without needing to run as sudo/root, but will not allow them to modify.
 
@@ -178,19 +190,9 @@ Secrets file (where all sensitive key material is stored): `/opt/hms-docker/.env
 
     - `secrets_env_mode: 0640`
 
-### Using the advanced configuration
-
-If you with to use a more advanced configuration, you can run this command to replace the standard config with the default advanced config:
-
-  ```bash
-  cp roles/hmsdocker/defaults/main.yml vars/default.yml
-  ```
-
-This is personal preference, but you may want to copy this `vars/default.yml` file to a `vars/custom.yml` file and then update the `vars_files` line in the `hms-docker.yml` file to point to your new custom file instead. (This `vars/custom.yml` file is ignored by git)
-
-Edit the `vars/default.yml` or the `vars/custom.yml` file you just created to configure the settings and variables used in the playbook.
-
 ### General Configuration
+
+All configuration options are in a (hopefully) aptly-named `.yml` file. Once you copied the config you want (by running `make basic` or `make advanced`), these config files are now in `vars/custom`
 
 - Required settings to configure:
 
@@ -356,7 +358,7 @@ This also means that **SSO using Authentik will not work for any container confi
 
 ## Using Authentik
 
-In order to use Authentik, you must be using the [advanced configuration outlined above](#using-the-advanced-configuration) **AND** you must be using SSL as outlined in this project.
+In order to use Authentik, you must be using the advanced configuration outlined above **AND** you must be using SSL as outlined in this project.
 
 This Authentik installation is based on the [single application](https://goauthentik.io/docs/providers/proxy/forward_auth#single-application) proxy provider configuration.
 
@@ -378,7 +380,7 @@ To ensure these files are not changed by Ansible, `force: no` is set on the temp
 
 If you are using [Cloudflare Tunnel](#using-cloudflare-tunnel) **AND** you have disabled port forwarding to 80/443, you **MUST** create a new "public hostname" in Tunnel in order for SSO to work since the SSO server needs to be publicly accessible. If your tunnel is online and working, follow [step 4 when setting up Tunnel](#using-cloudflare-tunnel) and configure it for the `authentik-server` container.
 
-1. Within the advanced variable settings (as outlined in the [advanced settings setup](#using-the-advanced-configuration)), enable the authentik container and enable authentik for the containers you want using the `hms_docker_container_map` variable
+1. Within the advanced variable settings (as outlined in the advanced settings setup), enable the authentik container and enable authentik for the containers you want using the `hms_docker_container_map` variable
 
 2. Run the playbook as normal
 
@@ -454,6 +456,6 @@ If you are using [Cloudflare Tunnel](#using-cloudflare-tunnel) **AND** you have 
 
 You can add external services (such as services running on another host/server, like an external grafana server) to this projects Traefik config.
 
-You _must_ be using the [Advanced Config](#using-the-advanced-configuration), set `traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `traefik_ext_hosts_list` array.
+You _must_ be using the Advanced Config, set `traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `traefik_ext_hosts_list` array.
 
 **NOTE**: All traffic between the host that runs Traefik and the target external service will be **unencrypted**. [Source](https://doc.traefik.io/traefik/routing/routers/#general)

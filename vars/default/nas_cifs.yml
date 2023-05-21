@@ -1,0 +1,12 @@
+## NAS client CIFS settings, only if `hms_docker_media_share_type` is set to `cifs`
+# The CIFS/SMB remote share path to connect to // default: "//nas.example.com/share"
+nas_client_remote_cifs_path: "//nas.example.com/share"
+
+## WARNING: these credentials will be stored in plaintext within the `hms_docker_data_path` folder, but will be owned by `root:root` with `0600` permissions, so only those with root or sudo access can read
+# The username to use when connecting to the remote share
+nas_client_cifs_username: ""
+# The password to use when connecting to the remote share
+nas_client_cifs_password: ""
+
+# The CIFS options to use for the mount, Google should be able to help troubleshoot // default: "rw,soft"
+nas_client_cifs_opts: rw,soft
