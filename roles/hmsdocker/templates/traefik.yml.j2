@@ -5,6 +5,10 @@ global:
 log:
   level: "{{ traefik_log_level }}"
 
+{% if traefik_enable_access_logs %}
+accessLog: {}
+{% endif %}
+
 api:
   dashboard: true
   insecure: true
