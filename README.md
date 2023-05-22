@@ -254,14 +254,14 @@ ansible-playbook -i inventory --connection local hms-docker.yml
 ansible-playbook -i inventory hms-docker.yml
 ```
 
-There is also a `run.sh` script that will only run against the local system so you don't have to keep typing out the long commands above:
+There is also a `Makefile` script that will only run against the local system so you don't have to keep typing out the long commands above:
 
 ```bash
 # Check mode
-./run.sh check
+make check
 
 # Apply changes
-./run.sh apply
+make apply
 ```
 
 Once the playbook has finished running, it may take up to a few minutes for the SSL certificate to be generated (if enabled).
