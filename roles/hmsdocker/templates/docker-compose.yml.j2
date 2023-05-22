@@ -63,14 +63,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
+    environment:
+      - TZ=${TIMEZONE}
     {% if expose_ports_enabled_homepage %}
     ports:
       - 3000:3000
     {% endif %}
-    {% if traefik_enabled_portainer %}
-    environment:
-      - TZ=${TIMEZONE}
-      - BASE_URL={{ hms_docker_container_map['homepage']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+    {% if traefik_enabled_homepage %}
     labels:
       - traefik.enable=true
       - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
