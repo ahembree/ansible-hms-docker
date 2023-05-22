@@ -1,0 +1,32 @@
+# Sonarr
+homepage_sonarr_key: 
+homepage_sonarr_4k_key: 
+
+# Radarr
+homepage_radarr_key: 
+homepage_radarr_4k_key: 
+
+# Prowlarr
+homepage_prowlarr_key: 
+
+# NZB
+homepage_sabnzbd_key: 
+homepage_nzbget_key: 
+
+# Tautulli
+homepage_tautulli_key: 
+
+# Plex
+homepage_plex_key: 
+
+# Overseerr
+homepage_overseerr_key: 
+
+# Bazarr
+homepage_bazarr_key: 
+
+# Authentik
+homepage_authentik_key: 
+
+# Portainer
+homepage_portainer_key: 

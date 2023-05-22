@@ -56,6 +56,10 @@
         (authentik_enabled)) and 
         (traefik_ssl_enabled)
 
+- name: Ensure homepage
+  ansible.builtin.import_tasks: "homepage.yml"
+  when: container_enabled_homepage
+
 - name: Ensure JBOPS if enabled
   ansible.builtin.git:
     repo: https://github.com/blacktwin/JBOPS
@@ -82,6 +86,7 @@
   - authentik_pgpass: "{{ (slurped_pg_pass_data['content'] | b64decode) if slurped_pg_pass_data['content'] is defined else '### Will be obtained during full run ###' }}"
   - authentik_pgu: "{{ authentik_old_pg_user if authentik_old_pg_user is defined and authentik_old_pg_user != '' else authentik_pg_user }}"
   - authentik_pgdb: "{{ authentik_old_pg_db if authentik_old_pg_db is defined and authentik_old_pg_db != '' else authentik_pg_db }}"
+  - watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
 
 - name: Ensure docker-compose.yml file.
   ansible.builtin.template:

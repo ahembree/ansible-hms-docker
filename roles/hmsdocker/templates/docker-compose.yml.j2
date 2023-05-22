@@ -20,8 +20,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/portainer/config:/data
-    {% if traefik_enabled_portainer %}
+    {% if traefik_enabled_portainer or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_portainer %}
       - traefik.enable=true
       - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -31,14 +32,27 @@ services:
         {% if authentik_enabled_portainer %}
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Infrastructure
+      - homepage.name=Portainer
+      - homepage.icon=portainer.png
+      - homepage.href=http://{{ hms_docker_container_map['portainer']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Container Management
+      - homepage.widget.type=portainer
+      - homepage.widget.url=https://portainer:9443
+      - homepage.widget.env=1
+      - homepage.widget.key=${PORTAINER_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
-{% if container_enabled_homarr %}
-  # Homarr container, dashboarding
-  homarr:
-    image: ghcr.io/ajnart/homarr:latest
-    container_name: homarr
+{% if container_enabled_homepage %}
+  # homepage container, dashboarding
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
     restart: ${RESTART_POLICY}
     logging:
       driver: json-file
@@ -48,28 +62,24 @@ services:
       - "traefik_net"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${HMSD_APPS_PATH}/homarr/config:/app/data/configs
-      - ${HMSD_APPS_PATH}/homarr/icons:/app/public/icons
-    {% if expose_ports_enabled_homarr %}
+      - ${HMSD_APPS_PATH}/homepage/config:/app/config
+    {% if expose_ports_enabled_homepage %}
     ports:
-      - 7575:7575
+      - 3000:3000
     {% endif %}
     {% if traefik_enabled_portainer %}
     environment:
       - TZ=${TIMEZONE}
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - BASE_URL={{ hms_docker_container_map['homarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - BASE_URL={{ hms_docker_container_map['homepage']['proxy_host_rule'] }}.{{ hms_docker_domain }}
     labels:
       - traefik.enable=true
-      - traefik.http.services.homarr-${COMPOSE_PROJECT}.loadbalancer.server.port=7575
-      - traefik.http.routers.homarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
-        {% if not expose_public_enabled_homarr %}
-      - traefik.http.routers.homarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+      - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
+        {% if not expose_public_enabled_homepage %}
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
-        {% if authentik_enabled_homarr %}
-      - traefik.http.routers.homarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-homarr-router@docker
+        {% if authentik_enabled_homepage %}
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker
         {% endif %}
     {% endif %}
 {% endif %}
@@ -89,6 +99,20 @@ services:
     command: --cleanup --schedule "{{ container_auto_update_schedule }}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    {% if container_enabled_homepage %}
+    environment:
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
+      - WATCHTOWER_HTTP_API_METRICS=true
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Watchtower
+      - homepage.icon=watchtower.png
+      - homepage.description=Container Updates
+      - homepage.widget.type=watchtower
+      - homepage.widget.url=http://watchtower:8080
+      - homepage.widget.key=${WATCHTOWER_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+    {% endif %}
 {% endif %}
 
 {% if container_enabled_traefik %}
@@ -124,8 +148,9 @@ services:
     {% if traefik_ext_hosts_enabled %}
       - {{ traefik_ext_hosts_configs_path }}:/etc/traefik/static_files
     {% endif %}
-    {% if traefik_enabled_traefik %}
+    {% if traefik_enabled_traefik or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_traefik %}
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - traefik.http.services.traefik-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
@@ -135,6 +160,17 @@ services:
         {% if authentik_enabled_traefik %}
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Infrastructure
+      - homepage.name=Traefik
+      - homepage.icon=traefik.png
+      - homepage.href=http://{{ hms_docker_container_map['traefik']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Reverse Proxy
+      - homepage.widget.type=traefik
+      - homepage.widget.url=http://traefik:8080
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -210,8 +246,9 @@ services:
       - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9001}:9000"
       - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
     {% endif %}
-    {% if traefik_enabled_authentik %}
+    {% if traefik_enabled_authentik or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_authentik %}
       - traefik.enable=true
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -221,6 +258,18 @@ services:
         {% if authentik_enabled_authentik %}
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Infrastructure
+      - homepage.name=Authentik
+      - homepage.icon=authentik.png
+      - homepage.href=http://{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Single Sign-On
+      - homepage.widget.type=authentik
+      - homepage.widget.url=http://authentik-server:9000
+      - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 
   authentik-worker:
@@ -291,8 +340,9 @@ services:
     ports:
       - 6789:6789
     {% endif %}
-    {% if traefik_enabled_nzbget %}
+    {% if traefik_enabled_nzbget or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_nzbget %}
       - traefik.enable=true
       - traefik.http.services.nzbget-${COMPOSE_PROJECT}.loadbalancer.server.port=6789
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -302,6 +352,18 @@ services:
         {% if authentik_enabled_nzbget %}
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Downloads
+      - homepage.name=NZBget
+      - homepage.icon=nzbget.png
+      - homepage.href=http://{{ hms_docker_container_map['nzbget']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=NZB Manager
+      - homepage.widget.type=nzbget
+      - homepage.widget.url=http://nzbget:8080
+      - homepage.widget.key=${NZBGET_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -331,8 +393,9 @@ services:
     ports:
       - 8082:8080
     {% endif %}
-    {% if traefik_enabled_sabnzbd %}
+    {% if traefik_enabled_sabnzbd or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_sabnzbd %}
       - traefik.enable=true
       - traefik.http.services.sabnzbd-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -342,6 +405,18 @@ services:
         {% if authentik_enabled_sabnzbd %}
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Downloads
+      - homepage.name=SABnzbd
+      - homepage.icon=sabnzbd.png
+      - homepage.href=http://{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=NZB Manager
+      - homepage.widget.type=sabnzbd
+      - homepage.widget.url=http://sabnzbd:8080
+      - homepage.widget.key=${SABNZBD_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -375,6 +450,14 @@ services:
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% else %}
       - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+    {% endif %}
+    {% if container_enabled_homepage %}
+    labels:
+      - homepage.group=Downloads
+      - homepage.name=Transmission VPN Route
+      - homepage.icon=transmission.png
+      - homepage.description=Torrent Traffic Stats
+      - homepage.showStats=true
     {% endif %}
     environment:
       - OPENVPN_PROVIDER=${VPN_PROVIDER}
@@ -419,8 +502,9 @@ services:
     ports:
       - 8081:8080
     {% endif %}
-    {% if traefik_enabled_transmission %}
+    {% if traefik_enabled_transmission or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_transmission %}
       - traefik.enable=true
       - traefik.http.routers.proxy-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - traefik.http.services.proxy-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
@@ -430,6 +514,17 @@ services:
         {% if authentik_enabled_transmission %}
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Downloads
+      - homepage.name=Transmission
+      - homepage.icon=transmission.png
+      - homepage.href=http://{{ hms_docker_container_map['transmission']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Torrent Management
+      - homepage.widget.type=transmission
+      - homepage.widget.url=http://transmission-proxy:8080
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -493,8 +588,9 @@ services:
     ports:
       - 9696:9696
     {% endif %}
-    {% if traefik_enabled_prowlarr %}
+    {% if traefik_enabled_prowlarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_prowlarr %}
       - traefik.enable=true
       - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -504,6 +600,18 @@ services:
         {% if authentik_enabled_prowlarr %}
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Prowlarr
+      - homepage.icon=prowlarr.png
+      - homepage.href=http://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Indexer Management
+      - homepage.widget.type=prowlarr
+      - homepage.widget.url=http://prowlarr:9696
+      - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -524,8 +632,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_sonarr %}
+    {% if traefik_enabled_sonarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_sonarr %}
       - traefik.enable=true
       - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -534,8 +643,19 @@ services:
         {% endif %}
         {% if authentik_enabled_sonarr %}
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Sonarr
+      - homepage.icon=sonarr.png
+      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=TV Show Manager
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=http://sonarr:8989
+      - homepage.widget.key=${SONARR_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/sonarr/config:/config
@@ -575,8 +695,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_sonarr %}
+    {% if traefik_enabled_sonarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_sonarr %}
       - traefik.enable=true
       - traefik.http.services.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`)
@@ -585,8 +706,19 @@ services:
         {% endif %}
         {% if authentik_enabled_sonarr %}
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
-      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers - 4K
+      - homepage.name=Sonarr - {{ separate_4k_instances_suffix }}
+      - homepage.icon=sonarr.png
+      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}
+      - homepage.description=TV Show Manager
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=http://sonarr-{{ separate_4k_instances_suffix }}:8989
+      - homepage.widget.key=${SONARR_4K_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/sonarr-{{ separate_4k_instances_suffix }}/config:/config
@@ -626,8 +758,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_radarr %}
+    {% if traefik_enabled_radarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_radarr %}
       - traefik.enable=true
       - traefik.http.services.radarr-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -636,8 +769,19 @@ services:
         {% endif %}
         {% if authentik_enabled_radarr %}
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
-      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Radarr
+      - homepage.icon=radarr.png
+      - homepage.href=http://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Movie Manager
+      - homepage.widget.type=radarr
+      - homepage.widget.url=http://radarr:7878
+      - homepage.widget.key=${RADARR_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/radarr/config:/config
@@ -677,8 +821,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_radarr %}
+    {% if traefik_enabled_radarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_radarr %}
       - traefik.enable=true
       - traefik.http.services.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`)
@@ -687,8 +832,19 @@ services:
         {% endif %}
         {% if authentik_enabled_radarr %}
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-midware@docker
-      - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers - 4K
+      - homepage.name=Radarr - {{ separate_4k_instances_suffix }}
+      - homepage.icon=radarr.png
+      - homepage.href=http://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}
+      - homepage.description=Movie Manager
+      - homepage.widget.type=radarr
+      - homepage.widget.url=http://radarr-{{ separate_4k_instances_suffix }}:7878
+      - homepage.widget.key=${RADARR_4K_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/radarr-{{ separate_4k_instances_suffix }}/config:/config
@@ -739,8 +895,9 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
         {% endfor %}
     {% endif %}
-    {% if traefik_enabled_bazarr %}
+    {% if traefik_enabled_bazarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_bazarr %}
       - traefik.enable=true
       - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -749,8 +906,19 @@ services:
         {% endif %}
         {% if authentik_enabled_bazarr %}
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Bazarr
+      - homepage.icon=bazarr.png
+      - homepage.href=http://{{ hms_docker_container_map['bazarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Subtitle Manager
+      - homepage.widget.type=bazarr
+      - homepage.widget.url=http://bazarr:6767
+      - homepage.widget.key=${BAZARR_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -772,16 +940,28 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_overseerr %}
+    {% if traefik_enabled_overseerr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_overseerr %}
       - traefik.enable=true
       - traefik.http.services.overseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
       - "traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=external-ipwhitelist"
         {% if authentik_enabled_overseerr %}
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker
-      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Overseerr
+      - homepage.icon=overseerr.png
+      - homepage.href=http://{{ hms_docker_container_map['overseerr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Request Manager
+      - homepage.widget.type=overseerr
+      - homepage.widget.url=http://overseerr:5055
+      - homepage.widget.key=${OVERSEERR_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/overseerr/config:/config
@@ -841,8 +1021,9 @@ services:
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
         {% endfor %}
     {% endif %}
-    {% if traefik_enabled_plex %}
+    {% if traefik_enabled_plex or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_plex %}
       - traefik.enable=true
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
@@ -852,8 +1033,19 @@ services:
         {% endif %}
         {% if authentik_enabled_plex %}
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Media
+      - homepage.name=Plex
+      - homepage.icon=plex.png
+      - homepage.href=http://{{ hms_docker_container_map['plex']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Media Server
+      - homepage.widget.type=plex
+      - homepage.widget.url=https://plex:32400
+      - homepage.widget.key=${PLEX_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
 {% endif %}
 
@@ -874,8 +1066,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if traefik_enabled_tautulli %}
+    {% if traefik_enabled_tautulli or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_tautulli %}
       - traefik.enable=true
       - traefik.http.services.tautulli-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -884,8 +1077,19 @@ services:
         {% endif %}
         {% if authentik_enabled_tautulli %}
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
-      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-router@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Media
+      - homepage.name=Tautulli
+      - homepage.icon=tautulli.png
+      - homepage.href=http://{{ hms_docker_container_map['tautulli']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Media Analytics
+      - homepage.widget.type=tautulli
+      - homepage.widget.url=http://tautulli:8181
+      - homepage.widget.key=${TAUTULLI_KEY:-apikeyapikeyapikey}
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     {% if expose_ports_enabled_tautulli %}
     ports:
@@ -969,8 +1173,9 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
     runtime: nvidia
     {% endif %}
-    {% if traefik_enabled_tdarr %}
+    {% if traefik_enabled_tdarr or container_enabled_homepage %}
     labels:
+      {% if traefik_enabled_tdarr %}
       - traefik.enable=true
       - traefik.http.services.tdarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8265
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tdarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}`)
@@ -980,6 +1185,17 @@ services:
         {% if authentik_enabled_tdarr %}
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
         {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage %}
+      - homepage.group=Managers
+      - homepage.name=Tdarr
+      - homepage.icon=tdarr.png
+      - homepage.href=http://{{ hms_docker_container_map['tdarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}
+      - homepage.description=Transcode Manager
+      - homepage.widget.type=tdarr
+      - homepage.widget.url=http://tdarr:8265
+      - homepage.showStats=true
+      {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/tdarr/config/server:/app/server

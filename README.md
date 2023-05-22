@@ -34,7 +34,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Overseerr: request platform
 - Requestrr: chat client for requests
 - Tdarr: media transcoding
-- Homarr: dashboarding
+- homepage: dashboarding
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
@@ -328,7 +328,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
 | Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
-| Homarr                                   | `homarr`             | `7575`                 | `7575`            | &#9745;                |
+| HomePage                                 | `homepage`           | `3000`                 | `3000`            | &#9745;                |
 
 ## Only generate config files
 
@@ -339,6 +339,14 @@ ansible-playbook -i inventory --connection local generate-configs.yml
 ```
 
 By default, it will output these configs into `/opt/hms-docker/`
+
+## Using Homepage
+
+Homepage is able to integrate directly with Docker, allowing it to "auto-discover" the running containers/services.
+
+Homepage can also integrate with a very large number of the containers in this project, so setting up the connection is very easy.
+
+You just need to define the services API key in the `homepage_api_keys.yml` file ()
 
 ## Using Cloudflare Tunnel
 
