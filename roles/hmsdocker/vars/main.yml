@@ -120,6 +120,40 @@ authentik_enabled_homepage: "{{ True if ((hms_docker_container_map['homepage']['
 
 authentik_geoip_enabled: "{{ True if ((authentik_geoip_account_id is defined and authentik_geoip_account_id != '') and (authentik_geoip_license_key is defined and authentik_geoip_license_key != '')) else False }}"
 
+
+
+homepage_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['homepage'] is defined and hms_docker_container_map['traefik']['homepage']) else False }}"
+homepage_enabled_sonarr: "{{ True if (hms_docker_container_map['sonarr']['homepage'] is defined and hms_docker_container_map['sonarr']['homepage']) else False }}"
+homepage_enabled_radarr: "{{ True if (hms_docker_container_map['radarr']['homepage'] is defined and hms_docker_container_map['radarr']['homepage']) else False }}"
+homepage_enabled_bazarr: "{{ True if (hms_docker_container_map['bazarr']['homepage'] is defined and hms_docker_container_map['bazarr']['homepage']) else False }}"
+homepage_enabled_transmission: "{{ True if (hms_docker_container_map['transmission']['homepage'] is defined and hms_docker_container_map['transmission']['homepage']) else False }}"
+homepage_enabled_portainer: "{{ True if (hms_docker_container_map['portainer']['homepage'] is defined and hms_docker_container_map['portainer']['homepage']) else False }}"
+homepage_enabled_overseerr: "{{ True if (hms_docker_container_map['overseerr']['homepage'] is defined and hms_docker_container_map['overseerr']['homepage']) else False }}"
+homepage_enabled_prowlarr: "{{ True if (hms_docker_container_map['prowlarr']['homepage'] is defined and hms_docker_container_map['prowlarr']['homepage']) else False }}"
+homepage_enabled_plex: "{{ True if (hms_docker_container_map['plex']['homepage'] is defined and hms_docker_container_map['plex']['homepage']) else False }}"
+homepage_enabled_tautulli: "{{ True if (hms_docker_container_map['tautulli']['homepage'] is defined and hms_docker_container_map['tautulli']['homepage']) else False }}"
+homepage_enabled_nzbget: "{{ True if (hms_docker_container_map['nzbget']['homepage'] is defined and hms_docker_container_map['nzbget']['homepage']) else False }}"
+homepage_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['homepage'] is defined and hms_docker_container_map['sabnzbd']['homepage']) else False }}"
+homepage_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage'] is defined and hms_docker_container_map['authentik']['homepage']) else False }}"
+homepage_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage'] is defined and hms_docker_container_map['tdarr']['homepage']) else False }}"
+
+homepage_stats_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['homepage_stats'] is defined and hms_docker_container_map['traefik']['homepage_stats']) else False }}"
+homepage_stats_enabled_sonarr: "{{ True if (hms_docker_container_map['sonarr']['homepage_stats'] is defined and hms_docker_container_map['sonarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_radarr: "{{ True if (hms_docker_container_map['radarr']['homepage_stats'] is defined and hms_docker_container_map['radarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_bazarr: "{{ True if (hms_docker_container_map['bazarr']['homepage_stats'] is defined and hms_docker_container_map['bazarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_transmission: "{{ True if (hms_docker_container_map['transmission']['homepage_stats'] is defined and hms_docker_container_map['transmission']['homepage_stats']) else False }}"
+homepage_stats_enabled_portainer: "{{ True if (hms_docker_container_map['portainer']['homepage_stats'] is defined and hms_docker_container_map['portainer']['homepage_stats']) else False }}"
+homepage_stats_enabled_overseerr: "{{ True if (hms_docker_container_map['overseerr']['homepage_stats'] is defined and hms_docker_container_map['overseerr']['homepage_stats']) else False }}"
+homepage_stats_enabled_prowlarr: "{{ True if (hms_docker_container_map['prowlarr']['homepage_stats'] is defined and hms_docker_container_map['prowlarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_plex: "{{ True if (hms_docker_container_map['plex']['homepage_stats'] is defined and hms_docker_container_map['plex']['homepage_stats']) else False }}"
+homepage_stats_enabled_tautulli: "{{ True if (hms_docker_container_map['tautulli']['homepage_stats'] is defined and hms_docker_container_map['tautulli']['homepage_stats']) else False }}"
+homepage_stats_enabled_nzbget: "{{ True if (hms_docker_container_map['nzbget']['homepage_stats'] is defined and hms_docker_container_map['nzbget']['homepage_stats']) else False }}"
+homepage_stats_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['homepage_stats'] is defined and hms_docker_container_map['sabnzbd']['homepage_stats']) else False }}"
+homepage_stats_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage_stats'] is defined and hms_docker_container_map['authentik']['homepage_stats']) else False }}"
+homepage_stats_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage_stats'] is defined and hms_docker_container_map['tdarr']['homepage_stats']) else False }}"
+
+
+
 # Misc variables
 nas_enable_additional_paths: "{{ True if (nas_client_remote_additional_paths is defined and nas_client_use_additional_paths is defined and nas_client_use_additional_paths) else False }}"
 transmission_custom_download_path_enabled: "{{ True if ((transmission_custom_download_path is defined and transmission_custom_download_path) and (transmission_use_custom_download_path is defined and transmission_use_custom_download_path) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads)) else False }}"

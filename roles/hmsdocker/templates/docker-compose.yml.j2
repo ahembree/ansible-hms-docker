@@ -33,7 +33,7 @@ services:
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_portainer %}
       - homepage.group=Infrastructure
       - homepage.name=Portainer
       - homepage.icon=portainer.png
@@ -43,7 +43,9 @@ services:
       - homepage.widget.url=https://portainer:9443
       - homepage.widget.env=1
       - homepage.widget.key=${PORTAINER_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_portainer %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -110,7 +112,6 @@ services:
       - homepage.widget.type=watchtower
       - homepage.widget.url=http://watchtower:8080
       - homepage.widget.key=${WATCHTOWER_KEY:-apikeyapikeyapikey}
-      - homepage.showStats=true
     {% endif %}
 {% endif %}
 
@@ -160,7 +161,7 @@ services:
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_traefik %}
       - homepage.group=Infrastructure
       - homepage.name=Traefik
       - homepage.icon=traefik.png
@@ -168,7 +169,9 @@ services:
       - homepage.description=Reverse Proxy
       - homepage.widget.type=traefik
       - homepage.widget.url=http://traefik:8080
+      {% if homepage_stats_enabled_traefik %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -258,7 +261,7 @@ services:
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_authentik %}
       - homepage.group=Infrastructure
       - homepage.name=Authentik
       - homepage.icon=authentik.png
@@ -267,7 +270,9 @@ services:
       - homepage.widget.type=authentik
       - homepage.widget.url=http://authentik-server:9000
       - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_authentik %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 
@@ -352,7 +357,7 @@ services:
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_nzbget %}
       - homepage.group=Downloads
       - homepage.name=NZBget
       - homepage.icon=nzbget.png
@@ -361,7 +366,9 @@ services:
       - homepage.widget.type=nzbget
       - homepage.widget.url=http://nzbget:8080
       - homepage.widget.key=${NZBGET_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_nzbget %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -405,7 +412,7 @@ services:
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_sabnzbd %}
       - homepage.group=Downloads
       - homepage.name=SABnzbd
       - homepage.icon=sabnzbd.png
@@ -414,7 +421,9 @@ services:
       - homepage.widget.type=sabnzbd
       - homepage.widget.url=http://sabnzbd:8080
       - homepage.widget.key=${SABNZBD_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_sabnzbd %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -450,7 +459,7 @@ services:
     {% else %}
       - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
     {% endif %}
-    {% if container_enabled_homepage %}
+    {% if container_enabled_homepage and homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
       - homepage.name=Transmission VPN Route
@@ -514,7 +523,7 @@ services:
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_transmission %}
       - homepage.group=Downloads
       - homepage.name=Transmission
       - homepage.icon=transmission.png
@@ -522,7 +531,6 @@ services:
       - homepage.description=Torrent Management
       - homepage.widget.type=transmission
       - homepage.widget.url=http://transmission-proxy:8080
-      - homepage.showStats=true
       {% endif %}
     {% endif %}
 {% endif %}
@@ -600,7 +608,7 @@ services:
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_prowlarr %}
       - homepage.group=Managers
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
@@ -609,7 +617,9 @@ services:
       - homepage.widget.type=prowlarr
       - homepage.widget.url=http://prowlarr:9696
       - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_prowlarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -644,7 +654,7 @@ services:
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_sonarr %}
       - homepage.group=Managers
       - homepage.name=Sonarr
       - homepage.icon=sonarr.png
@@ -653,7 +663,9 @@ services:
       - homepage.widget.type=sonarr
       - homepage.widget.url=http://sonarr:8989
       - homepage.widget.key=${SONARR_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_sonarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:
@@ -707,7 +719,7 @@ services:
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_sonarr %}
       - homepage.group=Managers - 4K
       - homepage.name=Sonarr - {{ separate_4k_instances_suffix }}
       - homepage.icon=sonarr.png
@@ -716,7 +728,9 @@ services:
       - homepage.widget.type=sonarr
       - homepage.widget.url=http://sonarr-{{ separate_4k_instances_suffix }}:8989
       - homepage.widget.key=${SONARR_4K_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_sonarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:
@@ -770,7 +784,7 @@ services:
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_radarr %}
       - homepage.group=Managers
       - homepage.name=Radarr
       - homepage.icon=radarr.png
@@ -779,7 +793,9 @@ services:
       - homepage.widget.type=radarr
       - homepage.widget.url=http://radarr:7878
       - homepage.widget.key=${RADARR_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_radarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:
@@ -833,7 +849,7 @@ services:
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_radarr %}
       - homepage.group=Managers - 4K
       - homepage.name=Radarr - {{ separate_4k_instances_suffix }}
       - homepage.icon=radarr.png
@@ -842,7 +858,9 @@ services:
       - homepage.widget.type=radarr
       - homepage.widget.url=http://radarr-{{ separate_4k_instances_suffix }}:7878
       - homepage.widget.key=${RADARR_4K_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_radarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:
@@ -907,7 +925,7 @@ services:
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_bazarr %}
       - homepage.group=Managers
       - homepage.name=Bazarr
       - homepage.icon=bazarr.png
@@ -916,7 +934,9 @@ services:
       - homepage.widget.type=bazarr
       - homepage.widget.url=http://bazarr:6767
       - homepage.widget.key=${BAZARR_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_bazarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -950,7 +970,7 @@ services:
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_overseerr %}
       - homepage.group=Managers
       - homepage.name=Overseerr
       - homepage.icon=overseerr.png
@@ -959,7 +979,9 @@ services:
       - homepage.widget.type=overseerr
       - homepage.widget.url=http://overseerr:5055
       - homepage.widget.key=${OVERSEERR_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_overseerr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:
@@ -1034,7 +1056,7 @@ services:
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_plex %}
       - homepage.group=Media
       - homepage.name=Plex
       - homepage.icon=plex.png
@@ -1043,7 +1065,9 @@ services:
       - homepage.widget.type=plex
       - homepage.widget.url=https://plex:32400
       - homepage.widget.key=${PLEX_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_plex %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
 {% endif %}
@@ -1078,7 +1102,7 @@ services:
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_tautulli %}
       - homepage.group=Media
       - homepage.name=Tautulli
       - homepage.icon=tautulli.png
@@ -1087,7 +1111,9 @@ services:
       - homepage.widget.type=tautulli
       - homepage.widget.url=http://tautulli:8181
       - homepage.widget.key=${TAUTULLI_KEY:-apikeyapikeyapikey}
+      {% if homepage_stats_enabled_tautulli %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     {% if expose_ports_enabled_tautulli %}
@@ -1185,7 +1211,7 @@ services:
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
         {% endif %}
       {% endif %}
-      {% if container_enabled_homepage %}
+      {% if container_enabled_homepage and homepage_enabled_tdarr %}
       - homepage.group=Managers
       - homepage.name=Tdarr
       - homepage.icon=tdarr.png
@@ -1193,7 +1219,9 @@ services:
       - homepage.description=Transcode Manager
       - homepage.widget.type=tdarr
       - homepage.widget.url=http://tdarr:8265
+      {% if homepage_stats_enabled_tdarr %}
       - homepage.showStats=true
+      {% endif %}
       {% endif %}
     {% endif %}
     volumes:

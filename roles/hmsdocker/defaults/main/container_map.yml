@@ -23,6 +23,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   radarr:
     enabled: yes
     proxy_host_rule: radarr
@@ -31,6 +33,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   bazarr:
     enabled: yes
     proxy_host_rule: bazarr
@@ -39,6 +43,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   transmission:
     enabled: yes
     proxy_host_rule: transmission
@@ -47,6 +53,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
   portainer:
     enabled: yes
     proxy_host_rule: portainer
@@ -55,6 +63,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: oauth2
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   overseerr:
     enabled: yes
     proxy_host_rule: overseerr
@@ -63,6 +73,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   prowlarr:
     enabled: yes
     proxy_host_rule: prowlarr
@@ -71,6 +83,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   requestrr:
     enabled: yes
     proxy_host_rule: requestrr
@@ -79,6 +93,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   plex:
     enabled: yes
     proxy_host_rule: plex
@@ -87,6 +103,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
   tautulli:
     enabled: yes
     proxy_host_rule: tautulli
@@ -95,6 +113,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   nzbget:
     enabled: no
     proxy_host_rule: nzbget
@@ -103,6 +123,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
   sabnzbd:
     enabled: no
     proxy_host_rule: sabnzbd
@@ -111,6 +133,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
   authentik:
     enabled: no
     proxy_host_rule: authentik
@@ -119,6 +143,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   tdarr:
     enabled: no
     proxy_host_rule: tdarr
@@ -127,6 +153,8 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   homepage:
     enabled: no
     proxy_host_rule: homepage
@@ -135,3 +163,5 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+    homepage: yes
+    homepage_stats: no
