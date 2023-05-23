@@ -7,7 +7,7 @@ idna==3.4
 pycparser==2.21
 pyOpenSSL==23.1.1
 python-dotenv==0.20.0
-requests==2.27.1
+requests==2.31.0
 semantic-version==2.10.0
 setuptools-rust==1.1.2
 typing_extensions==4.1.1
