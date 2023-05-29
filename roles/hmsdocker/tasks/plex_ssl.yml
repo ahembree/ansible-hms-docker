@@ -33,6 +33,6 @@
   ansible.builtin.cron:
     name: hms-docker-plex-ssl
     user: root
-    job: "{{ hms_docker_data_path }}/.venv/bin/python {{ cert_script.dest }}"
+    job: "{{ hms_docker_data_path }}/.venv/bin/python {{ cert_script.dest | default(hms_docker_data_path + '/traefik_cert_convert.py') }}"
     minute: 0
     hour: 5

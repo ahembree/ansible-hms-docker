@@ -63,7 +63,7 @@ def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: bool=
         pkcs_data = pkcs.export(passphrase=priv_passphrase)
         file.write(pkcs_data)
         logging.info(f'PKCS12 data written to {filename}{" and encrypted" if priv_passphrase is not None else ""}')
-        file.close()
+    file.close()
     os.chmod(filename, 0o600)
     os.chown(filename, uid=int(HMSD_USER_ID), gid=int(HMSD_GROUP_ID))
 
@@ -239,7 +239,7 @@ def main():
             logging.debug(f'Getting the existing PKCS12 file serial')
             with open(pkcs12_file_path, 'rb') as f:
                 current_serial = get_pkcs12_serial(f.read())
-                f.close()
+            f.close()
 
         logging.debug(f'Working with main domain: {main_domain}')
         if sans:
