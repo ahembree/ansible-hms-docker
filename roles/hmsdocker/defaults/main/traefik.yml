@@ -55,7 +55,7 @@ traefik_ext_hosts_list: [
   {
     friendly_name: host1,
     subdomain_name: example-sub,
-    backend_url: http://example.com,
+    backend_url: "http://example.com",
     enabled: yes,
     authentik: no,
     authentik_provider_type: proxy
