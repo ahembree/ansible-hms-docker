@@ -6,6 +6,12 @@
     mode: 0644
   register: cf_worker_req_file_dest
 
+- name: Ensure venv pip package
+  ansible.builtin.package:
+    name:
+      - python3-venv
+    state: present
+
 - name: Ensure pip is updated first
   ansible.builtin.pip:
     virtualenv: "{{ hms_docker_data_path }}/.venv"
@@ -16,7 +22,7 @@
 
 - name: Ensure pip environment
   ansible.builtin.pip:
-    requirements: "{{ cf_worker_req_file_dest.dest }}"
+    requirements: "{{ cf_worker_req_file_dest.dest | default(hms_docker_data_path +'/requirements.txt') }}"
     virtualenv: "{{ hms_docker_data_path }}/.venv"
     virtualenv_command: python3 -m venv
 

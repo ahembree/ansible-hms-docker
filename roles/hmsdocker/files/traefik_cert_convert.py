@@ -27,19 +27,16 @@ docker_client = docker.from_env()
 
 try:
     load_dotenv(f'{os.path.dirname(os.path.abspath(__file__))}/.env')
-    HMSD_APPS_PATH = os.environ['HMSD_APPS_PATH']
-    COMPOSE_PROJECT = os.environ['COMPOSE_PROJECT']
-    HMSD_USER_ID = os.environ['PUID']
-    HMSD_GROUP_ID = os.environ['PGID']
-    PLEX_PUBLIC_SUBDOMAIN = os.environ['PLEX_PUBLIC_SUBDOMAIN']
-    PLEX_CERT_PASSPHRASE = os.environ['PLEX_CERTIFICATE_PASSPHRASE']
-    PLEX_MODIFY_CONFIG = os.environ['PLEX_CERT_UPDATE_CONFIG']
-    PLEX_RESTART = os.environ['PLEX_CERT_RESTART']
+    HMSD_APPS_PATH = os.getenv('HMSD_APPS_PATH', '/opt/hms-docker/apps')
+    COMPOSE_PROJECT = os.getenv('COMPOSE_PROJECT', 'hms-docker')
+    HMSD_USER_ID = os.getenv('PUID', 1234)
+    HMSD_GROUP_ID = os.getenv('PGID', 1234)
+    PLEX_PUBLIC_SUBDOMAIN = os.getenv('PLEX_PUBLIC_SUBDOMAIN', 'plex')
+    PLEX_CERT_PASSPHRASE = os.getenv('PLEX_CERTIFICATE_PASSPHRASE', None)
+    PLEX_MODIFY_CONFIG = os.getenv('PLEX_CERT_UPDATE_CONFIG', False)
+    PLEX_RESTART = os.getenv('PLEX_CERT_RESTART', False)
 except KeyError as e:
-    logging.warn(f'Failed to find value for {e}')
-
-if PLEX_CERT_PASSPHRASE == '':
-    PLEX_CERT_PASSPHRASE = None
+    logging.warning(f'Failed to find value for {e}')
 
 PLEX_CONFIG_DIR = f"{HMSD_APPS_PATH}/plex/config"
 TRAEFIK_CERT_DIR = f"{HMSD_APPS_PATH}/traefik/config/certs"
@@ -163,11 +160,11 @@ def restart_plex(compose_project: str) -> None:
     if container is type(list):
         for con in container:
             if con.labels['com.docker.compose.project'] == compose_project:
-                logging.warn(f'Restarting container ID: {con.short_id}')
+                logging.warning(f'Restarting container ID: {con.short_id}')
                 con.restart()
     else:
         if container.labels['com.docker.compose.project'] == compose_project:
-            logging.warn(f'Restarting container ID: {container.short_id}')
+            logging.warning(f'Restarting container ID: {container.short_id}')
             container.restart()
 
 def get_container_by_image(image: str):
@@ -185,7 +182,7 @@ def get_container_by_image(image: str):
     if len(container_list) == 1:
         return container_list[0]
     else:
-        logging.warn(f'Got more than one container for image {image}, found: {len(container_list)}')
+        logging.warning(f'Got more than one container for image {image}, found: {len(container_list)}')
         return container_list
 
 def main():
