@@ -30,7 +30,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
 | Traefik                                  | `traefik`            | `8080`                 | `8080`            | &#9745;                |
-| Sabnzb                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
+| Nzbget                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
 | Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
 | Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
