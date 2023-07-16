@@ -22,7 +22,7 @@ container_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['ena
 container_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['enabled'] is defined and hms_docker_container_map['tdarr']['enabled']) else False }}"
 container_enabled_homepage: "{{ True if (hms_docker_container_map['homepage']['enabled'] is defined and hms_docker_container_map['homepage']['enabled']) else False }}"
 container_enabled_tailscale: "{{ True if (tailscale_enabled is defined and tailscale_enabled) else False }}"
-
+container_enabled_flaresolverr: '{{ True if (flaresolverr_enabled is defined and flaresolverr_enabled) else False }}'
 
 # Traefik computed variables
 traefik_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['traefik'] is defined and hms_docker_container_map['traefik']['traefik']) else False }}"
@@ -77,7 +77,7 @@ expose_ports_enabled_nzbget: "{{ True if (container_expose_ports or not containe
 expose_ports_enabled_sabnzbd: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_sabnzbd) else False }}"
 expose_ports_enabled_tdarr: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_tdarr) else False }}"
 expose_ports_enabled_homepage: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_homepage) else False }}"
-
+expose_ports_enabled_flaresolverr: '{{ True if (container_expose_ports) else False }}'
 
 # Authentik computed variables
 authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) else False }}"

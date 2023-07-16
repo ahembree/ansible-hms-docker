@@ -135,7 +135,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
    Ubuntu, Debian
 
    ```bash
-   sudo apt-get install python38
+   sudo apt install python3-pip
    sudo pip3 install ansible
    ```
 
