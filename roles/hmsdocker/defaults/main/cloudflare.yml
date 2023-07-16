@@ -2,12 +2,16 @@
 
 # Your Cloudflare API token that has read/write permissions for your DNS zone
 # This will also be provided to Traefik if using SSL (assuming Cloudflare is your DNS provider)
-cloudflare_api_token: ""
+cloudflare_api_token: ''
 
 ## Tunnel
-# Enables or disables the Cloudflare Tunnel container // default: "no"
+# Enables or disables the Cloudflare Tunnel container // default: no
 cloudflare_tunnel_enabled: no
 
 # Your Cloudflare Tunnel token, see https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
 # Be sure to only add the actual token, it will be a very long string of random characters
-cloudflare_tunnel_token: ""
+cloudflare_tunnel_token: ''
+
+## Flaresolverr
+# Enables or disables the Flaresolverr container // default: no
+flaresolverr_enabled: no

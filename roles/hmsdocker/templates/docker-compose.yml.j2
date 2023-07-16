@@ -1164,6 +1164,28 @@ services:
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 {% endif %}
 
+{% if container_enabled_flaresolverr %}
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: '${RESTART_POLICY}'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    networks:
+      - "download_net"
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=${TIMEZONE}
+    {% if expose_ports_enabled_flaresolverr %}
+    ports:
+      - 8191:8191
+    {% endif %}
+{% endif %}
+
 {% if container_enabled_tdarr %}
   # tdarr container, transcoding
   tdarr:
