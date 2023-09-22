@@ -141,7 +141,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 3. Install required Ansible roles from Galaxy:
 
   ```bash
-  ansible-galaxy install -r requirements.yml
+  make install-reqs
   ```
 
 4. Proceed to [Configuration](#configuration)

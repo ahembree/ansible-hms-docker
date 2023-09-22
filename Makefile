@@ -46,6 +46,9 @@ check:
 apply:
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff
 
+install-reqs:
+	@ansible-galaxy install -r requirements.yml
+
 help:
 	@echo make basic :: for a basic config
 	@echo make advanced :: for an advanced config
