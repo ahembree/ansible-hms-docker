@@ -47,5 +47,5 @@ apply:
 help:
 	@echo make basic :: for a basic config
 	@echo make advanced :: for an advanced config
-	@echo make check :: check for any changes without doing anything (diff)
+	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
