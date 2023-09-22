@@ -135,11 +135,16 @@ It is recommended to read and follow this guide entirely as there is a lot of co
    Ubuntu, Debian
 
    ```bash
-   sudo apt install python3-pip
-   sudo pip3 install ansible
+   sudo apt install ansible
    ```
 
-3. Proceed to [Configuration](#configuration)
+3. Install required Ansible roles from Galaxy:
+
+  ```bash
+  ansible-galaxy install -r requirements.yml
+  ```
+
+4. Proceed to [Configuration](#configuration)
 
 ---
 
@@ -158,6 +163,8 @@ make advanced
 ```
 
 NOTE: Re-running these commands will overwrite any existing files in the `vars/custom` directory
+
+If you wish to add a user(s) to the `docker` group so they can run `docker` commands without using `sudo`, you can uncomment and modify the lines in `vars/default/docker.yml`, or just run (as a user with sudo/root access) `sudo usermod -aG docker <username>`
 
 ## Content Layout
 
