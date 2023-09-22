@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 .DEFAULT_GOAL:=help
 
 DEFAULT_CONFS = vars/default/*.yml
