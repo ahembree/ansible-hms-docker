@@ -5,7 +5,11 @@ transmission_vpn_provider: ""
 transmission_vpn_user: ""
 transmission_vpn_pass: ""
 
-# Transmissoin seed ratio settings
+# Use custom ovpn files https://github.com/haugene/vpn-configs-contrib/blob/main/CONTRIBUTING.md
+transmission_github_config_source_repo: ""
+transmission_ovpn_config: ""
+
+# Transmission seed ratio settings
 transmission_ratio_limit: "1" # default: "1"
 transmission_ratio_enabled: "true" # default: "true"
 
