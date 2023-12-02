@@ -10,3 +10,7 @@ __pycache__/
 vars/custom.yml
 vars/custom/*
 !vars/custom/main.yml
+
+# others to ignore
+*.log
+*.env
