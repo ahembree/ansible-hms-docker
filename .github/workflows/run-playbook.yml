@@ -22,20 +22,7 @@ jobs:
       - name: Run playbook
         run: |
           sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
-      # - name: Run playbook
-      #   uses: dawidd6/action-ansible-playbook@v2
-      #   with:
-      #     # Required, playbook filepath
-      #     playbook: hms-docker.yml
-      #     # Optional, directory where playbooks live
-      #     directory: ${{ github.workspace }}
-      #     # Optional, galaxy requirements filepath
-      #     # requirements: galaxy-requirements.yml
-
-      #     # Optional, additional flags to pass to ansible-playbook
-      #     options: |
-      #       --inventory inventory
-      #       --connection local
-      #       --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no"
-      #       --verbose
-
+      - name: Debug
+        run: |
+          docker-compose --version
+          docker --version
