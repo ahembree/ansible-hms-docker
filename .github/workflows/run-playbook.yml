@@ -34,4 +34,4 @@ jobs:
           sudo apt install ansible
       - name: Run playbook
         run: |
-          sudo ansible-playbook --verbose -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
+          sudo ansible-playbook -vvv -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
