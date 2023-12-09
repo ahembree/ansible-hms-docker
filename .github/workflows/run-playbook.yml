@@ -17,12 +17,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install ansible
         run: |
-          sudo apt install python3-pip
-          sudo pip3 install ansible
+          sudo apt update
+          sudo apt install ansible
       - name: Run playbook
         run: |
           sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
-      - name: Debug
-        run: |
-          docker-compose --version
-          docker --version
