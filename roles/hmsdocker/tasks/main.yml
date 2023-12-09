@@ -141,4 +141,6 @@
 
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
-  when: container_enabled_transmission
+  when: 
+    - container_enabled_transmission
+    - not is_github_runner is defined and is_github_runner
