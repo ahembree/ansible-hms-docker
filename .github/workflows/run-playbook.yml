@@ -21,7 +21,7 @@ jobs:
           sudo pip3 install ansible
       - name: Run playbook
         run: |
-          sudo make apply
+          sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no"
       # - name: Run playbook
       #   uses: dawidd6/action-ansible-playbook@v2
       #   with:
