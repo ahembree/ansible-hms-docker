@@ -19,6 +19,9 @@ jobs:
         run: |
           sudo apt install python3-pip
           sudo pip3 install ansible
+      - name: Run playbook
+        run: |
+          sudo make apply
       # - name: Run playbook
       #   uses: dawidd6/action-ansible-playbook@v2
       #   with:
