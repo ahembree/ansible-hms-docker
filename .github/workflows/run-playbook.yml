@@ -1,5 +1,5 @@
 name: GitHub Actions Testing
-run-name: ${{ github.actor }} test out actions
+run-name: Test OS Deployments
 on:
   push:
     branches: [ gh-actions ]
@@ -21,7 +21,7 @@ jobs:
           sudo pip3 install ansible
       - name: Run playbook
         run: |
-          sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no"
+          sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
       # - name: Run playbook
       #   uses: dawidd6/action-ansible-playbook@v2
       #   with:
