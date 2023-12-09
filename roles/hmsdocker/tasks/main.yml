@@ -108,6 +108,7 @@
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location
   when: 
     - not ansible_check_mode
+    - not is_github_runner|default(false)
 
 - name: Sabnzbd additional config
   when: container_enabled_sabnzbd
@@ -142,3 +143,4 @@
   import_tasks: "transmission.yml"
   when: 
     - container_enabled_transmission
+    - not is_github_runner|default(false)
