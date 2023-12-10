@@ -7,6 +7,7 @@
 # python stuff
 __pycache__/
 
+galaxy-roles/
 vars/custom.yml
 vars/custom/*
 !vars/custom/main.yml

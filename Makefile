@@ -47,10 +47,11 @@ apply:
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff
 
 install-reqs:
-	@ansible-galaxy install -r requirements.yml
+	@ansible-galaxy install -r requirements.yml -p ./galaxy-roles
 
 help:
 	@echo make basic :: for a basic config
 	@echo make advanced :: for an advanced config
 	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
+	@echo make install-reqs :: installs ansible galaxy role requirements

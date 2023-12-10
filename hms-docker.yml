@@ -10,8 +10,8 @@
     - name: docker-compose
 
   roles:
-    - geerlingguy.docker
-    - geerlingguy.pip
+    - galaxy-roles/geerlingguy.docker
+    - galaxy-roles/geerlingguy.pip
 
   tasks:
   - name: Ensure vars are loaded
