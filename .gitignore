@@ -14,3 +14,4 @@ vars/custom/*
 # others to ignore
 *.log
 *.env
+.vscode/
