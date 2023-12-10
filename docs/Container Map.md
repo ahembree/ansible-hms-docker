@@ -24,8 +24,9 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Prowlarr                                 | `prowlarr`           | `9696`                 | `9696`            | &#9745;                |
 | Overseerr                                | `Overseerr`          | `5055`                 | `5055`            | &#9745;                |
 | Requestrr                                | `Requestrr`          | `4545`                 | `4545`            | &#9745;                |
-| Transmission                             | `transmission`       | `9091`                 | `9091`            | &#9745;                |
-| Transmission (Proxy)                     | `transmission-proxy` | `8081`                 | `8080`            | &#9744;                |
+| Transmission UI Proxy                    | `transmission-proxy` | `8081`                 | `8080`            | &#9745;                |
+| Transmission (HTTP Proxy)                | `transmission`       | `8888`                 | `8888`            | &#9744;                |
+| Transmission (RPC)                       | `transmission`       | `9091`                 | `9091`            | &#9744;                |
 | Portainer                                | `portainer`          | `9000`                 | `9000`            | &#9745;                |
 | Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |

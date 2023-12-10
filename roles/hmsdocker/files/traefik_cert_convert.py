@@ -16,7 +16,8 @@ logging.info(f'{"=" * 15} Starting Script at {start_time} {"=" * 15}')
 
 import json
 import base64
-import OpenSSL
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import BestAvailableEncryption, NoEncryption, load_pem_private_key, pkcs12
 import sys
 import xml.etree.ElementTree as ET
 import argparse
@@ -41,7 +42,7 @@ except KeyError as e:
 PLEX_CONFIG_DIR = f"{HMSD_APPS_PATH}/plex/config"
 TRAEFIK_CERT_DIR = f"{HMSD_APPS_PATH}/traefik/config/certs"
 
-def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: bool=None) -> None:
+def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: str=None) -> None:
     """Converts PEM data into PKCS12 format and outputs to a file
 
     Args:
@@ -51,14 +52,15 @@ def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: bool=
         priv_passphrase (``str``, optional): The private key passphrase. Defaults to ``None``.
     """    
     logging.debug(f'Converting to PKCS12 and outputting file to {filename}')
-    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, pub)
-    key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, priv, passphrase=priv_passphrase)
-    pkcs = OpenSSL.crypto.PKCS12()
-    pkcs.set_certificate(cert)
-    pkcs.set_privatekey(key)
+    cert = x509.load_pem_x509_certificate(str.encode(pub))
+    if priv_passphrase is not None:
+        key = load_pem_private_key(str.encode(priv), str.encode(priv_passphrase))
+        p12 = pkcs12.serialize_key_and_certificates(None, key, cert, None, BestAvailableEncryption(str.encode(priv_passphrase)))
+    else:
+        key = load_pem_private_key(str.encode(priv), None)
+        p12 = pkcs12.serialize_key_and_certificates(None, key, cert, None, NoEncryption())
     with open(filename, 'wb') as file:
-        pkcs_data = pkcs.export(passphrase=priv_passphrase)
-        file.write(pkcs_data)
+        file.write(p12)
         logging.info(f'PKCS12 data written to {filename}{" and encrypted" if priv_passphrase is not None else ""}')
     file.close()
     os.chmod(filename, 0o600)
@@ -109,7 +111,7 @@ def get_pkcs12_serial(data: bytes, passph: str=None) -> str:
         ``str``: The serial of the PKCS12 file
     """    
     logging.debug('Obtaining PKCS12 certificate serial number')
-    serial = OpenSSL.crypto.load_pkcs12(data, passphrase=passph).get_certificate().get_serial_number()
+    serial = pkcs12.load_pkcs12(data, passph).cert.certificate.serial_number
     logging.debug(f'PKSC12 Serial: {serial}')
     return serial
 
@@ -125,7 +127,7 @@ def get_pem_serial(certificate: str, private: bool=False, passphrase: str=None) 
         ``str``: The serial of the PEM data
     """    
     logging.debug(f'Obtaining PEM certificate serial number')
-    serial = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate).get_serial_number() if not private else OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, certificate, passphrase=passphrase).get_serial_number()
+    serial = x509.load_pem_x509_certificate(str.encode(certificate)).serial_number
     logging.debug(f'PEM Serial: {serial}')
     return serial
 
@@ -205,6 +207,9 @@ def main():
     plex_config_path = args.plex_config
     plex_subdomain = args.subdomain
     modify_plex_conf = args.modify_plex_config
+
+    if passphrase == "":
+        passphrase = None
 
     existing_certificate_dir = PLEX_CONFIG_DIR
     

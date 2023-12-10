@@ -9,5 +9,4 @@ authentik_pg_user: authentik
 authentik_pg_db: authentik
 authentik_key_path: "{{ hms_docker_data_path }}/.authentik.key"
 authentik_pgpass_path: "{{ hms_docker_data_path }}/.authentik.pgpass"
-authentik_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
-authentik_external_host: '{{ authentik_host }}'
+authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
