@@ -1,8 +1,6 @@
 name: GitHub Actions Testing
 run-name: Test OS Deployments
-on:
-  push:
-    branches: [ gh-actions ]
+on: [push] 
 
   workflow_dispatch:
 
