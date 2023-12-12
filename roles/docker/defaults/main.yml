@@ -4,7 +4,7 @@ docker_prereq_packages_state: present # default: present // valid: present, abse
 docker_package_state: present # default: present
 docker_service_state: started # default: started
 docker_service_enabled: yes # default: yes
-docker_compose_version: "v2.14.2" # default: 'v2.14.2'
+docker_compose_version: "v2.23.3" # default: 'v2.23.3'
 docker_repo_state: present # default: present
 docker_enable_live_restore: no # default: no
 docker_pip_package_state: present # default: present

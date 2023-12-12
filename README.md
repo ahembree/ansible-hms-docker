@@ -55,9 +55,9 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 ## Supported Platforms
 
-- RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux)
-- Debian based systems (Debian 9, Ubuntu 18.04+, etc.)
-- Possibly Raspberry Pi (need someone to volunteer to help development)
+Currently only Ubuntu 22.04+ is actively supported and is used for GitHub Actions testing.
+
+RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux) may work, but are no longer being tested against.
 
 ## Requirements
 
@@ -69,9 +69,9 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - You own a domain name and are able to modify DNS A and TXT records (if you want SSL and/or dynamic DNS)
 - You use a [supported VPN provider](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers) (if Transmission is enabled)
 - You use a [supported DNS provider](https://doc.traefik.io/traefik/https/acme/#providers) (if SSL is enabled)
-- You have a Cloudflare account with the correct zones and API keys configured (if dynamic DNS and/or SSL is enabled)
-- Slight familiarity with editing config files
-- Slight familiarity with Linux (installing packages, troubleshooting, etc)
+- You have a Cloudflare account with the correct DNS zones and API keys configured (if dynamic DNS and/or SSL is enabled)
+- Familiarity with editing config files
+- Familiarity with Linux (installing packages, troubleshooting, etc)
 - Nvidia GPU drivers already installed (if using Nvidia GPU acceleration)
 - Python 3.8 (Recommended, minimum Python 3.6)
 - Ansible (minimum 2.9)
@@ -101,20 +101,13 @@ Setting up the individual container configurations, such as for Sonarr, Radarr, 
 
 It is recommended to read and follow this guide entirely as there is a lot of configuration options that are required to get the system up and running to its full potential.
 
-1. Install git and clone the repository:
+1. Install requirements and clone the repository:
 
-   CentOS, Fedora, Alma, Rocky, RedHat:
-
-   ```bash
-   # Install git if not already installed
-   sudo yum install git -y
-   ```
-
-   Ubuntu, Debian:
+   Ubuntu:
 
    ```bash
-   # Install git if not already installed
-   sudo apt-get install git -y
+   sudo apt update
+   sudo apt install git make ansible python3-pip -y
    ```
 
    ```bash
@@ -123,28 +116,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
    cd ansible-hms-docker/
    ```
 
-2. Install Ansible if not installed already:
-
-   CentOS, Fedora, Alma, Rocky, RedHat
-
-   ```bash
-   sudo yum install python38
-   sudo pip3 install ansible
-   ```
-
-   Ubuntu, Debian
-
-   ```bash
-   sudo apt install ansible
-   ```
-
-3. Install required Ansible roles from Galaxy:
-
-  ```bash
-  make install-reqs
-  ```
-
-4. Proceed to [Configuration](#configuration)
+2. Proceed to [Configuration](#configuration)
 
 ---
 

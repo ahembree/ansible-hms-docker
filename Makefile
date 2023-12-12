@@ -36,7 +36,7 @@ basic:
 advanced:
 	@if $(MAKE) -s confirm ; then \
 		mkdir -p $(CUSTOM_CONF_DIR); \
-		cp -n $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
+		cp $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
 		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
 	fi
 
