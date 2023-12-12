@@ -49,7 +49,7 @@
 - name: Ensure pip Docker packages.
   pip:
     name:
-      - docker
+      - docker==6.1.3
       - docker-compose
     state: "{{ docker_pip_package_state }}"
 
