@@ -22,6 +22,7 @@ jobs:
           mkdir -p ./vars/custom
           cp vars/default/*.yml ./vars/custom
           mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
+          sudo make install-reqs
           sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
 
   Ubuntu22_Advanced:
@@ -38,4 +39,5 @@ jobs:
           mkdir -p ./vars/custom
           cp roles/hmsdocker/defaults/main/*.yml ./vars/custom
           mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
+          sudo make install-reqs
           sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
