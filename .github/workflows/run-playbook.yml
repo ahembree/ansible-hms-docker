@@ -1,5 +1,5 @@
-name: GitHub Actions Testing
-run-name: Test OS Deployments
+name: HMS-Docker Install Tests
+run-name: Test OS Installs
 on:
   push:
   workflow_dispatch:
