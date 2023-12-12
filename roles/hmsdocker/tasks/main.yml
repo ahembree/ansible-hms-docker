@@ -139,4 +139,6 @@
 
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
-  when: container_enabled_transmission
+  when: 
+    - container_enabled_transmission
+    - not ansible_check_mode

@@ -19,7 +19,11 @@
       - Your public IP is protected!
       - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
       - "Current VPN IP: {{ vpn_public_ip.stdout }}"
-  when: ansible_facts['ipify_public_ip'] is defined and ansible_facts['ipify_public_ip'] != vpn_public_ip.stdout
+  when:
+    - not ansible_check_mode
+    - ansible_facts['ipify_public_ip'] is defined
+    - vpn_public_ip.stdout is defined
+    - ansible_facts['ipify_public_ip'] != vpn_public_ip.stdout
 
 - name: Public IP and VPN IP are identical, stop container
   block:
