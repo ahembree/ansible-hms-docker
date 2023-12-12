@@ -7,6 +7,7 @@
     replace: '_'
     pip_install_packages:
     - name: docker
+      version: "6.1.3"
     - name: docker-compose
 
   roles:
