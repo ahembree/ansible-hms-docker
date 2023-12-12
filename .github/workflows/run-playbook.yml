@@ -31,8 +31,5 @@ jobs:
           hms-docker.yml
           --diff
           --extra-vars "
-          hms_docker_compose_container_state=absent
-          hms_docker_container_map.transmission.enabled=no
-          hms_docker_container_map.plex.enabled=no
           is_github_runner=yes
           "
