@@ -143,4 +143,5 @@
   import_tasks: "transmission.yml"
   when: 
     - container_enabled_transmission
+    - not ansible_check_mode
     - not is_github_runner|default(false)
