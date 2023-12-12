@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  Ubuntu22_Basic:
+  Ubuntu_22:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo code
@@ -17,27 +17,22 @@ jobs:
         run: |
           sudo apt update
           sudo apt install ansible make python3-pip
-      - name: Run playbook
+      - name: Ensure base playbook requirements
         run: |
           mkdir -p ./vars/custom
           cp vars/default/*.yml ./vars/custom
           mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
           sudo make install-reqs
-          sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
-
-  Ubuntu22_Advanced:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Check out repo code
-        uses: actions/checkout@v4
-      - name: Install ansible
-        run: |
-          sudo apt update
-          sudo apt install ansible make python3-pip
       - name: Run playbook
-        run: |
-          mkdir -p ./vars/custom
-          cp roles/hmsdocker/defaults/main/*.yml ./vars/custom
-          mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
-          sudo make install-reqs
-          sudo ansible-playbook -i inventory --connection local hms-docker.yml --diff --extra-vars "hms_docker_compose_container_state=absent hms_docker_container_map.transmission.enabled=no hms_docker_container_map.plex.enabled=no is_github_runner=yes"
+        run: >-
+          sudo ansible-playbook
+          -i inventory
+          --connection local
+          hms-docker.yml
+          --diff
+          --extra-vars "
+          hms_docker_compose_container_state=absent
+          hms_docker_container_map.transmission.enabled=no
+          hms_docker_container_map.plex.enabled=no
+          is_github_runner=yes
+          "
