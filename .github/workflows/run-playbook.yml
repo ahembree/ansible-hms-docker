@@ -3,6 +3,8 @@ run-name: Test OS Installs
 on:
   push:
   workflow_dispatch:
+  schedule:
+    - cron:  '23 9 * * 0'
 
 permissions:
   contents: read
