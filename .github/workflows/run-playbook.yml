@@ -32,5 +32,10 @@ jobs:
           --diff
           --extra-vars "
           is_github_runner=yes
-          tautulli_jbops_enabled=yes
+          authentik_enabled=yes
+          container_expose_ports=yes
+          hms_docker_plex_ssl_enabled=yes
+          separate_4k_instances_enable=yes
+          tautulli_include_jbops=yes
+          traefik_security_hardening=yes
           "
