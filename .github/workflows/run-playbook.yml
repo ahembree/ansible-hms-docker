@@ -1,5 +1,5 @@
-name: HMS-Docker Install Tests
-run-name: Test OS Installs
+name: Deployment Tests
+run-name: Test Deployment
 on:
   push:
   workflow_dispatch:
@@ -15,16 +15,19 @@ jobs:
     steps:
       - name: Check out repo code
         uses: actions/checkout@v4
+
       - name: Install ansible
         run: |
           sudo apt update
           sudo apt install ansible make python3-pip
+
       - name: Ensure base playbook requirements
         run: |
           mkdir -p ./vars/custom
           cp vars/default/*.yml ./vars/custom
           mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
           sudo make install-reqs
+
       - name: Run playbook
         run: >-
           sudo ansible-playbook
@@ -40,3 +43,8 @@ jobs:
           tautulli_include_jbops=yes
           traefik_security_hardening=yes
           "
+
+      - name: Check containers
+        run: |
+          sleep 10
+          sudo make verify-containers

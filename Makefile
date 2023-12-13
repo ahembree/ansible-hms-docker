@@ -49,9 +49,13 @@ apply: install-reqs
 install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
 
+verify-containers:
+	@sudo python3 .github/workflows/scripts/check_containers.py
+
 help:
-	@echo make basic :: for a basic config
-	@echo make advanced :: for an advanced config
+	@echo make basic :: setup a basic config
+	@echo make advanced :: setup an advanced config
 	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
+	@echo make verify-containers :: checks containers exposed ports \(used in Actions\)
