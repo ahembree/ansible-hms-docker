@@ -40,14 +40,18 @@ advanced:
 		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
 	fi
 
-check:
+check: install-reqs
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff --check
 
-apply:
+apply: install-reqs
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff
+
+install-reqs:
+	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
 
 help:
 	@echo make basic :: for a basic config
 	@echo make advanced :: for an advanced config
 	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
+	@echo make install-reqs :: installs ansible galaxy role requirements

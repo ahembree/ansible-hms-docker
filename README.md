@@ -136,6 +136,8 @@ make advanced
 
 NOTE: Re-running these commands will overwrite any existing files in the `vars/custom` directory
 
+If you wish to add a user(s) to the `docker` group so they can run `docker` commands without using `sudo`, you can uncomment and modify the lines in `vars/default/docker.yml`, or just run (as a user with sudo/root access) `sudo usermod -aG docker <username>`
+
 ## Content Layout
 
 By default, the content is laid out in the following directory structure, if you wish to change the install location, you must use the advanced configuration
