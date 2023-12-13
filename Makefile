@@ -40,10 +40,10 @@ advanced:
 		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
 	fi
 
-check:
+check: install-reqs
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff --check
 
-apply:
+apply: install-reqs
 	@ansible-playbook -i inventory --connection local hms-docker.yml --diff
 
 install-reqs:
