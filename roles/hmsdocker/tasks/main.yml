@@ -61,13 +61,21 @@
   when: container_enabled_homepage
 
 - name: Ensure JBOPS if enabled
-  ansible.builtin.git:
-    repo: https://github.com/blacktwin/JBOPS
-    clone: true
-    dest: "{{ tautulli_jbops_install_path }}"
-  diff: false
-  changed_when: false
   when: tautulli_jbops_enabled
+  block:
+    - name: Ensure global git config ignores dubious ownership permissions
+      community.general.git_config:
+        name: safe.directory
+        scope: global
+        value: "{{ tautulli_jbops_install_path }}"
+    - name: Ensure JBOPS repo
+      ansible.builtin.git:
+        repo: https://github.com/blacktwin/JBOPS
+        clone: true
+        dest: "{{ tautulli_jbops_install_path }}"
+      diff: false
+      changed_when: false
+  
 
 - name: Ensure env
   ansible.builtin.template:

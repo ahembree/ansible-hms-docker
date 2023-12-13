@@ -32,4 +32,5 @@ jobs:
           --diff
           --extra-vars "
           is_github_runner=yes
+          tautulli_jbops_enabled=yes
           "
