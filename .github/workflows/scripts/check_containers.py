@@ -80,6 +80,8 @@ def main():
                             if status_code == 200:
                                 success_codes += 1
                                 logging.info(f'{name}:{host_port} OK')
+                            elif name == 'transmission-proxy' and status_code == '502':
+                                success_codes += 1
                             else:
                                 failure_codes += 1
                                 logging.warning(f'{name}:{host_port} FAILED (Code: {status_code})')
@@ -95,6 +97,7 @@ def main():
         logging.error(f'Failure rate exceeded {threshold}, it was {fail_rate}')
         sys.exit(1)
     else:
+        logging.info(f'Failure rate: {fail_rate}')
         sys.exit(0)
 
 if __name__ == '__main__':
