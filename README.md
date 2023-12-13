@@ -1,6 +1,6 @@
 # ansible-hms-docker
 
-[![Ubuntu 22.04 LTS Install Test](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml/badge.svg)](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml)
+[![Deployment Tests](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml/badge.svg)](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml)
 
 Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms with support for GPUs, SSL, SSO, DDNS, and more.
 
