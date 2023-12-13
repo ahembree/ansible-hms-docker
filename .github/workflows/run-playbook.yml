@@ -32,7 +32,6 @@ jobs:
           --diff
           --extra-vars "
           is_github_runner=yes
-          authentik_enabled=yes
           container_expose_ports=yes
           hms_docker_plex_ssl_enabled=yes
           separate_4k_instances_enable=yes
