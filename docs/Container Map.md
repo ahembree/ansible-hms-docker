@@ -37,4 +37,4 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
 | HomePage                                 | `homepage`           | `3000`                 | `3000`            | &#9745;                |
 | Flaresolverr                             | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
-| Uptime Kuma                              | `uptime-kuma`        | `3001`                 | `3001`            | &#9744;                |
+| Uptime Kuma                              | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
