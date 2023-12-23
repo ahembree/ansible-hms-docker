@@ -47,7 +47,6 @@ jobs:
           monitoring_scripts_enabled=yes
           media_avail_script_enabled=yes
           container_enabled_tdarr=yes
-          container_enabled_homepage=yes
           container_enabled_uptimekuma=yes
           "
 
