@@ -52,9 +52,8 @@
 
 - name: Ensure Authentik
   import_tasks: "authentik.yml"
-  when: ((container_enabled_authentik) or 
-        (authentik_enabled)) and 
-        (traefik_ssl_enabled)
+  when: (authentik_enabled_globally and 
+        traefik_ssl_enabled)
 
 - name: Ensure homepage
   ansible.builtin.import_tasks: "homepage.yml"
