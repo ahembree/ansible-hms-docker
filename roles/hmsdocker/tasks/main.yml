@@ -146,9 +146,13 @@
   ansible.builtin.import_tasks: "plex_ssl.yml"
   when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
 
+- name: Ensure custom scripts
+  import_tasks: "scripts.yml"
+  when: custom_scripts_enabled | default(false)
+
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
   when: 
     - container_enabled_transmission
     - not ansible_check_mode
-    - not is_github_runner|default(false)
+    - not is_github_runner | default(false)
