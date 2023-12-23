@@ -40,7 +40,7 @@ except PermissionError as e:
     logging.error(f'You do not have permission to read the env file at: {env_path}')
     sys.exit(1)
 
-def notify(status: str, message: str, ping: int = 0):
+def notify(status: str, message: str, ping: int = 0) -> int:
     """Sends a GET request to the Uptime Kuma host
 
     Args:
