@@ -40,6 +40,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 - Authentik: SSO
 - Tailscale: mesh VPN
+- Flaresolverr: CAPTCHA solving
 - Uptime Kuma: service status monitoring
 
 ## Other Features
@@ -55,6 +56,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Support for separate 4K instances for Sonarr and Radarr
 - Script to convert a Traefik certificate file to a Plex-supported certificate file (PKCS12)
 - Automated dashboard configuration in Homepage
+- Custom advanced monitoring script(s)
 
 ## Supported Platforms
 
