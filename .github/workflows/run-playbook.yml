@@ -41,7 +41,7 @@ jobs:
           separate_4k_instances_enable=yes
           tautulli_include_jbops=yes
           traefik_security_hardening=yes
-          authentik_enabled=yes
+          authentik_enabled=no
           flaresolverr_enabled=yes
           custom_scripts_enabled=yes
           monitoring_scripts_enabled=yes
