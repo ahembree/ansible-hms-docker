@@ -61,7 +61,7 @@
   when: container_enabled_homepage
 
 - name: Ensure JBOPS if enabled
-  when: tautulli_jbops_enabled
+  when: tautulli_jbops_enabled | default(false)
   block:
     - name: Ensure global git config ignores dubious ownership permissions
       community.general.git_config:
