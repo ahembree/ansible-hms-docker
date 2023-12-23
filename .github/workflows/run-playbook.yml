@@ -41,6 +41,14 @@ jobs:
           separate_4k_instances_enable=yes
           tautulli_include_jbops=yes
           traefik_security_hardening=yes
+          authentik_enabled=yes
+          flaresolverr_enabled=yes
+          custom_scripts_enabled=yes
+          monitoring_scripts_enabled=yes
+          media_avail_script_enabled=yes
+          container_enabled_tdarr=yes
+          container_enabled_homepage=yes
+          container_enabled_uptimekuma=yes
           "
 
       - name: Check containers
