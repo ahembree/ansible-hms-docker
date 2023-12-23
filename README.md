@@ -40,6 +40,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 - Authentik: SSO
 - Tailscale: mesh VPN
+- Uptime Kuma: service status monitoring
 
 ## Other Features
 
@@ -261,3 +262,5 @@ Authentik: `https://authentik.< domain >`
 Tdarr: `https://tdarr.< domain >`
 
 Homepage: `https://homepage.< domain >`
+
+Uptime Kuma: `https://uptime-kuma.< domain >`

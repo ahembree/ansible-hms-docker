@@ -1282,6 +1282,38 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_uptimekuma %}
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: ${RESTART_POLICY}
+    networks:
+    - traefik_net
+    volumes:
+      - ${HMSD_APPS_PATH}/uptime-kuma/config:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    {% if expose_ports_enabled_uptimekuma %}
+    ports:
+      - 3001:3001
+    {% endif %}
+    environment:
+    - PUID=${PUID}
+    - PGID=${PGID}
+    - TZ=${TIMEZONE}
+    {% if traefik_enabled_uptimekuma %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_uptimekuma %}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_uptimekuma %}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker
+        {% endif %}
+    {% endif %}
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge
