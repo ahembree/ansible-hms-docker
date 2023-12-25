@@ -34,22 +34,7 @@ jobs:
           --connection local
           hms-docker.yml
           --diff
-          --extra-vars "
-          is_github_runner=yes
-          container_expose_ports=yes
-          hms_docker_plex_ssl_enabled=yes
-          separate_4k_instances_enable=yes
-          tautulli_include_jbops=yes
-          traefik_security_hardening=yes
-          flaresolverr_enabled=yes
-          custom_scripts_enabled=yes
-          monitoring_scripts_enabled=yes
-          media_avail_script_enabled=yes
-          container_enabled_tdarr=yes
-          container_enabled_uptimekuma=yes
-          container_enabled_homepage=yes
-          container_enabled_heimdall=yes
-          "
+          --extra-vars "@.github/extra-vars.yml"
 
       - name: Check containers
         run: |
