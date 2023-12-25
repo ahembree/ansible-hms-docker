@@ -1314,6 +1314,39 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_heimdall %}
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    networks:
+      - traefik_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/heimdall/config:/config
+    {% if expose_ports_enabled_heimdall %}
+    ports:
+      - 8000:80
+      - 8443:443
+    {% endif %}
+    restart: ${RESTART_POLICY}
+    {% if traefik_enabled_heimdall %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker
+        {% endif %}
+    {% endif %}
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge

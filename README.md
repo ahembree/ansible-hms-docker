@@ -34,7 +34,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Overseerr: request platform
 - Requestrr: chat client for requests
 - Tdarr: media transcoding
-- Homepage: dashboarding
+- Homepage: dashboarding / homepage
+- Heimdall: dashboarding / homepage
 - Watchtower: automatic container updates (if enabled)
 - Cloudflare-ddns: dynamic dns (if enabled)
 - Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info

@@ -30,7 +30,7 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Portainer                                | `portainer`          | `9000`                 | `9000`            | &#9745;                |
 | Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
-| Traefik                                  | `traefik`            | `8080`                 | `8080`            | &#9745;                |
+| Traefik                                  | `traefik`            | `80`, `8080`, `443`    | `80`, `8080`, `443`| &#9745;                |
 | Nzbget                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
 | Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
@@ -38,3 +38,4 @@ If you choose to expose the container ports on the host (by setting `container_e
 | HomePage                                 | `homepage`           | `3000`                 | `3000`            | &#9745;                |
 | Flaresolverr                             | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
 | Uptime Kuma                              | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
+| Heimdall                                 | `heimdall`           | `8000` and `8443`      | `80` and `443`    | &#9745;                |
