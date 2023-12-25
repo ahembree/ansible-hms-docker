@@ -116,7 +116,7 @@ services:
 {% endif %}
 
 {% if container_enabled_traefik %}
-  # Traefik container, loadbalancer/reverse proxy/ssl
+  # Traefik container, loadbalancer/reverse-proxy/ssl
   traefik:
     image: traefik:${TRAEFIK_TAG}
     container_name: traefik
@@ -245,14 +245,15 @@ services:
       - authentik_geoip:/geoip
     {% if expose_ports_enabled_authentik %}
     ports:
-      - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9001}:9000"
-      - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+      - 9001:9000
+      - 9443:9443
     {% endif %}
     {% if traefik_enabled_authentik or container_enabled_homepage %}
     labels:
       {% if traefik_enabled_authentik %}
       - traefik.enable=true
-      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_authentik %}
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
@@ -265,7 +266,7 @@ services:
       - homepage.group=Infrastructure
       - homepage.name=Authentik
       - homepage.icon=authentik.png
-      - homepage.href=http://{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}
+      - homepage.href=https://{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}
       - homepage.description=Single Sign-On
       - homepage.widget.type=authentik
       - homepage.widget.url=http://authentik-server:9000
