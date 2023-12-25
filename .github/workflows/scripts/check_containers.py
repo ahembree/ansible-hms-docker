@@ -69,7 +69,7 @@ def main():
                                 name = 'authentik'
                                 ssl = True
                             url = f'http{"s" if ssl else ""}://{host_ip}:{host_port}{suffix}'
-                            host_header = f'{name}.home.{domain}'
+                            host_header = f'{name}.{domain}'
                             logging.debug(f'getting {url} with Host header {host_header}')
                             # file deepcode ignore SSLVerificationBypass: Containers may host a self-signed certificate
                             response = requests.get(url, verify=False, headers={
