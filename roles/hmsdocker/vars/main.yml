@@ -88,7 +88,7 @@ expose_ports_enabled_uptimekuma: "{{ True if (container_expose_ports or not cont
 expose_ports_enabled_heimdall: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_heimdall) else False }}"
 
 # Authentik computed variables
-authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) else False }}"
+authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) and traefik_ssl_enabled else False }}"
 
 authentik_http_proxy_portainer: "{{ True if (hms_docker_container_map['portainer']['authentik_provider_type'] is defined and hms_docker_container_map['portainer']['authentik_provider_type'] == 'proxy') else False }}"
 authentik_http_proxy_traefik: "{{ True if (hms_docker_container_map['traefik']['authentik_provider_type'] is defined and hms_docker_container_map['traefik']['authentik_provider_type'] == 'proxy') else False }}"
