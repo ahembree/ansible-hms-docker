@@ -1291,7 +1291,7 @@ services:
     networks:
     - traefik_net
     volumes:
-      - ${HMSD_APPS_PATH}/uptime-kuma/config:/app/data
+      - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     {% if expose_ports_enabled_uptimekuma %}
     ports:
