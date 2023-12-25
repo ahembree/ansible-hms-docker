@@ -11,7 +11,8 @@
 
 - name: Check if config file exists after container restart
   ansible.builtin.stat:
-    path: "{{ sabnzbd_config_path.stat.path }}"
+    path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
+  register: sabnzbd_config_path
 
 - name: Configure sabnzbd config file
   when: sabnzbd_config_path.stat.exists
