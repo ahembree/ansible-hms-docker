@@ -471,8 +471,12 @@ services:
       - OPENVPN_PROVIDER=${VPN_PROVIDER}
       - OPENVPN_USERNAME=${VPN_USER}
       - OPENVPN_PASSWORD=${VPN_PASS}
+      {% if transmission_github_config_source_repo != "" %}
       - GITHUB_CONFIG_SOURCE_REPO=${VPN_REPO}
+      {% endif %}
+      {% if transmission_ovpn_config != "" %}
       - OPENVPN_CONFIG=${VPN_CONFIG}
+      {% endif %}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
       - TRANSMISSION_DOWNLOAD_DIR=/data/torrents
