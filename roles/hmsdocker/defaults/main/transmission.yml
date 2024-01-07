@@ -5,7 +5,7 @@ transmission_vpn_provider: ""
 transmission_vpn_user: ""
 transmission_vpn_pass: ""
 
-# Transmissoin seed ratio settings
+# Transmission seed ratio settings
 transmission_ratio_limit: "1" # default: "1"
 transmission_ratio_enabled: "true" # default: "true"
 
@@ -29,3 +29,18 @@ transmission_additional_env_vars:
     "TRANSMISSION_PEER_LIMIT_GLOBAL": "3000",
     "TRANSMISSION_PEER_LIMIT_PER_TORRENT": "300",
   }
+
+
+## External Providers and Custom VPN Options
+# These are for changing the VPN config to a different server or type for example
+# For help with these variables, see the docs located in `docs/Transmission.md`
+
+# default: ""
+transmission_ovpn_config_file: ""
+
+# default: ""
+transmission_ovpn_config_local_path: ""
+
+# The git repo where the .ovpn file is stored, see: https://github.com/haugene/vpn-configs-contrib/blob/main/CONTRIBUTING.md
+# If this is left blank, it will use the default that comes with the container # default: ""
+transmission_ovpn_config_source_repo: ""

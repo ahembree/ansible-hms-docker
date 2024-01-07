@@ -452,6 +452,9 @@ services:
       - '{{ transmission_dns_2 }}'
     volumes:
       - ${HMSD_APPS_PATH}/transmission/config:/data/transmission-home
+    {% if transmission_ovpn_config_local_path != "" and transmission_vpn_provider == "custom" %}
+      - ${VPN_CONFIG_LOCAL_PATH}:/etc/openvpn/custom
+    {% endif %}
     {% if transmission_use_nas_enabled %}
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
     {% elif transmission_custom_download_path_enabled %}
@@ -471,6 +474,12 @@ services:
       - OPENVPN_PROVIDER=${VPN_PROVIDER}
       - OPENVPN_USERNAME=${VPN_USER}
       - OPENVPN_PASSWORD=${VPN_PASS}
+      {% if transmission_ovpn_config_source_repo != "" %}
+      - GITHUB_CONFIG_SOURCE_REPO=${VPN_REPO}
+      {% endif %}
+      {% if transmission_ovpn_config_file != "" %}
+      - OPENVPN_CONFIG=${VPN_CONFIG}
+      {% endif %}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
       - TRANSMISSION_DOWNLOAD_DIR=/data/torrents
