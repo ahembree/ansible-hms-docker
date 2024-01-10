@@ -1,0 +1,40 @@
+---
+- name: Check if config file exists
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
+  register: sabnzbd_config_path
+
+- name: restart sabnzbd inline if config not exist
+  ansible.builtin.shell:
+    cmd: docker restart sabnzbd
+  when: not sabnzbd_config_path.stat.exists
+
+- name: Check if config file exists after container restart
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
+  register: sabnzbd_config_path
+
+- name: Configure sabnzbd config file
+  when: sabnzbd_config_path.stat.exists
+  block:
+    - name: Get current sabnzbd config file contents
+      ansible.builtin.slurp:
+        path: "{{ sabnzbd_config_path.stat.path }}"
+      register: slurped_sabnzbd_data
+      check_mode: false
+      no_log: false
+
+    - name: Pull current sabnzbd allowed hosts
+      ansible.builtin.set_fact:
+        slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | split(',') }}"
+        cacheable: false
+      when: slurped_sabnzbd_data['content'] is defined
+      no_log: true
+
+    - name: Ensure sabnzbd container config has allowlisted hostname
+      ansible.builtin.replace:
+        path: "{{ sabnzbd_config_path.stat.path }}"
+        regexp: '(?<=host_whitelist = ).*'
+        replace: "{{ slurped_sabnzbd_hostlist | join(',') }}{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] }}.{{ hms_docker_domain }}"
+      when: hms_docker_container_map['sabnzbd']['proxy_host_rule'] + "." + hms_docker_domain not in slurped_sabnzbd_hostlist
+      notify: restart sabnzbd

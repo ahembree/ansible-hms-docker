@@ -1,0 +1,40 @@
+---
+- name: Ensure scripts folder
+  ansible.builtin.file:
+    path: "{{ hms_docker_data_path }}/scripts"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  register: scripts_path
+
+- name: Ensure monitoring scripts
+  when: monitoring_scripts_enabled | default(false)
+  block:
+    - name: Ensure monitoring directory
+      ansible.builtin.file:
+        path: "{{ scripts_path.path }}/monitoring"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+      register: monitoring_scripts_path
+
+    - name: Ensure env symlink
+      ansible.builtin.file:
+        state: link
+        src: "{{ compose_env.dest }}"
+        dest: "{{ monitoring_scripts_path.path }}/.env"
+
+    - name: Ensure monitoring scripts
+      ansible.builtin.copy:
+        src: scripts/monitoring
+        dest: "{{ scripts_path.path }}"
+        mode: 0700
+
+    - name: Ensure media availability cron
+      ansible.builtin.cron:
+        name: "{{ project_name }}-media-availability-monitoring"
+        user: root
+        job: "{{ hms_docker_data_path }}/.venv/bin/python3 {{ monitoring_scripts_path.path }}/check_media_availability.py"
+        minute: "*"

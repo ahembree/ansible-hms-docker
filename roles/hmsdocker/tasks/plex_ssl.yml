@@ -1,10 +1,10 @@
 ---
 - name: Ensure requirements file
   ansible.builtin.copy:
-    src: requirements.txt
+    src: scripts/requirements.txt
     dest: "{{ hms_docker_data_path }}/requirements.txt"
     mode: 0644
-  register: cf_worker_req_file_dest
+  register: scripts_req_file_dest
 
 - name: Ensure venv pip package
   ansible.builtin.package:
@@ -22,13 +22,13 @@
 
 - name: Ensure pip environment
   ansible.builtin.pip:
-    requirements: "{{ cf_worker_req_file_dest.dest | default(hms_docker_data_path +'/requirements.txt') }}"
+    requirements: "{{ scripts_req_file_dest.dest | default(hms_docker_data_path +'/requirements.txt') }}"
     virtualenv: "{{ hms_docker_data_path }}/.venv"
     virtualenv_command: python3 -m venv
 
 - name: Ensure pkcs12 script
   ansible.builtin.copy:
-    src: traefik_cert_convert.py
+    src: scripts/traefik_cert_convert.py
     dest: "{{ hms_docker_data_path }}"
     mode: 0700
     owner: "{{ container_uid }}"
@@ -37,7 +37,7 @@
 
 - name: Ensure cron job
   ansible.builtin.cron:
-    name: hms-docker-plex-ssl
+    name: "{{ project_name }}-plex-ssl"
     user: root
     job: "{{ hms_docker_data_path }}/.venv/bin/python {{ cert_script.dest | default(hms_docker_data_path + '/traefik_cert_convert.py') }}"
     minute: 0

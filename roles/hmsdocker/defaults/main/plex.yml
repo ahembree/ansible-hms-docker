@@ -7,6 +7,7 @@ plex_claim_token: ""
 plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
 
 # Transcode folder location for Plex.
+# If you have enough RAM, you can change this to "/dev/shm/plex_transcode" to use RAM for transcoding
 plex_transcode_folder: "/tmp/{{ project_name }}/plex_transcode" # default: "/tmp/{{ project_name }}/plex_transcode"
 
 # Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex

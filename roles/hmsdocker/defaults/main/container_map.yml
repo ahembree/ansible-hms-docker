@@ -165,3 +165,20 @@ hms_docker_container_map:
     expose_to_public: no
     homepage: yes
     homepage_stats: no
+  uptimekuma:
+    enabled: no
+    proxy_host_rule: uptime-kuma
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  heimdall:
+    enabled: no
+    proxy_host_rule: heimdall
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    

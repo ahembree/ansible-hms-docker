@@ -10,3 +10,4 @@ python-dotenv==1.0.0
 requests==2.31.0
 urllib3==2.1.0
 websocket-client==1.7.0
+xmltodict==0.13.0

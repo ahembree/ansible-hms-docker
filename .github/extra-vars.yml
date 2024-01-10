@@ -1,0 +1,205 @@
+{
+  "is_github_runner": true,
+  "container_expose_ports": true,
+  "hms_docker_plex_ssl_enabled": true,
+  "separate_4k_instances_enable": true,
+  "tautulli_include_jbops": true,
+  "traefik_security_hardening": true,
+  "flaresolverr_enabled": true,
+  "custom_scripts_enabled": true,
+  "monitoring_scripts_enabled": true,
+  "media_avail_script_enabled": true,
+  "hms_docker_container_map": {
+    "traefik": {
+      "enabled": true,
+      "proxy_host_rule": "traefik",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy
+    },
+    "sonarr": {
+      "enabled": true,
+      "proxy_host_rule": sonarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "radarr": {
+      "enabled": true,
+      "proxy_host_rule": radarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "bazarr": {
+      "enabled": true,
+      "proxy_host_rule": bazarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "transmission": {
+      "enabled": false,
+      "proxy_host_rule": transmission,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": true
+    },
+    "portainer": {
+      "enabled": true,
+      "proxy_host_rule": portainer,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": oauth2,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "overseerr": {
+      "enabled": true,
+      "proxy_host_rule": overseerr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "prowlarr": {
+      "enabled": true,
+      "proxy_host_rule": prowlarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "requestrr": {
+      "enabled": true,
+      "proxy_host_rule": requestrr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "plex": {
+      "enabled": true,
+      "proxy_host_rule": plex,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": true
+    },
+    "tautulli": {
+      "enabled": true,
+      "proxy_host_rule": tautulli,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "nzbget": {
+      "enabled": true,
+      "proxy_host_rule": nzbget,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": true
+    },
+    "sabnzbd": {
+      "enabled": false,
+      "proxy_host_rule": sabnzbd,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": true
+    },
+    "authentik": {
+      "enabled": false,
+      "proxy_host_rule": "authentik",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "tdarr": {
+      "enabled": true,
+      "proxy_host_rule": tdarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "homepage": {
+      "enabled": true,
+      "proxy_host_rule": "homepage",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "uptimekuma": {
+      "enabled": true,
+      "proxy_host_rule": uptime-kuma,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "heimdall": {
+      "enabled": true,
+      "proxy_host_rule": heimdall,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    }
+  }
+}

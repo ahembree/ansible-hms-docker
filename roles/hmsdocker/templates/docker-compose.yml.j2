@@ -116,7 +116,7 @@ services:
 {% endif %}
 
 {% if container_enabled_traefik %}
-  # Traefik container, loadbalancer/reverse proxy/ssl
+  # Traefik container, loadbalancer/reverse-proxy/ssl
   traefik:
     image: traefik:${TRAEFIK_TAG}
     container_name: traefik
@@ -154,9 +154,9 @@ services:
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
       - traefik.http.services.traefik-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - "traefik.http.middlewares.internal-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, {{ traefik_subnet_allow_list }}"
-      - "traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0"
-      - "traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.middlewares.internal-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, {{ traefik_subnet_allow_list }}
+      - traefik.http.middlewares.external-ipwhitelist.ipwhitelist.sourcerange=0.0.0.0/0
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% if authentik_enabled_traefik %}
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
         {% endif %}
@@ -245,17 +245,18 @@ services:
       - authentik_geoip:/geoip
     {% if expose_ports_enabled_authentik %}
     ports:
-      - "0.0.0.0:${AUTHENTIK_PORT_HTTP:-9001}:9000"
-      - "0.0.0.0:${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+      - 9001:9000
+      - 9443:9443
     {% endif %}
     {% if traefik_enabled_authentik or container_enabled_homepage %}
     labels:
       {% if traefik_enabled_authentik %}
       - traefik.enable=true
-      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_authentik %}
-      - "traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_authentik %}
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
@@ -265,7 +266,7 @@ services:
       - homepage.group=Infrastructure
       - homepage.name=Authentik
       - homepage.icon=authentik.png
-      - homepage.href=http://{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}
+      - homepage.href=https://{{ hms_docker_container_map['authentik']['proxy_host_rule'] }}.${HMSD_DOMAIN}
       - homepage.description=Single Sign-On
       - homepage.widget.type=authentik
       - homepage.widget.url=http://authentik-server:9000
@@ -351,7 +352,7 @@ services:
       - traefik.http.services.nzbget-${COMPOSE_PROJECT}.loadbalancer.server.port=6789
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_nzbget %}
-      - "traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_nzbget %}
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
@@ -406,7 +407,7 @@ services:
       - traefik.http.services.sabnzbd-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_sabnzbd %}
-      - "traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_sabnzbd %}
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
@@ -429,7 +430,7 @@ services:
 {% endif %}
 
 {% if container_enabled_transmission %}
-  # Transmission container, torrent client/VPN
+  # Transmission container, torrent client/VPN, has HTTP proxy listening on port 8888
   transmission:
     image: haugene/transmission-openvpn:latest
     container_name: transmission
@@ -499,7 +500,7 @@ services:
       - {{ key }}={{ value }}
     {% endfor %}
 
-  # Proxy container, for Transmission, also hosts HTTP proxy to route traffic through the VPN
+  # frontend reverse-proxy for Transmission
   transmission-proxy:
     image: haugene/transmission-openvpn-proxy:latest
     container_name: transmission-proxy
@@ -523,10 +524,10 @@ services:
     labels:
       {% if traefik_enabled_transmission %}
       - traefik.enable=true
-      - traefik.http.routers.proxy-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
-      - traefik.http.services.proxy-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+      - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
         {% if not expose_public_enabled_transmission %}
-      - "traefik.http.routers.proxy-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_transmission %}
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
@@ -573,7 +574,7 @@ services:
       - traefik.http.services.requestrr-${COMPOSE_PROJECT}.loadbalancer.server.port=4545
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_requestrr %}
-      - "traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_requestrr %}
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker
@@ -611,7 +612,7 @@ services:
       - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_prowlarr %}
-      - "traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_prowlarr %}
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
@@ -657,7 +658,7 @@ services:
       - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_sonarr %}
-      - "traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_sonarr %}
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
@@ -722,7 +723,7 @@ services:
       - traefik.http.services.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_sonarr %}
-      - "traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_sonarr %}
       - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
@@ -787,7 +788,7 @@ services:
       - traefik.http.services.radarr-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_radarr %}
-      - "traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_radarr %}
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
@@ -852,7 +853,7 @@ services:
       - traefik.http.services.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_radarr %}
-      - "traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_radarr %}
       - traefik.http.routers.radarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-{{ separate_4k_instances_suffix }}-midware@docker
@@ -928,7 +929,7 @@ services:
       - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_bazarr %}
-      - "traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_bazarr %}
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
@@ -974,7 +975,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.overseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
-      - "traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=external-ipwhitelist"
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=external-ipwhitelist
         {% if authentik_enabled_overseerr %}
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker
         {% endif %}
@@ -1059,7 +1060,7 @@ services:
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_plex %}
-      - "traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_plex %}
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
@@ -1105,7 +1106,7 @@ services:
       - traefik.http.services.tautulli-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_tautulli %}
-      - "traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_tautulli %}
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
@@ -1236,7 +1237,7 @@ services:
       - traefik.http.services.tdarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8265
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tdarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
         {% if not expose_public_enabled_tdarr %}
-      - "traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist"
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
         {% endif %}
         {% if authentik_enabled_tdarr %}
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
@@ -1288,6 +1289,71 @@ services:
     {% endif %}
     {% if tailscale_advertise_exit_node %}
       - TS_EXTRA_ARGS=--advertise-exit-node
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_uptimekuma %}
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: ${RESTART_POLICY}
+    networks:
+    - traefik_net
+    volumes:
+      - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    {% if expose_ports_enabled_uptimekuma %}
+    ports:
+      - 3001:3001
+    {% endif %}
+    environment:
+    - PUID=${PUID}
+    - PGID=${PGID}
+    - TZ=${TIMEZONE}
+    {% if traefik_enabled_uptimekuma %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_uptimekuma %}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_uptimekuma %}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_heimdall %}
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    networks:
+      - traefik_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/heimdall/config:/config
+    {% if expose_ports_enabled_heimdall %}
+    ports:
+      - 8000:80
+      - 8443:443
+    {% endif %}
+    restart: ${RESTART_POLICY}
+    {% if traefik_enabled_heimdall %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker
+        {% endif %}
     {% endif %}
 {% endif %}
 
