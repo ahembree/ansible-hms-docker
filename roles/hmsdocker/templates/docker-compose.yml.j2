@@ -1,4 +1,9 @@
-version: '3'
+x-logging: &default-logging
+  options:
+    max-size: "12m"
+    max-file: "5"
+  driver: json-file
+
 services:
 {% if container_enabled_portainer %}
   # Portainer container, webgui for docker
@@ -7,10 +12,7 @@ services:
     container_name: portainer
     command: -H unix:///var/run/docker.sock
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
     {% if expose_ports_enabled_portainer %}
@@ -56,10 +58,7 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
     volumes:
@@ -91,10 +90,7 @@ services:
     image: containrrr/watchtower:latest
     container_name: watchtower
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
     command: --cleanup --schedule "{{ container_auto_update_schedule }}"
@@ -121,10 +117,7 @@ services:
     image: traefik:${TRAEFIK_TAG}
     container_name: traefik
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     ports:
       - 80:80
       - 443:443
@@ -184,10 +177,7 @@ services:
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     healthcheck:
       test: ["CMD", "pg_isready"]
       start_period: 20s
@@ -207,10 +197,7 @@ services:
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       start_period: 20s
@@ -225,10 +212,7 @@ services:
     networks:
       - authentik_net
       - traefik_net
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     command: server
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
@@ -281,6 +265,7 @@ services:
     container_name: authentik-worker
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
     restart: ${RESTART_POLICY}
+    logging: *default-logging
     networks:
       - authentik_net
     command: worker
@@ -307,6 +292,7 @@ services:
   authentik-geoipupdate:
     container_name: authentik-geoipupdate
     image: "maxmindinc/geoipupdate:latest"
+    logging: *default-logging
     networks:
       - authentik_net
     volumes:
@@ -325,10 +311,7 @@ services:
     image: lscr.io/linuxserver/nzbget:latest
     container_name: nzbget
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
       - "download_net"
@@ -379,10 +362,7 @@ services:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
       - "download_net"
@@ -435,10 +415,7 @@ services:
     image: haugene/transmission-openvpn:latest
     container_name: transmission
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
     cap_add:
@@ -505,10 +482,7 @@ services:
     image: haugene/transmission-openvpn-proxy:latest
     container_name: transmission-proxy
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -551,10 +525,7 @@ services:
     image: darkalfx/requestrr:latest
     container_name: requestrr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -588,10 +559,7 @@ services:
     image: linuxserver/prowlarr:develop
     container_name: prowlarr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -640,10 +608,7 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -705,10 +670,7 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr-{{ separate_4k_instances_suffix }}
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -770,10 +732,7 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -835,10 +794,7 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr-{{ separate_4k_instances_suffix }}
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "download_net"
       - "traefik_net"
@@ -900,10 +856,7 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "traefik_net"
     {% if expose_ports_enabled_bazarr %}
@@ -957,10 +910,7 @@ services:
     image: linuxserver/overseerr:latest
     container_name: overseerr
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "media_net"
       - "download_net"
@@ -1012,10 +962,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     {% endif %}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "media_net"
       - "traefik_net"
@@ -1088,10 +1035,7 @@ services:
     image: tautulli/tautulli:latest
     container_name: tautulli
     restart: ${RESTART_POLICY}
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     networks:
       - "media_net"
       - "traefik_net"
@@ -1141,11 +1085,8 @@ services:
   cloudflare-ddns:
     image: oznu/cloudflare-ddns:latest
     container_name: cloudflare-ddns
-    restart: '${RESTART_POLICY}'
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
     environment:
       - API_KEY=${CLOUDFLARE_API_TOKEN}
       - ZONE=${CLOUDFLARE_DOMAIN}
@@ -1164,13 +1105,10 @@ services:
   cloudflare-tunnel:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare-tunnel
-    restart: '${RESTART_POLICY}'
+    restart: ${RESTART_POLICY}
     networks:
       - "traefik_net"
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    logging: *default-logging
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 {% endif %}
 
@@ -1178,11 +1116,8 @@ services:
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
-    restart: '${RESTART_POLICY}'
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
     networks:
       - "download_net"
     environment:
@@ -1205,7 +1140,8 @@ services:
     devices:
       - /dev/dri:/dev/dri
     {% endif %}
-    restart: '${RESTART_POLICY}'
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
     networks:
       - "traefik_net"
     {% if expose_ports_enabled_tdarr %}
@@ -1274,7 +1210,8 @@ services:
   tailscale:
     image: tailscale/tailscale
     container_name: tailscale
-    restart: '${RESTART_POLICY}'
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -1297,6 +1234,7 @@ services:
     image: louislam/uptime-kuma:latest
     container_name: uptime-kuma
     restart: ${RESTART_POLICY}
+    logging: *default-logging
     networks:
     - traefik_net
     volumes:
@@ -1334,6 +1272,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
+    logging: *default-logging
     volumes:
       - ${HMSD_APPS_PATH}/heimdall/config:/config
     {% if expose_ports_enabled_heimdall %}
@@ -1362,6 +1301,7 @@ services:
     image: lscr.io/linuxserver/readarr:develop
     restart: ${RESTART_POLICY}
     container_name: readarr
+    logging: *default-logging
     networks:
       - traefik_net
       - download_net
@@ -1422,6 +1362,7 @@ services:
     networks:
       - traefik_net
     restart: ${RESTART_POLICY}
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -1455,6 +1396,7 @@ services:
     image: lscr.io/linuxserver/calibre:latest
     container_name: calibre
     restart: ${RESTART_POLICY}
+    logging: *default-logging
     networks:
       - traefik_net
     environment:

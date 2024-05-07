@@ -37,7 +37,7 @@ jobs:
           --diff
           --extra-vars "@.github/extra-vars.yml"
 
-      #- name: Check containers
-      #  run: |
-      #    sleep 10
-      #    sudo make verify-containers
+      - name: Check containers
+        run: |
+          sleep 60
+          sudo make verify-containers
