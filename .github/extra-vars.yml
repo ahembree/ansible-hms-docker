@@ -1,6 +1,6 @@
 {
   "is_github_runner": true,
-  "container_expose_ports": true,
+  "container_expose_ports": false,
   "hms_docker_plex_ssl_enabled": true,
   "separate_4k_instances_enable": true,
   "tautulli_include_jbops": true,
