@@ -25,6 +25,10 @@ container_enabled_tailscale: "{{ True if (tailscale_enabled is defined and tails
 container_enabled_flaresolverr: '{{ True if (flaresolverr_enabled is defined and flaresolverr_enabled) else False }}'
 container_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['enabled'] | default(False) }}"
 container_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['enabled'] | default(False) }}"
+container_enabled_readarr: "{{ hms_docker_container_map['readarr']['enabled'] | default(False) }}"
+container_enabled_kavita: "{{ hms_docker_container_map['kavita']['enabled'] | default(False) }}"
+container_enabled_calibre: "{{ hms_docker_container_map['calibre']['enabled'] | default(False) }}"
+
 
 # Traefik computed variables
 traefik_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['traefik'] is defined and hms_docker_container_map['traefik']['traefik']) else False }}"
@@ -45,6 +49,9 @@ traefik_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['traefik']
 traefik_enabled_homepage: "{{ True if (hms_docker_container_map['homepage']['traefik'] is defined and hms_docker_container_map['homepage']['traefik']) else False }}"
 traefik_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['traefik'] | default(False) }}"
 traefik_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['traefik'] | default(False) }}"
+traefik_enabled_readarr: "{{ hms_docker_container_map['readarr']['traefik'] | default(False) }}"
+traefik_enabled_kavita: "{{ hms_docker_container_map['kavita']['traefik'] | default(False) }}"
+traefik_enabled_calibre: "{{ hms_docker_container_map['calibre']['traefik'] | default(False) }}"
 
 
 # Public container exposure computed variables
@@ -65,6 +72,9 @@ expose_public_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['exp
 expose_public_enabled_homepage: "{{ True if (hms_docker_container_map['homepage']['expose_to_public'] is defined and hms_docker_container_map['homepage']['expose_to_public']) else False }}"
 expose_public_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['expose_to_public'] | default(False) }}"
 expose_public_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['expose_to_public'] | default(False) }}"
+expose_public_enabled_readarr: "{{ hms_docker_container_map['readarr']['expose_to_public'] | default(False) }}"
+expose_public_enabled_kavita: "{{ hms_docker_container_map['kavita']['expose_to_public'] | default(False) }}"
+expose_public_enabled_calibre: "{{ hms_docker_container_map['calibre']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -86,6 +96,9 @@ expose_ports_enabled_homepage: "{{ True if (container_expose_ports or not contai
 expose_ports_enabled_flaresolverr: '{{ True if (container_expose_ports) else False }}'
 expose_ports_enabled_uptimekuma: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_uptimekuma) else False }}"
 expose_ports_enabled_heimdall: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_heimdall) else False }}"
+expose_ports_enabled_readarr: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_readarr) else False }}"
+expose_ports_enabled_kavita: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_kavita) else False }}"
+expose_ports_enabled_calibre: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_calibre) else False }}"
 
 # Authentik computed variables
 authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) and traefik_ssl_enabled else False }}"
@@ -108,6 +121,9 @@ authentik_http_proxy_tdarr: "{{ True if (hms_docker_container_map['tdarr']['auth
 authentik_http_proxy_homepage: "{{ True if (hms_docker_container_map['homepage']['authentik_provider_type'] is defined and hms_docker_container_map['homepage']['authentik_provider_type'] == 'proxy') else False }}"
 authentik_http_proxy_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['authentik_provider_type'] == 'proxy' | default(False) }}"
 authentik_http_proxy_heimdall: "{{ hms_docker_container_map['heimdall']['authentik_provider_type'] == 'proxy' | default(False) }}"
+authentik_http_proxy_readarr: "{{ hms_docker_container_map['readarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+authentik_http_proxy_kavita: "{{ hms_docker_container_map['kavita']['authentik_provider_type'] == 'proxy' | default(False) }}"
+authentik_http_proxy_calibre: "{{ hms_docker_container_map['calibre']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 
@@ -129,6 +145,9 @@ authentik_enabled_tdarr: "{{ True if ((hms_docker_container_map['tdarr']['authen
 authentik_enabled_homepage: "{{ True if ((hms_docker_container_map['homepage']['authentik'] is defined and hms_docker_container_map['homepage']['authentik']) and (authentik_enabled_globally and authentik_http_proxy_homepage)) else False }}"
 authentik_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['authentik'] | default(False) }}"
 authentik_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['authentik'] | default(False) }}"
+authentik_enabled_readarr: "{{ hms_docker_container_map['readarr']['authentik'] | default(False) }}"
+authentik_enabled_kavita: "{{ hms_docker_container_map['kavita']['authentik'] | default(False) }}"
+authentik_enabled_calibre: "{{ hms_docker_container_map['calibre']['authentik'] | default(False) }}"
 
 authentik_geoip_enabled: "{{ True if ((authentik_geoip_account_id is defined and authentik_geoip_account_id != '') and (authentik_geoip_license_key is defined and authentik_geoip_license_key != '')) else False }}"
 
@@ -148,6 +167,7 @@ homepage_enabled_nzbget: "{{ True if (hms_docker_container_map['nzbget']['homepa
 homepage_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['homepage'] is defined and hms_docker_container_map['sabnzbd']['homepage']) else False }}"
 homepage_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage'] is defined and hms_docker_container_map['authentik']['homepage']) else False }}"
 homepage_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage'] is defined and hms_docker_container_map['tdarr']['homepage']) else False }}"
+homepage_enabled_readarr: "{{ True if (hms_docker_container_map['readarr']['homepage'] is defined and hms_docker_container_map['readarr']['homepage']) else False }}"
 
 homepage_stats_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['homepage_stats'] is defined and hms_docker_container_map['traefik']['homepage_stats']) else False }}"
 homepage_stats_enabled_sonarr: "{{ True if (hms_docker_container_map['sonarr']['homepage_stats'] is defined and hms_docker_container_map['sonarr']['homepage_stats']) else False }}"
@@ -163,6 +183,7 @@ homepage_stats_enabled_nzbget: "{{ True if (hms_docker_container_map['nzbget']['
 homepage_stats_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['homepage_stats'] is defined and hms_docker_container_map['sabnzbd']['homepage_stats']) else False }}"
 homepage_stats_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage_stats'] is defined and hms_docker_container_map['authentik']['homepage_stats']) else False }}"
 homepage_stats_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage_stats'] is defined and hms_docker_container_map['tdarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_readarr: "{{ True if (hms_docker_container_map['readarr']['homepage_stats'] is defined and hms_docker_container_map['readarr']['homepage_stats']) else False }}"
 
 
 

@@ -22,15 +22,15 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Radarr                                   | `radarr`             | `7878`                 | `7878`            | &#9745;                |
 | Radarr (Separate 4K instance if enabled) | `radarr-4k`          | `7879`                 | `7878`            | &#9745;                |
 | Prowlarr                                 | `prowlarr`           | `9696`                 | `9696`            | &#9745;                |
-| Overseerr                                | `Overseerr`          | `5055`                 | `5055`            | &#9745;                |
-| Requestrr                                | `Requestrr`          | `4545`                 | `4545`            | &#9745;                |
+| Overseerr                                | `overseerr`          | `5055`                 | `5055`            | &#9745;                |
+| Requestrr                                | `requestrr`          | `4545`                 | `4545`            | &#9745;                |
 | Transmission UI Proxy                    | `transmission-proxy` | `8081`                 | `8080`            | &#9745;                |
 | Transmission (HTTP Proxy)                | `transmission`       | `8888`                 | `8888`            | &#9744;                |
 | Transmission (RPC)                       | `transmission`       | `9091`                 | `9091`            | &#9744;                |
 | Portainer                                | `portainer`          | `9000`                 | `9000`            | &#9745;                |
 | Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
 | Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
-| Traefik                                  | `traefik`            | `80`, `8080`, `443`    | `80`, `8080`, `443`| &#9745;                |
+| Traefik                                  | `traefik`            | `80`, `8080`, `443`    | `80`, `8080`, `443`| &#9745;               |
 | Nzbget                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
 | Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
 | Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
@@ -39,3 +39,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Flaresolverr                             | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
 | Uptime Kuma                              | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
 | Heimdall                                 | `heimdall`           | `8000` and `8443`      | `80` and `443`    | &#9745;                |
+| Readarr                                  | `readarr`            | `8787`                 | `8787`            | &#9745;                |
+| Kavita                                   | `kavita`             | `5000`                 | `5000`            | &#9745;                |
+| Calibre                                  | `calibre`            | `8083`, `8182`, `8084` | `8080`, `8181`, `8081`| &#9745;            |

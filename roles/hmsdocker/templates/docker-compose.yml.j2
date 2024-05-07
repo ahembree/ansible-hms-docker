@@ -1357,6 +1357,137 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_readarr %}
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    restart: ${RESTART_POLICY}
+    container_name: readarr
+    networks:
+      - traefik_net
+      - download_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/readarr/config:/config
+      {% if transmission_use_nas_enabled %}
+      - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
+      {% elif transmission_custom_download_path_enabled %}
+      - {{ transmission_custom_download_path }}/torrents:/data/torrents
+      {% else %}
+      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+      {% endif %}
+      - {{ hms_docker_media_path }}:/data/media
+      {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+      {% endif %}
+    {% if expose_ports_enabled_readarr %}
+    ports:
+      - 8787:8787
+    {% endif %}
+    {% if traefik_enabled_readarr or container_enabled_homepage %}
+    labels:
+      {% if traefik_enabled_readarr %}
+      - traefik.enable=true
+      - traefik.http.services.readarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8787
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['readarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% if authentik_enabled_readarr %}
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-readarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage and homepage_enabled_readarr %}
+      - homepage.group=Managers
+      - homepage.name=Readarr
+      - homepage.icon=readarr.png
+      - homepage.href=http://{{ hms_docker_container_map['readarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}
+      - homepage.description=Media Analytics
+      - homepage.widget.type=readarr
+      - homepage.widget.url=http://readarr:8181
+      - homepage.widget.key=${READARR_KEY:-apikeyapikeyapikey}
+        {% if homepage_stats_enabled_readarr %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_kavita %}
+  kavita:
+    image: lscr.io/linuxserver/kavita:latest
+    container_name: kavita
+    networks:
+      - traefik_net
+    restart: ${RESTART_POLICY}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/kavita/config:/config
+      - {{ hms_docker_media_path }}:/data/media
+    {% if nas_enable_additional_paths %}
+      {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+      {% endfor %}
+    {% endif %}
+    {% if expose_ports_enabled_kavita %}
+    ports:
+      - 5000:5000
+    {% endif %}
+    {% if traefik_enabled_kavita %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+      {% if authentik_enabled_kavita %}
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker
+      {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_calibre %}
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    restart: ${RESTART_POLICY}
+    networks:
+      - traefik_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/calibre/config:/config
+      - {{ hms_docker_media_path }}:/data/media
+      {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+      {% endif %}
+    {% if expose_ports_enabled_calibre %}
+    ports:
+      - 8083:8080 # remote desktop http
+      - 8182:8181 # remote desktop https
+      - 8084:8081 # webserver (must be enabled in settings using remote desktop)
+    {% endif %}
+    {% if traefik_enabled_calibre %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
+      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['calibre']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% if authentik_enabled_calibre %}
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-calibre-midware@docker
+        {% endif %}
+    {% endif %}
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge

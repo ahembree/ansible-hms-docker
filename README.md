@@ -25,6 +25,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Radarr: movie management
 - Bazarr: subtitle management
 - Prowlarr: tracker management
+- Readarr: ebook management
 - Transmission: download client with VPN and HTTP proxy
 - NZBGet: download client
 - Sabnzbd: download client
@@ -43,6 +44,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Tailscale: mesh VPN
 - Flaresolverr: CAPTCHA solving
 - Uptime Kuma: service status monitoring
+- Kavita: digital library
+- Calibre: ebook management
 
 ## Other Features
 
