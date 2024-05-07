@@ -109,7 +109,6 @@
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"
     project_name: "{{ project_name }}"
-    pull: "{{ container_pull_images_first }}"
     state: "{{ hms_docker_compose_container_state }}"
     remove_orphans: "{{ container_remove_orphans }}"
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location

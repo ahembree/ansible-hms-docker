@@ -22,9 +22,6 @@ container_timezone: America/New_York
 container_uid: 1234
 container_gid: 1234
 
-# This will download all of the containers before attempting to start them // default: "yes"
-container_pull_images_first: yes
-
 # This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
 # If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
 container_expose_ports: no
