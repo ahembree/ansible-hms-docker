@@ -9,6 +9,7 @@
   "custom_scripts_enabled": true,
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,
+  "expose_ports_enabled_calibre": false,
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,

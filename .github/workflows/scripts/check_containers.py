@@ -91,7 +91,11 @@ def main():
         except KeyError as e:
             logging.debug(f'{name} is not in the project {project}')
             continue
-    fail_rate = failure_codes/requests_made
+    if requests_made > 0:
+        fail_rate = failure_codes/requests_made
+    else:
+        logging.error(f'Did not make any requests, exiting')
+        sys.exit(1)
     threshold = 0.34
     if fail_rate > threshold:
         logging.error(f'Failure rate exceeded {threshold}, it was {fail_rate}')
