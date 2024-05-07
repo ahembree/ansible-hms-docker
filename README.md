@@ -116,7 +116,8 @@ It is recommended to read and follow this guide entirely as there is a lot of co
 
    ```bash
    sudo apt update
-   sudo apt install git make ansible python3-pip -y
+   sudo apt install git make python3-pip -y
+   sudo pip3 install ansible
    ```
 
    ```bash
