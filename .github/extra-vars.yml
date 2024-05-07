@@ -1,6 +1,6 @@
 {
   "is_github_runner": true,
-  "container_expose_ports": true,
+  "container_expose_ports": false,
   "hms_docker_plex_ssl_enabled": true,
   "separate_4k_instances_enable": true,
   "tautulli_include_jbops": true,
@@ -9,6 +9,7 @@
   "custom_scripts_enabled": true,
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,
+  "expose_ports_enabled_calibre": false,
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,
@@ -195,6 +196,33 @@
     "heimdall": {
       "enabled": true,
       "proxy_host_rule": heimdall,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "readarr": {
+      "enabled": true,
+      "proxy_host_rule": readarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "kavita": {
+      "enabled": true,
+      "proxy_host_rule": kavita,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "calibre": {
+      "enabled": true,
+      "proxy_host_rule": calibre,
       "directory": true,
       "traefik": true,
       "authentik": false,
