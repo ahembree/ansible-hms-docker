@@ -39,5 +39,5 @@ jobs:
 
       - name: Check containers
         run: |
-          sleep 10
+          sleep 60
           sudo make verify-containers
