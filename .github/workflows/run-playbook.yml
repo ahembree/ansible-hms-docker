@@ -18,7 +18,8 @@ jobs:
       - name: Install ansible
         run: |
           sudo apt update
-          sudo apt install ansible make python3-pip
+          sudo apt install make python3-pip
+          sudo pip3 install ansible
 
       - name: Ensure base playbook requirements
         run: |
