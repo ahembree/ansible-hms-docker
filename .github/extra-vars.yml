@@ -200,6 +200,33 @@
       "authentik": false,
       "authentik_provider_type": proxy,
       "expose_to_public": false
+    },
+    "readarr": {
+      "enabled": true,
+      "proxy_host_rule": readarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "kavita": {
+      "enabled": true,
+      "proxy_host_rule": kavita,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
+    },
+    "calibre": {
+      "enabled": true,
+      "proxy_host_rule": calibre,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false
     }
   }
 }
