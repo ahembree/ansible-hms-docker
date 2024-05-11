@@ -33,7 +33,8 @@ traefik_ssl_dns_provider_environment_vars:
     "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
   }
 
-# The DNS servers to use when generating your SSL certificate, recommended to set to your DNS providers servers
+# The DNS servers to use when generating your SSL certificate
+# Recommended to set to your DNS providers servers
 traefik_ssl_dns_resolver_1: "1.1.1.1"
 traefik_ssl_dns_resolver_2: "1.0.0.1"
 

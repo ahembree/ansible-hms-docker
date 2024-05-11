@@ -1,5 +1,5 @@
 ---
-### Any variables such as "{{ <variable> }}" will reference the variable that was defined earlier in this file
+### Any variables such as "{{ <variable> }}" will reference a variable that was defined earlier in this file (or one that exists in any file in the `roles/hmsdocker/defaults/main` directory)
 
 #######################################################################
 ### HMS-Docker settings
