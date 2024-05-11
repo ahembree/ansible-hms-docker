@@ -3,6 +3,7 @@
 cloudflare_ddns_enabled: no
 
 # The domain that will be used for the Cloudflare DDNS container // default: "{{ hms_docker_domain }}"
+# Automatically uses the same domain defined above
 cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 
 # The A (or AAAA) record to be created // default: "overseerr"
