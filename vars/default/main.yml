@@ -3,7 +3,9 @@
 
 #######################################################################
 ### HMS-Docker settings
+
 # The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"
+# Options:
 #    `local`: local folder path
 #    `cifs`: CIFS or SMB share
 #    `nfs`: NFS share
