@@ -7,7 +7,7 @@ idna==3.7
 packaging==23.2
 pycparser==2.21
 python-dotenv==1.0.0
-requests==2.31.0
+requests==2.32.0
 urllib3==2.1.0
 websocket-client==1.7.0
 xmltodict==0.13.0
