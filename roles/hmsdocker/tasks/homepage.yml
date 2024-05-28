@@ -10,7 +10,7 @@
   no_log: true
   register: watchtower_key_output
   vars:
-    - key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
+    key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
 
 - name: Slurp Watchtower key data
   ansible.builtin.slurp:
