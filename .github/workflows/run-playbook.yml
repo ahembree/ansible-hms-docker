@@ -40,4 +40,5 @@ jobs:
       - name: Check containers
         run: |
           sleep 60
+          sudo pip3 freeze
           sudo make verify-containers

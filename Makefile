@@ -58,4 +58,4 @@ help:
 	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
-	@echo make verify-containers :: checks containers exposed ports \(used in Actions\)
+	@echo make verify-containers :: checks containers exposed ports \(used in GitHub Actions\)
