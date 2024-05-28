@@ -40,5 +40,7 @@ jobs:
       - name: Check containers
         run: |
           sleep 60
-          sudo pip3 freeze
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip3 install -r "@.github/scripts/requirements.txt"
           sudo make verify-containers
