@@ -50,7 +50,7 @@ install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
 
 verify-containers:
-	@sudo .venv/bin/python3 .github/workflows/scripts/check_containers.py
+	@sudo python3 .github/workflows/scripts/check_containers.py
 
 help:
 	@echo make basic :: setup a basic config
