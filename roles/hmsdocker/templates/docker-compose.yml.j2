@@ -522,7 +522,7 @@ services:
 {% if container_enabled_requestrr %}
   # Requestrr container, chat client for requests
   requestrr:
-    image: darkalfx/requestrr:latest
+    image: thomst08/requestrr:latest
     container_name: requestrr
     restart: ${RESTART_POLICY}
     logging: *default-logging
