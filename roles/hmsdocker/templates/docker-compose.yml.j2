@@ -1150,6 +1150,9 @@ services:
       - 8266:8266 # server port
       #- 8267:8267 # Internal node port
       #- 8268:8268 # Example extra node port
+    {% elif tdarr_enable_node_server %}
+    ports:
+      - 8266:8266
     {% endif %}
     environment:
       - PUID=${PUID}
