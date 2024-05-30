@@ -33,3 +33,9 @@ homepage_portainer_key:
 
 # Readarr
 homepage_readarr_key: 
+
+# Jellyfin
+homepage_jellyfin_key: 
+
+# Emby
+homepage_emby_key: 
