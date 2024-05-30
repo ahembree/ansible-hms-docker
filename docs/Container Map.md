@@ -14,31 +14,35 @@ If you choose to expose the container ports on the host (by setting `container_e
 
 ## Map
 
-| Service Name                             | Container Name       | Host Port (if enabled) | Container Port    | Accessible via Traefik |
-| ---------------------------------------- | -------------------- | ---------------------- | ----------------- | ---------------------- |
-| Plex                                     | `plex`               | `32400`                | `32400`           | &#9745;                |
-| Sonarr                                   | `sonarr`             | `8989`                 | `8989`            | &#9745;                |
-| Sonarr (Separate 4K instance if enabled) | `sonarr-4k`          | `8990`                 | `8989`            | &#9745;                |
-| Radarr                                   | `radarr`             | `7878`                 | `7878`            | &#9745;                |
-| Radarr (Separate 4K instance if enabled) | `radarr-4k`          | `7879`                 | `7878`            | &#9745;                |
-| Prowlarr                                 | `prowlarr`           | `9696`                 | `9696`            | &#9745;                |
-| Overseerr                                | `overseerr`          | `5055`                 | `5055`            | &#9745;                |
-| Requestrr                                | `requestrr`          | `4545`                 | `4545`            | &#9745;                |
-| Transmission UI Proxy                    | `transmission-proxy` | `8081`                 | `8080`            | &#9745;                |
-| Transmission (HTTP Proxy)                | `transmission`       | `8888`                 | `8888`            | &#9744;                |
-| Transmission (RPC)                       | `transmission`       | `9091`                 | `9091`            | &#9744;                |
-| Portainer                                | `portainer`          | `9000`                 | `9000`            | &#9745;                |
-| Bazarr                                   | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
-| Tautulli                                 | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
-| Traefik                                  | `traefik`            | `80`, `8080`, `443`    | `80`, `8080`, `443`| &#9745;               |
-| Nzbget                                   | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
-| Sabnzb                                   | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
-| Authentik                                | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
-| Tdarr                                    | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
-| HomePage                                 | `homepage`           | `3000`                 | `3000`            | &#9745;                |
-| Flaresolverr                             | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
-| Uptime Kuma                              | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
-| Heimdall                                 | `heimdall`           | `8000` and `8443`      | `80` and `443`    | &#9745;                |
-| Readarr                                  | `readarr`            | `8787`                 | `8787`            | &#9745;                |
-| Kavita                                   | `kavita`             | `5000`                 | `5000`            | &#9745;                |
-| Calibre                                  | `calibre`            | `8083`, `8182`, `8084` | `8080`, `8181`, `8081`| &#9745;            |
+| Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled) | Container Port    | Accessible via Traefik |
+| ---------------------------------------- | ------------------ | -------------------- | ---------------------- | ----------------- | ---------------------- |
+| Plex                                     | &#9745;            | `plex`               | `32400`                | `32400`           | &#9745;                |
+| Sonarr                                   | &#9745;            | `sonarr`             | `8989`                 | `8989`            | &#9745;                |
+| Sonarr (Separate 4K instance if enabled) | &#9745;            | `sonarr-4k`          | `8990`                 | `8989`            | &#9745;                |
+| Radarr                                   | &#9745;            | `radarr`             | `7878`                 | `7878`            | &#9745;                |
+| Radarr (Separate 4K instance if enabled) | &#9745;            | `radarr-4k`          | `7879`                 | `7878`            | &#9745;                |
+| Prowlarr                                 | &#9745;            | `prowlarr`           | `9696`                 | `9696`            | &#9745;                |
+| Overseerr                                | &#9745;            | `overseerr`          | `5055`                 | `5055`            | &#9745;                |
+| Requestrr                                | &#9745;            | `requestrr`          | `4545`                 | `4545`            | &#9745;                |
+| Transmission UI Proxy                    | &#9745;            | `transmission-proxy` | `8081`                 | `8080`            | &#9745;                |
+| Transmission (HTTP Proxy)                | &#9745;            | `transmission`       | `8888`                 | `8888`            | &#9744;                |
+| Transmission (RPC)                       | &#9745;            | `transmission`       | `9091`                 | `9091`            | &#9744;                |
+| Portainer                                | &#9745;            | `portainer`          | `9000`                 | `9000`            | &#9745;                |
+| Bazarr                                   | &#9745;            | `bazarr`             | `6767`                 | `6767`            | &#9745;                |
+| Tautulli                                 | &#9745;            | `tautulli`           | `8181`                 | `8181`            | &#9745;                |
+| Traefik                                  | &#9745;            | `traefik`            | `80`, `8080`, `443`    | `80`, `8080`, `443`| &#9745;               |
+| Nzbget                                   | &#9744;            | `nzbget`             | `6789`                 | `6789`            | &#9745;                |
+| Sabnzb                                   | &#9744;            | `sabnzb`             | `8082`                 | `8080`            | &#9745;                |
+| Authentik                                | &#9744;            | `authentik-server`   | `9001` and `9443`      | `9000` and `9443` | &#9745;                |
+| Tdarr                                    | &#9744;            | `tdarr`              | `8265` and `8266`      | `8265` and `8266` | &#9745;                |
+| HomePage                                 | &#9744;            | `homepage`           | `3000`                 | `3000`            | &#9745;                |
+| Flaresolverr                             | &#9744;            | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
+| Uptime Kuma                              | &#9744;            | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
+| Heimdall                                 | &#9744;            | `heimdall`           | `8000` and `8443`      | `80` and `443`    | &#9745;                |
+| Readarr                                  | &#9744;            | `readarr`            | `8787`                 | `8787`            | &#9745;                |
+| Kavita                                   | &#9744;            | `kavita`             | `5000`                 | `5000`            | &#9745;                |
+| Calibre                                  | &#9744;            | `calibre`            | `8083`, `8182`, `8084` | `8080`, `8181`, `8081`| &#9745;            |
+| Jellyfin                                 | &#9744;            | `Jellyfin`           | `8096`, `8920`, `7359`, `1900` | `8096`, `8920`, `7359`, `1900` | &#9745;            |
+| Emby                                     | &#9744;            | `Emby`               | `8096`, `8920` | `8096`, `8920`| &#9745;            |
+
+If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)

@@ -20,32 +20,51 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 ## Container List
 
-- Plex: media server
-- Sonarr: tv series management
-- Radarr: movie management
-- Bazarr: subtitle management
-- Prowlarr: tracker management
-- Readarr: ebook management
-- Transmission: download client with VPN and HTTP proxy
-- NZBGet: download client
-- Sabnzbd: download client
-- Tautulli: analytics
-- Traefik: reverse proxy (with SSL support from Let's Encrypt if configured)
-- Portainer: container management GUI
-- Overseerr: request platform
-- Requestrr: chat client for requests
-- Tdarr: media transcoding
-- Homepage: dashboarding / homepage
-- Heimdall: dashboarding / homepage
-- Watchtower: automatic container updates (if enabled)
-- Cloudflare-ddns: dynamic dns (if enabled)
-- Cloudflare Tunnel: Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
-- Authentik: SSO
-- Tailscale: mesh VPN
-- Flaresolverr: CAPTCHA solving
-- Uptime Kuma: service status monitoring
-- Kavita: digital library
-- Calibre: ebook management
+### Media Servers
+
+- [Plex](https://docs.linuxserver.io/images/docker-plex/)
+- [Jellyfin](https://docs.linuxserver.io/images/docker-jellyfin/)
+- [Emby](https://docs.linuxserver.io/images/docker-emby/)
+
+### Media Management Systems
+
+- [Sonarr](https://github.com/Sonarr/Sonarr): tv series management
+- [Radarr](https://github.com/Radarr/Radarr): movie management
+- [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
+- [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
+- [Readarr](https://github.com/Readarr/Readarr): ebook management
+- [Overseerr](https://github.com/sct/overseerr): request platform
+- [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
+- [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
+- [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
+
+### Download Clients
+
+- [Transmission](https://github.com/haugene/docker-transmission-openvpn): download client with VPN and HTTP proxy
+- [NZBGet](https://docs.linuxserver.io/images/docker-nzbget/): download client
+- [Sabnzbd](https://docs.linuxserver.io/images/docker-sabnzbd/): download client
+
+### Analytics / Dashboards
+
+- [Tautulli](https://github.com/Tautulli/Tautulli): analytics
+- [Homepage](https://github.com/gethomepage/homepage): dashboarding / homepage
+- [Heimdall](https://github.com/linuxserver/Heimdall): dashboarding / homepage
+
+### Networking
+
+- [Traefik](https://hub.docker.com/_/traefik): reverse proxy (with SSL support from Let's Encrypt if configured)
+- [Tailscale](https://hub.docker.com/r/tailscale/tailscale): mesh VPN
+- [Cloudflare-ddns](https://hub.docker.com/r/oznu/cloudflare-ddns/): dynamic dns (if enabled)
+- [Cloudflare Tunnel](https://hub.docker.com/r/cloudflare/cloudflared): Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
+
+### Misc
+
+- [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
+- [Watchtower](https://github.com/containrrr/watchtower): automatic container updates (if enabled)
+- [Authentik](https://github.com/goauthentik/authentik): SSO
+- [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
+- [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
+- [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
 
 ## Other Features
 

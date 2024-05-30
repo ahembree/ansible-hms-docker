@@ -228,6 +228,28 @@
       "authentik": false,
       "authentik_provider_type": proxy,
       "expose_to_public": false
+    },
+    "jellyfin": {
+      "enabled": true,
+      "proxy_host_rule": jellyfin,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "emby": {
+      "enabled": true,
+      "proxy_host_rule": emby,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
     }
   }
 }

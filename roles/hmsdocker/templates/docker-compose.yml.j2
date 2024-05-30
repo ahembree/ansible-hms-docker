@@ -1029,6 +1029,142 @@ services:
     {% endif %}
 {% endif %}
 
+{% if container_enabled_jellyfin %}
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
+    networks:
+      - "media_net"
+      - "traefik_net"
+    {% if enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+    {% endif %}
+    {% if expose_ports_enabled_jellyfin %}
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/jellyfin/config:/config
+      - {{ plex_transcode_folder }}/cache:/cache
+      # media folder where all movies and series are stored
+      - {{ hms_docker_media_path }}:/data/media
+    {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+    {% endif %}
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    {% if traefik_enabled_jellyfin or container_enabled_homepage %}
+    labels:
+      {% if traefik_enabled_jellyfin %}
+      - traefik.enable=true
+      - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_jellyfin %}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_jellyfin %}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage and homepage_enabled_jellyfin %}
+      - homepage.group=Media
+      - homepage.name=Jellyfin
+      - homepage.icon=jellyfin.png
+      - homepage.href=http://{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] }}.${HMSD_DOMAIN}
+      - homepage.description=Media Server
+      - homepage.widget.type=jellyfin
+      - homepage.widget.url=https://jellyfin:8096
+      - homepage.widget.key=${JELLYFIN_KEY:-apikeyapikeyapikey}
+        {% if homepage_stats_enabled_jellyfin %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if container_enabled_emby %}
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    restart: ${RESTART_POLICY}
+    logging: *default-logging
+    networks:
+      - "media_net"
+      - "traefik_net"
+    {% if enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/emby/config:/config
+      - {{ plex_transcode_folder }}/cache:/cache
+      # media folder where all movies and series are stored
+      - {{ hms_docker_media_path }}:/data/media
+    {% if nas_enable_additional_paths %}
+        {% for path in nas_client_remote_additional_paths %}
+      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
+        {% endfor %}
+    {% endif %}
+    {% if expose_ports_enabled_emby %}
+    ports:
+      {% if expose_ports_enabled_jellyfin %}
+      - 8097:8096
+      - 8921:8920 #optional
+      {% else %}
+      - 8096:8096
+      - 8920:8920 #optional
+      {% endif %}
+    {% endif %}
+    {% if traefik_enabled_emby or container_enabled_homepage %}
+    labels:
+      {% if traefik_enabled_emby %}
+      - traefik.enable=true
+      - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] }}.${HMSD_DOMAIN}`)
+        {% if not expose_public_enabled_emby %}
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares=internal-ipwhitelist
+        {% endif %}
+        {% if authentik_enabled_emby %}
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if container_enabled_homepage and homepage_enabled_emby %}
+      - homepage.group=Media
+      - homepage.name=Emby
+      - homepage.icon=emby.png
+      - homepage.href=http://{{ hms_docker_container_map['emby']['proxy_host_rule'] }}.${HMSD_DOMAIN}
+      - homepage.description=Media Server
+      - homepage.widget.type=emby
+      - homepage.widget.url=https://emby:8096
+      - homepage.widget.key=${EMBY_KEY:-apikeyapikeyapikey}
+        {% if homepage_stats_enabled_emby %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+{% endif %}
+
 {% if container_enabled_tautulli %}
   # Tautulli container, analytics
   tautulli:

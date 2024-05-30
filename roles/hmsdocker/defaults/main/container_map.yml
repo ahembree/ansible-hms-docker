@@ -7,6 +7,9 @@
 #  `authentik`: Enables or disables accessing the container via Authentik
 #  `authentik_provider_type`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
 #  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions, does not expose the container port)
+#  `homepage`: Enables or disables Homepage container integration (if supported)
+#  `homepage_stats`: Displays the container stats in Homepage (CPU, RAM, network traffic)
+
 hms_docker_container_map:
   traefik:
     enabled: yes
@@ -207,3 +210,24 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+  jellyfin:
+    enabled: no
+    proxy_host_rule: jellyfin
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
+  emby:
+    enabled: no
+    proxy_host_rule: emby
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
+

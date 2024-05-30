@@ -29,7 +29,7 @@
 
   - name: Verify all Traefik endpoints are accessible
     ansible.builtin.uri:
-      url: http://{{ item.key }}.{{ hms_docker_domain }}
+      url: http://{{ item.value.proxy_host_rule }}.{{ hms_docker_domain }}
       status_code: 200,302,401,403
       validate_certs: no
     with_dict:

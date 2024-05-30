@@ -28,6 +28,8 @@ container_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['enabled'] 
 container_enabled_readarr: "{{ hms_docker_container_map['readarr']['enabled'] | default(False) }}"
 container_enabled_kavita: "{{ hms_docker_container_map['kavita']['enabled'] | default(False) }}"
 container_enabled_calibre: "{{ hms_docker_container_map['calibre']['enabled'] | default(False) }}"
+container_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['enabled'] | default(False) }}"
+container_enabled_emby: "{{ hms_docker_container_map['emby']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -52,6 +54,8 @@ traefik_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['traefik'] | 
 traefik_enabled_readarr: "{{ hms_docker_container_map['readarr']['traefik'] | default(False) }}"
 traefik_enabled_kavita: "{{ hms_docker_container_map['kavita']['traefik'] | default(False) }}"
 traefik_enabled_calibre: "{{ hms_docker_container_map['calibre']['traefik'] | default(False) }}"
+traefik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['traefik'] | default(False) }}"
+traefik_enabled_emby: "{{ hms_docker_container_map['emby']['traefik'] | default(False) }}"
 
 
 # Public container exposure computed variables
@@ -75,6 +79,8 @@ expose_public_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['expose
 expose_public_enabled_readarr: "{{ hms_docker_container_map['readarr']['expose_to_public'] | default(False) }}"
 expose_public_enabled_kavita: "{{ hms_docker_container_map['kavita']['expose_to_public'] | default(False) }}"
 expose_public_enabled_calibre: "{{ hms_docker_container_map['calibre']['expose_to_public'] | default(False) }}"
+expose_public_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['expose_to_public'] | default(False) }}"
+expose_public_enabled_emby: "{{ hms_docker_container_map['emby']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -99,6 +105,8 @@ expose_ports_enabled_heimdall: "{{ True if (container_expose_ports or not contai
 expose_ports_enabled_readarr: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_readarr) else False }}"
 expose_ports_enabled_kavita: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_kavita) else False }}"
 expose_ports_enabled_calibre: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_calibre) else False }}"
+expose_ports_enabled_jellyfin: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_jellyfin) else False }}"
+expose_ports_enabled_emby: "{{ True if (container_expose_ports or not container_enabled_traefik or not traefik_enabled_emby) else False }}"
 
 # Authentik computed variables
 authentik_enabled_globally: "{{ True if (container_enabled_authentik or authentik_enabled) and traefik_ssl_enabled else False }}"
@@ -124,6 +132,8 @@ authentik_http_proxy_heimdall: "{{ hms_docker_container_map['heimdall']['authent
 authentik_http_proxy_readarr: "{{ hms_docker_container_map['readarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 authentik_http_proxy_kavita: "{{ hms_docker_container_map['kavita']['authentik_provider_type'] == 'proxy' | default(False) }}"
 authentik_http_proxy_calibre: "{{ hms_docker_container_map['calibre']['authentik_provider_type'] == 'proxy' | default(False) }}"
+authentik_http_proxy_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik_provider_type'] == 'proxy' | default(False) }}"
+authentik_http_proxy_emby: "{{ hms_docker_container_map['emby']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 
@@ -148,6 +158,8 @@ authentik_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['authentik'
 authentik_enabled_readarr: "{{ hms_docker_container_map['readarr']['authentik'] | default(False) }}"
 authentik_enabled_kavita: "{{ hms_docker_container_map['kavita']['authentik'] | default(False) }}"
 authentik_enabled_calibre: "{{ hms_docker_container_map['calibre']['authentik'] | default(False) }}"
+authentik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik'] | default(False) }}"
+authentik_enabled_emby: "{{ hms_docker_container_map['emby']['authentik'] | default(False) }}"
 
 authentik_geoip_enabled: "{{ True if ((authentik_geoip_account_id is defined and authentik_geoip_account_id != '') and (authentik_geoip_license_key is defined and authentik_geoip_license_key != '')) else False }}"
 
@@ -168,6 +180,8 @@ homepage_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']['home
 homepage_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage'] is defined and hms_docker_container_map['authentik']['homepage']) else False }}"
 homepage_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage'] is defined and hms_docker_container_map['tdarr']['homepage']) else False }}"
 homepage_enabled_readarr: "{{ True if (hms_docker_container_map['readarr']['homepage'] is defined and hms_docker_container_map['readarr']['homepage']) else False }}"
+homepage_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['homepage'] | default(False) }}"
+homepage_enabled_emby: "{{ hms_docker_container_map['emby']['homepage'] | default(False) }}"
 
 homepage_stats_enabled_traefik: "{{ True if (hms_docker_container_map['traefik']['homepage_stats'] is defined and hms_docker_container_map['traefik']['homepage_stats']) else False }}"
 homepage_stats_enabled_sonarr: "{{ True if (hms_docker_container_map['sonarr']['homepage_stats'] is defined and hms_docker_container_map['sonarr']['homepage_stats']) else False }}"
@@ -184,6 +198,8 @@ homepage_stats_enabled_sabnzbd: "{{ True if (hms_docker_container_map['sabnzbd']
 homepage_stats_enabled_authentik: "{{ True if (hms_docker_container_map['authentik']['homepage_stats'] is defined and hms_docker_container_map['authentik']['homepage_stats']) else False }}"
 homepage_stats_enabled_tdarr: "{{ True if (hms_docker_container_map['tdarr']['homepage_stats'] is defined and hms_docker_container_map['tdarr']['homepage_stats']) else False }}"
 homepage_stats_enabled_readarr: "{{ True if (hms_docker_container_map['readarr']['homepage_stats'] is defined and hms_docker_container_map['readarr']['homepage_stats']) else False }}"
+homepage_stats_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['homepage_stats'] | default(False) }}"
+homepage_stats_enabled_emby: "{{ hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
 
 
 
