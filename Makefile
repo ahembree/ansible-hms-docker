@@ -31,6 +31,7 @@ basic:
 		mkdir -p $(CUSTOM_CONF_DIR); \
 		cp $(DEFAULT_CONFS) $(CUSTOM_CONF_DIR); \
 		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
+		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
 	fi
 
 advanced:
@@ -38,6 +39,7 @@ advanced:
 		mkdir -p $(CUSTOM_CONF_DIR); \
 		cp $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
 		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
+		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
 	fi
 
 check: install-reqs
