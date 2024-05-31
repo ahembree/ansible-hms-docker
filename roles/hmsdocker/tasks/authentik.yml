@@ -45,7 +45,7 @@
   register: authentik_key_template_output
   no_log: true
   vars:
-    key: "{{ authentik_old_key if authentik_old_key is defined and authentik_old_key != '' else lookup('password', '/dev/null length=50 chars=ascii_letters') }}"
+    key: "{{ authentik_old_key | default(lookup('password', '/dev/null length=50 chars=ascii_letters')) }}"
 
 - name: Ensure authentik postgres password file
   ansible.builtin.template:
@@ -59,7 +59,7 @@
   register: authentik_pgpass_template_output
   no_log: true
   vars:
-    key: "{{ authentik_old_pg_pass if authentik_old_pg_pass is defined and authentik_old_pg_pass != '' else lookup('password', '/dev/null length=50 chars=ascii_letters') }}"
+    key: "{{ authentik_old_pg_pass | default(lookup('password', '/dev/null length=50 chars=ascii_letters')) }}"
 
 - name: Slurp authentik secret key data
   ansible.builtin.slurp:
@@ -119,6 +119,3 @@
     - item.key == 'sonarr' or item.key == 'radarr'
     - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
     - separate_4k_instances_enable is defined and separate_4k_instances_enable
-
-#### if authentik_provision_config is defined and authentik_provision_config:
-#### do the logic to configure providers, applications, etc

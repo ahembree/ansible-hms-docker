@@ -2,9 +2,11 @@
 #######################################################################
 # Computed variables
 # DO NOT MODIFY unless you want stuff to break
+# But if you know of another way to write this then pls help because this is ugly
 # These are used to generate the `docker-compose` template, this helps keep the amount of in-line logic in the template to a minimum and keeps it clean(ish)
 
 # Container computed variables
+# Controls if a container is enabled
 hmsdocker_container_enabled_portainer: "{{ hms_docker_container_map['portainer']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_traefik: "{{ hms_docker_container_map['traefik']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_authentik: "{{ hms_docker_container_map['authentik']['enabled'] | default(False) }}"
@@ -33,6 +35,7 @@ hmsdocker_container_enabled_emby: "{{ hms_docker_container_map['emby']['enabled'
 
 
 # Traefik computed variables
+# Controls if Traefik is enabled for a container
 hmsdocker_traefik_enabled_traefik: "{{ hms_docker_container_map['traefik']['traefik'] and hmsdocker_container_enabled_traefik | default(False) }}"
 hmsdocker_traefik_enabled_portainer: "{{ hms_docker_container_map['portainer']['traefik'] and hmsdocker_container_enabled_traefik | default(False) }}"
 hmsdocker_traefik_enabled_authentik: "{{ hms_docker_container_map['authentik']['traefik'] and hmsdocker_container_enabled_traefik | default(False) }}"
@@ -59,6 +62,7 @@ hmsdocker_traefik_enabled_emby: "{{ hms_docker_container_map['emby']['traefik'] 
 
 
 # Public container exposure computed variables
+# Controls Traefik rules to allow/disallow accessing the containers from the public internet via an allowlist
 hmsdocker_expose_public_enabled_portainer: "{{ hms_docker_container_map['portainer']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_authentik: "{{ hms_docker_container_map['authentik']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['expose_to_public'] | default(False) }}"
@@ -84,6 +88,7 @@ hmsdocker_expose_public_enabled_emby: "{{ hms_docker_container_map['emby']['expo
 
 
 # Container host port mapping computed variables
+# Controls if the container "exposes" its ports on the host
 hmsdocker_expose_ports_enabled_portainer: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_portainer) else False }}"
 hmsdocker_expose_ports_enabled_authentik: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_authentik) else False }}"
 hmsdocker_expose_ports_enabled_sonarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_sonarr) else False }}"
@@ -109,97 +114,74 @@ hmsdocker_expose_ports_enabled_jellyfin: "{{ True if (container_expose_ports or 
 hmsdocker_expose_ports_enabled_emby: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_emby) else False }}"
 
 # Authentik computed variables
+# Controls global authentik variables
 hmsdocker_authentik_enabled_globally: "{{ True if (hmsdocker_container_enabled_authentik or authentik_enabled) and traefik_ssl_enabled else False }}"
-
-hmsdocker_authentik_http_proxy_portainer: "{{ hms_docker_container_map['portainer']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_traefik: "{{ hms_docker_container_map['traefik']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_authentik: "{{ hms_docker_container_map['authentik']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_sonarr: "{{ hms_docker_container_map['sonarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_radarr: "{{ hms_docker_container_map['radarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_bazarr: "{{ hms_docker_container_map['bazarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_transmission: "{{ hms_docker_container_map['transmission']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_overseerr: "{{ hms_docker_container_map['overseerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_prowlarr: "{{ hms_docker_container_map['prowlarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_requestrr: "{{ hms_docker_container_map['requestrr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_plex: "{{ hms_docker_container_map['plex']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_tautulli: "{{ hms_docker_container_map['tautulli']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_nzbget: "{{ hms_docker_container_map['nzbget']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_sabnzbd: "{{ hms_docker_container_map['sabnzbd']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_tdarr: "{{ hms_docker_container_map['tdarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_homepage: "{{ hms_docker_container_map['homepage']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_heimdall: "{{ hms_docker_container_map['heimdall']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_readarr: "{{ hms_docker_container_map['readarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_kavita: "{{ hms_docker_container_map['kavita']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_calibre: "{{ hms_docker_container_map['calibre']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik_provider_type'] == 'proxy' | default(False) }}"
-hmsdocker_authentik_http_proxy_emby: "{{ hms_docker_container_map['emby']['authentik_provider_type'] == 'proxy' | default(False) }}"
-
-
-
-hmsdocker_authentik_enabled_traefik: "{{ ((hms_docker_container_map['traefik']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_traefik)) | default(False) }}"
-hmsdocker_authentik_enabled_sonarr: "{{ ((hms_docker_container_map['sonarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_sonarr)) | default(False) }}"
-hmsdocker_authentik_enabled_radarr: "{{ ((hms_docker_container_map['radarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_radarr)) | default(False) }}"
-hmsdocker_authentik_enabled_bazarr: "{{ ((hms_docker_container_map['bazarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_bazarr)) | default(False) }}"
-hmsdocker_authentik_enabled_transmission: "{{ ((hms_docker_container_map['transmission']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_transmission)) | default(False) }}"
-hmsdocker_authentik_enabled_portainer: "{{ ((hms_docker_container_map['portainer']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_portainer)) | default(False) }}"
-hmsdocker_authentik_enabled_overseerr: "{{ ((hms_docker_container_map['overseerr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_overseerr)) | default(False) }}"
-hmsdocker_authentik_enabled_prowlarr: "{{ ((hms_docker_container_map['prowlarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_prowlarr)) | default(False) }}"
-hmsdocker_authentik_enabled_requestrr: "{{ ((hms_docker_container_map['requestrr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_requestrr)) | default(False) }}"
-hmsdocker_authentik_enabled_plex: "{{ ((hms_docker_container_map['plex']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_plex)) | default(False) }}"
-hmsdocker_authentik_enabled_tautulli: "{{ ((hms_docker_container_map['tautulli']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_tautulli)) | default(False) }}"
-hmsdocker_authentik_enabled_nzbget: "{{ ((hms_docker_container_map['nzbget']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_nzbget)) | default(False) }}"
-hmsdocker_authentik_enabled_sabnzbd: "{{ ((hms_docker_container_map['sabnzbd']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_sabnzbd)) | default(False) }}"
-hmsdocker_authentik_enabled_authentik: "{{ ((hms_docker_container_map['authentik']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_authentik)) | default(False) }}"
-hmsdocker_authentik_enabled_tdarr: "{{ ((hms_docker_container_map['tdarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_authentik)) | default(False) }}"
-hmsdocker_authentik_enabled_homepage: "{{ ((hms_docker_container_map['homepage']['authentik']) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_homepage)) | default(False) }}"
-hmsdocker_authentik_enabled_uptimekuma: "{{ (hms_docker_container_map['uptimekuma']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_uptimekuma) | default(False) }}"
-hmsdocker_authentik_enabled_heimdall: "{{ (hms_docker_container_map['heimdall']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_heimdall) | default(False) }}"
-hmsdocker_authentik_enabled_readarr: "{{ (hms_docker_container_map['readarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_readarr) | default(False) }}"
-hmsdocker_authentik_enabled_kavita: "{{ (hms_docker_container_map['kavita']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_kavita) | default(False) }}"
-hmsdocker_authentik_enabled_calibre: "{{ (hms_docker_container_map['calibre']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_calibre) | default(False) }}"
-hmsdocker_authentik_enabled_jellyfin: "{{ (hms_docker_container_map['jellyfin']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_jellyfin) | default(False) }}"
-hmsdocker_authentik_enabled_emby: "{{ (hms_docker_container_map['emby']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hmsdocker_authentik_http_proxy_emby) | default(False) }}"
-
 hmsdocker_authentik_geoip_enabled: "{{ authentik_geoip_account_id != '' and authentik_geoip_license_key != '' | default(False) }}"
 
+# Controls if a container is protected by Authentik via proxy
+hmsdocker_authentik_enabled_traefik: "{{ hms_docker_container_map['traefik']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['traefik']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['sonarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_radarr: "{{ hms_docker_container_map['radarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['radarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_bazarr: "{{ hms_docker_container_map['bazarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['bazarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_transmission: "{{ hms_docker_container_map['transmission']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['transmission']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_portainer: "{{ hms_docker_container_map['portainer']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['portainer']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_overseerr: "{{ hms_docker_container_map['overseerr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['overseerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_prowlarr: "{{ hms_docker_container_map['prowlarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['prowlarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_requestrr: "{{ hms_docker_container_map['requestrr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['requestrr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_plex: "{{ hms_docker_container_map['plex']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['plex']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_tautulli: "{{ hms_docker_container_map['tautulli']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['tautulli']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_nzbget: "{{ hms_docker_container_map['nzbget']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['nzbget']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_sabnzbd: "{{ hms_docker_container_map['sabnzbd']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['sabnzbd']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_authentik: "{{ (hms_docker_container_map['authentik']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['authentik']['authentik_provider_type'] == 'proxy') | default(False) }}"
+hmsdocker_authentik_enabled_tdarr: "{{ ((hms_docker_container_map['tdarr']['authentik'] | default(False)) and (hmsdocker_authentik_enabled_globally and hms_docker_container_map['tdarr']['authentik_provider_type'] == 'proxy')) | default(False) }}"
+hmsdocker_authentik_enabled_homepage: "{{ hms_docker_container_map['homepage']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['homepage']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['uptimekuma']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['heimdall']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_readarr: "{{ hms_docker_container_map['readarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['readarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_kavita: "{{ hms_docker_container_map['kavita']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['kavita']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_calibre: "{{ hms_docker_container_map['calibre']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['calibre']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['jellyfin']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_emby: "{{ hms_docker_container_map['emby']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['emby']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
-hmsdocker_homepage_enabled_traefik: "{{ hms_docker_container_map['traefik']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_radarr: "{{ hms_docker_container_map['radarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_bazarr: "{{ hms_docker_container_map['bazarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_transmission: "{{ hms_docker_container_map['transmission']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_portainer: "{{ hms_docker_container_map['portainer']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_overseerr: "{{ hms_docker_container_map['overseerr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_prowlarr: "{{ hms_docker_container_map['prowlarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_plex: "{{ hms_docker_container_map['plex']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_tautulli: "{{ hms_docker_container_map['tautulli']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_nzbget: "{{ hms_docker_container_map['nzbget']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_sabnzbd: "{{ hms_docker_container_map['sabnzbd']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_authentik: "{{ hms_docker_container_map['authentik']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_tdarr: "{{ hms_docker_container_map['tdarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_readarr: "{{ hms_docker_container_map['readarr']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['homepage'] | default(False) }}"
-hmsdocker_homepage_enabled_emby: "{{ hms_docker_container_map['emby']['homepage'] | default(False) }}"
+# Homepage
+# Controls if the integration with Homepage is enabled for a container
+hmsdocker_homepage_enabled_traefik: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['traefik']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_sonarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['sonarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_radarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['radarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_bazarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['bazarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_transmission: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['transmission']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_portainer: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['portainer']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_overseerr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['overseerr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_prowlarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['prowlarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_plex: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['plex']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_tautulli: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['tautulli']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_nzbget: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['nzbget']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_sabnzbd: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['sabnzbd']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_authentik: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['authentik']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_tdarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['tdarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_readarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['readarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_jellyfin: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['jellyfin']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_emby: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['emby']['homepage'] | default(False) }}"
 
-hmsdocker_homepage_stats_enabled_traefik: "{{ hms_docker_container_map['traefik']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_radarr: "{{ hms_docker_container_map['radarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_bazarr: "{{ hms_docker_container_map['bazarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_transmission: "{{ hms_docker_container_map['transmission']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_portainer: "{{ hms_docker_container_map['portainer']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_overseerr: "{{ hms_docker_container_map['overseerr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_prowlarr: "{{ hms_docker_container_map['prowlarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_plex: "{{ hms_docker_container_map['plex']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_tautulli: "{{ hms_docker_container_map['tautulli']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_nzbget: "{{ hms_docker_container_map['nzbget']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_sabnzbd: "{{ hms_docker_container_map['sabnzbd']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_authentik: "{{ hms_docker_container_map['authentik']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_tdarr: "{{ hms_docker_container_map['tdarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_readarr: "{{ hms_docker_container_map['readarr']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['homepage_stats'] | default(False) }}"
-hmsdocker_homepage_stats_enabled_emby: "{{ hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
+# Controls if the container should show stats (CPU, RAM, RX, TX) on Homepage
+hmsdocker_homepage_stats_enabled_traefik: "{{ hmsdocker_homepage_enabled_traefik and hms_docker_container_map['traefik']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_sonarr: "{{ hmsdocker_homepage_enabled_sonarr and hms_docker_container_map['sonarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_radarr: "{{ hmsdocker_homepage_enabled_radarr and hms_docker_container_map['radarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_bazarr: "{{ hmsdocker_homepage_enabled_bazarr and hms_docker_container_map['bazarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_transmission: "{{ hmsdocker_homepage_enabled_transmission and hms_docker_container_map['transmission']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_portainer: "{{ hmsdocker_homepage_enabled_portainer and hms_docker_container_map['portainer']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_overseerr: "{{ hmsdocker_homepage_enabled_overseerr and hms_docker_container_map['overseerr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_prowlarr: "{{ hmsdocker_homepage_enabled_prowlarr and hms_docker_container_map['prowlarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_plex: "{{ hmsdocker_homepage_enabled_plex and hms_docker_container_map['plex']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_tautulli: "{{ hmsdocker_homepage_enabled_tautulli and hms_docker_container_map['tautulli']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_nzbget: "{{ hmsdocker_homepage_enabled_nzbget and hms_docker_container_map['nzbget']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_sabnzbd: "{{ hmsdocker_homepage_enabled_sabnzbd and hms_docker_container_map['sabnzbd']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_authentik: "{{ hmsdocker_homepage_enabled_authentik and hms_docker_container_map['authentik']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_tdarr: "{{ hmsdocker_homepage_enabled_tdarr and hms_docker_container_map['tdarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_readarr: "{{ hmsdocker_homepage_enabled_readarr and hms_docker_container_map['readarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_jellyfin: "{{ hmsdocker_homepage_enabled_jellyfin and hms_docker_container_map['jellyfin']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
 
 
 
