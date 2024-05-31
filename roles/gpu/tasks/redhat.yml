@@ -21,7 +21,7 @@
     name: libnvidia-container
     description: libnvidia-container
     file: nvidia-container-runtime
-    baseurl: https://nvidia.github.io/libnvidia-container/stable/{{ distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
+    baseurl: https://nvidia.github.io/libnvidia-container/stable/{{ gpu_distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
     enabled: 1
     gpgcheck: 0
     repo_gpgcheck: 1
@@ -34,7 +34,7 @@
     name: libnvidia-container-experimental
     description: libnvidia-container-experimental
     file: nvidia-container-runtime
-    baseurl: https://nvidia.github.io/libnvidia-container/experimental/{{ distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
+    baseurl: https://nvidia.github.io/libnvidia-container/experimental/{{ gpu_distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
     enabled: 0
     gpgcheck: 0
     repo_gpgcheck: 1
@@ -47,7 +47,7 @@
     name: nvidia-container-runtime
     description: nvidia-container-runtime
     file: nvidia-container-runtime
-    baseurl: https://nvidia.github.io/nvidia-container-runtime/stable/{{ distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
+    baseurl: https://nvidia.github.io/nvidia-container-runtime/stable/{{ gpu_distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
     enabled: 1
     gpgcheck: 0
     repo_gpgcheck: 1
@@ -60,7 +60,7 @@
     name: nvidia-container-runtime-experimental
     description: nvidia-container-runtime-experimental
     file: nvidia-container-runtime
-    baseurl: https://nvidia.github.io/nvidia-container-runtime/experimental/{{ distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
+    baseurl: https://nvidia.github.io/nvidia-container-runtime/experimental/{{ gpu_distribution_override | lower }}{{ ansible_facts['distribution_major_version'] }}/$basearch
     enabled: 0
     gpgcheck: 0
     repo_gpgcheck: 1

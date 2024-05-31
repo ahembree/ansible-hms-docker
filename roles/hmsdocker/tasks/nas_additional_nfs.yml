@@ -4,7 +4,7 @@
     name:
       - nfs-utils
     state: "{{ nas_client_package_state }}"
-  when: family_override | lower == "redhat"
+  when: hmsdocker_family_override | lower == "redhat"
 
 - name: Ensure Debian NFS packages.
   ansible.builtin.package:

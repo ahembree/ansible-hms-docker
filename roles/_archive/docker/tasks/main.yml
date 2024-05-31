@@ -7,7 +7,7 @@
 
 - name: Run RHEL-based Docker install.
   import_tasks: redhat.yml
-  when: family_override | lower == "redhat"
+  when: hmsdocker_family_override | lower == "redhat"
 
 - name: Run Debian-based Docker install.
   import_tasks: debian.yml
