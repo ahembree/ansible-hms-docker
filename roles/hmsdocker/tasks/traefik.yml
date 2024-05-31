@@ -17,6 +17,7 @@
   register: traefik_certs_dir
 
 - name: Ensure Traefik static file configs requirements
+  when: traefik_ext_hosts_enabled
   block:
     - name: Ensure Traefik Static file dir
       ansible.builtin.file:
@@ -39,7 +40,6 @@
         - item.subdomain_name is defined and item.subdomain_name != ''
         - item.backend_url is defined and item.backend_url != ''
         - item.enabled is defined and item.enabled
-  when: traefik_ext_hosts_enabled
 
 - name: Ensure disabled Traefik static file configs are removed
   ansible.builtin.file:
