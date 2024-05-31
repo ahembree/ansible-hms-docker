@@ -6,6 +6,8 @@
     mode: 0644
     group: docker
     backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
   notify: restart traefik
 
 - name: Ensure Traefik certs directory

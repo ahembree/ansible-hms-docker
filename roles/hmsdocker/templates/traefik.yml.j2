@@ -31,20 +31,20 @@ entryPoints:
         domains:
           - main: "{{ traefik_ssl_dns_provider_zone }}"
             sans:
-{% for san in traefik_ssl_sans %}
+            {% for san in traefik_ssl_sans %}
               - "{{- san -}}"
-{% endfor %}
+            {% endfor %}
 
 certificatesResolvers:
   letsencrypt:
     acme:
       email: "{{ traefik_ssl_letsencrypt_email }}"
-{% if traefik_ssl_use_letsencrypt_staging_url %}
+    {% if traefik_ssl_use_letsencrypt_staging_url %}
       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       storage: /certs/acme_staging.json
-{% else %}
+    {% else %}
       storage: /certs/acme.json
-{% endif %}
+    {% endif %}
       dnsChallenge:
         provider: "{{ traefik_ssl_dns_provider_code }}"
         resolvers:
