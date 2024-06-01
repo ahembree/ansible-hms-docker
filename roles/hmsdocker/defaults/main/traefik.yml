@@ -1,11 +1,10 @@
 ### SSL and Traefik settings
-traefik_container_tag: v2.10.1
 
 # Enables or Disables SSL wildcard certificate generation // default: "no"
 traefik_ssl_enabled: no
 
 # This option implements a number of additional security features for Traefik, such as:
-# * Disable TLS1.0
+# * Minimum TLS1.2
 traefik_security_hardening: no # default: no
 
 # Whether to use the staging/testing URL or production URL // default: "yes"
