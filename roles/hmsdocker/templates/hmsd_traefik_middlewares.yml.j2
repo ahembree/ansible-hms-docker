@@ -1,0 +1,13 @@
+http:
+    middlewares:
+        internal-ipallowlist:
+            ipWhiteList:
+                sourceRange:
+                    - "127.0.0.1/32"
+                {% for address in traefik_subnet_allow_list | split(', ') %}
+                    - "{{ address }}"
+                {% endfor %}
+        external-ipallowlist:
+            ipWhiteList:
+                sourceRange:
+                    - "0.0.0.0/0"
