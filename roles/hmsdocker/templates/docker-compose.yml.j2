@@ -14,7 +14,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
     {% if hmsdocker_expose_ports_enabled_portainer %}
     ports:
       - 9000:9000
@@ -60,7 +60,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
@@ -92,7 +92,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
     command: --cleanup --schedule "{{ container_auto_update_schedule }}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -133,7 +133,7 @@ services:
         {% endfor %}
     {% endif %}
     networks:
-      - "traefik_net"
+      - proxy_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
@@ -207,7 +207,7 @@ services:
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
-      - traefik_net
+      - proxy_net
     logging: *default-logging
     command: server
     environment:
@@ -309,7 +309,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
       - "download_net"
     environment:
       - PUID=${PUID}
@@ -360,7 +360,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
       - "download_net"
     environment:
       - PUID=${PUID}
@@ -481,7 +481,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     depends_on:
       - transmission
     environment:
@@ -524,7 +524,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -558,7 +558,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -607,7 +607,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -669,7 +669,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -731,7 +731,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -793,7 +793,7 @@ services:
     logging: *default-logging
     networks:
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -854,7 +854,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
     {% if hmsdocker_expose_ports_enabled_bazarr %}
     ports:
       - 6767:6767
@@ -910,7 +910,7 @@ services:
     networks:
       - "media_net"
       - "download_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -961,7 +961,7 @@ services:
     logging: *default-logging
     networks:
       - "media_net"
-      - "traefik_net"
+      - proxy_net
     ports:
       - 32400:32400/tcp
       - 3005:3005/tcp
@@ -1033,7 +1033,7 @@ services:
     logging: *default-logging
     networks:
       - "media_net"
-      - "traefik_net"
+      - proxy_net
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
@@ -1099,7 +1099,7 @@ services:
     logging: *default-logging
     networks:
       - "media_net"
-      - "traefik_net"
+      - proxy_net
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
@@ -1170,7 +1170,7 @@ services:
     logging: *default-logging
     networks:
       - "media_net"
-      - "traefik_net"
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -1239,7 +1239,7 @@ services:
     container_name: cloudflare-tunnel
     restart: ${RESTART_POLICY}
     networks:
-      - "traefik_net"
+      - proxy_net
     logging: *default-logging
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 {% endif %}
@@ -1275,7 +1275,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - "traefik_net"
+      - proxy_net
     {% if hmsdocker_expose_ports_enabled_tdarr %}
     ports:
       - 8265:8265 # webUI port
@@ -1371,7 +1371,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-    - traefik_net
+    - proxy_net
     volumes:
       - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -1402,7 +1402,7 @@ services:
     image: lscr.io/linuxserver/heimdall:latest
     container_name: heimdall
     networks:
-      - traefik_net
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -1438,7 +1438,7 @@ services:
     container_name: readarr
     logging: *default-logging
     networks:
-      - traefik_net
+      - proxy_net
       - download_net
     environment:
       - PUID=${PUID}
@@ -1495,7 +1495,7 @@ services:
     image: lscr.io/linuxserver/kavita:latest
     container_name: kavita
     networks:
-      - traefik_net
+      - proxy_net
     restart: ${RESTART_POLICY}
     logging: *default-logging
     environment:
@@ -1533,7 +1533,7 @@ services:
     restart: ${RESTART_POLICY}
     logging: *default-logging
     networks:
-      - traefik_net
+      - proxy_net
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -1572,7 +1572,7 @@ networks:
   "media_net":
     driver: bridge
     attachable: false
-  "traefik_net":
+  proxy_net:
     driver: bridge
     attachable: true
 {% if hmsdocker_authentik_enabled_globally %}

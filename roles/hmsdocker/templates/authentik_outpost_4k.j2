@@ -9,7 +9,7 @@ docker_labels:
 authentik_host: https://authentik-server:9443
 authentik_host_insecure: true
 authentik_host_browser: {{ authentik_external_host }}
-docker_network: {{ project_name }}_traefik_net
+docker_network: {{ project_name }}_proxy_net
 container_image: null
 docker_map_ports: false
 kubernetes_replicas: 1

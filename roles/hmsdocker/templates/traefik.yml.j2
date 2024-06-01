@@ -67,7 +67,7 @@ serversTransport:
 
 providers:
   docker:
-    network: "{{ project_name }}_traefik_net"
+    network: "{{ project_name }}_proxy_net"
     endpoint: unix:///var/run/docker.sock
     exposedByDefault: false
     defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw +%}
