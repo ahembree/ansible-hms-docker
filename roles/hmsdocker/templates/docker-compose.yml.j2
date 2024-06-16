@@ -1485,7 +1485,7 @@ services:
       - homepage.href=http://{{ hms_docker_container_map['readarr']['proxy_host_rule'] }}.${HMSD_DOMAIN}
       - homepage.description=Media Analytics
       - homepage.widget.type=readarr
-      - homepage.widget.url=http://readarr:8181
+      - homepage.widget.url=http://readarr:8787
       - homepage.widget.key=${READARR_KEY:-apikeyapikeyapikey}
         {% if homepage_stats_enabled_readarr %}
       - homepage.showStats=true
