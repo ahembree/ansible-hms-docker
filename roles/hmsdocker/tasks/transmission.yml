@@ -26,6 +26,7 @@
     - ansible_facts['ipify_public_ip'] != vpn_public_ip.stdout
 
 - name: Public IP and VPN IP are identical, stop container
+  when: ansible_facts['ipify_public_ip'] == vpn_public_ip.stdout or ansible_facts['ipify_public_ip'] == '' or ansible_facts['ipify_public_ip'] is undefined
   block:
     - name: Stop transmission if public IP and VPN IP are identical.
       ansible.builtin.command: docker stop transmission
@@ -37,4 +38,3 @@
           - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
           - "Current VPN IP: {{ vpn_public_ip.stdout }}"
           - The Transmission container has been stopped
-  when: ansible_facts['ipify_public_ip'] == vpn_public_ip.stdout or ansible_facts['ipify_public_ip'] == '' or ansible_facts['ipify_public_ip'] is undefined

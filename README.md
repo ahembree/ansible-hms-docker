@@ -12,6 +12,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Requirements](#requirements)
 - [Warnings](#warning)
 - [Installation](#installation)
+- [Updating](#updating)
 - [Configuration](#configuration)
 - [Content layout](#content-layout)
 - [Using Cloudflare Tunnel](./docs/Cloudflare.md/#cloudflare-tunnel)
@@ -146,6 +147,18 @@ It is recommended to read and follow this guide entirely as there is a lot of co
    ```
 
 2. Proceed to [Configuration](#configuration)
+
+---
+
+## Updating
+
+To easily update from this git repo _**and**_ update your custom variable names (due to deprecating/renaming variables), run:
+
+```bash
+make update
+```
+
+Previous variable names will still work for at least a year after the change and will be noted as such within the default configs. Please update to resolve.
 
 ---
 

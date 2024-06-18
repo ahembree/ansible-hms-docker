@@ -6,28 +6,42 @@
     mode: 0644
     group: docker
     backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
   notify: restart traefik
 
 - name: Ensure Traefik certs directory
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/traefik/config/certs"
     state: directory
+    mode: 0755
   register: traefik_certs_dir
 
-- name: Ensure Traefik static file configs requirements
-  block:
-    - name: Ensure Traefik Static file dir
-      ansible.builtin.file:
-        path: "{{ traefik_ext_hosts_configs_path }}"
-        state: directory
-        mode: 0755
-        group: docker
-      register: traefik_additional_routes_dir
+- name: Ensure Traefik Static file dir
+  ansible.builtin.file:
+    path: "{{ hmsdocker_traefik_static_config_location }}"
+    state: directory
+    mode: 0755
+    group: docker
+  register: traefik_static_config_dir
 
-    - name: Ensure Traefik static file configs
+- name: Ensure Traefik static config file
+  ansible.builtin.template:
+    src: hmsd_traefik_middlewares.yml.j2
+    dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
+    mode: 0644
+    group: docker
+    backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
+
+- name: Ensure Traefik static file configs requirements
+  when: traefik_ext_hosts_enabled
+  block:
+    - name: Ensure Traefik static external host configs
       ansible.builtin.template:
         src: traefik_additional_routes.yml.j2
-        dest: "{{ traefik_ext_hosts_configs_path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+        dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
         mode: 0644
         group: docker
         backup: yes
@@ -37,11 +51,10 @@
         - item.subdomain_name is defined and item.subdomain_name != ''
         - item.backend_url is defined and item.backend_url != ''
         - item.enabled is defined and item.enabled
-  when: traefik_ext_hosts_enabled
 
-- name: Ensure disabled Traefik static file configs are removed
+- name: Ensure disabled Traefik static external host configs are removed
   ansible.builtin.file:
-    path: "{{ traefik_ext_hosts_configs_path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     state: absent
   with_items: "{{ traefik_ext_hosts_list }}"
   when: 

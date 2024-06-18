@@ -9,11 +9,11 @@
   "custom_scripts_enabled": true,
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,
-  "expose_ports_enabled_calibre": false,
+  "hmsdocker_expose_ports_enabled_calibre": false,
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,
-      "proxy_host_rule": "traefik",
+      "proxy_host_rule": traefik,
       "directory": true,
       "traefik": true,
       "authentik": false,

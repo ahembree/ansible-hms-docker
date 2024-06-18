@@ -48,16 +48,16 @@
 
 - name: Ensure Traefik
   import_tasks: "traefik.yml"
-  when: container_enabled_traefik
+  when: hmsdocker_container_enabled_traefik
 
 - name: Ensure Authentik
   import_tasks: "authentik.yml"
-  when: (authentik_enabled_globally and 
+  when: (hmsdocker_authentik_enabled_globally and 
         traefik_ssl_enabled)
 
 - name: Ensure homepage
   ansible.builtin.import_tasks: "homepage.yml"
-  when: container_enabled_homepage
+  when: hmsdocker_container_enabled_homepage
 
 - name: Ensure JBOPS if enabled
   when: tautulli_jbops_enabled | default(false)
@@ -117,7 +117,7 @@
 
 - name: Sabnzbd additional config
   ansible.builtin.import_tasks: "sabnzbd.yml"
-  when: container_enabled_sabnzbd
+  when: hmsdocker_container_enabled_sabnzbd
 
 - name: Ensure Plex SSL script and resources
   ansible.builtin.import_tasks: "plex_ssl.yml"
@@ -130,6 +130,6 @@
 - name: Ensure Transmission and VPN connection
   import_tasks: "transmission.yml"
   when: 
-    - container_enabled_transmission
+    - hmsdocker_container_enabled_transmission
     - not ansible_check_mode
     - not is_github_runner | default(false)

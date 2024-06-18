@@ -7,7 +7,7 @@ http:
       {% else -%}
       - web
       {% endif -%}
-      {% if authentik_enabled_globally and item.authentik is defined and item.authentik -%}
+      {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik -%}
       middlewares:
       - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
       {% endif -%}

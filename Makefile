@@ -54,6 +54,13 @@ install-reqs:
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
+update:
+	@echo Updating from Git repo... && git pull
+	@echo Updating variable names
+	@echo Updating Traefik variables
+	@sed -i 's\traefik_ext_hosts_configs_path\hmsdocker_traefik_static_config_location\g' $(CUSTOM_CONF_DIR)/traefik.yml
+	@echo Update finished
+
 help:
 	@echo make basic :: setup a basic config
 	@echo make advanced :: setup an advanced config
@@ -61,3 +68,4 @@ help:
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
 	@echo make verify-containers :: checks containers exposed ports \(used in GitHub Actions\)
+	@echo update :: updates from the git repo and updates variable names (if they were changed)

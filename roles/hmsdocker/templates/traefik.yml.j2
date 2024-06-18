@@ -31,20 +31,20 @@ entryPoints:
         domains:
           - main: "{{ traefik_ssl_dns_provider_zone }}"
             sans:
-{% for san in traefik_ssl_sans %}
+            {% for san in traefik_ssl_sans %}
               - "{{- san -}}"
-{% endfor %}
+            {% endfor %}
 
 certificatesResolvers:
   letsencrypt:
     acme:
       email: "{{ traefik_ssl_letsencrypt_email }}"
-{% if traefik_ssl_use_letsencrypt_staging_url %}
+    {% if traefik_ssl_use_letsencrypt_staging_url %}
       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       storage: /certs/acme_staging.json
-{% else %}
+    {% else %}
       storage: /certs/acme.json
-{% endif %}
+    {% endif %}
       dnsChallenge:
         provider: "{{ traefik_ssl_dns_provider_code }}"
         resolvers:
@@ -67,12 +67,11 @@ serversTransport:
 
 providers:
   docker:
-    network: "{{ project_name }}_traefik_net"
+    network: "{{ project_name }}_proxy_net"
     endpoint: unix:///var/run/docker.sock
     exposedByDefault: false
     defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw +%}
-{% if traefik_ext_hosts_enabled %}
   file:
     directory: /etc/traefik/static_files
     watch: true
-{% endif %}
+

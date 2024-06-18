@@ -1,11 +1,10 @@
 ### SSL and Traefik settings
-traefik_container_tag: v2.10.1
 
 # Enables or Disables SSL wildcard certificate generation // default: "no"
 traefik_ssl_enabled: no
 
 # This option implements a number of additional security features for Traefik, such as:
-# * Disable TLS1.0
+# * Minimum TLS1.2
 traefik_security_hardening: no # default: no
 
 # Whether to use the staging/testing URL or production URL // default: "yes"
@@ -41,9 +40,15 @@ traefik_ssl_dns_resolver_2: "1.0.0.1"
 # Required for Let's Encrypt, the email address to use when generating your SSL certificate
 traefik_ssl_letsencrypt_email: ""
 
+# Where static config files are stored for Traefik (middlewares and external hosts)
+# Deprecation notice:
+# the `traefik_ext_hosts_configs_path` variable was removed on 5/31/2024 but will still work for the time being.
+# It will be removed at least 1 year from the deprecation date (6/1/2025) and then will be fully removed and no longer work
+# To fix: run `make update`
+hmsdocker_traefik_static_config_location: "{{ traefik_ext_hosts_configs_path | default(hms_docker_apps_path + '/traefik/config/static_confs/') }}"
+
 # Enables or Disables watching a directory for Traefik static file configs, see https://doc.traefik.io/traefik/providers/file/#configuration-examples // default: "no"
 traefik_ext_hosts_enabled: no
-traefik_ext_hosts_configs_path: "{{ hms_docker_apps_path }}/traefik/config/static_confs/"
 # Settings for each external host:
 #    friendly_name: host1, # just a friendly name for it
 #    subdomain_name: sub-example, # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)

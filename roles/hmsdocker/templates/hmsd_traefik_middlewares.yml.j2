@@ -1,0 +1,13 @@
+http:
+    middlewares:
+        internal-ipallowlist:
+            ipAllowList:
+                sourceRange:
+                    - "127.0.0.1/32"
+                {% for address in traefik_subnet_allow_list | split(', ') %}
+                    - "{{ address }}"
+                {% endfor %}
+        external-ipallowlist:
+            ipAllowList:
+                sourceRange:
+                    - "0.0.0.0/0"

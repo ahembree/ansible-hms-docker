@@ -37,5 +37,5 @@
     when:
       - item.value.traefik is defined and item.value.traefik
       - item.value.enabled is defined and item.value.enabled
-      - container_enabled_traefik
+      - hmsdocker_container_enabled_traefik
       - traefik_verify_endpoints is defined and traefik_verify_endpoints
