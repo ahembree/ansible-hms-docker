@@ -7,7 +7,6 @@
     replace: '_'
     pip_install_packages:
     - name: docker
-    - name: docker-compose
 
   roles:
     - galaxy-roles/geerlingguy.docker
