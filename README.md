@@ -130,14 +130,14 @@ Setting up the individual container configurations, such as for Sonarr, Radarr, 
 
 It is recommended to read and follow this guide entirely as there is a lot of configuration options that are required to get the system up and running to its full potential.
 
-1. Install requirements and clone the repository:
+1. Install Ansible for your system by following the instructions available here: https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
+
+2. Install requirements and clone the repository:
 
    Ubuntu:
 
    ```bash
-   sudo apt update
    sudo apt install git make python3-pip -y
-   sudo pip3 install ansible
    ```
 
    ```bash
@@ -146,7 +146,7 @@ It is recommended to read and follow this guide entirely as there is a lot of co
    cd ansible-hms-docker/
    ```
 
-2. Proceed to [Configuration](#configuration)
+3. Proceed to [Configuration](#configuration)
 
 ---
 
