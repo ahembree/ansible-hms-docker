@@ -18,8 +18,9 @@ jobs:
       - name: Install ansible
         run: |
           sudo apt update
-          sudo apt install make python3-pip
-          sudo pip3 install ansible
+          sudo sudo apt install software-properties-common
+          sudo add-apt-repository --yes --update ppa:ansible/ansible
+          sudo apt install ansible
 
       - name: Ensure base playbook requirements
         run: |
@@ -40,4 +41,5 @@ jobs:
       - name: Check containers
         run: |
           sleep 60
+          sudo pip3 install python-dotenv
           sudo make verify-containers
