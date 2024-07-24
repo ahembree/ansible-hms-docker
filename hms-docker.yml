@@ -5,12 +5,9 @@
   vars:
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
-    pip_install_packages:
-    - name: docker
 
   roles:
     - galaxy-roles/geerlingguy.docker
-    - galaxy-roles/geerlingguy.pip
 
   tasks:
   - name: Ensure vars are loaded
