@@ -41,5 +41,5 @@ jobs:
       - name: Check containers
         run: |
           sleep 60
-          sudo pip3 install python-dotenv
+          sudo pip3 install -r .github/workflows/scripts/requirements.txt
           sudo make verify-containers
