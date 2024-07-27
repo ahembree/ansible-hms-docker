@@ -318,7 +318,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/nzbget/config:/config
     {% if nzbget_enable_downloads_mount %}
-      - ${HMSD_APPS_PATH}/nzbget/downloads:/data/usenet
+      - ${hms_docker_nzbget_path}/downloads:/data/usenet
     {% endif %}
     {% if hmsdocker_expose_ports_enabled_nzbget %}
     ports:
@@ -369,8 +369,8 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sabnzbd/config:/config
       {% if sabnzbd_enable_downloads_mount %}
-      - ${HMSD_APPS_PATH}/sabnzbd/downloads:/downloads
-      - ${HMSD_APPS_PATH}/sabnzbd/incomplete-downloads:/incomplete-downloads
+      - ${hms_docker_sabnzbd_path}/downloads:/downloads
+      - ${hms_docker_sabnzbd_path}/incomplete-downloads:/incomplete-downloads
       {% endif %}
     {% if hmsdocker_expose_ports_enabled_sabnzbd %}
     ports:
@@ -434,7 +434,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+      - ${hms_docker_torrents_path}:/data/torrents
     {% endif %}
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
@@ -645,8 +645,8 @@ services:
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+    #{% else %}
+    #  - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
     {% endif %}
       - {{ hms_docker_media_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
@@ -707,8 +707,8 @@ services:
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+    #{% else %}
+    #  - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
     {% endif %}
       - {{ hms_docker_media_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
@@ -769,8 +769,8 @@ services:
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+    #{% else %}
+    #  - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
     {% endif %}
       - {{ hms_docker_media_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
@@ -831,8 +831,8 @@ services:
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+    #{% else %}
+    #  - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
     {% endif %}
       - {{ hms_docker_media_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
@@ -865,7 +865,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -989,7 +989,7 @@ services:
       # temp folder for Plex transcoding
       - {{ plex_transcode_folder }}:/transcode
       # media folder where all movies and series are stored
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1048,7 +1048,7 @@ services:
       - ${HMSD_APPS_PATH}/jellyfin/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1116,7 +1116,7 @@ services:
       - ${HMSD_APPS_PATH}/emby/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1332,7 +1332,7 @@ services:
       - ${HMSD_APPS_PATH}/tdarr/config/app:/app/configs
       - ${HMSD_APPS_PATH}/tdarr/config/logs:/app/logs
       - {{ tdarr_transcode_folder }}:/temp_transcode
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1451,8 +1451,8 @@ services:
       {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
       {% else %}
-      - ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
-      {% endif %}
+      #- ${HMSD_APPS_PATH}/transmission/torrents:/data/torrents
+      #{% endif %}
       - {{ hms_docker_media_path }}:/data/media
       {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
@@ -1504,7 +1504,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
       {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1540,7 +1540,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/calibre/config:/config
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data/media
       {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
