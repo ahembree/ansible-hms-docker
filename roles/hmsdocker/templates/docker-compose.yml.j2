@@ -766,7 +766,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% endif %}
-      - {{ hms_docker_media_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
