@@ -10,6 +10,17 @@
     - galaxy-roles/geerlingguy.docker
 
   tasks:
+  - name: Check if old variables dir exists
+    ansible.builtin.stat:
+      path: vars/custom
+    register: prev_var_dir
+
+  - name: Fail if previous var dir exists and is not symlink
+    ansible.builtin.fail:
+      msg: "You are using the old directory structure for variables. Please update your paths by running: 'make migrate-vars'. This will move the 'vars/custom' files to 'inventory/group_vars/all'"
+    when:
+      - prev_var_dir.stat.exists and not prev_var_dir.stat.islnk
+
   - name: Ensure Nvidia GPU role if enabled
     ansible.builtin.import_role:
       name: gpu
