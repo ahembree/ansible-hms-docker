@@ -5,8 +5,10 @@
   register: sabnzbd_config_path
 
 - name: restart sabnzbd inline if config not exist
-  ansible.builtin.shell:
-    cmd: docker restart sabnzbd
+  community.docker.docker_container:
+    name: sabnzbd
+    state: started
+    restart: true
   when: not sabnzbd_config_path.stat.exists
 
 - name: Check if config file exists after container restart

@@ -1,7 +1,13 @@
 ---
 - name: restart traefik
-  ansible.builtin.shell: docker restart traefik
+  community.docker.docker_container:
+    name: traefik
+    state: started
+    restart: yes
   when: not traefik_certs_dir.changed
 
 - name: restart sabnzbd
-  ansible.builtin.shell: docker restart sabnzbd
+  community.docker.docker_container:
+    name: sabnzbd
+    state: started
+    restart: yes
