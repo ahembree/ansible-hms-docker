@@ -84,41 +84,56 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 ## Supported Platforms
 
-Currently only Ubuntu 22.04+ is actively supported and is used for GitHub Actions testing.
+Currently only Ubuntu 22.04 LTS is actively supported and is used for GitHub Actions testing.
 
-RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux) may work, but are no longer being tested against.
+Ubuntu 24.04 LTS may work, please submit an Issue if you encounter any.
+
+I've confirmed this repo also works on a Raspberry Pi 5 with 8GB RAM, but have not tested against other ARM-based systems (Apple Silicon, NAS systems, etc).
+
+RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux) may work, but are no longer being tested against and are not officially supported.
 
 ## Requirements
 
-- `root` or `sudo` access
-- [Supported Platform](#supported-platforms)
-- 4 CPU Cores
+### Hardware
+
+- Minimum 4 CPU Cores
 - Minimum 4GB RAM (2GB additional if using Authentik)
 - Minimum 8GB free disk space
-- You own a domain name and are able to modify DNS A and TXT records (if you want SSL and/or dynamic DNS)
+
+### Software / Services
+
+- [Supported Platform](#supported-platforms)
+- `root` or `sudo` access
+- Ansible
+- You own a domain name and are able to modify DNS `A` and `TXT` records (if you want SSL and/or dynamic DNS)
+  - (Preferred) Have an internal DNS server that can resolve some or all of your domain name/zone.
 - You use a [supported VPN provider](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers) (if Transmission is enabled)
 - You use a [supported DNS provider](https://doc.traefik.io/traefik/https/acme/#providers) (if SSL is enabled)
 - You have a Cloudflare account with the correct DNS zones and API keys configured (if dynamic DNS and/or SSL is enabled)
-- Familiarity with editing config files
-- Familiarity with Linux (installing packages, troubleshooting, etc)
 - Nvidia GPU drivers already installed (if using Nvidia GPU acceleration)
-- Python 3.8 (Recommended, minimum Python 3.6)
-- Ansible (minimum 2.9)
+
+### Network
+
 - If you plan to make Plex and/or Overseerr available outside your local network, the following ports must be forwarded in your router to the IP of the server that will be running these containers:
   - Instructions for forwarding ports to the correct device is outside the scope of this project as every router/gateway has different instructions.
   - This is in no way guaranteed to be the best or most secure way to do this, and this assumes your ISP does not block these ports
+  - `32400/tcp` (Plex)
   - `80/tcp` (HTTP) (Not required if using Cloudflare Tunnel)
   - `443/tcp` (HTTPS) (Not required if using Cloudflare Tunnel)
-  - `32400/tcp` (Plex)
+
+### Technical Skills
+
+- Familiarity with editing config files (mainly YAML format)
+- Familiarity with Linux (installing packages, troubleshooting, etc)
+- Familiarity with Docker/containers (debugging, starting/stopping, getting a shell/CLI)
 
 ---
 
 ## WARNING
 
 This playbook assumes that it is a fresh install of an operating system that has not been configured yet.
-It should be safe to run on an existing system, BUT it may cause issues with Python since it installs Python 3.8, Docker repos, configures Nvidia GPU acceleration (if enabled), and configures network mounts (if enabled).
 
-To ensure no conflicting changes with an existing system, you can run this playbook in "check mode" to see if any changes would be made by running `make check`
+To ensure no conflicting changes with an existing system, you can run this playbook in "check mode" to see what, if any, changes would be made by running `sudo make check`
 
 ## Scope of the Project
 
@@ -256,10 +271,10 @@ You can run the playbook using the included `Makefile` with the following comman
 
 ```bash
 # Check mode
-make check
+sudo make check
 
 # Apply changes
-make apply
+sudo make apply
 ```
 
 Once the playbook has finished running, it may take up to a few minutes for the SSL certificate to be generated (if enabled).
