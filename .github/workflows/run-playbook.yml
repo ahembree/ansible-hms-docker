@@ -24,10 +24,8 @@ jobs:
 
       - name: Ensure base playbook requirements
         run: |
-          mkdir -p ./vars/custom
-          cp vars/default/*.yml ./vars/custom
-          mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
-          sudo make install-reqs
+          make basic
+          make install-reqs
 
       - name: Run playbook
         run: >-
