@@ -54,21 +54,6 @@
     - item.item.value.enabled is defined and item.item.value.enabled
     - not item.stat.exists
 
-# The plex container has an issue with creating its own directory structure correctly, so create
-# up to the Logs folder since that's where it usually gets hung
-- name: Ensure Plex container config Logs directory exists
-  ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item.item.key }}/config/Library/Application Support/Plex Media Server/Logs"
-    state: directory
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: 0755
-  with_items: "{{ directory_stats.results }}"
-  when:
-    - item.item.value.enabled is defined and item.item.value.enabled
-    - item.item.key == 'plex'
-    - not item.stat.exists
-
 - name: Ensure separate 4K container config directories exist if enabled
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/{{ item.item.key }}-{{ separate_4k_instances_suffix }}/config"
