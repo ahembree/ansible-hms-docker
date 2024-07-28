@@ -69,6 +69,7 @@ update:
 migrate-vars:
 	
 	@if [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ ! -L $(PREV_CUSTOM_CONF_DIR) ]; then\
+		mkdir -p $(CUSTOM_CONF_DIR);\
 		cp $(PREV_CUSTOM_CONF_DIR)/* $(CUSTOM_CONF_DIR);\
 		rm -rf $(PREV_CUSTOM_CONF_DIR);\
 		ln -s $(BASEDIR)/$(CUSTOM_CONF_DIR) $(BASEDIR)/$(PREV_CUSTOM_CONF_DIR);\
