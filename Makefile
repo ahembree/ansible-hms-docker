@@ -65,9 +65,8 @@ update:
 	@sed -i 's\traefik_ext_hosts_configs_path\hmsdocker_traefik_static_config_location\g' $(CUSTOM_CONF_DIR)/traefik.yml
 	@echo Update finished
 
-# Used for after the migration from the `vars/custom` directory to the correct `inventory/group_vars/all` directory
+# Used for the migration from the `vars/custom` directory to the correct `inventory/group_vars/all` directory
 migrate-vars:
-	
 	@if [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ ! -L $(PREV_CUSTOM_CONF_DIR) ]; then\
 		mkdir -p $(CUSTOM_CONF_DIR);\
 		cp $(PREV_CUSTOM_CONF_DIR)/* $(CUSTOM_CONF_DIR);\
