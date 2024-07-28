@@ -434,7 +434,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% else %}
-      - {{ hms_docker_downloads_path }}/torrents:/data/torrents
+      - {{ hms_docker_mount_path }}:/data
     {% endif %}
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
