@@ -28,23 +28,61 @@
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
 
-- name: Ensure container config directories exist.
-  ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item.key }}/config"
-    state: directory
-  with_dict: "{{ hms_docker_container_map }}"
-  when: item.value.directory and (item.value.enabled is defined and item.value.enabled)
+# The following tasks that deal with config folders are done this way to ensure that the container config folder
+# is given the same ownership as the specified UID and GID of the container before it starts
 
-- name: Ensure separate 4K container config directories exist if enabled.
+# First, check if directories already exist
+- name: Check if container config directories exist
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/{{ item.key }}/config"
+  with_dict: "{{ hms_docker_container_map }}"
+  when:
+    - item.value.enabled is defined and item.value.enabled
+  register: directory_stats
+
+# Loop through previously queried directory list and only create folders that do not already exist
+# This is to ensure that permissions for existing directories are not changed
+- name: Ensure container config directories exist if not already
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/{{ item.item.key }}/config"
+    state: directory
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0755
+  with_items: "{{ directory_stats.results }}"
+  when:
+    - item.item.value.enabled is defined and item.item.value.enabled
+    - not item.stat.exists
+
+# The plex container has an issue with creating its own directory structure correctly, so create
+# up to the Logs folder since that's where it usually gets hung
+- name: Ensure Plex container config Logs directory exists
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/{{ item.item.key }}/config/Library/Application Support/Plex Media Server/Logs"
+    state: directory
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0755
+  with_items: "{{ directory_stats.results }}"
+  when:
+    - item.item.value.enabled is defined and item.item.value.enabled
+    - item.item.key == 'plex'
+    - not item.stat.exists
+
+- name: Ensure separate 4K container config directories exist if enabled
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/{{ item.key }}-{{ separate_4k_instances_suffix }}/config"
     state: directory
-  with_dict: "{{ hms_docker_container_map }}"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0755
+  with_items: "{{ directory_stats.results }}"
   when: 
-    - item.value.directory
-    - item.value.enabled is defined and item.value.enabled
-    - item.key == 'sonarr' or item.key == 'radarr'
+    - item.item.value.directory
+    - item.item.value.enabled is defined and item.item.value.enabled
+    - item.item.key == 'sonarr' or item.item.key == 'radarr'
     - separate_4k_instances_enable is defined and separate_4k_instances_enable
+    - not item.stat.exists
 
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
