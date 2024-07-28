@@ -12,10 +12,10 @@
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.
-  include_tasks: "nas_{{ hms_docker_media_share_type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas_{{ hms_docker_media_share_type | lower }}.yml"
 
 - name: Ensure additional NAS configuration
-  include_tasks: "nas_additional_{{ item.type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas_additional_{{ item.type | lower }}.yml"
   with_items: "{{ nas_client_remote_additional_paths }}"
   when:
     - nas_client_remote_additional_paths is defined
@@ -47,11 +47,11 @@
     - separate_4k_instances_enable is defined and separate_4k_instances_enable
 
 - name: Ensure Traefik
-  import_tasks: "traefik.yml"
+  ansible.builtin.import_tasks: "traefik.yml"
   when: hmsdocker_container_enabled_traefik
 
 - name: Ensure Authentik
-  import_tasks: "authentik.yml"
+  ansible.builtin.import_tasks: "authentik.yml"
   when: (hmsdocker_authentik_enabled_globally and 
         traefik_ssl_enabled)
 
@@ -124,11 +124,11 @@
   when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
 
 - name: Ensure custom scripts
-  import_tasks: "scripts.yml"
+  ansible.builtin.import_tasks: "scripts.yml"
   when: custom_scripts_enabled | default(false)
 
 - name: Ensure Transmission and VPN connection
-  import_tasks: "transmission.yml"
+  ansible.builtin.import_tasks: "transmission.yml"
   when: 
     - hmsdocker_container_enabled_transmission
     - not ansible_check_mode
