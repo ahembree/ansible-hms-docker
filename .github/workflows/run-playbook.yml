@@ -32,8 +32,7 @@ jobs:
       - name: Run playbook
         run: >-
           sudo ansible-playbook
-          -i inventory
-          --connection local
+          -i inventory/hosts.yml
           hms-docker.yml
           --diff
           --extra-vars "@.github/extra-vars.yml"
