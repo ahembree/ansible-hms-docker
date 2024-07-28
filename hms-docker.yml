@@ -10,10 +10,6 @@
     - galaxy-roles/geerlingguy.docker
 
   tasks:
-  - name: Ensure vars are loaded
-    ansible.builtin.include_vars:
-      dir: vars/custom
-
   - name: Ensure Nvidia GPU role if enabled
     ansible.builtin.import_role:
       name: gpu
