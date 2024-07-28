@@ -23,17 +23,18 @@ jobs:
           sudo apt install ansible
 
       - name: Ensure base playbook requirements
+        # should mirror the steps for advanced config creation
+        # does not use the `make` command since it requires input and we cannot input in a Runner
         run: |
-          mkdir -p ./vars/custom
-          cp vars/default/*.yml ./vars/custom
-          mv ./vars/custom/main.yml ./vars/custom/main_custom.yml
-          sudo make install-reqs
+          mkdir -p ./inventory/group_vars/all
+          cp ./roles/hmsdocker/defaults/main/*.yml ./inventory/group_vars/all
+          chmod 0600 ./inventory/group_vars/all/*.yml
+          make install-reqs
 
       - name: Run playbook
         run: >-
           sudo ansible-playbook
-          -i inventory
-          --connection local
+          -i inventory/hosts.yml
           hms-docker.yml
           --diff
           --extra-vars "@.github/extra-vars.yml"

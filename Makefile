@@ -5,7 +5,11 @@ SHELL := /bin/bash
 DEFAULT_CONFS = vars/default/*.yml
 ADVANCED_CONFS = roles/hmsdocker/defaults/main/*.yml
 
-CUSTOM_CONF_DIR = ./vars/custom
+BASEDIR=$(shell pwd)
+
+CUSTOM_CONF_DIR = inventory/group_vars/all
+
+PREV_CUSTOM_CONF_DIR = vars/custom
 
 # Found and modified from: https://gist.github.com/Pierstoval/b2539c387c467c017bf2b0ace5a2e79b
 # To use the "confirm" target inside another target,
@@ -43,10 +47,10 @@ advanced:
 	fi
 
 check: install-reqs
-	@ansible-playbook -i inventory --connection local hms-docker.yml --diff --check
+	@ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff --check
 
 apply: install-reqs
-	@ansible-playbook -i inventory --connection local hms-docker.yml --diff
+	@ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff
 
 install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
@@ -61,6 +65,20 @@ update:
 	@sed -i 's\traefik_ext_hosts_configs_path\hmsdocker_traefik_static_config_location\g' $(CUSTOM_CONF_DIR)/traefik.yml
 	@echo Update finished
 
+# Used for the migration from the `vars/custom` directory to the correct `inventory/group_vars/all` directory
+migrate-vars:
+	@if [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ ! -L $(PREV_CUSTOM_CONF_DIR) ]; then\
+		mkdir -p $(CUSTOM_CONF_DIR);\
+		cp $(PREV_CUSTOM_CONF_DIR)/* $(CUSTOM_CONF_DIR);\
+		rm -rf $(PREV_CUSTOM_CONF_DIR);\
+		ln -s $(BASEDIR)/$(CUSTOM_CONF_DIR) $(BASEDIR)/$(PREV_CUSTOM_CONF_DIR);\
+		echo Moved files and created symlink from $(PREV_CUSTOM_CONF_DIR) to $(CUSTOM_CONF_DIR);\
+	elif [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ -L $(PREV_CUSTOM_CONF_DIR) ]; then\
+		echo "Already migrated";\
+	else\
+		echo "Previous variables directory does not exist at location: $(PREV_CUSTOM_CONF_DIR)";\
+	fi
+	
 help:
 	@echo make basic :: setup a basic config
 	@echo make advanced :: setup an advanced config
