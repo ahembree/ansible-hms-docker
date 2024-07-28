@@ -1442,7 +1442,7 @@ services:
       - {{ hms_docker_mount_path }}/apps/transmission/torrents:/data/torrents
       {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
-      {% else %}
+      {% endif %}
       - {{ hms_docker_mount_path }}:/data/media
       {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
