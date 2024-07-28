@@ -646,7 +646,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% endif %}
-      - {{ hms_docker_mount_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -706,7 +706,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% endif %}
-      - {{ hms_docker_mount_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -766,7 +766,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% endif %}
-      - {{ hms_docker_mount_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -826,7 +826,7 @@ services:
     {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
     {% endif %}
-      - {{ hms_docker_mount_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -857,7 +857,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
-      - {{ hms_docker_library_path }}:/data/media
+      - {{ hms_docker_library_path }}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1443,7 +1443,7 @@ services:
       {% elif hmsdocker_transmission_custom_download_path_enabled %}
       - {{ transmission_custom_download_path }}/torrents:/data/torrents
       {% endif %}
-      - {{ hms_docker_mount_path }}:/data/media
+      - {{ hms_docker_mount_path }}:/data
       {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
