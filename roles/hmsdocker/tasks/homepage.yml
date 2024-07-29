@@ -58,6 +58,8 @@
   register: prowlarr_api_key
   check_mode: false
   when: hmsdocker_container_enabled_prowlarr
+  ignore_errors: true
+
 - name: Ensure homepage docker config
   ansible.builtin.copy:
     src: homepage_docker.yaml
