@@ -26,6 +26,7 @@
   register: sonarr_api_key
   check_mode: false
   when: hmsdocker_container_enabled_sonarr
+  ignore_errors: true
 
 - name: Slurp Sonarr 4K key data
   ansible.builtin.slurp:
@@ -33,6 +34,7 @@
   register: sonarr_4k_api_key
   check_mode: false
   when: hmsdocker_container_enabled_sonarr and separate_4k_instances_enable
+  ignore_errors: true
 
 - name: Slurp Radarr key data
   ansible.builtin.slurp:
@@ -40,6 +42,7 @@
   register: radarr_api_key
   check_mode: false
   when: hmsdocker_container_enabled_radarr
+  ignore_errors: true
 
 - name: Slurp Radarr 4K key data
   ansible.builtin.slurp:
@@ -47,6 +50,7 @@
   register: radarr_4k_api_key
   check_mode: false
   when: hmsdocker_container_enabled_radarr and separate_4k_instances_enable
+  ignore_errors: true
 
 - name: Slurp Prowlarr key data
   ansible.builtin.slurp:
