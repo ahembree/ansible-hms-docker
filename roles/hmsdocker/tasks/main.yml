@@ -117,6 +117,10 @@
     authentik_pgu: "{{ authentik_old_pg_user if authentik_old_pg_user is defined and authentik_old_pg_user != '' else authentik_pg_user }}"
     authentik_pgdb: "{{ authentik_old_pg_db if authentik_old_pg_db is defined and authentik_old_pg_db != '' else authentik_pg_db }}"
     watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
+    sonarr_key: "{{ sonarr_api_key['content'] | b64decode | regex_search(arr_apikey)| default('') }}"
+    sonarr_4k_key: "{{ sonarr_4k_api_key['content'] | b64decode | regex_search(arr_apikey)| default('') }}"
+    radarr_key: "{{ radarr_api_key['content'] | b64decode | regex_search(arr_apikey)| default('') }}"
+    radarr_4k_key: "{{ radarr_4k_api_key['content'] | b64decode | regex_search(arr_apikey)| default('') }}"
 
 - name: Ensure docker-compose.yml file.
   ansible.builtin.template:
