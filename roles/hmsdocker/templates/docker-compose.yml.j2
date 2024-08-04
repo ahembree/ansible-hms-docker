@@ -435,7 +435,7 @@ services:
     {% else %}
       - {{ hms_docker_mount_path }}:/data
     {% endif %}
-      - ${HMSD_APPS_PATH}/transmission/config:/config/transmission-home
+      - ${HMSD_APPS_PATH}/transmission/config:/config
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
