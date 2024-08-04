@@ -552,7 +552,7 @@ services:
 {% if hmsdocker_container_enabled_prowlarr %}
   # Prowlarr container, torrent indexer
   prowlarr:
-    image: linuxserver/prowlarr:develop
+    image: linuxserver/prowlarr:latest
     container_name: prowlarr
     restart: ${RESTART_POLICY}
     logging: *default-logging
