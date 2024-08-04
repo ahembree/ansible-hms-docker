@@ -435,7 +435,7 @@ services:
     {% else %}
       - {{ hms_docker_mount_path }}:/data
     {% endif %}
-      - ${HMSD_APPS_PATH}/transmission/config:/data/transmission-home
+      - ${HMSD_APPS_PATH}/transmission/config:/config/transmission-home
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
@@ -456,8 +456,9 @@ services:
       {% endif %}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
-      - TRANSMISSION_DOWNLOAD_DIR=/_downloads/torrents
-      - TRANSMISSION_INCOMPLETE_DIR=/_downloads/torrents/incomplete
+      - TRANSMISSION_DOWNLOAD_DIR=/data/_downloads/torrents
+      - TRANSMISSION_INCOMPLETE_DIR=/data/_downloads/torrents/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/_downloads/torrents/watch
       - TRANSMISSION_INCOMPLETE_DIR_ENABLED=true
       - TRANSMISSION_WATCH_DIR_ENABLED=false
       - TZ=${TIMEZONE}
