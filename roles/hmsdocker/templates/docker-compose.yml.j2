@@ -318,7 +318,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/nzbget/config:/config
     {% if nzbget_enable_downloads_mount %}
-      - ${hms_docker_downloads_path}/nzbget:/data/usenet
+      - ${HMSD_DOWNLOAD_PATH}/nzbget:/data/usenet
     {% endif %}
     {% if hmsdocker_expose_ports_enabled_nzbget %}
     ports:
@@ -369,8 +369,8 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sabnzbd/config:/config
       {% if sabnzbd_enable_downloads_mount %}
-      - ${hms_docker_downloads_path}/sabnzbd/downloads:/downloads
-      - ${hms_docker_downloads_path}/sabnzbd/incomplete-downloads:/incomplete-downloads
+      - ${HMSD_DOWNLOAD_PATH}/sabnzbd/downloads:/downloads
+      - ${HMSD_DOWNLOAD_PATH}/sabnzbd/incomplete-downloads:/incomplete-downloads
       {% endif %}
     {% if hmsdocker_expose_ports_enabled_sabnzbd %}
     ports:
