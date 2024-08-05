@@ -20,46 +20,6 @@
   when: watchtower_key_output.dest is defined
   no_log: true
 
-- name: Slurp Sonarr key data
-  ansible.builtin.slurp:
-    src: "{{ hms_docker_apps_path }}/sonarr/config/config.xml"
-  register: sonarr_api_key
-  check_mode: false
-  when: hmsdocker_container_enabled_sonarr
-  ignore_errors: true
-
-- name: Slurp Sonarr 4K key data
-  ansible.builtin.slurp:
-    src: "{{ hms_docker_apps_path }}/sonarr-{{ separate_4k_instances_suffix }}/config/config.xml"
-  register: sonarr_4k_api_key
-  check_mode: false
-  when: hmsdocker_container_enabled_sonarr and separate_4k_instances_enable
-  ignore_errors: true
-
-- name: Slurp Radarr key data
-  ansible.builtin.slurp:
-    src: "{{ hms_docker_apps_path }}/radarr/config/config.xml"
-  register: radarr_api_key
-  check_mode: false
-  when: hmsdocker_container_enabled_radarr
-  ignore_errors: true
-
-- name: Slurp Radarr 4K key data
-  ansible.builtin.slurp:
-    src: "{{ hms_docker_apps_path }}/radarr-{{ separate_4k_instances_suffix }}/config/config.xml"
-  register: radarr_4k_api_key
-  check_mode: false
-  when: hmsdocker_container_enabled_radarr and separate_4k_instances_enable
-  ignore_errors: true
-
-- name: Slurp Prowlarr key data
-  ansible.builtin.slurp:
-    src: "{{ hms_docker_apps_path }}/prowlarr/config/config.xml"
-  register: prowlarr_api_key
-  check_mode: false
-  when: hmsdocker_container_enabled_prowlarr
-  ignore_errors: true
-
 - name: Ensure homepage docker config
   ansible.builtin.copy:
     src: homepage_docker.yaml

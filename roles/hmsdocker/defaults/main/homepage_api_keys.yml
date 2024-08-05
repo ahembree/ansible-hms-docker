@@ -1,38 +1,13 @@
-# Sonarr
-homepage_sonarr_key: 
-homepage_sonarr_4k_key: 
-
-# Radarr
-homepage_radarr_key: 
-homepage_radarr_4k_key: 
-
-# Prowlarr
-homepage_prowlarr_key: 
+# Other keys not listed here may be retrieved during a playbook run from the apps config file
 
 # NZB
-homepage_sabnzbd_key: 
 homepage_nzbget_key: 
-
-# Tautulli
-homepage_tautulli_key: 
-
-# Plex
-homepage_plex_key: 
-
-# Overseerr
-homepage_overseerr_key: 
-
-# Bazarr
-homepage_bazarr_key: 
 
 # Authentik
 homepage_authentik_key: 
 
 # Portainer
 homepage_portainer_key: 
-
-# Readarr
-homepage_readarr_key: 
 
 # Jellyfin
 homepage_jellyfin_key: 
