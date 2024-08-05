@@ -27,11 +27,16 @@
 - name: Handle Radarr configs
   when: hmsdocker_container_enabled_radarr
   block:
+    - name: Check for Radarr config file
+      ansible.builtin.stat:
+        path: "{{ hms_docker_apps_path }}/radarr/config/config.xml"
+      register: radarr_conf_path
+
     - name: Slurp Radarr key data
       ansible.builtin.slurp:
-        src: "{{ hms_docker_apps_path }}/radarr/config/config.xml"
+        src: "{{ radarr_conf_path.stat.path }}"
       register: slurped_api_key_radarr
-      when: hmsdocker_container_enabled_radarr
+      when: radarr_conf_path.stat.exists
 
     - name: Check for Radarr 4K config file
       ansible.builtin.stat:
