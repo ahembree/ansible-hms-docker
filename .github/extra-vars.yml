@@ -141,7 +141,7 @@
       "homepage_stats": true
     },
     "sabnzbd": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": sabnzbd,
       "directory": true,
       "traefik": true,
@@ -152,7 +152,7 @@
       "homepage_stats": true
     },
     "authentik": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": "authentik",
       "directory": true,
       "traefik": true,

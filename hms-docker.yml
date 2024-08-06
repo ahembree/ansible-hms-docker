@@ -5,6 +5,8 @@
   vars:
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
+    arr_apikey: '(?<=\<ApiKey\>)\w*(?=\<\/ApiKey\>)'
+    
 
   roles:
     - galaxy-roles/geerlingguy.docker
