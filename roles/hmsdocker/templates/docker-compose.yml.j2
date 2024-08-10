@@ -425,6 +425,7 @@ services:
       - '{{ transmission_dns_1 }}'
       - '{{ transmission_dns_2 }}'
     volumes:
+      - ${HMSD_APPS_PATH}/transmission/config:/config/transmission-home
     {% if transmission_ovpn_config_local_path != "" and transmission_vpn_provider == "custom" %}
       - ${VPN_CONFIG_LOCAL_PATH}:/etc/openvpn/custom
     {% endif %}
@@ -435,7 +436,6 @@ services:
     {% else %}
       - ${HMSD_MOUNT_PATH}/torrents:/data
     {% endif %}
-      - ${HMSD_APPS_PATH}/transmission/config:/config
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
