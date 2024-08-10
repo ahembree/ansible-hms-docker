@@ -23,9 +23,14 @@
 
 - name: Ensure library folders.
   ansible.builtin.file:
-    path: "{{ hms_docker_mount_path }}/{{ item.folder_name }}"
+    path: "{{ hms_docker_library_path }}/{{ item.folder_name }}"
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
+
+- name: Ensure downloads folders.
+  ansible.builtin.file:
+    path: "{{ hms_docker_downloads_path }}"
+    state: directory
 
 # The following tasks that deal with config folders are done this way to ensure that the container config folder
 # is given the same ownership as the specified UID and GID of the container before it starts
