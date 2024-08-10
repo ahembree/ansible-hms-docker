@@ -858,7 +858,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
-      - {{ hms_docker_library_path }}:/data
+      - ${HMSD_LIBRARY_PATH}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -982,7 +982,7 @@ services:
       # temp folder for Plex transcoding
       - {{ plex_transcode_folder }}:/transcode
       # media folder where all movies and series are stored
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1041,7 +1041,7 @@ services:
       - ${HMSD_APPS_PATH}/jellyfin/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1109,7 +1109,7 @@ services:
       - ${HMSD_APPS_PATH}/emby/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1325,7 +1325,7 @@ services:
       - ${HMSD_APPS_PATH}/tdarr/config/app:/app/configs
       - ${HMSD_APPS_PATH}/tdarr/config/logs:/app/logs
       - {{ tdarr_transcode_folder }}:/temp_transcode
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1495,7 +1495,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
     {% if hmsdocker_nas_enable_additional_paths %}
       {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1531,7 +1531,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/calibre/config:/config
-      - {{ hms_docker_library_path }}:/data/media
+      - ${HMSD_LIBRARY_PATH}:/data/media
       {% if hmsdocker_nas_enable_additional_paths %}
         {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
