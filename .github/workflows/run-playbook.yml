@@ -44,3 +44,11 @@ jobs:
           sleep 60
           sudo pip3 install -r .github/workflows/scripts/requirements.txt
           sudo make verify-containers
+
+      - name: Run playbook again to ensure API keys are retrieved
+        run: >-
+          sudo ansible-playbook
+          -i inventory/hosts.yml
+          hms-docker.yml
+          --diff
+          --extra-vars "@.github/extra-vars.yml"
