@@ -3,6 +3,8 @@
   become: yes
   gather_facts: yes
   vars:
+    hmsd_current_version: 0.1
+    hmsd_version_file: "{{ hms_docker_data_path }}.hmsd-version"
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     arr_apikey: '(?<=\<ApiKey\>)\w*(?=\<\/ApiKey\>)'
@@ -22,6 +24,49 @@
       msg: "You are using the old directory structure for variables. Please update your paths by running: 'make migrate-vars'. This will move the 'vars/custom' files to 'inventory/group_vars/all'"
     when:
       - prev_var_dir.stat.exists and not prev_var_dir.stat.islnk
+
+  - name: Check if version file exists
+    stat:
+      path: "{{ hmsd_version_file }}"
+    register: version_file_check
+
+  - name: Set last version if file doesn't exist
+    set_fact:
+      last_version: "0.0"
+    when: not version_file_check.stat.exists
+
+  - name: Read last version from file
+    slurp:
+      src: "{{ hmsd_version_file }}"
+    register: last_version_content
+    when: version_file_check.stat.exists
+
+  - name: Decode last version
+    set_fact:
+      last_version: "{{ last_version_content.content | b64decode | trim }}"
+    when: version_file_check.stat.exists
+
+  - name: Compare versions and prompt if newer
+    when: hmsd_current_version is version(last_version, '>') and not is_github_runner
+    block:
+      - name: Display current and last versions
+        debug:
+          msg: "New version: {{ hmsd_current_version }}, Your version: {{ last_version }}"
+
+      - name: Prompt user if they want to continue
+        pause:
+          prompt: "A newer version of the playbook is detected (version printed above). This may introduce breaking changes, please review all changes and understand them before applying. Do you want to continue? (yes/no)"
+        register: continue_playbook
+
+      - name: Fail if user does not want to continue
+        fail:
+          msg: "Playbook execution aborted."
+        when: continue_playbook.user_input | lower != "yes"
+
+  - name: Save current version to file
+    copy:
+      content: "{{ hmsd_current_version }}"
+      dest: "{{ hmsd_version_file }}"
 
   - name: Ensure Nvidia GPU role if enabled
     ansible.builtin.import_role:
