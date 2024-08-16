@@ -47,7 +47,7 @@
     when: version_file_check.stat.exists
 
   - name: Compare versions and prompt if newer
-    when: hmsd_current_version is version(last_version, '>') and not is_github_runner
+    when: hmsd_current_version is version(last_version, '>') and not (is_github_runner | default(false))
     block:
       - name: Display current and last versions
         debug:
@@ -57,6 +57,19 @@
         pause:
           prompt: "A newer version of the playbook is detected (version printed above). This may introduce breaking changes, please review all changes and understand them before applying. Do you want to continue? (yes/no)"
         register: continue_playbook
+
+      - name: Hardlink path migration version prompt
+        when: last_version is version(0.2, '<') and version_file_check.stat.exists
+        block:
+          - name: Prompt user if they want to continue
+            pause:
+              prompt: "Version 0.2 changed the paths that media and downloads are mounted to within containers. You will need to update the apps config to point to the new location in the container."
+            register: continue_playbook_hardlink_update
+          
+          - name: Fail if user does not want to continue
+            fail:
+              msg: "Playbook execution aborted."
+            when: continue_playbook_hardlink_update.user_input | lower != "yes"
 
       - name: Fail if user does not want to continue
         fail:
