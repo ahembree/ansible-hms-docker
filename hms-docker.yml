@@ -55,7 +55,16 @@
 
       - name: Prompt user if they want to continue
         pause:
-          prompt: "A newer version of the playbook is detected (version printed above). This may introduce breaking changes, please review all changes and understand them before applying. Do you want to continue? (yes/no)"
+          prompt: |
+
+            A newer version of the playbook is about to be applied.
+
+            New version;  {{ hmsd_current_version }}
+            Your version; {{ last_version }}
+
+            This may introduce breaking changes, please review all changes and understand them before applying.
+            
+            Do you want to continue? (yes/no)
         register: continue_playbook
 
       - name: Hardlink path migration version prompt
@@ -63,7 +72,12 @@
         block:
           - name: Prompt user if they want to continue
             pause:
-              prompt: "Version 0.2 changed the paths that media and downloads are mounted to within containers. You will need to update the apps config to point to the new location in the container."
+              prompt: |
+
+                Version 0.2 (you are on version {{ last_version }}) changed the paths that media and downloads are mounted to within containers.
+                You will need to update the apps config to point to the new location in the container.
+                
+                Do you want to continue? (yes/no)"
             register: continue_playbook_hardlink_update
           
           - name: Fail if user does not want to continue
