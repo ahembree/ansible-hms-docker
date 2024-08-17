@@ -25,19 +25,21 @@ nas_client_use_additional_paths: no
 
 # This should be scalable to as many different shares as you want
 # This is an example template
+
+# It is HIGHLY recommended to set the `local_mount_path` to a subdirectory of `{{ hms_docker_mount_path }}` in order to support hard links
 nas_client_remote_additional_paths:
   [
     {
       name: "Media NAS 2",
       remote_path: "nas.example.com:/volume1/media_2",
-      local_mount_path: "{{ hms_docker_mount_path }}_custom_path_2",
+      local_mount_path: "{{ hms_docker_mount_path }}/nas_share_2",
       type: nfs,
       nfs_opts: defaults,
     },
     #{
     #  name: "Media NAS 3",
     #  remote_path: "//nas.example.com/media_3",
-    #  local_mount_path: "{{ hms_docker_mount_path }}_custom_path_3",
+    #  local_mount_path: "{{ hms_docker_mount_path }}/nas_share_3",
     #  type: cifs,
     #  cifs_username: "",
     #  cifs_password: "",
