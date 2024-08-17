@@ -7,7 +7,6 @@
     - "{{ hms_docker_data_path }}"
     - "{{ hms_docker_apps_path }}"
     - "{{ hms_docker_mount_path }}"
-    - "{{ transmission_custom_download_path }}"
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.

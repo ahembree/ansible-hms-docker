@@ -187,7 +187,6 @@ hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and h
 
 # Misc variables
 hmsdocker_nas_enable_additional_paths: "{{ nas_client_remote_additional_paths is defined and (nas_client_use_additional_paths | default(False)) }}"
-hmsdocker_transmission_custom_download_path_enabled: "{{ True if ((transmission_custom_download_path | default(False)) and (transmission_use_custom_download_path | default(False)) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads)) else False }}"
 hmsdocker_transmission_use_nas_enabled: "{{ transmission_use_nas_for_downloads and hms_docker_media_share_type in ['nfs', 'cifs'] | default(False) }}"
 #######################################################################
 

@@ -427,11 +427,7 @@ services:
     {% if transmission_ovpn_config_local_path != "" and transmission_vpn_provider == "custom" %}
       - ${VPN_CONFIG_LOCAL_PATH}:/etc/openvpn/custom
     {% endif %}
-    {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
       - ${HMSD_MOUNT_PATH}/torrents:/data
-    {% endif %}
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
@@ -638,11 +634,7 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/sonarr/config:/config
-    {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8989:8989
@@ -692,11 +684,7 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/sonarr-{{ separate_4k_instances_suffix }}/config:/config
-    {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8990:8989
@@ -746,11 +734,7 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/radarr/config:/config
-    {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_radarr %}
     ports:
       - 7878:7878
@@ -800,11 +784,7 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/radarr-{{ separate_4k_instances_suffix }}/config:/config
-    {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-    {% else %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_radarr %}
     ports:
       - 7879:7878
@@ -1386,11 +1366,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/readarr/config:/config
-      {% if hmsdocker_transmission_custom_download_path_enabled %}
-      - {{ transmission_custom_download_path }}/torrents:/data/torrents
-      {% else %}
       - ${HMSD_MOUNT_PATH}:/data
-      {% endif %}
     {% if hmsdocker_expose_ports_enabled_readarr %}
     ports:
       - 8787:8787
