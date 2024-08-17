@@ -18,9 +18,6 @@ hms_docker_mount_path: "/opt/{{ project_name }}/media_data"
 # The name of the folder that will have the library folders defined below// default: "_library"
 hms_docker_library_folder_name: "_library"
 
-# The name of the folder that will have the nzbget folders defined below// default: "_downloads"
-hms_docker_downloads_folder_name: "_downloads"
-
 # The name of the library folders that will be created within the library folder that was defined above
 #  Valid `type` values are:
 #   `movies`
