@@ -1405,11 +1405,6 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_nas_enable_additional_paths %}
-      {% for path in nas_client_remote_additional_paths %}
-      - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
-      {% endfor %}
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_kavita %}
     ports:
       - 5000:5000
