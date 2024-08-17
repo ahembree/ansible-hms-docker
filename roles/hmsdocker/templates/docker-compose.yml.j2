@@ -317,7 +317,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/nzbget/config:/config
-      - ${HMSD_DOWNLOAD_PATH}/nzbget:/data/usenet
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_expose_ports_enabled_nzbget %}
     ports:
       - 6789:6789
@@ -366,10 +366,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/sabnzbd/config:/config
-      {% if sabnzbd_enable_downloads_mount %}
-      - ${HMSD_DOWNLOAD_PATH}/sabnzbd/downloads:/downloads
-      - ${HMSD_DOWNLOAD_PATH}/sabnzbd/incomplete-downloads:/incomplete-downloads
-      {% endif %}
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_expose_ports_enabled_sabnzbd %}
     ports:
       - 8082:8080
@@ -427,7 +424,7 @@ services:
     {% if transmission_ovpn_config_local_path != "" and transmission_vpn_provider == "custom" %}
       - ${VPN_CONFIG_LOCAL_PATH}:/etc/openvpn/custom
     {% endif %}
-      - ${HMSD_MOUNT_PATH}/torrents:/data
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
@@ -810,7 +807,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
-      - ${HMSD_LIBRARY_PATH}:/data
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_traefik_enabled_bazarr or hmsdocker_homepage_enabled_bazarr %}
     labels:
       {% if hmsdocker_traefik_enabled_bazarr %}
@@ -929,7 +926,7 @@ services:
       # temp folder for Plex transcoding
       - {{ plex_transcode_folder }}:/transcode
       # media folder where all movies and series are stored
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_traefik_enabled_plex or hmsdocker_homepage_enabled_plex %}
     labels:
       {% if hmsdocker_traefik_enabled_plex %}
@@ -983,7 +980,7 @@ services:
       - ${HMSD_APPS_PATH}/jellyfin/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
@@ -1046,7 +1043,7 @@ services:
       - ${HMSD_APPS_PATH}/emby/config:/config
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_expose_ports_enabled_emby %}
     ports:
       {% if hmsdocker_expose_ports_enabled_jellyfin %}
@@ -1257,7 +1254,7 @@ services:
       - ${HMSD_APPS_PATH}/tdarr/config/app:/app/configs
       - ${HMSD_APPS_PATH}/tdarr/config/logs:/app/logs
       - {{ tdarr_transcode_folder }}:/temp_transcode
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
 {% endif %}
 
 {% if hmsdocker_container_enabled_tailscale %}
@@ -1412,7 +1409,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_nas_enable_additional_paths %}
       {% for path in nas_client_remote_additional_paths %}
       - {{ path.local_mount_path }}/{{ hms_docker_library_folder_name }}:/data/media_additional/{{ path.name | map('regex_replace', regex, replace) | list | join }}
@@ -1448,7 +1445,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/calibre/config:/config
-      - ${HMSD_LIBRARY_PATH}:/data/media
+      - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_expose_ports_enabled_calibre %}
     ports:
       - 8083:8080 # remote desktop http
