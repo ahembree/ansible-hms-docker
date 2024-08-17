@@ -317,9 +317,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/nzbget/config:/config
-    {% if nzbget_enable_downloads_mount %}
       - ${HMSD_DOWNLOAD_PATH}/nzbget:/data/usenet
-    {% endif %}
     {% if hmsdocker_expose_ports_enabled_nzbget %}
     ports:
       - 6789:6789
