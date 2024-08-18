@@ -445,6 +445,13 @@ services:
       {% endif %}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_WEB_UI=transmission-web-control
+      # These directories are set so that they are created in the correct path on container startup
+      # Without these set, the container will automatically create these by default in /data, which is not preferred
+      - TRANSMISSION_DOWNLOAD_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission
+      - TRANSMISSION_INCOMPLETE_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/watch
+      - TRANSMISSION_INCOMPLETE_DIR_ENABLED=false
+      - TRANSMISSION_WATCH_DIR_ENABLED=false
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
