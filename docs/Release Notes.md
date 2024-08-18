@@ -2,6 +2,10 @@
 
 Note that any update to a new version must be done manually using a `make update` since some variables may now be deprecated/renamed.
 
+## Version 1.3
+
+No changes other than number, I didn't realize there were already "Tags" for Releases on GitHub so this just aligned them.
+
 ## Verison 0.2
 
 Major changes to file paths inside and outside containers to standardize on one path for all apps in order to support hard links
