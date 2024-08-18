@@ -22,7 +22,7 @@
 
 - name: Ensure library folders.
   ansible.builtin.file:
-    path: "{{ hms_docker_library_path }}/{{ item.folder_name }}"
+    path: "{{ hmsdocker_library_path }}/{{ item.folder_name }}"
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
 

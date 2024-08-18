@@ -191,7 +191,7 @@ hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and h
 ### Misc
 hmsdocker_primary_mount_path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}"
 # This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
-hms_docker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
 #######################################################################
 
 
