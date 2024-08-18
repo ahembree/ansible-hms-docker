@@ -2,6 +2,7 @@ name: Deployment Tests
 run-name: Test Deployment
 on:
   push:
+  pull_request:
   schedule:
     - cron:  '23 9 * * 0'
 
