@@ -10,15 +10,6 @@ separate_4k_instances_suffix: "4k"
 
 
 #######################################################################
-### NZB settings
-nzbget_enable_downloads_mount: yes
-sabnzbd_enable_downloads_mount: yes
-### End of NZB settings
-#######################################################################
-
-
-
-#######################################################################
 ### Tdarr settings
 tdarr_transcode_folder: "{{ hms_docker_apps_path }}/tdarr/transcode_temp" # default: "{{ hms_docker_apps_path }}/tdarr/transcode_temp"
 tdarr_enable_nvidia_gpu: "{{ enable_nvidia_gpu }}"

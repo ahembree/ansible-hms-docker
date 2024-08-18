@@ -13,14 +13,6 @@ transmission_ratio_enabled: "true" # default: "true"
 transmission_dns_1: "8.8.8.8"
 transmission_dns_2: "8.8.4.4"
 
-# This will cause Transmission to download the files to your NAS instead of a local folder (useful if you download a lot at once and your server doesn't have a lot of space)
-# If enabled, a new "apps" folder will be created within your library folder
-transmission_use_nas_for_downloads: no
-
-# Custom directory to store transmission downloads in. Useful for storing on another local drive (assuming you have the partitions and fstab already configured)
-transmission_use_custom_download_path: no
-transmission_custom_download_path: ""
-
 # Additional environment variables for Transmission (can be found at link above)
 transmission_additional_env_vars:
   {

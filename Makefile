@@ -63,6 +63,7 @@ update:
 	@echo Updating variable names
 	@echo Updating Traefik variables
 	@sed -i 's\traefik_ext_hosts_configs_path\hmsdocker_traefik_static_config_location\g' $(CUSTOM_CONF_DIR)/traefik.yml
+	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
 	@echo Update finished
 
 # Used for the migration from the `vars/custom` directory to the correct `inventory/group_vars/all` directory

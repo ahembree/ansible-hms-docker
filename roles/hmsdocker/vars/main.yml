@@ -183,13 +183,18 @@ hmsdocker_homepage_stats_enabled_readarr: "{{ hmsdocker_homepage_enabled_readarr
 hmsdocker_homepage_stats_enabled_jellyfin: "{{ hmsdocker_homepage_enabled_jellyfin and hms_docker_container_map['jellyfin']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
 
-
-
-# Misc variables
-hmsdocker_nas_enable_additional_paths: "{{ nas_client_remote_additional_paths is defined and (nas_client_use_additional_paths | default(False)) }}"
-hmsdocker_transmission_custom_download_path_enabled: "{{ True if ((transmission_custom_download_path | default(False)) and (transmission_use_custom_download_path | default(False)) and (transmission_use_nas_for_downloads is not defined or not transmission_use_nas_for_downloads)) else False }}"
-hmsdocker_transmission_use_nas_enabled: "{{ transmission_use_nas_for_downloads and hms_docker_media_share_type in ['nfs', 'cifs'] | default(False) }}"
 #######################################################################
+
+
+
+#######################################################################
+### Misc
+hmsdocker_primary_mount_path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}"
+# This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+#######################################################################
+
+
 
 #######################################################################
 ### Advanced Ansible settings

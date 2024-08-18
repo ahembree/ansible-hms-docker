@@ -23,7 +23,7 @@
   ansible.posix.mount:
     backup: yes
     boot: "{{ nas_client_mount_on_boot }}"
-    path: "{{ hms_docker_mount_path }}"
+    path: "{{ hmsdocker_primary_mount_path }}"
     src: "{{ nas_client_remote_cifs_path }}"
     fstype: cifs
     opts: credentials={{ cifs_creds_file.dest }},{{ nas_client_cifs_opts }}

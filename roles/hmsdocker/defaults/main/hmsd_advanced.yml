@@ -19,6 +19,3 @@ secrets_env_mode: "0600"
 # Also controls how some containers treat local network traffic (e.g. Plex, transmission)
 hms_docker_subnet_mask: "24"
 hms_docker_network_subnet: "{{ ansible_default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
-
-# This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"
-hms_docker_media_path: "{{ hms_docker_mount_path }}/{{ hms_docker_library_folder_name }}"

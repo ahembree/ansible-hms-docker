@@ -7,8 +7,6 @@
     - "{{ hms_docker_data_path }}"
     - "{{ hms_docker_apps_path }}"
     - "{{ hms_docker_mount_path }}"
-    - "{{ hms_docker_media_path }}"
-    - "{{ transmission_custom_download_path }}"
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.
@@ -24,7 +22,7 @@
 
 - name: Ensure library folders.
   ansible.builtin.file:
-    path: "{{ hms_docker_media_path }}/{{ item.folder_name }}"
+    path: "{{ hmsdocker_library_path }}/{{ item.folder_name }}"
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
 
