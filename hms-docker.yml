@@ -68,7 +68,7 @@
         register: continue_playbook
 
       - name: Hardlink path migration version prompt
-        when: last_version is version(0.2, '<') and version_file_check.stat.exists
+        when: last_version is version(0.2, '<')
         block:
           - name: Prompt user if they want to continue
             pause:
