@@ -25,6 +25,11 @@
     when:
       - prev_var_dir.stat.exists and not prev_var_dir.stat.islnk
 
+  - name: Ensure data path exists locally.
+    ansible.builtin.file:
+      path: "{{ hms_docker_data_path }}"
+      state: directory
+
   - name: Check if version file exists
     stat:
       path: "{{ hmsd_version_file }}"
