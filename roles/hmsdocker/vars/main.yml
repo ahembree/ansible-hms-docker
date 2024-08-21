@@ -32,6 +32,7 @@ hmsdocker_container_enabled_kavita: "{{ hms_docker_container_map['kavita']['enab
 hmsdocker_container_enabled_calibre: "{{ hms_docker_container_map['calibre']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_emby: "{{ hms_docker_container_map['emby']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -59,6 +60,7 @@ hmsdocker_traefik_enabled_kavita: "{{ hms_docker_container_map['kavita']['traefi
 hmsdocker_traefik_enabled_calibre: "{{ hms_docker_container_map['calibre']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_emby: "{{ hms_docker_container_map['emby']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -85,6 +87,7 @@ hmsdocker_expose_public_enabled_kavita: "{{ hms_docker_container_map['kavita']['
 hmsdocker_expose_public_enabled_calibre: "{{ hms_docker_container_map['calibre']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_emby: "{{ hms_docker_container_map['emby']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -112,6 +115,7 @@ hmsdocker_expose_ports_enabled_kavita: "{{ True if (container_expose_ports or no
 hmsdocker_expose_ports_enabled_calibre: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_calibre) else False }}"
 hmsdocker_expose_ports_enabled_jellyfin: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_jellyfin) else False }}"
 hmsdocker_expose_ports_enabled_emby: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_emby) else False }}"
+hmsdocker_expose_ports_enabled_maintainerr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_maintainerr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -142,6 +146,7 @@ hmsdocker_authentik_enabled_kavita: "{{ hms_docker_container_map['kavita']['auth
 hmsdocker_authentik_enabled_calibre: "{{ hms_docker_container_map['calibre']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['calibre']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['jellyfin']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_emby: "{{ hms_docker_container_map['emby']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['emby']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['maintainerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 # Homepage

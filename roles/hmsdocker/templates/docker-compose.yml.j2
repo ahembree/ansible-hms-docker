@@ -1462,6 +1462,11 @@ services:
     {% endif %}
 {% endif %}
 
+{% if hmsdocker_container_enabled_maintainerr %}
+include:
+  - compose_files/maintainerr.yml
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge

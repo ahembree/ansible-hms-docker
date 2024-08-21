@@ -42,7 +42,8 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Readarr                                  | &#9744;            | `readarr`            | `8787`                 | `8787`            | &#9745;                |
 | Kavita                                   | &#9744;            | `kavita`             | `5000`                 | `5000`            | &#9745;                |
 | Calibre                                  | &#9744;            | `calibre`            | `8083`, `8182`, `8084` | `8080`, `8181`, `8081`| &#9745;            |
-| Jellyfin                                 | &#9744;            | `Jellyfin`           | `8096`, `8920`, `7359`, `1900` | `8096`, `8920`, `7359`, `1900` | &#9745;            |
-| Emby                                     | &#9744;            | `Emby`               | `8096`, `8920` | `8096`, `8920`| &#9745;            |
+| Jellyfin                                 | &#9744;            | `jellyfin`           | `8096`, `8920`, `7359`, `1900` | `8096`, `8920`, `7359`, `1900` | &#9745;            |
+| Emby                                     | &#9744;            | `emby`               | `8096`, `8920`         | `8096`, `8920`    | &#9745;                |
+| Maintainerr                              | &#9744;            | `maintainerr`        | `6246`                 | `6246`            | &#9745;                |
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)

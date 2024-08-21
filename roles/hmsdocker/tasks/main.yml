@@ -130,6 +130,9 @@
     sabnzbd_key: "{{ slurped_api_key_sabnzbd['content'] | b64decode | regex_search('(?<=api_key = )\\w*') | default('') }}"
     readarr_key: "{{ slurped_api_key_readarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
 
+- name: Ensure App Compose Files
+  ansible.builtin.import_tasks: "generate_compose_files.yml"
+
 - name: Ensure docker-compose.yml file.
   ansible.builtin.template:
     src: docker-compose.yml.j2
