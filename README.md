@@ -69,6 +69,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
 - [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
+- [Autobrr](https://github.com/autobrr/autobrr): torrent automation
+
 
 ## Other Features
 

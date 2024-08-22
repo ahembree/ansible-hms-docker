@@ -42,3 +42,15 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: lidarr_compose_file
+
+- name: Generate Docker Compose file for Autobrr 
+  when: hmsdocker_container_enabled_autobrr
+  ansible.builtin.template:
+    src: containers/autobrr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/autobrr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: autobrr_compose_file

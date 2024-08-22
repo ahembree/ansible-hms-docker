@@ -1,0 +1,49 @@
+services:
+  autobrr:
+    container_name: autobrr
+    image: ghcr.io/autobrr/autobrr:latest
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+      - download_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/autobrr/config:/config
+    {% if hmsdocker_expose_ports_enabled_autobrr %}
+    ports:
+      - 7474:7474
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_autobrr or hmsdocker_homepage_enabled_autobrr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_autobrr %}
+      - traefik.enable=true
+      - traefik.http.services.autobrr-${COMPOSE_PROJECT}.loadbalancer.server.port=7474
+      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_autobrr %}
+      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_autobrr %}
+      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_autobrr %}
+      - homepage.group=Downloads
+      - homepage.name=Autobrr
+      - homepage.icon=autobrr.png
+      - homepage.href=http://{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}
+      - homepage.description=Torrent Automation
+      - homepage.widget.type=autobrr
+      - homepage.widget.url=http://autobrr:7474
+      - homepage.widget.key=${AUTOBRR_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_autobrr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

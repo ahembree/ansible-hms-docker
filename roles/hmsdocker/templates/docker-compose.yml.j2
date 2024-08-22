@@ -1472,6 +1472,9 @@ include:
 {% if hmsdocker_container_enabled_lidarr %}
   - compose_files/lidarr.yml
 {% endif %}
+{% if hmsdocker_container_enabled_autobrr %}
+  - compose_files/autobrr.yml
+{% endif %}
 networks:
   "download_net":
     driver: bridge
