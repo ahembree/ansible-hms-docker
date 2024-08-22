@@ -268,6 +268,15 @@
       "authentik": false,
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
+    },
+    "lidarr": {
+      "enabled": true,
+      "proxy_host_rule": "lidarr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
     }
   }
 }

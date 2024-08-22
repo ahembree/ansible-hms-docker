@@ -1,0 +1,51 @@
+services:
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+      - download_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    {% if hmsdocker_expose_ports_enabled_lidarr %}
+    ports:
+      - 8686:8686
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/lidarr/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_lidarr or hmsdocker_homepage_enabled_lidarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_lidarr %}
+      - traefik.enable=true
+      - traefik.http.services.lidarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8686
+      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_lidarr %}
+      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_lidarr %}
+      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_lidarr %}
+      - homepage.group=Managers
+      - homepage.name=Lidarr
+      - homepage.icon=lidarr.png
+      - homepage.href=http://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Music Manager
+      - homepage.widget.type=lidarr
+      - homepage.widget.url=http://lidarr:8686
+      - homepage.widget.key=${LIDARR_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_lidarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

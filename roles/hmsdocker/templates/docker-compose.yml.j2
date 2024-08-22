@@ -1469,7 +1469,9 @@ include:
 {% if hmsdocker_container_enabled_unpackerr %}
   - compose_files/unpackerr.yml
 {% endif %}
-
+{% if hmsdocker_container_enabled_lidarr %}
+  - compose_files/lidarr.yml
+{% endif %}
 networks:
   "download_net":
     driver: bridge

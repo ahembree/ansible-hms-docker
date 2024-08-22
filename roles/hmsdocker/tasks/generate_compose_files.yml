@@ -30,3 +30,15 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: unpackerr_compose_file
+
+- name: Generate Docker Compose file for Lidarr 
+  when: hmsdocker_container_enabled_lidarr
+  ansible.builtin.template:
+    src: containers/lidarr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/lidarr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: lidarr_compose_file

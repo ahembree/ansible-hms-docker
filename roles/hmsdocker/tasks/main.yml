@@ -129,6 +129,7 @@
     plex_key: "{{ slurped_api_key_plex['content'] | b64decode | regex_search('(?<=PlexOnlineToken=\")(.*?)(?=\")') | default('') }}"
     sabnzbd_key: "{{ slurped_api_key_sabnzbd['content'] | b64decode | regex_search('(?<=api_key = )\\w*') | default('') }}"
     readarr_key: "{{ slurped_api_key_readarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    lidarr_key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
 
 - name: Ensure App Compose Files
   ansible.builtin.import_tasks: "generate_compose_files.yml"

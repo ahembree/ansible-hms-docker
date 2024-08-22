@@ -31,6 +31,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 - [Sonarr](https://github.com/Sonarr/Sonarr): tv series management
 - [Radarr](https://github.com/Radarr/Radarr): movie management
+- [Lidarr](https://github.com/Lidarr/Lidarr): music management
 - [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Readarr](https://github.com/Readarr/Readarr): ebook management
