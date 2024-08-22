@@ -29,3 +29,25 @@ tautulli_include_jbops: false
 tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
 ### End Tautulli settings
 #######################################################################
+
+
+# Additional environment variables to add to the Unpackerr container
+# See: https://unpackerr.zip/docs/install/configuration
+hmsdocker_unpackerr_additional_env_vars:
+  {
+    "UN_DEBUG": "false",
+    "UN_QUIET": "false",
+    "UN_ERROR_STDERR": "false",
+    "UN_ACTIVITY": "false",
+    "UN_LOG_QUEUES": "1m",
+    "UN_LOG_FILE": "/downloads/unpackerr.log",
+    "UN_LOG_FILES": "10",
+    "UN_LOG_FILE_MB": "10",
+    "UN_INTERVAL": "2m",
+    "UN_START_DELAY": "1m",
+    "UN_RETRY_DELAY": "5m",
+    "UN_MAX_RETRIES": "3",
+    "UN_PARALLEL": "1",
+    "UN_FILE_MODE": "0644",
+    "UN_DIR_MODE": "0755",
+  }

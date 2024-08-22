@@ -259,6 +259,15 @@
       "authentik": false,
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
+    },
+    "unpackerr": {
+      "enabled": true,
+      "proxy_host_rule": "unpackerr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
     }
   }
 }

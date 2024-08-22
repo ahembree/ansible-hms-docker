@@ -238,4 +238,12 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
+  unpackerr:
+    enabled: no
+    proxy_host_rule: unpackerr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
 

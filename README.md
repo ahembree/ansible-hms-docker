@@ -63,10 +63,11 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates (if enabled)
-- [Authentik](https://github.com/goauthentik/authentik): SSO
+- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On)
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
+- [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
 
 ## Other Features
 

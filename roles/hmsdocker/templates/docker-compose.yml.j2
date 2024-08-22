@@ -1462,9 +1462,12 @@ services:
     {% endif %}
 {% endif %}
 
-{% if hmsdocker_container_enabled_maintainerr %}
 include:
+{% if hmsdocker_container_enabled_maintainerr %}
   - compose_files/maintainerr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_unpackerr %}
+  - compose_files/unpackerr.yml
 {% endif %}
 
 networks:

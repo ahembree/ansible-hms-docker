@@ -33,6 +33,7 @@ hmsdocker_container_enabled_calibre: "{{ hms_docker_container_map['calibre']['en
 hmsdocker_container_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_emby: "{{ hms_docker_container_map['emby']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_unpackerr: "{{ hms_docker_container_map['unpackerr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
