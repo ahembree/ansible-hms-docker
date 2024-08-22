@@ -70,7 +70,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
 - [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
 - [Autobrr](https://github.com/autobrr/autobrr): torrent automation
-
+- [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
 
 ## Other Features
 

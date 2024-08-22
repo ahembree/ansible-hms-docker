@@ -47,5 +47,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Maintainerr                              | &#9744;            | `maintainerr`        | `6246`                 | `6246`            | &#9745;                |
 | Lidarr                                   | &#9744;            | `lidarr`             | `8686`                 | `8686`            | &#9745;                |
 | Autobrr                                  | &#9744;            | `autobrr`            | `7474`                 | `7474`            | &#9745;                |
+| Notifiarr                                | &#9744;            | `notifiarr`          | `5454`                 | `5454`            | &#9745;                |
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)

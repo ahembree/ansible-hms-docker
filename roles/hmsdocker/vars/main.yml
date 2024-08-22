@@ -36,6 +36,7 @@ hmsdocker_container_enabled_maintainerr: "{{ hms_docker_container_map['maintaine
 hmsdocker_container_enabled_unpackerr: "{{ hms_docker_container_map['unpackerr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -66,6 +67,7 @@ hmsdocker_traefik_enabled_emby: "{{ hms_docker_container_map['emby']['traefik'] 
 hmsdocker_traefik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -95,6 +97,7 @@ hmsdocker_expose_public_enabled_emby: "{{ hms_docker_container_map['emby']['expo
 hmsdocker_expose_public_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -125,6 +128,7 @@ hmsdocker_expose_ports_enabled_emby: "{{ True if (container_expose_ports or not 
 hmsdocker_expose_ports_enabled_maintainerr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_maintainerr) else False }}"
 hmsdocker_expose_ports_enabled_lidarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_lidarr) else False }}"
 hmsdocker_expose_ports_enabled_autobrr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_autobrr) else False }}"
+hmsdocker_expose_ports_enabled_notifiarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_notifiarr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -158,6 +162,7 @@ hmsdocker_authentik_enabled_emby: "{{ hms_docker_container_map['emby']['authenti
 hmsdocker_authentik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['maintainerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['lidarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['autobrr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['notifiarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 # Homepage

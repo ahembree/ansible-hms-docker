@@ -54,3 +54,15 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: autobrr_compose_file
+
+- name: Generate Docker Compose file for Notifiarr 
+  when: hmsdocker_container_enabled_notifiarr
+  ansible.builtin.template:
+    src: containers/notifiarr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/notifiarr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: notifiarr_compose_file

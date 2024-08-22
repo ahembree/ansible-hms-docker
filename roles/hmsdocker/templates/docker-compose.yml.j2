@@ -1475,6 +1475,9 @@ include:
 {% if hmsdocker_container_enabled_autobrr %}
   - compose_files/autobrr.yml
 {% endif %}
+{% if hmsdocker_container_enabled_notifiarr %}
+  - compose_files/notifiarr.yml
+{% endif %}
 networks:
   "download_net":
     driver: bridge

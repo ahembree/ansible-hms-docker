@@ -1,0 +1,82 @@
+services:
+  notifiarr:
+    image: golift/notifiarr:latest
+    container_name: notifiarr
+    hostname: notifiarr-hmsd
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_notifiarr %}
+    ports:
+      - 5454:5454
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/notifiarr/config:/config
+      - /var/run/utmp:/var/run/utmp
+      - /etc/machine-id:/etc/machine-id
+    environment:
+      - DN_API_KEY=${NOTIFIARR_API_KEY}
+    {% if hmsdocker_container_enabled_lidarr %}
+      - DN_LIDARR_0_NAME=Lidarr
+      - DN_LIDARR_0_URL=http://lidarr:8686
+      - DN_LIDARR_0_API_KEY=${LIDARR_KEY}
+    {% endif %}
+    {% if hmsdocker_container_enabled_prowlarr %}
+      - DN_PROWLARR_0_NAME=Prowlarr
+      - DN_PROWLARR_0_URL=http://prowlarr:9696
+      - DN_PROWLARR_0_API_KEY=${PROWLARR_KEY}
+    {% endif %}
+    {% if hmsdocker_container_enabled_radarr %}
+      - DN_RADARR_0_NAME=Radarr
+      - DN_RADARR_0_URL=http://radarr:7878
+      - DN_RADARR_0_API_KEY=${RADARR_KEY}
+      {% if separate_4k_instances_enable %}
+      - DN_RADARR_1_NAME=Radarr-{{ separate_4k_instances_suffix }}
+      - DN_RADARR_1_URL=http://radarr-{{ separate_4k_instances_suffix }}:7878
+      - DN_RADARR_1_API_KEY=${RADARR_4K_KEY}
+      {% endif %}
+    {% endif %}
+    {% if hmsdocker_container_enabled_readarr %}
+      - DN_READARR_0_NAME=Readarr
+      - DN_READARR_0_URL=http://readarr:8787
+      - DN_READARR_0_API_KEY=${READARR_KEY}
+    {% endif %}
+    {% if hmsdocker_container_enabled_sonarr %}
+      - DN_SONARR_0_NAME=Sonarr
+      - DN_SONARR_0_URL=http://sonarr:8989
+      - DN_SONARR_0_API_KEY=${SONARR_KEY}
+      {% if separate_4k_instances_enable %}
+      - DN_SONARR_1_NAME=Sonarr-{{ separate_4k_instances_suffix }}
+      - DN_SONARR_1_URL=http://sonarr-{{ separate_4k_instances_suffix }}:8989
+      - DN_SONARR_1_API_KEY=${SONARR_4K_KEY}
+      {% endif %}
+    {% endif %}
+    {% if hmsdocker_container_enabled_sabnzbd %}
+      - DN_SABNZBD_0_NAME=SABnzbd
+      - DN_SABNZBD_0_URL=http://sabnzbd:8080
+      - DN_SABNZBD_0_API_KEY=${SABNZBD_KEY}
+    {% endif %}
+    {% if hmsdocker_container_enabled_plex %}
+      - DN_PLEX_NAME=Plex
+      - DN_PLEX_URL=http://plex:32400
+      - DN_PLEX_TOKEN=${PLEX_KEY}
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_notifiarr or hmsdocker_homepage_enabled_notifiarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_notifiarr %}
+      - traefik.enable=true
+      - traefik.http.services.notifiarr-${COMPOSE_PROJECT}.loadbalancer.server.port=5454
+      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['notifiarr']['proxy_host_rule'] | default('notifiarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_notifiarr %}
+      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_notifiarr %}
+      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker
+        {% endif %}
+      {% endif %}
+    {% endif %}

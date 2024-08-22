@@ -21,6 +21,12 @@ tdarr_enable_node_server: no
 
 
 #######################################################################
+### Notifiarr settings
+hmsdocker_notifiarr_api_key: 
+### End Notifiarr settings
+#######################################################################
+
+#######################################################################
 ### Tautulli settings
 # Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
 tautulli_include_jbops: false
