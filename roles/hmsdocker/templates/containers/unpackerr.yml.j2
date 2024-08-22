@@ -51,3 +51,14 @@ services:
       - UN_READARR_0_DELETE_ORIG=false
       - UN_READARR_0_SYNCTHING=false
     {% endif %}
+    {% if hmsdocker_container_enabled_lidarr %}
+      ## Lidarr Settings
+      - UN_LIDARR_0_URL=http://lidarr:8686
+      - UN_LIDARR_0_API_KEY=${LIDARR_KEY}
+      - UN_LIDARR_0_PATHS_0=/data
+      - UN_LIDARR_0_PROTOCOLS=torrent
+      - UN_LIDARR_0_TIMEOUT=10s
+      - UN_LIDARR_0_DELETE_DELAY=5m
+      - UN_LIDARR_0_DELETE_ORIG=false
+      - UN_LIDARR_0_SYNCTHING=false
+  {% endif %}
