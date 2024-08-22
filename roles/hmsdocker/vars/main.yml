@@ -34,6 +34,7 @@ hmsdocker_container_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['
 hmsdocker_container_enabled_emby: "{{ hms_docker_container_map['emby']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_unpackerr: "{{ hms_docker_container_map['unpackerr']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -62,6 +63,7 @@ hmsdocker_traefik_enabled_calibre: "{{ hms_docker_container_map['calibre']['trae
 hmsdocker_traefik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_emby: "{{ hms_docker_container_map['emby']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -89,6 +91,7 @@ hmsdocker_expose_public_enabled_calibre: "{{ hms_docker_container_map['calibre']
 hmsdocker_expose_public_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_emby: "{{ hms_docker_container_map['emby']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -117,6 +120,7 @@ hmsdocker_expose_ports_enabled_calibre: "{{ True if (container_expose_ports or n
 hmsdocker_expose_ports_enabled_jellyfin: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_jellyfin) else False }}"
 hmsdocker_expose_ports_enabled_emby: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_emby) else False }}"
 hmsdocker_expose_ports_enabled_maintainerr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_maintainerr) else False }}"
+hmsdocker_expose_ports_enabled_lidarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_lidarr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -148,6 +152,7 @@ hmsdocker_authentik_enabled_calibre: "{{ hms_docker_container_map['calibre']['au
 hmsdocker_authentik_enabled_jellyfin: "{{ hms_docker_container_map['jellyfin']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['jellyfin']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_emby: "{{ hms_docker_container_map['emby']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['emby']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_maintainerr: "{{ hms_docker_container_map['maintainerr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['maintainerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['lidarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 # Homepage
@@ -169,6 +174,7 @@ hmsdocker_homepage_enabled_tdarr: "{{ hmsdocker_container_enabled_homepage and h
 hmsdocker_homepage_enabled_readarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['readarr']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_jellyfin: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['jellyfin']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_emby: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['emby']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_lidarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['lidarr']['homepage'] | default(False) }}"
 
 # Controls if the container should show stats (CPU, RAM, RX, TX) on Homepage
 hmsdocker_homepage_stats_enabled_traefik: "{{ hmsdocker_homepage_enabled_traefik and hms_docker_container_map['traefik']['homepage_stats'] | default(False) }}"
@@ -188,6 +194,7 @@ hmsdocker_homepage_stats_enabled_tdarr: "{{ hmsdocker_homepage_enabled_tdarr and
 hmsdocker_homepage_stats_enabled_readarr: "{{ hmsdocker_homepage_enabled_readarr and hms_docker_container_map['readarr']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_jellyfin: "{{ hmsdocker_homepage_enabled_jellyfin and hms_docker_container_map['jellyfin']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_lidarr: "{{ hmsdocker_homepage_enabled_lidarr and hms_docker_container_map['lidarr']['homepage_stats'] | default(False) }}"
 
 #######################################################################
 
