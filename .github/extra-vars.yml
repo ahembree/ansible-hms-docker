@@ -290,6 +290,17 @@
       "expose_to_public": false,
       "homepage": true,
       "homepage_stats": false
+    },
+    "speedtest-tracker": {
+      "enabled": true,
+      "proxy_host_rule": "speedtest",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
     }
   }
 }

@@ -19,6 +19,9 @@ tdarr_enable_node_server: no
 #######################################################################
 
 
+hmsdocker_speedtest_api_key: 
+hmsdocker_speedtest_schedule: 0 0 * * *
+
 
 #######################################################################
 ### Notifiarr settings

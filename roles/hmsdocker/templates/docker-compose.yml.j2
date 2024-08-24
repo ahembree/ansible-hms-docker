@@ -1478,6 +1478,10 @@ include:
 {% if hmsdocker_container_enabled_notifiarr %}
   - compose_files/notifiarr.yml
 {% endif %}
+{% if hmsdocker_container_enabled_speedtest %}
+  - compose_files/speedtest-tracker.yml
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge
