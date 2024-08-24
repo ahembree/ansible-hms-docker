@@ -61,10 +61,10 @@
     mode: 0755
   with_items: "{{ directory_stats.results }}"
   when: 
-    - item.item.value.directory
-    - item.item.value.enabled is defined and item.item.value.enabled
+    - item.item.value.directory | default(false)
+    - item.item.value.enabled | default(false)
     - item.item.key == 'sonarr' or item.item.key == 'radarr'
-    - separate_4k_instances_enable is defined and separate_4k_instances_enable
+    - separate_4k_instances_enable | default(false)
     - not item.stat.exists
 
 - name: Ensure Traefik
@@ -133,6 +133,19 @@
 
 - name: Ensure App Compose Files
   ansible.builtin.import_tasks: "generate_compose_files.yml"
+
+### Adding here for the future when all the containers will be in their own files
+# - name: Generate Docker Compose files for enabled containers 
+#   when: item.value.enabled
+#   ansible.builtin.template:
+#     src: containers/{{ item.key }}.yml.j2
+#     dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/{{ item.key }}.yml"
+#     owner: "{{ container_uid }}"
+#     group: "{{ container_gid }}"
+#     mode: 0644
+#     trim_blocks: yes
+#     lstrip_blocks: yes
+#   with_dict: "{{ hms_docker_container_map }}" 
 
 - name: Ensure docker-compose.yml file.
   ansible.builtin.template:

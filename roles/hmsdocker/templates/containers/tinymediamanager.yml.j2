@@ -26,7 +26,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/tinymediamanager/config:/data
       - ${HMSD_MOUNT_PATH}:/media
-    {% if hmsdocker_traefik_enabled_tinymediamanager or hmsdocker_homepage_enabled_tinymediamanager %}
+    {% if hmsdocker_traefik_enabled_tinymediamanager %}
     labels:
       {% if hmsdocker_traefik_enabled_tinymediamanager %}
       - traefik.enable=true

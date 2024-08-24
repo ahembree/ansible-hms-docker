@@ -19,7 +19,7 @@ services:
     ports:
       - 6246:6246
     {% endif %}
-    {% if hmsdocker_traefik_enabled_maintainerr or hmsdocker_homepage_enabled_maintainerr %}
+    {% if hmsdocker_traefik_enabled_maintainerr %}
     labels:
       {% if hmsdocker_traefik_enabled_maintainerr %}
       - traefik.enable=true

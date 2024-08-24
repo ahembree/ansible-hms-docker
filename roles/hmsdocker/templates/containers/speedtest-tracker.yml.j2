@@ -26,7 +26,7 @@ services:
       - DISPLAY_TIMEZONE=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/speedtest-tracker/config:/config
-  {% if hmsdocker_traefik_enabled_speedtest or hmsdocker_homepage_enabled_speedtest %}
+  {% if hmsdocker_traefik_enabled_speedtest %}
     labels:
     {% if hmsdocker_traefik_enabled_speedtest %}
       - traefik.enable=true

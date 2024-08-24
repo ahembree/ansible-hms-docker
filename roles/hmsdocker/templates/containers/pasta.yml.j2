@@ -14,7 +14,7 @@ services:
     ports:
       - 8085:80
     {% endif %}
-    {% if hmsdocker_traefik_enabled_pasta or hmsdocker_homepage_enabled_pasta %}
+    {% if hmsdocker_traefik_enabled_pasta %}
     labels:
       {% if hmsdocker_traefik_enabled_pasta %}
       - traefik.enable=true
