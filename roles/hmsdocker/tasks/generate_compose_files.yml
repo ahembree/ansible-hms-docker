@@ -93,7 +93,7 @@
         trim_blocks: yes
         lstrip_blocks: yes
 
-    - name: Ensure Recyclarr Docker Compose Template
+    - name: Generate Docker Compose file for Recyclarr
       ansible.builtin.template:
         src: containers/recyclarr.yml.j2
         dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/recyclarr.yml"
@@ -103,3 +103,14 @@
         trim_blocks: yes
         lstrip_blocks: yes
       register: recyclarr_compose_file
+
+- name: Generate Docker Compose file for TinyMediaManager 
+  ansible.builtin.template:
+    src: containers/tinymediamanager.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/tinymediamanager.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: tinymediamanager_compose_file

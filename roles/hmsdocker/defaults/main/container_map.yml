@@ -285,4 +285,12 @@ hms_docker_container_map:
   recyclarr:
     enabled: no
     directory: yes
+  tinymediamanager:
+    enabled: no
+    proxy_host_rule: tmm
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
 

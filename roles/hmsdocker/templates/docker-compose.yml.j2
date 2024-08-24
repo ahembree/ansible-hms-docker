@@ -1484,6 +1484,9 @@ include:
 {% if hmsdocker_container_enabled_recyclarr %}
   - compose_files/recyclarr.yml
 {% endif %}
+{% if hmsdocker_container_enabled_tinymediamanager %}
+  - compose_files/tinymediamanager.yml
+{% endif %}
 
 networks:
   "download_net":

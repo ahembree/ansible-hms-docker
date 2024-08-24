@@ -303,6 +303,15 @@
     "recyclarr": {
       "enabled": true,
       "directory": true,
-    }
+    },
+    "tinymediamanager": {
+      "enabled": true,
+      "proxy_host_rule": "tmm",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
   }
 }

@@ -40,6 +40,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
 - [Maintainerr](https://github.com/jorenn92/Maintainerr): media management
+- [tinyMediaManager](https://gitlab.com/tinyMediaManager/tinyMediaManager): media management
 
 ### Download Clients
 

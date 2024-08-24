@@ -49,5 +49,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Autobrr                                  | &#9744;            | `autobrr`            | `7474`                 | `7474`            | &#9745;                |
 | Notifiarr                                | &#9744;            | `notifiarr`          | `5454`                 | `5454`            | &#9745;                |
 | Speedtest-Tracker                        | &#9744;            | `speedtest`          | `8090`, `8444`         | `8080`, `8443`    | &#9745;                |
+| tinyMediaManager                         | &#9744;            | `tmm`                | `5900`, `4000`         | `5900`, `4000`    | &#9745;                |
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)
