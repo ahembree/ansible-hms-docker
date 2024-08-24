@@ -1,0 +1,25 @@
+{% if hmsdocker_container_enabled_sonarr %}
+sonarr:
+  sonarr:
+    base_url: http://sonarr:8989
+    api_key: !env_var SONARR_KEY
+
+  {% if separate_4k_instances_enable %}
+  sonarr-{{ separate_4k_instances_suffix }}:
+    base_url: http://sonarr-{{ separate_4k_instances_suffix }}:8989
+    api_key: !env_var SONARR_4K_KEY
+  {% endif %}
+{% endif %}
+
+{% if hmsdocker_container_enabled_radarr %}
+radarr:
+  radarr:
+    base_url: http://radarr:7878
+    api_key: !env_var RADARR_KEY
+
+  {% if separate_4k_instances_enable %}
+  radarr-{{ separate_4k_instances_suffix }}:
+    base_url: http://radarr-{{ separate_4k_instances_suffix }}:7878
+    api_key: !env_var RADARR_4K_KEY
+  {% endif %}
+{% endif %}

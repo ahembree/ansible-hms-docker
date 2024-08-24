@@ -1,0 +1,31 @@
+services:
+  pasta:
+    image: cglatot/pasta:latest
+    container_name: pasta
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_pasta %}
+    ports:
+      - 8085:80
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_pasta %}
+    labels:
+      {% if hmsdocker_traefik_enabled_pasta %}
+      - traefik.enable=true
+      - traefik.http.services.pasta-${COMPOSE_PROJECT}.loadbalancer.server.port=80
+      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pasta']['proxy_host_rule'] | default('pasta') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_pasta %}
+      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_pasta %}
+      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    

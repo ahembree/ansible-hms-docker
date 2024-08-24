@@ -19,6 +19,18 @@ tdarr_enable_node_server: no
 #######################################################################
 
 
+hmsdocker_speedtest_api_key: 
+hmsdocker_speedtest_schedule: 0 0 * * *
+
+hmsdocker_netadata_claim_token:
+hmsdocker_netdata_claim_url: https://app.netdata.cloud
+hmsdocker_netdata_claim_rooms:
+
+#######################################################################
+### Notifiarr settings
+hmsdocker_notifiarr_api_key: 
+### End Notifiarr settings
+#######################################################################
 
 #######################################################################
 ### Tautulli settings
@@ -29,3 +41,33 @@ tautulli_include_jbops: false
 tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
 ### End Tautulli settings
 #######################################################################
+
+
+# Additional environment variables to add to the Unpackerr container
+# See: https://unpackerr.zip/docs/install/configuration
+hmsdocker_unpackerr_additional_env_vars:
+  {
+    "UN_DEBUG": "false",
+    "UN_QUIET": "false",
+    "UN_ERROR_STDERR": "false",
+    "UN_ACTIVITY": "false",
+    "UN_LOG_QUEUES": "1m",
+    "UN_LOG_FILE": "/downloads/unpackerr.log",
+    "UN_LOG_FILES": "10",
+    "UN_LOG_FILE_MB": "10",
+    "UN_INTERVAL": "2m",
+    "UN_START_DELAY": "1m",
+    "UN_RETRY_DELAY": "5m",
+    "UN_MAX_RETRIES": "3",
+    "UN_PARALLEL": "1",
+    "UN_FILE_MODE": "0644",
+    "UN_DIR_MODE": "0755",
+  }
+
+# If the Recyclarr config should be forcefully updated
+# If the config already exists, it will not be changed. If this is set to yes and the config already exists, the config will be changed and any manual changes will be lost
+# Any additional Recyclarr configuration outside of creating the base config file with the correct URL and API keys will need to be done manually by following the docs: https://recyclarr.dev/wiki/yaml/config-reference/
+hmsdocker_recyclarr_force_config_update: no
+
+# VNC password for TinyMediaManager
+hmsdocker_tinymediamanager_vnc_password:

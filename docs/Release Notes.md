@@ -1,6 +1,22 @@
 # Release Notes
 
-Note that any update to a new version must be done manually using a `make update` since some variables may now be deprecated/renamed.
+Note that any update to a new version might need to be done manually using a `make update` since some variables may now be deprecated/renamed.
+
+## Version 1.4
+
+New containers:
+
+* Maintainerr
+* Unpackerr
+* Lidarr
+* Autobrr
+* Speedtest-Tracker
+* Recyclarr
+* tinyMediaManager
+* PASTA
+* Netdata
+
+I now realize while writing these notes that version 0.2 was merged into 1.3 without a new Tag release, whoops...
 
 ## Version 1.3
 

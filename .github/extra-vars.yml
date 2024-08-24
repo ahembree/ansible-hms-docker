@@ -250,6 +250,80 @@
       "expose_to_public": false,
       "homepage": true,
       "homepage_stats": false
-    }
+    },
+    "maintainerr": {
+      "enabled": true,
+      "proxy_host_rule": "maintainerr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
+    "unpackerr": {
+      "enabled": true,
+      "proxy_host_rule": "unpackerr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
+    "lidarr": {
+      "enabled": true,
+      "proxy_host_rule": "lidarr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "autobrr": {
+      "enabled": true,
+      "proxy_host_rule": "autobrr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "speedtest-tracker": {
+      "enabled": true,
+      "proxy_host_rule": "speedtest",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
+    "recyclarr": {
+      "enabled": true,
+      "directory": true,
+    },
+    "tinymediamanager": {
+      "enabled": true,
+      "proxy_host_rule": "tmm",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
+    "pasta": {
+      "enabled": true,
+      "proxy_host_rule": "pasta",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
+    "netdata": {
+      "enabled": true
+    },
   }
 }

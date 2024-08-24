@@ -1462,6 +1462,38 @@ services:
     {% endif %}
 {% endif %}
 
+include:
+{% if hmsdocker_container_enabled_maintainerr %}
+  - compose_files/maintainerr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_unpackerr %}
+  - compose_files/unpackerr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_lidarr %}
+  - compose_files/lidarr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_autobrr %}
+  - compose_files/autobrr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_notifiarr %}
+  - compose_files/notifiarr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_speedtest %}
+  - compose_files/speedtest-tracker.yml
+{% endif %}
+{% if hmsdocker_container_enabled_recyclarr %}
+  - compose_files/recyclarr.yml
+{% endif %}
+{% if hmsdocker_container_enabled_tinymediamanager %}
+  - compose_files/tinymediamanager.yml
+{% endif %}
+{% if hmsdocker_container_enabled_pasta %}
+  - compose_files/pasta.yml
+{% endif %}
+{% if hmsdocker_container_enabled_netdata %}
+  - compose_files/netdata.yml
+{% endif %}
+
 networks:
   "download_net":
     driver: bridge

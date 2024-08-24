@@ -1,0 +1,42 @@
+services:
+  tinymediamanager:
+    image: tinymediamanager/tinymediamanager:latest
+    container_name: tinymediamanager
+    restart: ${RESTART_POLICY}
+    {% if hmsdocker_expose_ports_enabled_tinymediamanager %}
+    ports:
+      - 5900:5900 # VNC port
+      - 4000:4000 # Webinterface
+    {% endif %}
+    networks:
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    environment:
+      - USER_ID=${PUID}
+      - GROUP_ID=${PGID}
+      - ALLOW_DIRECT_VNC=true
+      - LC_ALL=en_US.UTF-8 # force UTF8
+      - LANG=en_US.UTF-8   # force UTF8
+      - PASSWORD=${TMM_VNC_PASSWORD}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/tinymediamanager/config:/data
+      - ${HMSD_MOUNT_PATH}:/media
+    {% if hmsdocker_traefik_enabled_tinymediamanager %}
+    labels:
+      {% if hmsdocker_traefik_enabled_tinymediamanager %}
+      - traefik.enable=true
+      - traefik.http.services.tinymediamanager-${COMPOSE_PROJECT}.loadbalancer.server.port=4000
+      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tinymediamanager']['proxy_host_rule'] | default('tmm') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_tinymediamanager %}
+      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_tinymediamanager %}
+      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tinymediamanager-midware@docker
+        {% endif %}
+      {% endif %}
+    {% endif %}

@@ -1,0 +1,138 @@
+- name: Ensure compose_files directory exists
+  ansible.builtin.file:
+    dest: "{{ hms_docker_data_path }}/compose_files"
+    state: directory
+    mode: 0755
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  register: compose_dir
+
+- name: Generate Docker Compose file for Maintainerr 
+  when: hmsdocker_container_enabled_maintainerr
+  ansible.builtin.template:
+    src: containers/maintainerr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/maintainerr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: maintainerr_compose_file
+
+- name: Generate Docker Compose file for Unpackerr 
+  when: hmsdocker_container_enabled_unpackerr
+  ansible.builtin.template:
+    src: containers/unpackerr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/unpackerr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: unpackerr_compose_file
+
+- name: Generate Docker Compose file for Lidarr 
+  when: hmsdocker_container_enabled_lidarr
+  ansible.builtin.template:
+    src: containers/lidarr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/lidarr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: lidarr_compose_file
+
+- name: Generate Docker Compose file for Autobrr 
+  when: hmsdocker_container_enabled_autobrr
+  ansible.builtin.template:
+    src: containers/autobrr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/autobrr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: autobrr_compose_file
+
+- name: Generate Docker Compose file for Notifiarr 
+  when: hmsdocker_container_enabled_notifiarr
+  ansible.builtin.template:
+    src: containers/notifiarr.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/notifiarr.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: notifiarr_compose_file
+
+- name: Generate Docker Compose file for Speedtest Tracker 
+  when: hmsdocker_container_enabled_speedtest
+  ansible.builtin.template:
+    src: containers/speedtest-tracker.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/speedtest-tracker.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: speedtest_compose_file
+
+- name: Generate Docker Compose file for Recyclarr
+  when: hmsdocker_container_enabled_recyclarr
+  block:
+    - name: Ensure Recyclarr config
+      ansible.builtin.template:
+        src: recyclarr_conf.yml.j2
+        dest: "{{ hms_docker_apps_path }}/recyclarr/config/recyclarr.yml"
+        owner: "{{ container_uid }}"
+        group: "{{ container_gid }}"
+        mode: 0644
+        force: "{{ hmsdocker_recyclarr_force_config_update }}"
+        trim_blocks: yes
+        lstrip_blocks: yes
+
+    - name: Generate Docker Compose file for Recyclarr
+      ansible.builtin.template:
+        src: containers/recyclarr.yml.j2
+        dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/recyclarr.yml"
+        owner: "{{ container_uid }}"
+        group: "{{ container_gid }}"
+        mode: 0644
+        trim_blocks: yes
+        lstrip_blocks: yes
+      register: recyclarr_compose_file
+
+- name: Generate Docker Compose file for TinyMediaManager 
+  ansible.builtin.template:
+    src: containers/tinymediamanager.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/tinymediamanager.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: tinymediamanager_compose_file
+
+- name: Generate Docker Compose file for PASTA 
+  ansible.builtin.template:
+    src: containers/pasta.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/pasta.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: pasta_compose_file
+
+- name: Generate Docker Compose file for Netdata 
+  ansible.builtin.template:
+    src: containers/netdata.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/netdata.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: netdata_compose_file

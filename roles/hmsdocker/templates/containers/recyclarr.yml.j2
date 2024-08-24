@@ -1,0 +1,23 @@
+services:
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr
+    container_name: recyclarr
+    restart: ${RESTART_POLICY}
+    security_opt: ['no-new-privileges:true']
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    networks:
+      - proxy_net
+    volumes:
+      - ${HMSD_APPS_PATH}/recyclarr/config:/config
+    environment:
+      - TZ=${TIMEZONE}
+      - RECYCLARR_CREATE_CONFIG=true
+      - SONARR_KEY=${SONARR_KEY}
+      - SONARR_4K_KEY=${SONARR_4K_KEY}
+      - RADARR_KEY=${RADARR_KEY}
+      - RADARR_4K_KEY=${RADARR_4K_KEY}

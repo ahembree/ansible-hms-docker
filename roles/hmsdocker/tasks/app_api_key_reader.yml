@@ -149,3 +149,17 @@
       register: slurped_api_key_plex
       when:
         - plex_conf_path.stat.exists
+
+- name: Handle Lidarr config
+  when: hmsdocker_container_enabled_lidarr
+  block:
+    - name: Check for Lidarr config file
+      ansible.builtin.stat:
+        path: "{{ hms_docker_apps_path }}/lidarr/config/config.xml"
+      register: lidarr_conf_path
+
+    - name: Slurp Lidarr key data
+      ansible.builtin.slurp:
+        src: "{{ lidarr_conf_path.stat.path }}"
+      register: slurped_api_key_lidarr
+      when: lidarr_conf_path.stat.exists

@@ -31,6 +31,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 - [Sonarr](https://github.com/Sonarr/Sonarr): tv series management
 - [Radarr](https://github.com/Radarr/Radarr): movie management
+- [Lidarr](https://github.com/Lidarr/Lidarr): music management
 - [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Readarr](https://github.com/Readarr/Readarr): ebook management
@@ -38,6 +39,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
+- [Maintainerr](https://github.com/jorenn92/Maintainerr): media management
+- [tinyMediaManager](https://gitlab.com/tinyMediaManager/tinyMediaManager): media management
 
 ### Download Clients
 
@@ -62,10 +65,18 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates (if enabled)
-- [Authentik](https://github.com/goauthentik/authentik): SSO
+- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On)
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
+- [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
+- [Autobrr](https://github.com/autobrr/autobrr): torrent automation
+- [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
+- [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): notification system
+- [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
+- [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
+- [Netdata](https://github.com/netdata/netdata): observability
+
 
 ## Other Features
 

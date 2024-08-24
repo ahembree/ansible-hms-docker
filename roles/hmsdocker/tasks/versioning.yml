@@ -1,0 +1,91 @@
+- name: Check if old variables dir exists
+  ansible.builtin.stat:
+    path: vars/custom
+  register: prev_var_dir
+
+- name: Fail if previous var dir exists and is not symlink
+  ansible.builtin.fail:
+    msg: "You are using the old directory structure for variables. Please update your paths by running: 'make migrate-vars'. This will move the 'vars/custom' files to 'inventory/group_vars/all'"
+  when:
+    - prev_var_dir.stat.exists and not prev_var_dir.stat.islnk
+
+- name: Ensure data path exists locally.
+  ansible.builtin.file:
+    path: "{{ hms_docker_data_path }}"
+    state: directory
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0755
+
+- name: Check if version file exists
+  ansible.builtin.stat:
+    path: "{{ hmsd_version_file }}"
+  register: version_file_check
+
+- name: Set last version if file doesn't exist
+  ansible.builtin.set_fact:
+    last_version: "0.0"
+  when: not version_file_check.stat.exists
+
+- name: Read last version from file
+  ansible.builtin.slurp:
+    src: "{{ hmsd_version_file }}"
+  register: last_version_content
+  when: version_file_check.stat.exists
+
+- name: Decode last version
+  ansible.builtin.set_fact:
+    last_version: "{{ last_version_content.content | b64decode | trim }}"
+  when: version_file_check.stat.exists
+
+- name: Compare versions and prompt if newer
+  when: hmsd_current_version is version(last_version, '>') and not (is_github_runner | default(false))
+  block:
+    - name: Display current and last versions
+      ansible.builtin.debug:
+        msg: "New version: {{ hmsd_current_version }}, Your version: {{ last_version }}"
+
+    - name: Prompt user if they want to continue
+      ansible.builtin.pause:
+        prompt: |
+
+          A newer version of the playbook is about to be applied.
+
+          New version;  {{ hmsd_current_version }}
+          Your version; {{ last_version }}
+
+          This may introduce breaking changes, please review all changes and understand them before applying.
+          
+          Do you want to continue? (yes/no)
+      register: continue_playbook
+
+    - name: Hardlink path migration version prompt
+      when: last_version is version(0.2, '<')
+      block:
+        - name: Prompt user if they want to continue
+          ansible.builtin.pause:
+            prompt: |
+
+              Version 0.2 (you are on version {{ last_version }}) changed the paths that media and downloads are mounted to within containers.
+              You will need to update the apps config to point to the new location in the container.
+              
+              Do you want to continue? (yes/no)"
+          register: continue_playbook_hardlink_update
+        
+        - name: Fail if user does not want to continue
+          ansible.builtin.fail:
+            msg: "Playbook execution aborted."
+          when: continue_playbook_hardlink_update.user_input | lower != "yes"
+
+    - name: Fail if user does not want to continue
+      ansible.builtin.fail:
+        msg: "Playbook execution aborted."
+      when: continue_playbook.user_input | lower != "yes"
+
+- name: Save current version to file
+  ansible.builtin.copy:
+    content: "{{ hmsd_current_version }}"
+    dest: "{{ hmsd_version_file }}"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644

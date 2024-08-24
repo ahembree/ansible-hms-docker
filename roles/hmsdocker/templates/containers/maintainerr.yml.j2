@@ -1,0 +1,35 @@
+services:
+  maintainerr:
+    image: ghcr.io/jorenn92/maintainerr:latest
+    container_name: maintainerr
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    volumes:
+      - ${HMSD_APPS_PATH}/maintainerr/config:/opt/data
+    environment:
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_expose_ports_enabled_maintainerr %}
+    ports:
+      - 6246:6246
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_maintainerr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_maintainerr %}
+      - traefik.enable=true
+      - traefik.http.services.maintainerr-${COMPOSE_PROJECT}.loadbalancer.server.port=6246
+      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['maintainerr']['proxy_host_rule'] | default('maintainerr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_maintainerr %}
+      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_maintainerr %}
+      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-maintainerr-midware@docker
+        {% endif %}
+      {% endif %}
+    {% endif %}

@@ -230,4 +230,79 @@ hms_docker_container_map:
     expose_to_public: no
     homepage: yes
     homepage_stats: yes
+  maintainerr:
+    enabled: no
+    proxy_host_rule: maintainerr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  unpackerr:
+    enabled: no
+    proxy_host_rule: unpackerr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  lidarr:
+    enabled: no
+    proxy_host_rule: lidarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
+  autobrr:
+    enabled: no
+    proxy_host_rule: autobrr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    homepage: yes
+    homepage_stats: yes
+  notifiarr:
+    enabled: no
+    proxy_host_rule: notifiarr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  speedtest-tracker:
+    enabled: no
+    proxy_host_rule: speedtest
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  recyclarr:
+    enabled: no
+    directory: yes
+  tinymediamanager:
+    enabled: no
+    proxy_host_rule: tmm
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  pasta:
+    enabled: no
+    proxy_host_rule: pasta
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+  netdata:
+    enabled: no
+
+
 

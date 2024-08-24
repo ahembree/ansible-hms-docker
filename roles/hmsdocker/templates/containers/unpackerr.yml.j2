@@ -1,0 +1,64 @@
+services:
+  unpackerr:
+    image: golift/unpackerr:latest
+    container_name: unpackerr
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
+    networks:
+      - proxy_net
+    volumes:
+      - ${HMSD_MOUNT_PATH}:/data
+    environment:
+      - TZ=${TIMEZONE}
+    {% for key, value in hmsdocker_unpackerr_additional_env_vars.items() %}
+      - {{ key }}={{ value }}
+    {% endfor %}
+    {% if hmsdocker_container_enabled_sonarr %}
+      ## Sonarr Settings
+      - UN_SONARR_0_URL=http://sonarr:8989
+      - UN_SONARR_0_API_KEY=${SONARR_KEY}
+      - UN_SONARR_0_PATHS_0=/data
+      - UN_SONARR_0_PROTOCOLS=torrent
+      - UN_SONARR_0_TIMEOUT=10s
+      - UN_SONARR_0_DELETE_DELAY=5m
+      - UN_SONARR_0_DELETE_ORIG=false
+      - UN_SONARR_0_SYNCTHING=false
+    {% endif %}
+    {% if hmsdocker_container_enabled_radarr %}
+      ## Radarr Settings
+      - UN_RADARR_0_URL=http://radarr:7878
+      - UN_RADARR_0_API_KEY=${RADARR_KEY}
+      - UN_RADARR_0_PATHS_0=/data
+      - UN_RADARR_0_PROTOCOLS=torrent
+      - UN_RADARR_0_TIMEOUT=10s
+      - UN_RADARR_0_DELETE_DELAY=5m
+      - UN_RADARR_0_DELETE_ORIG=false
+      - UN_RADARR_0_SYNCTHING=false
+    {% endif %}
+    {% if hmsdocker_container_enabled_readarr %}
+      ## Readarr Settings
+      - UN_READARR_0_URL=http://readarr:8787
+      - UN_READARR_0_API_KEY=${READARR_KEY}
+      - UN_READARR_0_PATHS_0=/data
+      - UN_READARR_0_PROTOCOLS=torrent
+      - UN_READARR_0_TIMEOUT=10s
+      - UN_READARR_0_DELETE_DELAY=5m
+      - UN_READARR_0_DELETE_ORIG=false
+      - UN_READARR_0_SYNCTHING=false
+    {% endif %}
+    {% if hmsdocker_container_enabled_lidarr %}
+      ## Lidarr Settings
+      - UN_LIDARR_0_URL=http://lidarr:8686
+      - UN_LIDARR_0_API_KEY=${LIDARR_KEY}
+      - UN_LIDARR_0_PATHS_0=/data
+      - UN_LIDARR_0_PROTOCOLS=torrent
+      - UN_LIDARR_0_TIMEOUT=10s
+      - UN_LIDARR_0_DELETE_DELAY=5m
+      - UN_LIDARR_0_DELETE_ORIG=false
+      - UN_LIDARR_0_SYNCTHING=false
+  {% endif %}
