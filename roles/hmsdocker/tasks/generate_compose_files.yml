@@ -114,3 +114,14 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: tinymediamanager_compose_file
+
+- name: Generate Docker Compose file for PASTA 
+  ansible.builtin.template:
+    src: containers/pasta.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/pasta.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: pasta_compose_file

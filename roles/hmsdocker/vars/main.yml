@@ -40,6 +40,7 @@ hmsdocker_container_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']
 hmsdocker_container_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tracker']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_recyclarr: "{{ hms_docker_container_map['recyclarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_pasta: "{{ hms_docker_container_map['pasta']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -73,6 +74,7 @@ hmsdocker_traefik_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['trae
 hmsdocker_traefik_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tracker']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_pasta: "{{ hms_docker_container_map['pasta']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -105,6 +107,7 @@ hmsdocker_expose_public_enabled_autobrr: "{{ hms_docker_container_map['autobrr']
 hmsdocker_expose_public_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tracker']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_pasta: "{{ hms_docker_container_map['pasta']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -138,6 +141,7 @@ hmsdocker_expose_ports_enabled_autobrr: "{{ True if (container_expose_ports or n
 hmsdocker_expose_ports_enabled_notifiarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_notifiarr) else False }}"
 hmsdocker_expose_ports_enabled_speedtest: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_speedtest) else False }}"
 hmsdocker_expose_ports_enabled_tinymediamanager: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_tinymediamanager) else False }}"
+hmsdocker_expose_ports_enabled_pasta: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_pasta) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -174,6 +178,7 @@ hmsdocker_authentik_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['au
 hmsdocker_authentik_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['notifiarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tracker']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['speedtest-tracker']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['tinymediamanager']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_pasta: "{{ hms_docker_container_map['pasta']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['pasta']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 # Homepage

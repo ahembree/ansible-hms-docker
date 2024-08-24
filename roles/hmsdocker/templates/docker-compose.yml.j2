@@ -1487,6 +1487,9 @@ include:
 {% if hmsdocker_container_enabled_tinymediamanager %}
   - compose_files/tinymediamanager.yml
 {% endif %}
+{% if hmsdocker_container_enabled_pasta %}
+  - compose_files/pasta.yml
+{% endif %}
 
 networks:
   "download_net":

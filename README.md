@@ -74,6 +74,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
 - [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): notification system
 - [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
+- [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
+
 
 ## Other Features
 
