@@ -1490,6 +1490,9 @@ include:
 {% if hmsdocker_container_enabled_pasta %}
   - compose_files/pasta.yml
 {% endif %}
+{% if hmsdocker_container_enabled_netdata %}
+  - compose_files/netdata.yml
+{% endif %}
 
 networks:
   "download_net":

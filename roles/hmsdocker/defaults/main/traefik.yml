@@ -74,6 +74,14 @@ traefik_ext_hosts_list: [
   #  authentik: no,
   #  authentik_provider_type: proxy
   #},
+  #{
+  #  friendly_name: netdata,
+  #  subdomain_name: netdata,
+  #  backend_url: "http://netdata.{{ hms_docker_domain }}:19999",
+  #  enabled: yes,
+  #  authentik: no,
+  #  authentik_provider_type: proxy
+  #},
 ]
 
 

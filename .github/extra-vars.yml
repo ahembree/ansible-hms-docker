@@ -322,5 +322,8 @@
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
     },
+    "netdata": {
+      "enabled": true
+    },
   }
 }
