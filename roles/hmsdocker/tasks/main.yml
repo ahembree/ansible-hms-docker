@@ -1,5 +1,8 @@
 ---
-- name: Ensure paths exists locally.
+- name: Run versioning checks
+  ansible.builtin.import_tasks: "versioning.yml"
+
+- name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
