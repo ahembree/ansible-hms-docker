@@ -1481,6 +1481,9 @@ include:
 {% if hmsdocker_container_enabled_speedtest %}
   - compose_files/speedtest-tracker.yml
 {% endif %}
+{% if hmsdocker_container_enabled_recyclarr %}
+  - compose_files/recyclarr.yml
+{% endif %}
 
 networks:
   "download_net":

@@ -38,6 +38,7 @@ hmsdocker_container_enabled_lidarr: "{{ hms_docker_container_map['lidarr']['enab
 hmsdocker_container_enabled_autobrr: "{{ hms_docker_container_map['autobrr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_notifiarr: "{{ hms_docker_container_map['notifiarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tracker']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_recyclarr: "{{ hms_docker_container_map['recyclarr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables

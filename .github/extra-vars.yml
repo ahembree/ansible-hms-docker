@@ -299,8 +299,10 @@
       "authentik": false,
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
-      "homepage": true,
-      "homepage_stats": false
+    },
+    "recyclarr": {
+      "enabled": true,
+      "directory": true,
     }
   }
 }

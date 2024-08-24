@@ -71,6 +71,8 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
 - [Autobrr](https://github.com/autobrr/autobrr): torrent automation
 - [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
+- [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): notification system
+- [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
 
 ## Other Features
 

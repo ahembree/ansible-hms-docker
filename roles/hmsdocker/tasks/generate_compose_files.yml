@@ -78,3 +78,28 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: speedtest_compose_file
+
+- name: Generate Docker Compose file for Recyclarr
+  when: hmsdocker_container_enabled_recyclarr
+  block:
+    - name: Ensure Recyclarr config
+      ansible.builtin.template:
+        src: recyclarr_conf.yml.j2
+        dest: "{{ hms_docker_apps_path }}/recyclarr/config/recyclarr.yml"
+        owner: "{{ container_uid }}"
+        group: "{{ container_gid }}"
+        mode: 0644
+        force: "{{ hmsdocker_recyclarr_force_config_update }}"
+        trim_blocks: yes
+        lstrip_blocks: yes
+
+    - name: Ensure Recyclarr Docker Compose Template
+      ansible.builtin.template:
+        src: containers/recyclarr.yml.j2
+        dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/recyclarr.yml"
+        owner: "{{ container_uid }}"
+        group: "{{ container_gid }}"
+        mode: 0644
+        trim_blocks: yes
+        lstrip_blocks: yes
+      register: recyclarr_compose_file
