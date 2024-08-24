@@ -313,5 +313,14 @@
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
     },
+    "pasta": {
+      "enabled": true,
+      "proxy_host_rule": "pasta",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+    },
   }
 }
