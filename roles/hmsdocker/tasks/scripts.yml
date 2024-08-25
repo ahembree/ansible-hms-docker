@@ -25,6 +25,7 @@
         state: link
         src: "{{ compose_env.dest | default(hms_docker_data_path + '/.env') }}"
         dest: "{{ monitoring_scripts_path.path }}/.env"
+        force: "{{ ansible_check_mode }}"
 
     - name: Ensure monitoring scripts
       ansible.builtin.copy:
