@@ -170,7 +170,8 @@
     mode: 0644
     trim_blocks: yes
     lstrip_blocks: yes
-  loop: "{{ enabled_containers }}" 
+  loop: "{{ enabled_containers }}"
+  when: item != 'authentik'
   register: compose_files_created
 
 - name: Ensure main docker-compose.yml file.

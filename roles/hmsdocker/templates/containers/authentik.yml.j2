@@ -122,8 +122,8 @@ services:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
       # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
     # This is optional, and can be removed. If you remove this, the following will happen
-    # - The permissions for the /media folders aren't fixed, so make sure they are 1000:1000
-    # - The docker socket can't be accessed anymore
+    # - The permissions for the /media folders arent fixed, so make sure they are 1000:1000
+    # - The docker socket cant be accessed anymore
     user: root
     volumes:
       - ${HMSD_APPS_PATH}/authentik/media:/media
