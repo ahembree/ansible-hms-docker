@@ -1,8 +1,6 @@
 include:
 {% for file in compose_files_created.results %}
-  {% if file.item.value.enabled %}
   - {{ file.dest }}
-  {% endif %}
 {% endfor %}
 {% if cloudflare_compose_file_path.dest | default(false) %}
   - {{ cloudflare_compose_file_path.dest }}

@@ -54,13 +54,9 @@
 - name: Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik_outpost.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item }}.outpost.yml"
     mode: 0644
-  with_dict: "{{ hms_docker_container_map }}"
-  when: 
-    - item.value.enabled 
-    - item.value.authentik is defined and item.value.authentik
-    - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
+  loop: "{{ authentik_enabled_containers }}"
 
 - name: Ensure authentik Outpost configs for static traefik configs
   ansible.builtin.template:
@@ -76,12 +72,9 @@
 - name: Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
     src: authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}-{{ separate_4k_instances_suffix }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item }}-{{ separate_4k_instances_suffix }}.outpost.yml"
     mode: 0644
-  with_dict: "{{ hms_docker_container_map }}"
+  loop: "{{ authentik_enabled_containers }}"
   when: 
-    - item.value.enabled 
-    - item.value.authentik is defined and item.value.authentik
-    - item.key == 'sonarr' or item.key == 'radarr'
-    - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
-    - separate_4k_instances_enable is defined and separate_4k_instances_enable
+    - item == 'sonarr' or item == 'radarr'
+    - separate_4k_instances_enable | default(false)
