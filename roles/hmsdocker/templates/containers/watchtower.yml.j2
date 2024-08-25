@@ -1,0 +1,28 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    command: --cleanup --schedule "{{ container_auto_update_schedule }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    {% if hmsdocker_container_enabled_homepage %}
+    networks:
+      - proxy_net
+    environment:
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
+      - WATCHTOWER_HTTP_API_METRICS=true
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Watchtower
+      - homepage.icon=watchtower.png
+      - homepage.description=Container Updates
+      - homepage.widget.type=watchtower
+      - homepage.widget.url=http://watchtower:8080
+      - homepage.widget.key=${WATCHTOWER_KEY:-apikeyapikeyapikey}
+    {% endif %}

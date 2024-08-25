@@ -1,0 +1,36 @@
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_heimdall %}
+    ports:
+      - 8000:80
+      - 8443:443
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/heimdall/config:/config
+    {% if hmsdocker_traefik_enabled_heimdall %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
+      - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] | default('heimdall') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_heimdall %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker
+        {% endif %}
+    {% endif %}

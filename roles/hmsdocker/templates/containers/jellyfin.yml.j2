@@ -1,0 +1,62 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+    {% endif %}
+    {% if hmsdocker_expose_ports_enabled_jellyfin %}
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/jellyfin/config:/config
+      - {{ plex_transcode_folder }}/cache:/cache
+      # media folder where all movies and series are stored
+      - ${HMSD_MOUNT_PATH}:/data
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_jellyfin or hmsdocker_homepage_enabled_jellyfin %}
+    labels:
+      {% if hmsdocker_traefik_enabled_jellyfin %}
+      - traefik.enable=true
+      - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_jellyfin %}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_jellyfin %}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_jellyfin %}
+      - homepage.group=Media
+      - homepage.name=Jellyfin
+      - homepage.icon=jellyfin.png
+      - homepage.href=http://{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Server
+      - homepage.widget.type=jellyfin
+      - homepage.widget.url=https://jellyfin:8096
+      - homepage.widget.key=${JELLYFIN_KEY:-apikeyapikeyapikey}
+        {% if hmsdocker_homepage_stats_enabled_jellyfin %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

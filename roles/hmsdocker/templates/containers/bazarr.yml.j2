@@ -1,0 +1,50 @@
+services:
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_bazarr %}
+    ports:
+      - 6767:6767
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/bazarr/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_traefik_enabled_bazarr or hmsdocker_homepage_enabled_bazarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_bazarr %}
+      - traefik.enable=true
+      - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_bazarr %}
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_bazarr %}
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_bazarr %}
+      - homepage.group=Managers
+      - homepage.name=Bazarr
+      - homepage.icon=bazarr.png
+      - homepage.href=http://{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Subtitle Manager
+      - homepage.widget.type=bazarr
+      - homepage.widget.url=http://bazarr:6767
+      - homepage.widget.key=${BAZARR_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_bazarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

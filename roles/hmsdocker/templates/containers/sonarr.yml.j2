@@ -1,0 +1,105 @@
+services:
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_sonarr or hmsdocker_homepage_enabled_sonarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_sonarr %}
+      - traefik.enable=true
+      - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_sonarr %}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_sonarr %}
+      - homepage.group=Managers
+      - homepage.name=Sonarr
+      - homepage.icon=sonarr.png
+      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}
+      - homepage.description=TV Show Manager
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=http://sonarr:8989
+      - homepage.widget.key=${SONARR_KEY:-apikeyapikeyapikey}
+        {% if hmsdocker_homepage_stats_enabled_sonarr %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/sonarr/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_sonarr %}
+    ports:
+      - 8989:8989
+    {% endif %}
+
+{% if separate_4k_instances_enable | default(False) %}
+  # Sonarr container, tv show indexer
+  sonarr-{{ separate_4k_instances_suffix }}:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr-{{ separate_4k_instances_suffix }}
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_sonarr or hmsdocker_homepage_enabled_sonarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_sonarr %}
+      - traefik.enable=true
+      - traefik.http.services.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_sonarr %}
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_sonarr %}
+      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_sonarr %}
+      - homepage.group=Managers - 4K
+      - homepage.name=Sonarr - {{ separate_4k_instances_suffix }}
+      - homepage.icon=sonarr.png
+      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}
+      - homepage.description=TV Show Manager
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=http://sonarr-{{ separate_4k_instances_suffix }}:8989
+      - homepage.widget.key=${SONARR_4K_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_sonarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/sonarr-{{ separate_4k_instances_suffix }}/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_sonarr %}
+    ports:
+      - 8990:8989
+    {% endif %}
+{% endif %}

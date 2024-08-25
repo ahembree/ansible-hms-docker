@@ -1,0 +1,48 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_portainer %}
+    ports:
+      - 9000:9000
+    {% endif %}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HMSD_APPS_PATH}/portainer/config:/data
+    {% if hmsdocker_traefik_enabled_portainer or hmsdocker_homepage_enabled_portainer %}
+    labels:
+      {% if hmsdocker_traefik_enabled_portainer %}
+      - traefik.enable=true
+      - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_portainer %}
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_portainer %}
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_portainer %}
+      - homepage.group=Infrastructure
+      - homepage.name=Portainer
+      - homepage.icon=portainer.png
+      - homepage.href=http://{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}
+      - homepage.description=Container Management
+      - homepage.widget.type=portainer
+      - homepage.widget.url=https://portainer:9443
+      - homepage.widget.env=1
+      - homepage.widget.key=${PORTAINER_KEY:-apikeyapikeyapikey}
+        {% if hmsdocker_homepage_stats_enabled_portainer %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

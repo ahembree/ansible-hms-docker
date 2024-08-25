@@ -1,0 +1,25 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - '/var/lib:/var/lib'
+      - '/dev/net/tun:/dev/net/tun'
+    network_mode: host
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
+    {% if tailscale_enable_subnet_routes %}
+      - TS_ROUTES={{ tailscale_subnet_routes }}
+    {% endif %}
+    {% if tailscale_advertise_exit_node %}
+      - TS_EXTRA_ARGS=--advertise-exit-node
+    {% endif %}

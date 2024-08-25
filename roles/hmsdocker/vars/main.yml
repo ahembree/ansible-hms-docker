@@ -146,7 +146,7 @@ hmsdocker_expose_ports_enabled_pasta: "{{ True if (container_expose_ports or not
 
 # Authentik computed variables
 # Controls global authentik variables
-hmsdocker_authentik_enabled_globally: "{{ True if (hmsdocker_container_enabled_authentik or authentik_enabled) and traefik_ssl_enabled else False }}"
+hmsdocker_authentik_enabled_globally: "{{ hmsdocker_container_enabled_authentik and traefik_ssl_enabled | default(False) }}"
 hmsdocker_authentik_geoip_enabled: "{{ authentik_geoip_account_id != '' and authentik_geoip_license_key != '' | default(False) }}"
 
 # Controls if a container is protected by Authentik via proxy

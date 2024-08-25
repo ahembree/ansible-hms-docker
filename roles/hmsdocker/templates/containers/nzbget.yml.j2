@@ -1,0 +1,51 @@
+services:
+  nzbget:
+    image: lscr.io/linuxserver/nzbget:latest
+    container_name: nzbget
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+      - download_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/nzbget/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_nzbget %}
+    ports:
+      - 6789:6789
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_nzbget or hmsdocker_homepage_enabled_nzbget %}
+    labels:
+      {% if hmsdocker_traefik_enabled_nzbget %}
+      - traefik.enable=true
+      - traefik.http.services.nzbget-${COMPOSE_PROJECT}.loadbalancer.server.port=6789
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] | default('nzbget') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_nzbget %}
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_nzbget %}
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_nzbget %}
+      - homepage.group=Downloads
+      - homepage.name=NZBget
+      - homepage.icon=nzbget.png
+      - homepage.href=http://{{ hms_docker_container_map['nzbget']['proxy_host_rule'] | default('nzbget') }}.${HMSD_DOMAIN}
+      - homepage.description=NZB Manager
+      - homepage.widget.type=nzbget
+      - homepage.widget.url=http://nzbget:8080
+      - homepage.widget.key=${NZBGET_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_nzbget %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
