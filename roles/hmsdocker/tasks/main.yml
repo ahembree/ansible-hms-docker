@@ -104,8 +104,7 @@
 
 - name: Ensure Authentik
   ansible.builtin.import_tasks: "authentik.yml"
-  when: (hmsdocker_authentik_enabled_globally and 
-        traefik_ssl_enabled)
+  when: hmsdocker_authentik_enabled_globally
 
 - name: Ensure homepage
   ansible.builtin.import_tasks: "homepage.yml"

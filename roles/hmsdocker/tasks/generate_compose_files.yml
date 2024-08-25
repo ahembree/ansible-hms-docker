@@ -21,3 +21,15 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: flaresolverr_compose_file_path
+
+- name: Generate Docker Compose files for Authentik
+  when: hmsdocker_authentik_enabled_globally
+  ansible.builtin.template:
+    src: containers/authentik.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/authentik.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  register: authentik_compose_file_path

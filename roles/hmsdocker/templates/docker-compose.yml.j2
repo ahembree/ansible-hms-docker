@@ -1,6 +1,11 @@
 include:
 {% for file in compose_files_created.results %}
+  {# Add additional check for Authentik due to SSL dependency #}
+  {% if 'authentik' in file and hmsdocker_authentik_enabled_globally %}
   - {{ file.dest }}
+  {% else %}
+  - {{ file.dest }}
+  {% endif %}
 {% endfor %}
 {% if cloudflare_compose_file_path.dest | default(false) %}
   - {{ cloudflare_compose_file_path.dest }}
