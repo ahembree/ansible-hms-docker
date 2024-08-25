@@ -1,7 +1,7 @@
 include:
 {% for file in compose_files_created.results %}
   {# Add additional check for Authentik due to SSL dependency #}
-  {% if 'authentik' in file and hmsdocker_authentik_enabled_globally %}
+  {% if 'authentik' in file.dest and hmsdocker_authentik_enabled_globally %}
   - {{ file.dest }}
   {% else %}
   - {{ file.dest }}

@@ -32,6 +32,15 @@ jobs:
           chmod 0600 ./inventory/group_vars/all/*.yml
           make install-reqs
 
+      - name: Run playbook in check mode
+        run: >-
+          sudo ansible-playbook
+          -i inventory/hosts.yml
+          hms-docker.yml
+          --diff
+          --check
+          --extra-vars "@.github/extra-vars.yml"
+
       - name: Run playbook
         run: >-
           sudo ansible-playbook

@@ -36,18 +36,6 @@
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
-    authentik_enabled_containers: >-
-          {{
-            hms_docker_container_map | dict2items | 
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.authentik', 'defined') |
-            selectattr('value.authentik', 'equalto', true) |
-            selectattr('value.authentik_provider_type', 'defined') |
-            selectattr('value.authentik_provider_type', 'equalto', 'proxy') |
-            map(attribute='key') |
-            list
-          }}
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
