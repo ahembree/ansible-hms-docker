@@ -2,6 +2,14 @@
 
 Note that any update to a new version might need to be done manually using a `make update` since some variables may now be deprecated/renamed.
 
+## Version 1.5
+
+Modularize the main Docker Compose file to import other containers from files in order to drasitcally reduce line count and make it easier to modify individual containers
+
+New container:
+
+* Wizarr
+
 ## Version 1.4
 
 New containers:

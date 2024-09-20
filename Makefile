@@ -87,4 +87,4 @@ help:
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
 	@echo make verify-containers :: checks containers exposed ports \(used in GitHub Actions\)
-	@echo update :: updates from the git repo and updates variable names (if they were changed)
+	@echo make update :: updates from the git repo and updates variable names (if they were changed)
