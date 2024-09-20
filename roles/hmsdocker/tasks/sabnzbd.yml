@@ -4,9 +4,10 @@
     path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
   register: sabnzbd_config_path
 
+# Cmd is used here instead of a "trigger" to then restart the container using the docker module since this will trigger automatically
 - name: restart sabnzbd inline if config not exist
   ansible.builtin.shell:
-    cmd: docker restart sabnzbd
+    cmd: docker restart sabnzbd && sleep 10
   when: not sabnzbd_config_path.stat.exists
 
 - name: Check if config file exists after container restart
@@ -29,7 +30,7 @@
         slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | split(',') }}"
         cacheable: false
       when: slurped_sabnzbd_data['content'] is defined
-      no_log: "{{ not is_github_runner }}"
+      no_log: true
 
     - name: Ensure sabnzbd container config has allowlisted hostname
       ansible.builtin.replace:
