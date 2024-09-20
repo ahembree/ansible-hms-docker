@@ -62,7 +62,7 @@ update:
 	@echo Updating from Git repo... && git pull
 	@echo Updating variable names
 	@echo Updating Traefik variables
-	@sed -i 's\traefik_ext_hosts_configs_path\hmsdocker_traefik_static_config_location\g' $(CUSTOM_CONF_DIR)/traefik.yml
+	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
 	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
 	@echo Update finished
 
@@ -87,4 +87,4 @@ help:
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
 	@echo make verify-containers :: checks containers exposed ports \(used in GitHub Actions\)
-	@echo update :: updates from the git repo and updates variable names (if they were changed)
+	@echo make update :: updates from the git repo and updates variable names (if they were changed)

@@ -1,0 +1,55 @@
+services:
+  traefik:
+    image: traefik:${TRAEFIK_TAG}
+    container_name: traefik
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    {% if traefik_ssl_dns_provider_environment_vars %}
+        {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+        {# Due to how Ansible interprets curly brackets, I had to use 'raw' statements in order to render the ${} around the ansible 'key' variable to reference the .env file variable #}
+      - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
+        {% endfor %}
+    {% endif %}
+    networks:
+      - proxy_net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
+      - ${HMSD_APPS_PATH}/traefik/config/certs/:/certs/
+      - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files
+    {% if hmsdocker_traefik_enabled_traefik or hmsdocker_homepage_enabled_traefik %}
+    labels:
+      {% if hmsdocker_traefik_enabled_traefik %}
+      - traefik.enable=true
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}`)
+      - traefik.http.services.traefik-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% if hmsdocker_authentik_enabled_traefik %}
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_traefik %}
+      - homepage.group=Infrastructure
+      - homepage.name=Traefik
+      - homepage.icon=traefik.png
+      - homepage.href=http://{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}
+      - homepage.description=Reverse Proxy
+      - homepage.widget.type=traefik
+      - homepage.widget.url=http://traefik:8080
+        {% if hmsdocker_homepage_stats_enabled_traefik %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

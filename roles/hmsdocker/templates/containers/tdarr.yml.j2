@@ -1,0 +1,73 @@
+services:
+  tdarr:
+    container_name: tdarr
+    image: ghcr.io/haveagitgat/tdarr:latest
+    {% if tdarr_enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+    {% endif %}
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_tdarr %}
+    ports:
+      - 8265:8265 # webUI port
+      - 8266:8266 # server port
+      #- 8267:8267 # Internal node port
+      #- 8268:8268 # Example extra node port
+    {% elif tdarr_enable_node_server %}
+    ports:
+      - 8266:8266
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - UMASK_SET=002
+      - serverIP=0.0.0.0
+      - serverPort=8266
+      - webUIPort=8265
+      - internalNode=true
+      - nodeName=MyInternalNode
+    {% if tdarr_enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    runtime: nvidia
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_tdarr or hmsdocker_homepage_enabled_tdarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_tdarr %}
+      - traefik.enable=true
+      - traefik.http.services.tdarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8265
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_tdarr %}
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_tdarr %}
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_tdarr %}
+      - homepage.group=Managers
+      - homepage.name=Tdarr
+      - homepage.icon=tdarr.png
+      - homepage.href=http://{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Transcode Manager
+      - homepage.widget.type=tdarr
+      - homepage.widget.url=http://tdarr:8265
+      {% if hmsdocker_homepage_stats_enabled_tdarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/tdarr/config/server:/app/server
+      - ${HMSD_APPS_PATH}/tdarr/config/app:/app/configs
+      - ${HMSD_APPS_PATH}/tdarr/config/logs:/app/logs
+      - {{ tdarr_transcode_folder }}:/temp_transcode
+      - ${HMSD_MOUNT_PATH}:/data

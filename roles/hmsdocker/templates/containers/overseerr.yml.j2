@@ -1,0 +1,47 @@
+services:
+  overseerr:
+    image: linuxserver/overseerr:latest
+    container_name: overseerr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_overseerr or hmsdocker_homepage_enabled_overseerr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_overseerr %}
+      - traefik.enable=true
+      - traefik.http.services.overseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] | default('overseerr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=external-ipallowlist@file
+        {% if hmsdocker_authentik_enabled_overseerr %}
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_overseerr %}
+      - homepage.group=Managers
+      - homepage.name=Overseerr
+      - homepage.icon=overseerr.png
+      - homepage.href=http://{{ hms_docker_container_map['overseerr']['proxy_host_rule'] | default('overseerr') }}.${HMSD_DOMAIN}
+      - homepage.description=Request Manager
+      - homepage.widget.type=overseerr
+      - homepage.widget.url=http://overseerr:5055
+      - homepage.widget.key=${OVERSEERR_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_overseerr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/overseerr/config:/config
+    {% if hmsdocker_expose_ports_enabled_overseerr %}
+    ports:
+      - 5055:5055
+    {% endif %}

@@ -1,0 +1,51 @@
+services:
+  tautulli:
+    image: tautulli/tautulli:latest
+    container_name: tautulli
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_tautulli or hmsdocker_homepage_enabled_tautulli %}
+    labels:
+      {% if hmsdocker_traefik_enabled_tautulli %}
+      - traefik.enable=true
+      - traefik.http.services.tautulli-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] | default('tautulli') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_tautulli %}
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_tautulli %}
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_tautulli %}
+      - homepage.group=Media
+      - homepage.name=Tautulli
+      - homepage.icon=tautulli.png
+      - homepage.href=http://{{ hms_docker_container_map['tautulli']['proxy_host_rule'] | default('tautulli') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Analytics
+      - homepage.widget.type=tautulli
+      - homepage.widget.url=http://tautulli:8181
+      - homepage.widget.key=${TAUTULLI_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_tautulli %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+    {% if hmsdocker_expose_ports_enabled_tautulli %}
+    ports:
+      - 8181:8181
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/tautulli/config:/config
+      # Plex logs location
+      - ${HMSD_APPS_PATH}/plex/config/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro

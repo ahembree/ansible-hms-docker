@@ -1,0 +1,164 @@
+services:
+  authentik-postgresql:
+    container_name: authentik-postgresql
+    image: postgres:12-alpine
+    restart: ${RESTART_POLICY}
+    networks:
+      - authentik_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - authentik_database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${PG_PASS:?database password required}
+      - POSTGRES_USER=${PG_USER:-authentik}
+      - POSTGRES_DB=${PG_DB:-authentik}
+    
+  authentik-redis:
+    container_name: authentik-redis
+    image: redis:alpine
+    restart: ${RESTART_POLICY}
+    networks:
+      - authentik_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+
+  authentik-server:
+    container_name: authentik-server
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
+    restart: ${RESTART_POLICY}
+    networks:
+      - authentik_net
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?database password required}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+      # WORKERS: 2
+    volumes:
+      - ${HMSD_APPS_PATH}/authentik/media:/media
+      - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
+      - authentik_geoip:/geoip
+    {% if hmsdocker_expose_ports_enabled_authentik %}
+    ports:
+      - 9001:9000
+      - 9443:9443
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_authentik or hmsdocker_homepage_enabled_authentik %}
+    labels:
+      {% if hmsdocker_traefik_enabled_authentik %}
+      - traefik.enable=true
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
+      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_authentik %}
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_authentik %}
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_authentik %}
+      - homepage.group=Infrastructure
+      - homepage.name=Authentik
+      - homepage.icon=authentik.png
+      - homepage.href=https://{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}
+      - homepage.description=Single Sign-On
+      - homepage.widget.type=authentik
+      - homepage.widget.url=http://authentik-server:9000
+      - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_authentik %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+
+  authentik-worker:
+    container_name: authentik-worker
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - authentik_net
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:?database password required}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
+    # This is optional, and can be removed. If you remove this, the following will happen
+    # - The permissions for the /media folders arent fixed, so make sure they are 1000:1000
+    # - The docker socket cant be accessed anymore
+    user: root
+    volumes:
+      - ${HMSD_APPS_PATH}/authentik/media:/media
+      - ${HMSD_APPS_PATH}/authentik/certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
+      - authentik_geoip:/geoip
+
+  {% if hmsdocker_authentik_geoip_enabled %}
+  authentik-geoipupdate:
+    container_name: authentik-geoipupdate
+    image: maxmindinc/geoipupdate:latest
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - authentik_net
+    volumes:
+      - "authentik_geoip:/usr/share/GeoIP"
+    environment:
+      GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
+      GEOIPUPDATE_FREQUENCY: "8"
+      GEOIPUPDATE_ACCOUNT_ID: "${GEOIP_ACC_ID}"
+      GEOIPUPDATE_LICENSE_KEY: "${GEOIP_LIC_KEY}"
+  {% endif %}
+
+networks:
+  authentik_net:
+    driver: bridge
+    attachable: false
+
+volumes:
+  authentik_database:
+    driver: local
+  authentik_geoip:
+    driver: local

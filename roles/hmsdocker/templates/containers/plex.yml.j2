@@ -1,0 +1,72 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    restart: ${RESTART_POLICY}
+    {% if enable_intel_gpu %}
+    devices:
+      - /dev/dri:/dev/dri
+    {% endif %}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    environment:
+      - VERSION=docker
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - PLEX_CLAIM=${PLEX_CLAIM_TOKEN}
+      - ADVERTISE_IP={{ plex_advertise_ip }}:32400
+      - ALLOWED_NETWORKS={{ hms_docker_network_subnet }}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/plex/config:/config
+      # temp folder for Plex transcoding
+      - {{ plex_transcode_folder }}:/transcode
+      # media folder where all movies and series are stored
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_traefik_enabled_plex or hmsdocker_homepage_enabled_plex %}
+    labels:
+      {% if hmsdocker_traefik_enabled_plex %}
+      - traefik.enable=true
+      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
+      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_plex %}
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_plex %}
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_plex %}
+      - homepage.group=Media
+      - homepage.name=Plex
+      - homepage.icon=plex.png
+      - homepage.href=http://{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Server
+      - homepage.widget.type=plex
+      - homepage.widget.url=https://plex:32400
+      - homepage.widget.key=${PLEX_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_plex %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

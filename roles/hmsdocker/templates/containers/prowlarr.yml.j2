@@ -1,0 +1,50 @@
+services:
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/prowlarr/config:/config
+    {% if hmsdocker_expose_ports_enabled_prowlarr %}
+    ports:
+      - 9696:9696
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_prowlarr or hmsdocker_homepage_enabled_prowlarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_prowlarr %}
+      - traefik.enable=true
+      - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_prowlarr %}
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_prowlarr %}
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_prowlarr %}
+      - homepage.group=Managers
+      - homepage.name=Prowlarr
+      - homepage.icon=prowlarr.png
+      - homepage.href=http://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr')}}.${HMSD_DOMAIN}
+      - homepage.description=Indexer Management
+      - homepage.widget.type=prowlarr
+      - homepage.widget.url=http://prowlarr:9696
+      - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}
+      {% if hmsdocker_homepage_stats_enabled_prowlarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

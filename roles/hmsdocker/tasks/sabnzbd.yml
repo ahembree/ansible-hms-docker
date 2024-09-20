@@ -4,11 +4,10 @@
     path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
   register: sabnzbd_config_path
 
+# Cmd is used here instead of a "trigger" to then restart the container using the docker module since this will trigger automatically
 - name: restart sabnzbd inline if config not exist
-  community.docker.docker_container:
-    name: sabnzbd
-    state: started
-    restart: true
+  ansible.builtin.shell:
+    cmd: docker restart sabnzbd && sleep 10
   when: not sabnzbd_config_path.stat.exists
 
 - name: Check if config file exists after container restart

@@ -1,0 +1,36 @@
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/calibre/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_calibre %}
+    ports:
+      - 8083:8080 # remote desktop http
+      - 8182:8181 # remote desktop https
+      - 8084:8081 # webserver (must be enabled in settings using remote desktop)
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_calibre %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
+      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['calibre']['proxy_host_rule'] | default('calibre') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% if hmsdocker_authentik_enabled_calibre %}
+      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-calibre-midware@docker
+      {% endif %}
+    {% endif %}

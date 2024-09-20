@@ -1,0 +1,33 @@
+services:
+  kavita:
+    image: lscr.io/linuxserver/kavita:latest
+    container_name: kavita
+    networks:
+      - proxy_net
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/kavita/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_kavita %}
+    ports:
+      - 5000:5000
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_kavita %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% if hmsdocker_authentik_enabled_kavita %}
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker
+      {% endif %}
+    {% endif %}

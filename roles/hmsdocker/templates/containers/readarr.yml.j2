@@ -1,0 +1,49 @@
+services:
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    restart: ${RESTART_POLICY}
+    container_name: readarr
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+      - download_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/readarr/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_readarr %}
+    ports:
+      - 8787:8787
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_readarr or hmsdocker_homepage_enabled_readarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_readarr %}
+      - traefik.enable=true
+      - traefik.http.services.readarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8787
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['readarr']['proxy_host_rule'] | default('readarr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% if hmsdocker_authentik_enabled_readarr %}
+      - traefik.http.routers.readarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-readarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_readarr %}
+      - homepage.group=Managers
+      - homepage.name=Readarr
+      - homepage.icon=readarr.png
+      - homepage.href=http://{{ hms_docker_container_map['readarr']['proxy_host_rule'] | default('readarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Analytics
+      - homepage.widget.type=readarr
+      - homepage.widget.url=http://readarr:8787
+      - homepage.widget.key=${READARR_KEY:-apikeyapikeyapikey}
+        {% if hmsdocker_homepage_stats_enabled_readarr %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

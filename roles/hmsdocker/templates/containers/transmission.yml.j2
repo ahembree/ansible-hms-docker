@@ -1,0 +1,112 @@
+services:
+  transmission:
+    image: haugene/transmission-openvpn:latest
+    container_name: transmission
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+    cap_add:
+      - NET_ADMIN
+    {% if hmsdocker_expose_ports_enabled_transmission %}
+    ports:
+      - 9091:9091
+      - 8888:8888
+    {% endif %}
+    dns:
+      - '{{ transmission_dns_1 }}'
+      - '{{ transmission_dns_2 }}'
+    volumes:
+      - ${HMSD_APPS_PATH}/transmission/config:/config/transmission-home
+    {% if transmission_ovpn_config_local_path != "" and transmission_vpn_provider == "custom" %}
+      - ${VPN_CONFIG_LOCAL_PATH}:/etc/openvpn/custom
+    {% endif %}
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
+    labels:
+      - homepage.group=Downloads
+      - homepage.name=Transmission VPN Route
+      - homepage.icon=transmission.png
+      - homepage.description=Torrent Traffic Stats
+      - homepage.showStats=true
+    {% endif %}
+    environment:
+      - OPENVPN_PROVIDER=${VPN_PROVIDER}
+      - OPENVPN_USERNAME=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASS}
+      {% if transmission_ovpn_config_source_repo != "" %}
+      - GITHUB_CONFIG_SOURCE_REPO=${VPN_REPO}
+      {% endif %}
+      {% if transmission_ovpn_config_file != "" %}
+      - OPENVPN_CONFIG=${VPN_CONFIG}
+      {% endif %}
+      - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
+      - TRANSMISSION_WEB_UI=transmission-web-control
+      # These directories are set so that they are created in the correct path on container startup
+      # Without these set, the container will automatically create these by default in /data, which is not preferred
+      - TRANSMISSION_DOWNLOAD_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission
+      - TRANSMISSION_INCOMPLETE_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/watch
+      - TRANSMISSION_INCOMPLETE_DIR_ENABLED=false
+      - TRANSMISSION_WATCH_DIR_ENABLED=false
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - WEBPROXY_ENABLED=true
+      - WEBPROXY_PORT=8888
+      - HEALTH_CHECK_HOST=google.com
+      - TRANSMISSION_RATIO_LIMIT={{ transmission_ratio_limit }}
+      - TRANSMISSION_RATIO_LIMIT_ENABLED={{ transmission_ratio_enabled }}
+      - LOCAL_NETWORK={{ hms_docker_network_subnet }}
+    {% for key, value in transmission_additional_env_vars.items() %}
+      - {{ key }}={{ value }}
+    {% endfor %}
+
+  # frontend reverse-proxy for Transmission
+  transmission-proxy:
+    image: haugene/transmission-openvpn-proxy:latest
+    container_name: transmission-proxy
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    depends_on:
+      - transmission
+    environment:
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_expose_ports_enabled_transmission %}
+    ports:
+      - 8081:8080
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_transmission or hmsdocker_homepage_enabled_transmission %}
+    labels:
+      {% if hmsdocker_traefik_enabled_transmission %}
+      - traefik.enable=true
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
+      - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
+        {% if not hmsdocker_expose_public_enabled_transmission %}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_transmission %}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_transmission %}
+      - homepage.group=Downloads
+      - homepage.name=Transmission
+      - homepage.icon=transmission.png
+      - homepage.href=http://{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}
+      - homepage.description=Torrent Management
+      - homepage.widget.type=transmission
+      - homepage.widget.url=http://transmission-proxy:8080
+      {% endif %}
+    {% endif %}

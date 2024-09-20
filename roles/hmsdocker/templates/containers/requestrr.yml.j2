@@ -1,0 +1,34 @@
+services:
+  requestrr:
+    image: thomst08/requestrr:latest
+    container_name: requestrr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/requestrr/config:/root/config
+    {% if hmsdocker_expose_ports_enabled_requestrr %}
+    ports:
+      - 4545:4545
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_requestrr %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.requestrr-${COMPOSE_PROJECT}.loadbalancer.server.port=4545
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] | default('requestrr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_requestrr %}
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_requestrr %}
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker
+        {% endif %}
+    {% endif %}

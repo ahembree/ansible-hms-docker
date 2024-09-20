@@ -2,6 +2,41 @@
 - name: Run versioning checks
   ansible.builtin.import_tasks: "versioning.yml"
 
+- name: Build facts of enabled containers
+  ansible.builtin.set_fact:
+    enabled_containers: >-
+          {{
+            hms_docker_container_map | dict2items | 
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            map(attribute='key') |
+            list
+          }}
+    enabled_containers_config_dirs: >-
+          {{
+            hms_docker_container_map | dict2items | 
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            selectattr('value.directory', 'defined') |
+            selectattr('value.directory', 'equalto', true) |
+            map(attribute='key') |
+            list
+          }}
+    traefik_enabled_subdomains: >-
+          {{
+            hms_docker_container_map | dict2items | 
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            selectattr('value.traefik', 'defined') |
+            selectattr('value.traefik', 'equalto', true) |
+            map(attribute='value.proxy_host_rule') |
+            list
+          }}
+    traefik_enabled_external_hosts: >-
+          {{
+            traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
+          }}
+
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"
@@ -29,46 +64,27 @@
     state: directory
   with_items: "{{ hms_docker_library_folders }}"
 
-# The following tasks that deal with config folders are done this way to ensure that the container config folder
-# is given the same ownership as the specified UID and GID of the container before it starts
-
-# First, check if directories already exist
-- name: Check if container config directories exist
-  ansible.builtin.stat:
-    path: "{{ hms_docker_apps_path }}/{{ item.key }}/config"
-  with_dict: "{{ hms_docker_container_map }}"
-  when:
-    - item.value.enabled is defined and item.value.enabled
-  register: directory_stats
-
-# Loop through previously queried directory list and only create folders that do not already exist
-# This is to ensure that permissions for existing directories are not changed
 - name: Ensure container config directories exist if not already
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item.item.key }}/config"
+    path: "{{ hms_docker_apps_path }}/{{ item }}/config"
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
     mode: 0755
-  with_items: "{{ directory_stats.results }}"
-  when:
-    - item.item.value.enabled is defined and item.item.value.enabled
-    - not item.stat.exists
+  loop: "{{ enabled_containers_config_dirs }}"
 
 - name: Ensure separate 4K container config directories exist if enabled
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item.item.key }}-{{ separate_4k_instances_suffix }}/config"
+    path: "{{ hms_docker_apps_path }}/{{ item }}-{{ separate_4k_instances_suffix }}/config"
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
     mode: 0755
-  with_items: "{{ directory_stats.results }}"
+  loop:
+    - sonarr
+    - radarr
   when: 
-    - item.item.value.directory | default(false)
-    - item.item.value.enabled | default(false)
-    - item.item.key == 'sonarr' or item.item.key == 'radarr'
     - separate_4k_instances_enable | default(false)
-    - not item.stat.exists
 
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
@@ -76,8 +92,7 @@
 
 - name: Ensure Authentik
   ansible.builtin.import_tasks: "authentik.yml"
-  when: (hmsdocker_authentik_enabled_globally and 
-        traefik_ssl_enabled)
+  when: hmsdocker_authentik_enabled_globally
 
 - name: Ensure homepage
   ansible.builtin.import_tasks: "homepage.yml"
@@ -134,23 +149,32 @@
     readarr_key: "{{ slurped_api_key_readarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
     lidarr_key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
 
-- name: Ensure App Compose Files
+- name: Ensure compose_files directory exists
+  ansible.builtin.file:
+    dest: "{{ hms_docker_data_path }}/compose_files"
+    state: directory
+    mode: 0755
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  register: compose_dir
+
+- name: Ensure App Compose Files that are not in map
   ansible.builtin.import_tasks: "generate_compose_files.yml"
 
-### Adding here for the future when all the containers will be in their own files
-# - name: Generate Docker Compose files for enabled containers 
-#   when: item.value.enabled
-#   ansible.builtin.template:
-#     src: containers/{{ item.key }}.yml.j2
-#     dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/{{ item.key }}.yml"
-#     owner: "{{ container_uid }}"
-#     group: "{{ container_gid }}"
-#     mode: 0644
-#     trim_blocks: yes
-#     lstrip_blocks: yes
-#   with_dict: "{{ hms_docker_container_map }}" 
+- name: Generate Docker Compose files for enabled containers 
+  ansible.builtin.template:
+    src: containers/{{ item }}.yml.j2
+    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/{{ item }}.yml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: 0644
+    trim_blocks: yes
+    lstrip_blocks: yes
+  loop: "{{ enabled_containers }}"
+  when: item != 'authentik'
+  register: compose_files_created
 
-- name: Ensure docker-compose.yml file.
+- name: Ensure main docker-compose.yml file.
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ hms_docker_data_path }}/docker-compose.yml"

@@ -51,5 +51,6 @@ If you choose to expose the container ports on the host (by setting `container_e
 | Speedtest-Tracker                        | &#9744;            | `speedtest`          | `8090`, `8444`         | `8080`, `8443`    | &#9745;                |
 | tinyMediaManager                         | &#9744;            | `tmm`                | `5900`, `4000`         | `5900`, `4000`    | &#9745;                |
 | PASTA                                    | &#9744;            | `pasta`              | `8085`                 | `80`              | &#9745;                |
+| Wizarr                                   | &#9744;            | `wizarr`             | `5690`                 | `5690`            | &#9745;                |
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)
