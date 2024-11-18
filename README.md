@@ -36,6 +36,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Readarr](https://github.com/Readarr/Readarr): ebook management
 - [Overseerr](https://github.com/sct/overseerr): request platform
+- [Jellyseerr](https://github.com/Fallenbagel/jellyseerr): request platform with Jellyfin and Emby support
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding

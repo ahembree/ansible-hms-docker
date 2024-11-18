@@ -334,5 +334,16 @@
       "authentik_provider_type": "proxy",
       "expose_to_public": false,
     },
+    "jellyseerr": {
+      "enabled": true,
+      "proxy_host_rule": jellyseerr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    }
   }
 }

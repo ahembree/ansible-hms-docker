@@ -43,6 +43,7 @@ hmsdocker_container_enabled_tinymediamanager: "{{ hms_docker_container_map['tiny
 hmsdocker_container_enabled_pasta: "{{ hms_docker_container_map['pasta']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_netdata: "{{ hms_docker_container_map['netdata']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['enabled'] | default(False) }}"
+hmsdocker_container_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['enabled'] | default(False) }}"
 
 
 # Traefik computed variables
@@ -78,6 +79,7 @@ hmsdocker_traefik_enabled_speedtest: "{{ hms_docker_container_map['speedtest-tra
 hmsdocker_traefik_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_pasta: "{{ hms_docker_container_map['pasta']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -112,6 +114,7 @@ hmsdocker_expose_public_enabled_speedtest: "{{ hms_docker_container_map['speedte
 hmsdocker_expose_public_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_pasta: "{{ hms_docker_container_map['pasta']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -147,6 +150,7 @@ hmsdocker_expose_ports_enabled_speedtest: "{{ True if (container_expose_ports or
 hmsdocker_expose_ports_enabled_tinymediamanager: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_tinymediamanager) else False }}"
 hmsdocker_expose_ports_enabled_pasta: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_pasta) else False }}"
 hmsdocker_expose_ports_enabled_wizarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_wizarr) else False }}"
+hmsdocker_expose_ports_enabled_jellyseerr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_jellyseerr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -185,6 +189,7 @@ hmsdocker_authentik_enabled_speedtest: "{{ hms_docker_container_map['speedtest-t
 hmsdocker_authentik_enabled_tinymediamanager: "{{ hms_docker_container_map['tinymediamanager']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['tinymediamanager']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_pasta: "{{ hms_docker_container_map['pasta']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['pasta']['authentik_provider_type'] == 'proxy' | default(False) }}"
 hmsdocker_authentik_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['wizarr']['authentik_provider_type'] == 'proxy' | default(False) }}"
+hmsdocker_authentik_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['authentik'] | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['jellyseerr']['authentik_provider_type'] == 'proxy' | default(False) }}"
 
 
 # Homepage
@@ -208,6 +213,7 @@ hmsdocker_homepage_enabled_jellyfin: "{{ hmsdocker_container_enabled_homepage an
 hmsdocker_homepage_enabled_emby: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['emby']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_lidarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['lidarr']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_autobrr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['autobrr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_jellyseerr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['jellyseerr']['homepage'] | default(False) }}"
 
 # Controls if the container should show stats (CPU, RAM, RX, TX) on Homepage
 hmsdocker_homepage_stats_enabled_traefik: "{{ hmsdocker_homepage_enabled_traefik and hms_docker_container_map['traefik']['homepage_stats'] | default(False) }}"
@@ -229,6 +235,7 @@ hmsdocker_homepage_stats_enabled_jellyfin: "{{ hmsdocker_homepage_enabled_jellyf
 hmsdocker_homepage_stats_enabled_emby: "{{ hmsdocker_homepage_enabled_emby and hms_docker_container_map['emby']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_lidarr: "{{ hmsdocker_homepage_enabled_lidarr and hms_docker_container_map['lidarr']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_autobrr: "{{ hmsdocker_homepage_enabled_autobrr and hms_docker_container_map['autobrr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_jellyseerr: "{{ hmsdocker_homepage_enabled_jellyseerr and hms_docker_container_map['jellyseerr']['homepage_stats'] | default(False) }}"
 
 #######################################################################
 
