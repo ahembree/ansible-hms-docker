@@ -78,6 +78,16 @@ hms_docker_container_map:
     expose_to_public: no
     homepage: yes
     homepage_stats: no
+  jellyseerr:
+    enabled: no
+    proxy_host_rule: jellyseerr
+    directory: yes
+    traefik: yes
+    authentik: no
+    authentik_provider_type: proxy
+    expose_to_public: no
+    homepage: yes
+    homepage_stats: no
   prowlarr:
     enabled: yes
     proxy_host_rule: prowlarr
@@ -311,6 +321,3 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
-
-
-
