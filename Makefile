@@ -9,8 +9,6 @@ BASEDIR=$(shell pwd)
 
 CUSTOM_CONF_DIR = inventory/group_vars/all
 
-PREV_CUSTOM_CONF_DIR = vars/custom
-
 # Found and modified from: https://gist.github.com/Pierstoval/b2539c387c467c017bf2b0ace5a2e79b
 # To use the "confirm" target inside another target,
 # use the " if $(MAKE) -s confirm ; " syntax.
@@ -30,19 +28,10 @@ _WARN := "\033[33m[%s]\033[0m %s\n"  # Yellow text for "printf"
 _TITLE := "\033[32m[%s]\033[0m %s\n" # Green text for "printf"
 _ERROR := "\033[31m[%s]\033[0m %s\n" # Red text for "printf"
 
-basic:
-	@if $(MAKE) -s confirm ; then \
-		mkdir -p $(CUSTOM_CONF_DIR); \
-		cp $(DEFAULT_CONFS) $(CUSTOM_CONF_DIR); \
-		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
-		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
-	fi
-
-advanced:
+config:
 	@if $(MAKE) -s confirm ; then \
 		mkdir -p $(CUSTOM_CONF_DIR); \
 		cp $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
-		mv $(CUSTOM_CONF_DIR)/main.yml $(CUSTOM_CONF_DIR)/main_custom.yml; \
 		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
 	fi
 
@@ -66,23 +55,11 @@ update:
 	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
 	@echo Update finished
 
-# Used for the migration from the `vars/custom` directory to the correct `inventory/group_vars/all` directory
-migrate-vars:
-	@if [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ ! -L $(PREV_CUSTOM_CONF_DIR) ]; then\
-		mkdir -p $(CUSTOM_CONF_DIR);\
-		cp $(PREV_CUSTOM_CONF_DIR)/* $(CUSTOM_CONF_DIR);\
-		rm -rf $(PREV_CUSTOM_CONF_DIR);\
-		ln -s $(BASEDIR)/$(CUSTOM_CONF_DIR) $(BASEDIR)/$(PREV_CUSTOM_CONF_DIR);\
-		echo Moved files and created symlink from $(PREV_CUSTOM_CONF_DIR) to $(CUSTOM_CONF_DIR);\
-	elif [ -d $(PREV_CUSTOM_CONF_DIR) ] && [ -L $(PREV_CUSTOM_CONF_DIR) ]; then\
-		echo "Already migrated";\
-	else\
-		echo "Previous variables directory does not exist at location: $(PREV_CUSTOM_CONF_DIR)";\
-	fi
+docs:
+	@docker run -p 3000:3000 -v ./gen-docs:/app -w /app node:22-alpine npm run start
 	
 help:
-	@echo make basic :: setup a basic config
-	@echo make advanced :: setup an advanced config
+	@echo make config :: copy default config files
 	@echo make check :: check for any changes without doing anything \(diff\)
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements

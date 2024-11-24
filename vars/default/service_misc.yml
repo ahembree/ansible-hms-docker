@@ -1,3 +1,0 @@
-### Tautulli settings
-# Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
-tautulli_jbops_enabled: false

@@ -24,7 +24,6 @@ jobs:
           sudo apt install ansible
 
       - name: Ensure base playbook requirements
-        # should mirror the steps for advanced config creation
         # does not use the `make` command since it requires input and we cannot input in a Runner
         run: |
           mkdir -p ./inventory/group_vars/all
