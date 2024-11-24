@@ -4,6 +4,9 @@
 #######################################################################
 ### HMS-Docker settings
 
+# The domain used for the Traefik proxy Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
+hms_docker_domain: home.local
+
 # The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"
 # Options:
 #    `local`: local folder path
@@ -40,9 +43,6 @@ hms_docker_library_folders:
       folder_name: "TV_Shows"
     },
   ]
-
-# The domain used for the Traefik proxy Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
-hms_docker_domain: home.local
 
 ### End of HMS-Docker settings
 #######################################################################
