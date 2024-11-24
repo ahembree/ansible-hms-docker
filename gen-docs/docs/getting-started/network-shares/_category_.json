@@ -1,0 +1,7 @@
+{
+  "label": "Network shares",
+  "link": {
+    "type": "generated-index",
+    "description": "How to configure network shares for the containers"
+  }
+}

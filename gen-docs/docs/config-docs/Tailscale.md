@@ -1,4 +1,4 @@
-# Using Tailscale
+# Tailscale
 
 ## Important Notes
 

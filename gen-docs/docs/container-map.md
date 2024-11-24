@@ -1,16 +1,8 @@
 # Container Map
 
-## Connecting the Containers to each other
+## Notes
 
-When connecting Prowlarr to Sonarr and Radarr and etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
-
-Here's an example within Prowlarr:
-
-![Prowlarr example](./_img/container_connect_example.png)
-
-If you choose to expose the container ports on the host (by setting `container_expose_ports: yes` in the `vars/custom/container_settings.yml` file), see below for which ports are mapped to which container on the host.
-
-**NOTE:** Ports are _NOT_ exposed by default (with the exception of Traefik)
+If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both Jellyfin and Emby)
 
 ## Map
 
@@ -52,6 +44,4 @@ If you choose to expose the container ports on the host (by setting `container_e
 | tinyMediaManager                         | &#9744;            | `tmm`                | `5900`, `4000`         | `5900`, `4000`    | &#9745;                |
 | PASTA                                    | &#9744;            | `pasta`              | `8085`                 | `80`              | &#9745;                |
 | Wizarr                                   | &#9744;            | `wizarr`             | `5690`                 | `5690`            | &#9745;                |
-| Jellyseerr                               | &#9745;            | `jellyseerr`         | `5056`                 | `5055`            | &#9745;                |
-
-If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both)
+| Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                 | `5055`            | &#9745;                |

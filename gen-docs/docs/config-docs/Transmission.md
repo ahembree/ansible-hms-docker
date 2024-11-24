@@ -1,6 +1,6 @@
 # Transmission
 
-All settings mentioned below should already exist in your `vars/custom/transmission.yml` file
+Settings mentioned below should already exist in your `inventory/group_vars/all/transmission.yml` file
 
 ## Using a different VPN location or type
 
