@@ -16,9 +16,37 @@ To ensure no conflicting changes with an existing system, you can run this playb
 
 :::tip
 
-You can skip this first Ansible install step if you already have Ansible installed to a "control node" (a system that can SSH into the target host)
+You can skip the Ansible install in step 1 if you already have Ansible installed to a "control node" (a system that can SSH into the target host).
+
+If this is your case, see [Remote Host](#remote-host)
 
 :::
+
+### Local Host
+
+If installing to the same system you will clone/download this repo to, no changes are needed
+
+### Remote Host
+
+#### Requirements
+
+- Ability to SSH into remote host
+- Sudo privileges on remote host
+
+If installing to a remote host (a different system than where Ansible is installed), you will need to modify your `inventory/hosts.yml` file to specify the remote host:
+
+```yaml
+all:
+  hosts:
+    hmsdockerhost:
+      ansible_host: 192.168.1.2 # The IP address of the target host you want to install to
+      # Uncomment and modify the following if you have a specific user you use for Ansible:
+      # ansible_user: ansibleuser
+      # ansible_ssh_private_key_file: /path/to/key/file
+      # ansible_ssh_pass: foo
+```
+
+### Install Steps
 
 1. Install Ansible for your system by following the instructions available here: https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
 
@@ -36,9 +64,7 @@ You can skip this first Ansible install step if you already have Ansible install
    cd ansible-hms-docker/
    ```
 
-3. Proceed to [configuring the deployment](#configuration-files)
-
----
+3. Proceed to [configuration](#configuration-files)
 
 ## Configuration Files
 
@@ -48,11 +74,11 @@ All configuration files are stored in `inventory/group_vars/all` after running t
 
 :::
 
-1. To initialize the configuration files, run `make config`
+4. To initialize the configuration files, run `make config`
 
 :::warning
 
-Re-running this command will overwrite any existing files in the config directory
+Re-running this command will overwrite any existing files in the config directory (basically a reset to default configuration)
 
 :::
 
@@ -63,6 +89,8 @@ Re-running this command will overwrite any existing files in the config director
 To select the containers you want to use, you will need to modify the `inventory/group_vars/all/container_map.yml` file.
 
 Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
+
+For an example of a container map entry, check the [Container Map](../container-map.md) docs
 
 To enable a container, set its `enabled` value to `yes`.
 

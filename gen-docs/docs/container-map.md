@@ -1,5 +1,26 @@
 # Container Map
 
+The container map controls which containers are enabled, if they are accessible via Traefik, protected by Authentik, integrated with Homepage, and the proxy rule used to access the container if behind Traefik.
+
+By default, the container map is in `inventory/group_vars/all/container_map.yml`
+
+Here is an example of a container map entry for Sonarr:
+
+```yaml
+...
+  sonarr: # Do not modify this value
+    enabled: yes # Enables or disables the container named above
+    proxy_host_rule: sonarr # The subdomain that will route to the container (based on Host header)
+    directory: yes # Do not modify, controls if a container "app" folder is created
+    traefik: yes # If container should be accessible via Traefik (such as `<proxy_host_rule>.<domain>`)
+    authentik: no # If container should be protected by Authentik
+    authentik_provider_type: proxy # The type of integration with Authentik. Likely `proxy` unless you know it's `oauth2`
+    expose_to_public: no # If the container should be exposed to public (0.0.0.0/0) traffic
+    homepage: yes # If the integration with the Homepage container should be enabled
+    homepage_stats: no # Enables advanced stats for the container within Homepage
+...
+```
+
 ## Notes
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both Jellyfin and Emby)

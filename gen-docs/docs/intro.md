@@ -27,3 +27,9 @@ Setting up the individual container configurations, such as for Sonarr, Radarr, 
 - Custom scripts
   - Advanced monitoring script(s) for Uptime-Kuma to detect if media is actually accessible by the Plex container
   - Convert Traefik certificate file to a Plex-supported certificate file (PKCS12)
+
+## Contributing
+
+Pull requests are always welcome!
+
+If you have suggestions for containers to add or any other improvements, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions)
