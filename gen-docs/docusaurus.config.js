@@ -14,7 +14,7 @@ const config = {
   tagline: 'Automate Everything',
   favicon: 'img/favicon.ico',
 
-  url: 'https://hmsdocs.ahembree.dev',
+  url: 'https://docs.hmsdocker.dev/',
   baseUrl: '/',
   trailingSlash: false,
 
