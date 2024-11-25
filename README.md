@@ -4,19 +4,29 @@
 
 Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms with support for GPUs, SSL, SSO, DDNS, and more.
 
-Please see the docs page at: https://hmsdocs.ahembree.dev
+## Features
+
+- GPU acceleration for media transcoding
+  - Intel and Nvidia GPU support
+  - You must install the drivers for your Nvidia GPU yourself, it is not included in this playbook, but it will verify GPU acceleration is available
+- Automatic Docker installation
+- Automatic container updates
+- Dynamic DNS updates with Cloudflare
+- Wildcard SSL certificate generation
+- Support for multiple network shares
+- Single Sign-On with Authentik
+- Support for separate 4K instances of Sonarr and Radarr
+- Automated dashboard configuration in [Homepage](https://gethomepage.dev/)
+- Custom scripts
+  - Advanced monitoring script(s) for Uptime-Kuma to detect if media is actually accessible by the Plex container
+  - Convert Traefik certificate file to a Plex-supported certificate file (PKCS12)
 
 ## Getting Started
 
-- [Container List](#container-list)
-- [Other Features](#other-features)
-- [Supported Platforms](#supported-platforms)
-- [Requirements](#requirements)
-- [Warnings](#warning)
-- [Installation](#installation)
-- [Updating](#updating)
-- [Configuration](#configuration)
-- [Content layout](#content-layout)
-- [Using Cloudflare Tunnel](./docs/Cloudflare.md/#cloudflare-tunnel)
-- [Using Authentik](./docs/Authentik.md)
-- [Adding External Services to Traefik](./docs/Traefik.md/#adding-external-services-to-traefik)
+Please see the docs page at: https://hmsdocs.ahembree.dev
+
+## Contributing
+
+Pull requests are always welcome!
+
+If you have suggestions for containers to add or any other improvements, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions)
