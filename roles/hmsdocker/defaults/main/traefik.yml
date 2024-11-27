@@ -94,6 +94,6 @@ traefik_verify_endpoints: no
 # Enable or disable full request logging
 traefik_enable_access_logs: no
 
-# The Traefik allow-list for all containers EXCEPT the Overseerr container, the Overseerr container allows ALL IP's by default
-# This allows all RFC1918 addresses by default, you can change this to further restrict or allow greater access
+# The Traefik allow-list for all containers except Traefik itself
+# This allows all private addresses (RFC1918) by default, you can change this to further restrict or allow greater access
 traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
