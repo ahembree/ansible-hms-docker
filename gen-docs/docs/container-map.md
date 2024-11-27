@@ -21,6 +21,16 @@ Here is an example of a container map entry for Sonarr:
 ...
 ```
 
+:::note
+
+If the top-level key (such as `sonarr:`) does not match an available container, an error may be thrown.
+
+:::
+
+## Adding New Containers
+
+See the [Updating](./getting-started/updating.md) docs.
+
 ## Notes
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both Jellyfin and Emby)
