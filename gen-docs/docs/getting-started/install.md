@@ -74,7 +74,7 @@ All configuration files are stored in `inventory/group_vars/all` after running t
 
 :::
 
-4. To initialize the configuration files, run `make config`
+4. To copy the default configuration files, run `make config`
 
 :::warning
 
@@ -90,7 +90,7 @@ To select the containers you want to use, you will need to modify the `inventory
 
 Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
 
-For an example of a container map entry, check the [Container Map](../container-map.md) docs
+For an example of a container map entry and the description of what each setting does, check the [Container Map](../container-map.md) docs
 
 To enable a container, set its `enabled` value to `yes`.
 
@@ -120,22 +120,24 @@ All configuration files are stored in `inventory/group_vars/all`
 
 #### General
 
-In `inventory/group_vars/all/main_custom.yml`:
+In `inventory/group_vars/all/main.yml`:
 
 - `hms_docker_domain` : the local domain name of the server to be used for proxy rules and (if enabled) SSL certificates (e.g. `home.local`)
 - `hms_docker_media_share_type` : the type of network share (`cifs`, `nfs`, `local`)
-  - See [the NAS setup page](./network-shares/NAS.md)
+  - See [the NAS setup page](./network-shares/NAS.md) if using `nfs` or `cifs`
   - `nfs` if using an NFS share/mount
   - `cifs` if using Samba or a Windows file share
-  - `local` if using a local directory on the same system
+  - `local` if using a local drive/directory on the same system
 
-#### Plex
+- `hms_docker_mount_path` : Recommended to change if using a network share and/or other drive in the system.
+
+#### Plex (if enabled)
 
 In `inventory/group_vars/all/plex.yml`:
 
 - `plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
 
-#### Download Client
+#### Download Client (if enabled)
 
 In `inventory/group_vars/all/transmission.yml`:
 

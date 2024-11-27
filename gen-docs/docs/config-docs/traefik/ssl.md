@@ -2,11 +2,13 @@
 
 ## Generating Wildcard SSL Certificate
 
-A wildcard certificate (`*.example.com`) will be the default. To change this, see [Changing SSL Certificate SANs](#changing-ssl-certificate-sans). Note that an individual certificate for each container will not be generated due to [Let's Encrypts rate limit of 5 exact hostnames every 7 days](https://letsencrypt.org/docs/rate-limits/#new-certificates-per-exact-set-of-hostnames).
+A wildcard certificate (`*.example.com`) will be the default.
+
+To change this, see [Changing SSL Certificate SANs](#changing-ssl-certificate-sans). Note that an individual certificate for each container will not be generated due to [Let's Encrypts rate limit of 5 exact hostnames every 7 days](https://letsencrypt.org/docs/rate-limits/#new-certificates-per-exact-set-of-hostnames).
 
 :::note
 
-This has only been tested using Cloudflare, so ymmv. This page is just to reference supported providers, their required `Provider Code` and `Environment Variables`. Do not follow any additional configuration links within that page, you only need the provider code and environment variables.
+This has only been tested using Cloudflare, so ymmv. This page is just to reference supported providers, their required `Provider Code` and `Environment Variables`. Do not follow any additional configuration links within Traefiks supported providers page, you only need the provider code and environment variables.
 
 :::
 
@@ -47,9 +49,11 @@ To view debug logs, set `traefik_log_level` to `DEBUG` and then re-run the playb
 
 ## Changing SSL Certificate SANs
 
-To change/add the SANs used for the certificate, in `inventory/group_vars/all/traefik.yml` modify the `traefik_ssl_sans` variable.
+To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/traefik.yml` modify the `traefik_ssl_sans` variable.
 
-By default, it will generate a wildcard certificate for the domain set in `hms_docker_domain`
+By default, it will generate a wildcard certificate for the domain set in `hms_docker_domain`.
+
+Here's an example of adding an additional `*.dev.<domain>` SAN to the certificate:
 
 ```yaml
 traefik_ssl_sans: [
