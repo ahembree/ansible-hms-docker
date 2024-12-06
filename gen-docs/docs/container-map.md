@@ -4,26 +4,9 @@ The container map controls which containers are enabled, if they are accessible 
 
 By default, the container map is in `inventory/group_vars/all/container_map.yml`
 
-Here is an example of a container map entry for Sonarr:
-
-```yaml
-...
-  sonarr: # Do not modify this value
-    enabled: yes # Enables or disables the container named above
-    proxy_host_rule: sonarr # The subdomain that will route to the container (based on Host header)
-    directory: yes # Do not modify, controls if a container "app" folder is created
-    traefik: yes # If container should be accessible via Traefik (such as `<proxy_host_rule>.<domain>`)
-    authentik: no # If container should be protected by Authentik
-    authentik_provider_type: proxy # The type of integration with Authentik. Likely `proxy` unless you know it's `oauth2`
-    expose_to_public: no # If the container should be exposed to public (0.0.0.0/0) traffic
-    homepage: yes # If the integration with the Homepage container should be enabled
-    homepage_stats: no # Enables advanced stats for the container within Homepage
-...
-```
-
 :::note
 
-If the top-level key (such as `sonarr:`) does not match an available container, an error may be thrown.
+If a key (such as `sonarr:`) does not match an available container, an error may be thrown.
 
 :::
 
@@ -76,3 +59,22 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | PASTA                                    | &#9744;            | `pasta`              | `8085`                 | `80`              | &#9745;                |
 | Wizarr                                   | &#9744;            | `wizarr`             | `5690`                 | `5690`            | &#9745;                |
 | Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                 | `5055`            | &#9745;                |
+
+## Container Map Entry Example
+
+Here is an example of a container map entry for Sonarr:
+
+```yaml
+...
+  sonarr: # Do not modify this value, this is the "key"
+    enabled: yes # Enables or disables the container named above
+    proxy_host_rule: sonarr # The subdomain that will route to the container (based on HTTP Host header)
+    directory: yes # Do not modify, controls if a container "app" folder is created
+    traefik: yes # If container should be accessible via Traefik (such as `<proxy_host_rule>.<domain>`)
+    authentik: no # If container should be protected by Authentik
+    authentik_provider_type: proxy # The type of integration with Authentik. Likely `proxy` unless you know it's `oauth2`
+    expose_to_public: no # If the container should be exposed to public (0.0.0.0/0) traffic
+    homepage: yes # If the integration with the Homepage container should be enabled
+    homepage_stats: no # Enables advanced stats for the container within Homepage (CPU, RAM, RX/TX)
+...
+```

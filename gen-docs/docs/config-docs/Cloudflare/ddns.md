@@ -6,6 +6,7 @@ Below is how to configure DDNS (Dynamic DNS) for Cloudflare.
 
 - A Cloudflare account and Cloudflare configured as your domains DNS servers
 - API keys for your account with the correct permissions
+  - Requires `Zone.DNS:Edit` permissions for the correct zone
 
 ## Enabling
 

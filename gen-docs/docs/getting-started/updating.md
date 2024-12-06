@@ -31,6 +31,6 @@ When a new container is added, you will need to manually add the new container t
 
 :::note
 
-If the top-level key (such as `newcontainername:`) does not match an available container, an error may be thrown.
+If the key (such as `newcontainername:`) does not match an available container, an error may be thrown.
 
 :::

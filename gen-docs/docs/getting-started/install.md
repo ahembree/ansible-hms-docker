@@ -41,9 +41,11 @@ all:
     hmsdockerhost:
       ansible_host: 192.168.1.2 # The IP address of the target host you want to install to
       # Uncomment and modify the following if you have a specific user you use for Ansible:
-      # ansible_user: ansibleuser
-      # ansible_ssh_private_key_file: /path/to/key/file
-      # ansible_ssh_pass: foo
+      #ansible_user: ansibleuser
+      #ansible_ssh_private_key_file: /path/to/key/file
+      #ansible_ssh_pass: foo #leave as-is if key does not have a password
+      # You can also specify host-specific variables here:
+      #hms_docker_domain: secondary.example.com
 ```
 
 ### Install Steps
@@ -86,13 +88,13 @@ Re-running this command will overwrite any existing files in the config director
 
 ## Container Selection
 
-To select the containers you want to use, you will need to modify the `inventory/group_vars/all/container_map.yml` file.
+To select the containers you want to use, you will need to modify the `inventory/group_vars/all/container_map.yml` file. Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
 
-Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
+To enable a container, set its `enabled` value to `yes`.
 
 For an example of a container map entry and the description of what each setting does, check the [Container Map](../container-map.md) docs
 
-To enable a container, set its `enabled` value to `yes`.
+---
 
 There is a small number of containers not in this list since they do not need config directories and are not routed through Traefik.
 
@@ -167,7 +169,7 @@ If you have your media content stored on a NAS that will be connected via NFS or
 
 ## Running the playbook
 
-You can run the playbook using the included `Makefile` with the following commands:
+You can run the playbook using the following commands:
 
 ```bash
 # Run in "Check mode" to see changes before they are made
@@ -177,9 +179,11 @@ sudo make check
 sudo make apply
 ```
 
-## Next Steps
+### Advanced Playbook Run
 
-Check out [the NAS Setup](docs/getting-started/network-shares/NAS.md) if you set `hms_docker_media_share_type` to `cifs` or `nfs`
+If 
+
+## Next Steps
 
 Check out [Configuring DNS](./dns-setup.md) on how to setup the DNS records on a (recommended) internal DNS server.
 

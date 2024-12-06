@@ -17,6 +17,7 @@ This has only been tested using Cloudflare, so ymmv. This page is just to refere
 - A supported DNS provider (e.g. Cloudflare), [you can find supported providers **here** along with their settings](https://doc.traefik.io/traefik/https/acme/#providers)
 - A valid Top-Level Domain (TLD), such as `.com` or `.net`, that Let's Encrypt is able to issue certificates for
 - API keys for the DNS provider with the correct permissions
+  - If using Cloudflare, it needs `Zone.DNS:Edit` permissions for the correct zone. This can be the same key for Cloudflare DDNS in this project
 
 :::tip
 

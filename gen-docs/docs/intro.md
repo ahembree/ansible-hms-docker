@@ -13,13 +13,13 @@ Setting up the individual container configurations, such as for Sonarr, Radarr, 
 
 ## Features
 
+- Automatic Docker installation
+- Automatic container/service updates
+- Wildcard SSL certificate generation
+- Dynamic DNS updates with Cloudflare
 - GPU acceleration for media transcoding
   - Intel and Nvidia GPU support
   - You must install the drivers for your Nvidia GPU yourself, it is not included in this playbook, but it will verify GPU acceleration is available
-- Automatic Docker installation
-- Automatic container updates
-- Dynamic DNS updates with Cloudflare
-- Wildcard SSL certificate generation
 - Support for multiple network shares
 - Single Sign-On with Authentik
 - Support for separate 4K instances of Sonarr and Radarr

@@ -55,9 +55,6 @@ update:
 	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
 	@echo Update finished
 
-docs:
-	@docker run -p 3000:3000 -v ./gen-docs:/app -w /app node:22-alpine npm run start
-	
 help:
 	@echo make config :: copy default config files
 	@echo make check :: check for any changes without doing anything \(diff\)
