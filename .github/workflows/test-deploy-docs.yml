@@ -1,13 +1,15 @@
-name: Test deployment
+name: Test Docusaurus Deployment
 
 on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'gen-docs/**'
 
 jobs:
   test-deploy:
-    name: Test deployment
+    name: Test Install and Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +19,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: gen-docs/package-lock.json
 
       - name: Install dependencies
         run: |

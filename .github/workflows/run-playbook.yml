@@ -1,4 +1,4 @@
-name: Deployment Tests
+name: Ubuntu Deployment Tests
 run-name: Test Ubuntu Deployments
 on:
   push:
@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   Ubuntu_22:
+    name: Test Ubuntu 22.04
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo code
