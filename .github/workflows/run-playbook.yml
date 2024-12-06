@@ -1,7 +1,9 @@
-name: Deployment Tests
-run-name: Test Deployment
+name: Ubuntu Deployment Tests
+run-name: Test Ubuntu Deployments
 on:
   push:
+    paths-ignore: 
+      - 'gen-docs/**'
   pull_request:
   schedule:
     - cron:  '23 9 * * 0'
@@ -11,6 +13,7 @@ permissions:
 
 jobs:
   Ubuntu_22:
+    name: Test Ubuntu 22.04
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repo code
@@ -24,7 +27,6 @@ jobs:
           sudo apt install ansible
 
       - name: Ensure base playbook requirements
-        # should mirror the steps for advanced config creation
         # does not use the `make` command since it requires input and we cannot input in a Runner
         run: |
           mkdir -p ./inventory/group_vars/all

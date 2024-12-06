@@ -10,6 +10,8 @@ services:
       driver: json-file
     networks:
       - download_net
+    devices:
+      - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
     {% if hmsdocker_expose_ports_enabled_transmission %}
