@@ -114,6 +114,18 @@ All configuration options are in a (hopefully) aptly-named `.yml` file.
 
 All configuration files are stored in `inventory/group_vars/all`
 
+Any variable can be removed from _your_ config file if not being used, it will use the default already defined in the file, this can help reduce the number of variables and narrow it down to only ones you know have changed.
+
+:::
+
+:::note
+
+Any future containers variables will need to be added to your config file manually, if you chose to change from the default values.
+
+The default variable files are found in `roles/hmsdocker/defaults/main/`
+
+For adding a newly supported container, see [Updating](./updating.md#new-containers)
+
 :::
 
 ### Required Settings
