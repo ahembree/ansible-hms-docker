@@ -3,7 +3,7 @@
   become: yes
   gather_facts: yes
   vars:
-    hmsd_current_version: 1.5.1
+    hmsd_current_version: 1.6
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     regex: '[^A-Za-z0-9._-]'
     replace: '_'

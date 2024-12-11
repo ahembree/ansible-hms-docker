@@ -1,0 +1,32 @@
+name: Test Docusaurus Deployment
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'gen-docs/**'
+
+jobs:
+  test-deploy:
+    name: Test Install and Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: gen-docs/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd gen-docs
+          npm install --frozen-lockfile
+
+      - name: Test build website
+        run: |
+          cd gen-docs
+          npm run build
