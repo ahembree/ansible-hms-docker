@@ -63,7 +63,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/hmsd.jpg',
       colorMode: {
         defaultMode: 'dark',
         respectPrefersColorScheme: false,
@@ -71,8 +71,8 @@ const config = {
       navbar: {
         title: 'HMS-Docker Docs',
         logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
+          alt: 'HMS-Docker Logo',
+          src: 'img/hmsd.png',
         },
         items: [
           {
