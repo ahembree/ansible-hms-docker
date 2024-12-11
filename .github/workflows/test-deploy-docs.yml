@@ -10,7 +10,7 @@ on:
 jobs:
   test-deploy:
     name: Test Install and Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:

@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build Docusaurus
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,7 +52,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
