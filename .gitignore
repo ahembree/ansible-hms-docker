@@ -11,7 +11,9 @@ galaxy-roles/
 vars/custom*
 inventory/group_vars/all/*
 inventory/hosts-custom.yml
-
+.docusaurus/
+build/
+node_modules/
 # others to ignore
 *.log
 *.env
