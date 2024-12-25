@@ -2,13 +2,13 @@
 
 <img src="./gen-docs/docs/static/img/hmsd.png" alt="hmsdocker-logo"/>
 
-![GitHub Release](https://img.shields.io/github/v/release/ahembree/ansible-hms-docker)
-![GitHub Repo stars](https://img.shields.io/github/stars/ahembree/ansible-hms-docker)
+![GitHub Release](https://img.shields.io/github/v/release/ahembree/ansible-hms-docker?style=flat-square&color=blue)
+![GitHub Repo stars](https://img.shields.io/github/stars/ahembree/ansible-hms-docker?style=flat-square&color=blue)
 <br>
-[![Deployment Tests](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml/badge.svg)](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml)
-![Last Commit](https://img.shields.io/github/last-commit/ahembree/ansible-hms-docker)
-![Scrutinizer quality (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/quality/g/ahembree/ansible-hms-docker)
-![GitHub License](https://img.shields.io/github/license/ahembree/ansible-hms-docker)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ahembree/ansible-hms-docker/run-playbook.yml?style=flat-square&label=Ubuntu%2022.04%20Deployment)
+![Last Commit](https://img.shields.io/github/last-commit/ahembree/ansible-hms-docker?style=flat-square)
+![Scrutinizer quality (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/quality/g/ahembree/ansible-hms-docker?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/ahembree/ansible-hms-docker?style=flat-square&color=blue)
 
 </div>
 
