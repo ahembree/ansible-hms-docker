@@ -1,8 +1,18 @@
-# ansible-hms-docker
+<div align="center">
 
+<img src="./gen-docs/docs/static/img/hmsd.png" alt="hmsdocker-logo"/>
+
+![GitHub Release](https://img.shields.io/github/v/release/ahembree/ansible-hms-docker)
+![GitHub Repo stars](https://img.shields.io/github/stars/ahembree/ansible-hms-docker)
+<br>
 [![Deployment Tests](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml/badge.svg)](https://github.com/ahembree/ansible-hms-docker/actions/workflows/run-playbook.yml)
+![Last Commit](https://img.shields.io/github/last-commit/ahembree/ansible-hms-docker)
+![Scrutinizer quality (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/quality/g/ahembree/ansible-hms-docker)
+![GitHub License](https://img.shields.io/github/license/ahembree/ansible-hms-docker)
 
-![HMS-Docker Logo](./gen-docs/docs/static/img/hmsd.png)
+</div>
+
+# HMS-Docker
 
 Ansible Playbook to setup an automated Home Media Server stack running on Docker across a variety of platforms with support for GPUs, SSL, SSO, DDNS, and more.
 
