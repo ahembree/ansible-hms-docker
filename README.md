@@ -42,3 +42,13 @@ Please see the docs page at: https://docs.hmsdocker.dev
 Pull requests are always welcome!
 
 If you have suggestions for containers to add or any other improvements, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions)
+
+## Star History
+
+<a href="https://star-history.com/">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ahembree/ansible-hms-docker&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ahembree/ansible-hms-docker&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ahembree/ansible-hms-docker&type=Date" />
+ </picture>
+</a>
