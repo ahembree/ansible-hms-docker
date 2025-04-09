@@ -15,6 +15,7 @@ services:
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}
+      - HOMEPAGE_ALLOWED_HOSTS={{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN},{{ ansible_default_ipv4.address }}:3000
     {% if hmsdocker_expose_ports_enabled_homepage %}
     ports:
       - 3000:3000
