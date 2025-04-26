@@ -2,7 +2,8 @@
 - name: Run versioning checks
   ansible.builtin.import_tasks: "versioning.yml"
 
-- name: Build facts of enabled containers
+# All these facts do is process data from the container map to reduce text output during playbook runs
+- name: Build facts of enabled containers to slim play output
   ansible.builtin.set_fact:
     enabled_containers: >-
           {{
@@ -36,6 +37,20 @@
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
+    # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
+    authentik_proxy_enabled_containers: >
+          [
+          {% for item in hms_docker_container_map | dict2items
+              if item.value.enabled is defined and item.value.enabled == true
+              and item.value.traefik is defined and item.value.traefik == true
+              and item.value.authentik is defined and item.value.authentik == true
+              and item.value.proxy_host_rule is defined %}
+            {
+              "name": "{{ item.key }}",
+              "proxy_host_rule": "{{ item.value.proxy_host_rule }}"
+            }{% if not loop.last %},{% endif %}
+          {% endfor %}
+          ]
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
