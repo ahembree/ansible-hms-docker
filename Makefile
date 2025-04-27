@@ -53,6 +53,10 @@ update:
 	@echo Updating Traefik variables
 	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
 	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
+	@sed -i 's\transmission_vpn_provider:\hmsdocker_vpn_provider:\g' $(CUSTOM_CONF_DIR)/transmission.yml
+	@sed -i 's\transmission_vpn_user:\hmsdocker_vpn_user:\g' $(CUSTOM_CONF_DIR)/transmission.yml
+	@sed -i 's\transmission_vpn_pass:\hmsdocker_vpn_pass:\g' $(CUSTOM_CONF_DIR)/transmission.yml
+	@sed -i 's\transmission_ovpn_config_local_path:\transmission_ovpn_config_local_dir:\g' $(CUSTOM_CONF_DIR)/transmission.yml
 	@echo Update finished
 
 help:

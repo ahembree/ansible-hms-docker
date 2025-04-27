@@ -101,6 +101,19 @@
   when: 
     - separate_4k_instances_enable | default(false)
 
+- name: Ensure VPN config type directories exist before start
+  ansible.builtin.file:
+    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}'
+    state: directory
+    owner: '{{ container_uid }}'
+    group: '{{ container_gid }}'
+    mode: '755'
+  loop:
+    - transmission
+  when:
+    - item in enabled_containers
+    - item == 'transmission' and hmsdocker_vpn_provider == 'custom'
+
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
   when: hmsdocker_container_enabled_traefik

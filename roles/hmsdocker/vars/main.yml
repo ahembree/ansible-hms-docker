@@ -13,7 +13,7 @@ hmsdocker_container_enabled_authentik: "{{ hms_docker_container_map['authentik']
 hmsdocker_container_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_radarr: "{{ hms_docker_container_map['radarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_bazarr: "{{ hms_docker_container_map['bazarr']['enabled'] | default(False) }}"
-hmsdocker_container_enabled_transmission: "{{ (hms_docker_container_map['transmission']['enabled'] | default(False)) and (transmission_vpn_provider is defined and transmission_vpn_user is defined and transmission_vpn_pass is defined) | default(False) }}"
+hmsdocker_container_enabled_transmission: "{{ hms_docker_container_map['transmission']['enabled'] | default(False) and (hmsdocker_vpn_provider is defined and hmsdocker_vpn_user is defined and hmsdocker_vpn_pass is defined) | default(False) }}"
 hmsdocker_container_enabled_overseerr: "{{ hms_docker_container_map['overseerr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_prowlarr: "{{ hms_docker_container_map['prowlarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_requestrr: "{{ hms_docker_container_map['requestrr']['enabled'] | default(False) }}"

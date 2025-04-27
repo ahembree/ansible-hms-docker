@@ -1,9 +1,4 @@
 ### VPN and Transmission settings
-# Visit https://haugene.github.io/docker-transmission-openvpn/supported-providers/ for supported VPN providers
-# The VPN provider to use and the credentials to use for the VPN connection
-transmission_vpn_provider: ""
-transmission_vpn_user: ""
-transmission_vpn_pass: ""
 
 # Transmission seed ratio settings
 transmission_ratio_limit: "1" # default: "1"
@@ -31,7 +26,7 @@ transmission_additional_env_vars:
 transmission_ovpn_config_file: ""
 
 # default: ""
-transmission_ovpn_config_local_path: ""
+transmission_ovpn_config_local_dir: ""
 
 # The git repo where the .ovpn file is stored, see: https://github.com/haugene/vpn-configs-contrib/blob/main/CONTRIBUTING.md
 # If this is left blank, it will use the default that comes with the container # default: ""
