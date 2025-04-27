@@ -23,14 +23,14 @@
         path: "{{ sabnzbd_config_path.stat.path }}"
       register: slurped_sabnzbd_data
       check_mode: false
-      no_log: false
+      no_log: "{{ not debug_mode }}"
 
     - name: Pull current sabnzbd allowed hosts
       ansible.builtin.set_fact:
         slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | split(',') }}"
         cacheable: false
       when: slurped_sabnzbd_data['content'] is defined
-      no_log: true
+      no_log: "{{ not debug_mode }}"
 
     - name: Ensure sabnzbd container config has allowlisted hostname
       ansible.builtin.replace:

@@ -8,7 +8,7 @@
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     arr_apikey: '(?<=\<ApiKey\>)\w*(?=\<\/ApiKey\>)'
-    
+    debug_mode: false
 
   roles:
     - galaxy-roles/geerlingguy.docker
