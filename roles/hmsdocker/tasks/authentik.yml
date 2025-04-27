@@ -9,7 +9,7 @@
     backup: yes
     force: no
   register: authentik_key_template_output
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
@@ -23,7 +23,7 @@
     backup: yes
     force: no
   register: authentik_pgpass_template_output
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
@@ -33,7 +33,7 @@
   register: slurped_key_data
   check_mode: false
   when: authentik_key_template_output.dest is defined
-  no_log: true
+  no_log: "{{ not debug_mode }}"
 
 - name: Slurp authentik postgres password data
   ansible.builtin.slurp:
@@ -41,7 +41,7 @@
   register: slurped_pg_pass_data
   check_mode: false
   when: authentik_pgpass_template_output.dest is defined
-  no_log: true
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure Outposts directory
   ansible.builtin.file:

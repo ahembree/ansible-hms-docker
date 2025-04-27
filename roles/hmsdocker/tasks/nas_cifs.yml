@@ -18,6 +18,7 @@
     username: "{{ nas_client_cifs_username }}"
     password: "{{ nas_client_cifs_password }}"
   register: cifs_creds_file
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure CIFS fstab entry.
   ansible.posix.mount:

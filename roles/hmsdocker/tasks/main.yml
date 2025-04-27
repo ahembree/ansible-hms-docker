@@ -71,7 +71,7 @@
   when:
     - nas_client_remote_additional_paths is defined
     - nas_client_use_additional_paths is defined and nas_client_use_additional_paths
-  no_log: yes
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure library folders.
   ansible.builtin.file:
@@ -156,7 +156,7 @@
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   register: compose_env
   vars:
     authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
