@@ -13,16 +13,3 @@ hmsdocker_vpn_provider:
 # Your VPN credentials if authentication is not embedded in the config file
 hmsdocker_vpn_user:
 hmsdocker_vpn_pass:
-
-# If using `qbittorrent` or `deluge` and a provider that supports WireGuard, enter the Wireguard private key here (the credentials above will not be used)
-hmsdocker_vpn_wireguard_private_key:
-
-# `gluetun` additional environment variables (optional)
-# These vary between VPN providers
-hmsdocker_vpn_gluetun_env_vars: {
-  "SERVER_COUNTRIES": ,
-  "SERVER_REGIONS": ,
-  "SERVER_CITIES": ,
-  "SERVER_HOSTNAMES": ,
-  "SERVER_CATEGORIES": ,
-}

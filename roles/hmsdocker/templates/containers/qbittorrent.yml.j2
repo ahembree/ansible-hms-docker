@@ -1,0 +1,67 @@
+services:
+  qbittorrent:
+    image: binhex/arch-qbittorrentvpn
+    container_name: qbittorrent
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    {% if hmsdocker_vpn_type == 'wireguard' %}
+    privileged: true
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    {% else %}
+    cap_add:
+      - NET_ADMIN
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - WEBUI_PORT=8086
+      - VPN_ENABLED=yes
+      - VPN_USER=${VPN_USER}
+      - VPN_PASS=${VPN_PASS}
+      - VPN_PROV=custom
+      - VPN_CLIENT={{ hmsdocker_vpn_type }}
+      - ENABLE_PRIVOXY=yes
+      - LAN_NETWORK={{ hms_docker_network_subnet }}
+    volumes:
+      - ${HMSD_APPS_PATH}/qbittorrent/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_qbittorrent %}
+    ports:
+      - 8086:8086
+      - 8118:8118 # privoxy
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_qbittorrent or hmsdocker_homepage_enabled_qbittorrent %}
+    labels:
+      {% if hmsdocker_traefik_enabled_qbittorrent %}
+      - traefik.enable=true
+      - traefik.http.services.qbittorrent-${COMPOSE_PROJECT}.loadbalancer.server.port=8086
+      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_qbittorrent %}
+      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_qbittorrent %}
+      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-qbittorrent-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_qbittorrent %}
+      - homepage.group=Downloads
+      - homepage.name=qbittorrent
+      - homepage.icon=qbittorrent.png
+      - homepage.href=http://{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}
+      - homepage.description=Torrent Management
+      - homepage.widget.type=qbittorrent
+      - homepage.widget.url=http://qbittorrent:8086
+        {% if hmsdocker_homepage_stats_enabled_qbittorrent %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

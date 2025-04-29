@@ -101,18 +101,8 @@
   when: 
     - separate_4k_instances_enable | default(false)
 
-- name: Ensure VPN config type directories exist before start
-  ansible.builtin.file:
-    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}'
-    state: directory
-    owner: '{{ container_uid }}'
-    group: '{{ container_gid }}'
-    mode: '755'
-  loop:
-    - transmission
-  when:
-    - item in enabled_containers
-    - item == 'transmission' and hmsdocker_vpn_provider == 'custom'
+- name: Run VPN initialization tasks
+  ansible.builtin.import_tasks: "vpn_setup.yml"
 
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
@@ -234,9 +224,9 @@
   ansible.builtin.import_tasks: "scripts.yml"
   when: custom_scripts_enabled | default(false)
 
-- name: Ensure Transmission and VPN connection
-  ansible.builtin.import_tasks: "transmission.yml"
-  when: 
-    - hmsdocker_container_enabled_transmission
+- name: Ensure VPN connection
+  ansible.builtin.import_tasks: "vpn.yml"
+  when:
+    - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent
     - not ansible_check_mode
     - not is_github_runner | default(false)

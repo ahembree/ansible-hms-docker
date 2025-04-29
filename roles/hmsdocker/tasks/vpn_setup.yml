@@ -1,0 +1,27 @@
+- name: Ensure VPN config type directories exist before start
+  ansible.builtin.file:
+    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}'
+    state: directory
+    owner: '{{ container_uid }}'
+    group: '{{ container_gid }}'
+    mode: '755'
+  loop:
+    - transmission
+    - qbittorrent
+    - deluge
+  when: item in enabled_containers and item != 'transmission' or (item == 'transmission' and hmsdocker_vpn_provider == 'custom' and hmsdocker_vpn_type == 'openvpn')
+
+- name: Ensure WireGuard config exists with restricted permissions
+  ansible.builtin.file:
+    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+    state: touch
+    owner: '{{ container_uid }}'
+    group: '{{ container_gid }}'
+    mode: '600'
+  when:
+    - item in enabled_containers
+    - hmsdocker_vpn_type == 'wireguard'
+  loop:
+    - qbittorrent
+    - deluge
+
