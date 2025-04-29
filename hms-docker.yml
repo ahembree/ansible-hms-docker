@@ -32,3 +32,4 @@
     when:
       - hmsdocker_container_enabled_traefik
       - traefik_verify_endpoints | default(false)
+    ignore_errors: true

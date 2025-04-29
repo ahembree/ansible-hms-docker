@@ -344,6 +344,28 @@
       "expose_to_public": false,
       "homepage": true,
       "homepage_stats": false,
+    },
+    "qbittorrent": {
+      "enabled": false,
+      "proxy_host_rule": qbittorrent,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
+    "deluge": {
+      "enabled": false,
+      "proxy_host_rule": deluge,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
     }
   }
 }
