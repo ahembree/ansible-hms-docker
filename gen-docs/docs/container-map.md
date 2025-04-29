@@ -59,7 +59,11 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | PASTA                                    | &#9744;            | `pasta`              | `8085`                 | `80`              | &#9745;                |
 | Wizarr                                   | &#9744;            | `wizarr`             | `5690`                 | `5690`            | &#9745;                |
 | Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                 | `5055`            | &#9745;                |
-| qBittorrent                              | &#9744;            | `qbittorrent`        | `8086`,`6881`          | `8086`,`6881`     | &#9745;                |
+| qBittorrent                              | &#9744;            | `qbittorrent`        | `8086`                 | `8086`            | &#9745;                |
+| qBittorrent (HTTP Proxy)                 | &#9744;            | `qbittorrent`        | `8118`                 | `8118`            | &#9744;                |
+| Deluge                                   | &#9744;            | `deluge`             | `8112`                 | `8112`            | &#9745;                |
+| Deluge (HTTP Proxy)                      | &#9744;            | `deluge`             | `8119`                 | `8118`            | &#9744;                |
+
 
 ## Container Map Entry Example
 

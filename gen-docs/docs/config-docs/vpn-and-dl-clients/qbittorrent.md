@@ -15,7 +15,6 @@ After updating the VPN config file, run `docker restart qbittorrent`
 Requires the following variables:
 
 * `hmsdocker_vpn_type`: `openvpn`
-* `hmsdocker_vpn_provider`: see [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
 * `hmsdocker_vpn_user`: Your VPN account/service account username
 * `hmsdocker_vpn_pass`: Your VPN account/service account password
 

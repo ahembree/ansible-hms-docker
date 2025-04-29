@@ -227,6 +227,6 @@
 - name: Ensure VPN connection
   ansible.builtin.import_tasks: "vpn.yml"
   when:
-    - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent
+    - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent or hmsdocker_container_enabled_deluge
     - not ansible_check_mode
     - not is_github_runner | default(false)

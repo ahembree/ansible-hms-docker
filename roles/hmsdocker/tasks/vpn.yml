@@ -15,6 +15,7 @@
   loop:
     - transmission
     - qbittorrent
+    - deluge
   when:
     - item in enabled_containers
   register: vpn_public_ip
