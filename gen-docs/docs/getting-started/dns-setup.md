@@ -30,6 +30,8 @@ If you enabled Cloudflare DDNS, an `overseerr` public `A` record will be created
 
 :::note
 
+The below only applies if you are NOT using a [Cloudflare Tunnel](../config-docs/Cloudflare/tunnel.md):
+
 Although this DNS record is created automatically, you will need to set the `expose_to_public` value to `yes` for the `overseerr` container in the [Container Map](../container-map.md) config file if you want Overseerr to be public
 
 :::
@@ -45,3 +47,5 @@ To grant public access to other containers, you will need to:
   b.) `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `overseerr.example.com`)
 
 - Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](../container-map.md)
+
+- OR use a [Cloudflare Tunnel](../config-docs/Cloudflare/tunnel.md)
