@@ -1,0 +1,66 @@
+services:
+  deluge:
+    image: binhex/arch-delugevpn
+    container_name: deluge
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    {% if hmsdocker_vpn_type == 'wireguard' %}
+    privileged: true
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    {% else %}
+    cap_add:
+      - NET_ADMIN
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - VPN_ENABLED=yes
+      - VPN_USER=${VPN_USER}
+      - VPN_PASS=${VPN_PASS}
+      - VPN_PROV=custom
+      - VPN_CLIENT={{ hmsdocker_vpn_type }}
+      - ENABLE_PRIVOXY=yes
+      - LAN_NETWORK={{ hms_docker_network_subnet }}
+    volumes:
+      - ${HMSD_APPS_PATH}/deluge/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_expose_ports_enabled_deluge %}
+    ports:
+      - 8112:8112
+      - 8119:8118 # privoxy
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_deluge or hmsdocker_homepage_enabled_deluge %}
+    labels:
+      {% if hmsdocker_traefik_enabled_deluge %}
+      - traefik.enable=true
+      - traefik.http.services.deluge-${COMPOSE_PROJECT}.loadbalancer.server.port=8112
+      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_deluge %}
+      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_deluge %}
+      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-deluge-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_deluge %}
+      - homepage.group=Downloads
+      - homepage.name=deluge
+      - homepage.icon=deluge.png
+      - homepage.href=http://{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}
+      - homepage.description=Torrent Management
+      - homepage.widget.type=deluge
+      - homepage.widget.url=http://deluge:8112
+        {% if hmsdocker_homepage_stats_enabled_deluge %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

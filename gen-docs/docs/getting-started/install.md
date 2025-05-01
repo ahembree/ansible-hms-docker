@@ -143,7 +143,7 @@ In `inventory/group_vars/all/main.yml`:
   - `cifs` if using Samba or a Windows file share
   - `local` if using a local drive/directory on the same system
 
-- `hms_docker_mount_path` : Recommended to change if using a network share and/or other drive in the system.
+- `hms_docker_mount_path` : This is where the media and download folders will be "mounted". Recommended to change if using a network share and/or other drive in the system.
 
 #### Plex (if enabled)
 
@@ -151,13 +151,15 @@ In `inventory/group_vars/all/plex.yml`:
 
 - `plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
 
-#### Download Client (if enabled)
+#### VPN and Download Client (if enabled)
 
-In `inventory/group_vars/all/transmission.yml`:
+In `inventory/group_vars/all/vpn.yml`:
 
-- `transmission_vpn_provider` : the VPN provider code (e.g. `NORDVPN`, [see this page for the list of supported providers](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers))
-- `transmission_vpn_user` : the username of the VPN user
-- `transmission_vpn_pass` : the password of the VPN user
+- `hmsdocker_vpn_provider` : the VPN provider code (e.g. `NORDVPN`, [see this page for the list of supported providers](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers))
+- `hmsdocker_vpn_user` : the username of the VPN user
+- `hmsdocker_vpn_pass` : the password of the VPN user
+
+For more info, see the [VPN and Download Client](../category/vpn-and-download-clients) docs
 
 #### SSL
 
@@ -179,9 +181,15 @@ sudo make check
 sudo make apply
 ```
 
-### Advanced Playbook Run
+### Debug mode
 
-If 
+There is a debug mode you can control from a variable in `hms-docker.yml`
+
+:::warning
+
+Debug mode will also potentially output "secrets" (passwords, API keys) when enabled
+
+:::
 
 ## Next Steps
 

@@ -1,12 +1,22 @@
 # Transmission
 
-Settings mentioned below should already exist in your `inventory/group_vars/all/transmission.yml` file
+This setup uses the container maintained here: [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn)
 
-## Using a different VPN location or type
+Settings mentioned below should already exist in your `inventory/group_vars/all/vpn.yml` or `inventory/group_vars/all/transmission.yml` file
+
+## OpenVPN
+
+Requires the following variables:
+
+* `hmsdocker_vpn_provider`: see [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
+* `hmsdocker_vpn_user`: Your VPN account/service account username
+* `hmsdocker_vpn_pass`: Your VPN account/service account password
+
+### Using a different VPN location or type
 
 For supported providers, you can change the server location and/or type.
 
-1. Make sure `transmission_vpn_provider` is set to your correct provider
+1. Make sure `hmsdocker_vpn_provider` is set to your correct provider
 
     a. You can find supported providers at [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
 
@@ -17,18 +27,20 @@ For supported providers, you can change the server location and/or type.
 For example, if you wanted to use the US Chicago server for mullvad:
 
 ```yml
-transmission_vpn_provider: MULLVAD
+hmsdocker_vpn_provider: MULLVAD
 ...
 transmission_ovpn_config_file: us_chi
 ```
 
-## Using a local OpenVPN config file
+### Custom Provider
 
-1. Change `transmission_vpn_provider` to `custom`
+#### Using a local OpenVPN config file
+
+1. Change `hmsdocker_vpn_provider` to `custom`
 
 2. Change `transmission_ovpn_config_file` to the `.ovpn` file name, and remove the `.ovpn` from the end
 
-3. Change `transmission_ovpn_config_local_path` to the folder path where the above file is stored
+3. Change `transmission_ovpn_config_local_dir` to the folder path where the above file is stored
 
     a. If needed by your provider/server, make sure certificate files and any others are also in the same folder
 
@@ -36,5 +48,5 @@ For example, if you had a custom file named `test-vpn.ovpn` located in `/opt/hms
 
 ```yml
 transmission_ovpn_config_file: test-vpn
-transmission_ovpn_config_local_path: /opt/hms-docker/vpn_configs
+transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 ```

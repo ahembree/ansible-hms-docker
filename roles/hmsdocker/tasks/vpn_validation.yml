@@ -1,0 +1,73 @@
+---
+- name: Obtain host current public IP
+  community.general.ipify_facts:
+  register: public_ip
+  ignore_errors: true
+
+- name: Wait 15 secs for VPNs to init
+  ansible.builtin.wait_for:
+    timeout: 15
+
+- name: Get VPN IPs from containers
+  community.docker.docker_container_exec:
+    container: '{{ item }}'
+    command: sh -c 'command -v curl >/dev/null && curl -s api.ipify.org || wget -qO- api.ipify.org'
+  loop:
+    - transmission
+    - qbittorrent
+    - deluge
+  when:
+    - item in enabled_containers
+  register: vpn_public_ip
+  changed_when: false
+
+- name: Initialize empty variable for IP results
+  ansible.builtin.set_fact:
+    slimmed_vpn_public_ip_results: []
+  no_log: "{{ not debug_mode }}"
+
+- name: Append IP results to slim output
+  ansible.builtin.set_fact:
+    slimmed_vpn_public_ip_results: "{{ slimmed_vpn_public_ip_results + [{'item': item.item | default(''), 'vpn_ip': item.stdout | default(''), 'skipped': item.skipped | default(false)}] }}"
+  loop: "{{ vpn_public_ip.results }}"
+  no_log: "{{ not debug_mode }}"
+
+- name: Ensure public IP and VPN public IP are different
+  ansible.builtin.debug:
+    msg:
+      - Your public IP is protected in {{ item.item }}!
+      - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
+      - "Current {{ item.item }} VPN IP: {{ item.vpn_ip }}"
+  when:
+    - not ansible_check_mode
+    - not item.skipped
+    - ansible_facts['ipify_public_ip'] is defined
+    - ansible_facts['ipify_public_ip'] != item.vpn_ip
+  loop: "{{ slimmed_vpn_public_ip_results }}"
+
+- name: Stop VPN container if public IP and VPN IP match
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: stopped
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - "{{ item.item }}"
+  loop: "{{ slimmed_vpn_public_ip_results }}"
+  when:
+    - not item.skipped | default(True)
+    - item.vpn_ip is defined
+    - ansible_facts['ipify_public_ip'] == item.vpn_ip or ansible_facts['ipify_public_ip'] == '' or ansible_facts['ipify_public_ip'] is undefined
+
+- name: Print error message if public IP and VPN IP are identical
+  ansible.builtin.debug:
+    msg:
+      - 🔴 Your public IP is NOT protected in {{ item.item }}! 🔴
+      - "Current public IP: {{ ansible_facts['ipify_public_ip'] }}"
+      - "Current {{ item.item }} VPN IP: {{ item.vpn_ip }}"
+      - 🔴 The {{ item.item }} container has been stopped 🔴
+  loop: "{{ slimmed_vpn_public_ip_results }}"
+  when:
+    - not item.skipped | default(True)
+    - item.vpn_ip is defined
+    - ansible_facts['ipify_public_ip'] == item.vpn_ip or ansible_facts['ipify_public_ip'] == '' or ansible_facts['ipify_public_ip'] is undefined

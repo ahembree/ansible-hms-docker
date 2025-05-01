@@ -3,12 +3,12 @@
   become: yes
   gather_facts: yes
   vars:
-    hmsd_current_version: 1.6
+    hmsd_current_version: 1.7
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     arr_apikey: '(?<=\<ApiKey\>)\w*(?=\<\/ApiKey\>)'
-    
+    debug_mode: false
 
   roles:
     - galaxy-roles/geerlingguy.docker
@@ -32,3 +32,4 @@
     when:
       - hmsdocker_container_enabled_traefik
       - traefik_verify_endpoints | default(false)
+    ignore_errors: true

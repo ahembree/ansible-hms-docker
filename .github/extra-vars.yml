@@ -64,7 +64,7 @@
       "homepage_stats": true
     },
     "portainer": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": portainer,
       "directory": true,
       "traefik": true,
@@ -75,7 +75,7 @@
       "homepage_stats": false
     },
     "overseerr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": overseerr,
       "directory": true,
       "traefik": true,
@@ -86,7 +86,7 @@
       "homepage_stats": false
     },
     "prowlarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": prowlarr,
       "directory": true,
       "traefik": true,
@@ -97,7 +97,7 @@
       "homepage_stats": false
     },
     "requestrr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": requestrr,
       "directory": true,
       "traefik": true,
@@ -119,7 +119,7 @@
       "homepage_stats": true
     },
     "tautulli": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": tautulli,
       "directory": true,
       "traefik": true,
@@ -130,7 +130,7 @@
       "homepage_stats": false
     },
     "nzbget": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": nzbget,
       "directory": true,
       "traefik": true,
@@ -141,7 +141,7 @@
       "homepage_stats": true
     },
     "sabnzbd": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": sabnzbd,
       "directory": true,
       "traefik": true,
@@ -163,7 +163,7 @@
       "homepage_stats": false
     },
     "tdarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": tdarr,
       "directory": true,
       "traefik": true,
@@ -185,7 +185,7 @@
       "homepage_stats": false
     },
     "uptimekuma": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": uptime-kuma,
       "directory": true,
       "traefik": true,
@@ -194,7 +194,7 @@
       "expose_to_public": false
     },
     "heimdall": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": heimdall,
       "directory": true,
       "traefik": true,
@@ -203,7 +203,7 @@
       "expose_to_public": false
     },
     "readarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": readarr,
       "directory": true,
       "traefik": true,
@@ -212,7 +212,7 @@
       "expose_to_public": false
     },
     "kavita": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": kavita,
       "directory": true,
       "traefik": true,
@@ -221,7 +221,7 @@
       "expose_to_public": false
     },
     "calibre": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": calibre,
       "directory": true,
       "traefik": true,
@@ -230,7 +230,7 @@
       "expose_to_public": false
     },
     "jellyfin": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": jellyfin,
       "directory": true,
       "traefik": true,
@@ -241,7 +241,7 @@
       "homepage_stats": false
     },
     "emby": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": emby,
       "directory": true,
       "traefik": true,
@@ -252,7 +252,7 @@
       "homepage_stats": false
     },
     "maintainerr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "maintainerr",
       "directory": true,
       "traefik": true,
@@ -261,7 +261,7 @@
       "expose_to_public": false,
     },
     "unpackerr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "unpackerr",
       "directory": true,
       "traefik": true,
@@ -270,7 +270,7 @@
       "expose_to_public": false,
     },
     "lidarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "lidarr",
       "directory": true,
       "traefik": true,
@@ -281,7 +281,7 @@
       "homepage_stats": false
     },
     "autobrr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "autobrr",
       "directory": true,
       "traefik": true,
@@ -292,7 +292,7 @@
       "homepage_stats": false
     },
     "speedtest-tracker": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "speedtest",
       "directory": true,
       "traefik": true,
@@ -301,11 +301,11 @@
       "expose_to_public": false,
     },
     "recyclarr": {
-      "enabled": true,
+      "enabled": false,
       "directory": true,
     },
     "tinymediamanager": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "tmm",
       "directory": true,
       "traefik": true,
@@ -314,7 +314,7 @@
       "expose_to_public": false,
     },
     "pasta": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "pasta",
       "directory": true,
       "traefik": true,
@@ -323,10 +323,10 @@
       "expose_to_public": false,
     },
     "netdata": {
-      "enabled": true
+      "enabled": false
     },
     "wizarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": "wizarr",
       "directory": true,
       "traefik": true,
@@ -335,8 +335,30 @@
       "expose_to_public": false,
     },
     "jellyseerr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": jellyseerr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
+    "qbittorrent": {
+      "enabled": false,
+      "proxy_host_rule": qbittorrent,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
+    "deluge": {
+      "enabled": false,
+      "proxy_host_rule": deluge,
       "directory": true,
       "traefik": true,
       "authentik": false,

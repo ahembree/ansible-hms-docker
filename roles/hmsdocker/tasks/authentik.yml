@@ -9,7 +9,7 @@
     backup: yes
     force: no
   register: authentik_key_template_output
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
@@ -23,7 +23,7 @@
     backup: yes
     force: no
   register: authentik_pgpass_template_output
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
@@ -33,7 +33,7 @@
   register: slurped_key_data
   check_mode: false
   when: authentik_key_template_output.dest is defined
-  no_log: true
+  no_log: "{{ not debug_mode }}"
 
 - name: Slurp authentik postgres password data
   ansible.builtin.slurp:
@@ -41,7 +41,7 @@
   register: slurped_pg_pass_data
   check_mode: false
   when: authentik_pgpass_template_output.dest is defined
-  no_log: true
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure Outposts directory
   ansible.builtin.file:
@@ -54,13 +54,9 @@
 - name: Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik_outpost.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}.outpost.yml"
     mode: 0644
-  with_dict: "{{ hms_docker_container_map }}"
-  when: 
-    - item.value.enabled 
-    - item.value.authentik is defined and item.value.authentik
-    - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
+  loop: "{{ authentik_proxy_enabled_containers }}"
 
 - name: Ensure authentik Outpost configs for static traefik configs
   ansible.builtin.template:
@@ -68,20 +64,17 @@
     dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.outpost.yml"
     mode: 0644
   with_items: "{{ traefik_ext_hosts_list }}"
-  when: 
-    - item.enabled 
-    - item.authentik is defined and item.authentik
-    - item.authentik_provider_type is defined and item.authentik_provider_type == 'proxy'
+  when:
+    - item.enabled | default(false)
+    - item.authentik | default(false) 
+    - item.authentik_provider_type | default('proxy') == 'proxy'
 
 - name: Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
     src: authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.key }}-{{ separate_4k_instances_suffix }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-{{ separate_4k_instances_suffix }}.outpost.yml"
     mode: 0644
-  with_dict: "{{ hms_docker_container_map }}"
+  loop: "{{ authentik_proxy_enabled_containers }}"
   when: 
-    - item.value.enabled 
-    - item.value.authentik is defined and item.value.authentik
-    - item.key == 'sonarr' or item.key == 'radarr'
-    - item.value.authentik_provider_type is defined and item.value.authentik_provider_type == 'proxy'
-    - separate_4k_instances_enable is defined and separate_4k_instances_enable
+    - item.name in ['sonarr', 'radarr']
+    - separate_4k_instances_enable | default(false)

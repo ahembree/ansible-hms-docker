@@ -2,7 +2,8 @@
 - name: Run versioning checks
   ansible.builtin.import_tasks: "versioning.yml"
 
-- name: Build facts of enabled containers
+# All these facts do is process data from the container map to reduce text output during playbook runs
+- name: Build facts of enabled containers to slim play output
   ansible.builtin.set_fact:
     enabled_containers: >-
           {{
@@ -36,6 +37,20 @@
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
+    # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
+    authentik_proxy_enabled_containers: >
+          [
+          {% for item in hms_docker_container_map | dict2items
+              if item.value.enabled is defined and item.value.enabled == true
+              and item.value.traefik is defined and item.value.traefik == true
+              and item.value.authentik is defined and item.value.authentik == true
+              and item.value.proxy_host_rule is defined %}
+            {
+              "name": "{{ item.key }}",
+              "proxy_host_rule": "{{ item.value.proxy_host_rule }}"
+            }{% if not loop.last %},{% endif %}
+          {% endfor %}
+          ]
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
@@ -56,7 +71,7 @@
   when:
     - nas_client_remote_additional_paths is defined
     - nas_client_use_additional_paths is defined and nas_client_use_additional_paths
-  no_log: yes
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure library folders.
   ansible.builtin.file:
@@ -85,6 +100,9 @@
     - radarr
   when: 
     - separate_4k_instances_enable | default(false)
+
+- name: Run VPN initialization tasks
+  ansible.builtin.import_tasks: "vpn_setup.yml"
 
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
@@ -128,7 +146,7 @@
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   register: compose_env
   vars:
     authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
@@ -191,7 +209,7 @@
     state: "{{ hms_docker_compose_container_state }}"
     remove_orphans: "{{ container_remove_orphans }}"
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location
-  when: 
+  when:
     - not ansible_check_mode
 
 - name: Sabnzbd additional config
@@ -206,9 +224,9 @@
   ansible.builtin.import_tasks: "scripts.yml"
   when: custom_scripts_enabled | default(false)
 
-- name: Ensure Transmission and VPN connection
-  ansible.builtin.import_tasks: "transmission.yml"
-  when: 
-    - hmsdocker_container_enabled_transmission
+- name: Ensure VPN connection
+  ansible.builtin.import_tasks: "vpn_validation.yml"
+  when:
+    - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent or hmsdocker_container_enabled_deluge
     - not ansible_check_mode
     - not is_github_runner | default(false)

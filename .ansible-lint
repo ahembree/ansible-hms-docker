@@ -1,4 +1,8 @@
 skip_list:
-  - 'yaml'
-  - 'risky-shell-pipe'
-  - 'role-name'
+  - yaml[line-length]
+  - yaml[colons]
+  - role-name[path]
+
+exclude_paths:
+  - ./galaxy-roles
+  - ./gen-docs

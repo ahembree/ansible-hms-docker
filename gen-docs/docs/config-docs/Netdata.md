@@ -12,7 +12,7 @@ docker exec -it netdata cat /var/lib/netdata/netdata_random_session_id
 
 Since Netdata uses the `host` network mode, it cannot be connected to Traefik via the Docker internal network which results in it not being "auto-discovered" by Traefik.
 
-Instead, you will have to treat it as an "external service" to Traefik. More documentation is available in the [External Services](./traefik/external-svcs.md) Traefik documentation for configuring external services, but the below should help.
+Instead, you will have to treat it as an "external service" to Traefik. More documentation is available in the [External Services](./traefik/other-svcs.md) Traefik documentation for configuring external services, but the below should help.
 
 In `inventory/group_vars/all/traefik.yml`, set `traefik_ext_hosts_enabled` to `yes` and uncomment the lines in `traefik_ext_hosts_list` that are related to Netdata (like below):
 

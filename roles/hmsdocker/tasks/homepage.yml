@@ -7,7 +7,7 @@
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
     force: no
-  no_log: true
+  no_log: "{{ not debug_mode }}"
   register: watchtower_key_output
   vars:
     key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
@@ -18,7 +18,7 @@
   register: slurped_watchtower_key_data
   check_mode: false
   when: watchtower_key_output.dest is defined
-  no_log: true
+  no_log: "{{ not debug_mode }}"
 
 - name: Ensure homepage docker config
   ansible.builtin.copy:
