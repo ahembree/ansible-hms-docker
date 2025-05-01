@@ -181,9 +181,15 @@ sudo make check
 sudo make apply
 ```
 
-### Advanced Playbook Run
+### Debug mode
 
-If 
+There is a debug mode you can control from a variable in `hms-docker.yml`
+
+:::warning
+
+Debug mode will also potentially output "secrets" (passwords, API keys) when enabled
+
+:::
 
 ## Next Steps
 

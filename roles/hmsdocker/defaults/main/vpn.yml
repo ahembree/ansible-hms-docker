@@ -1,7 +1,8 @@
 # VPN-specific settings
 
 # For `qbittorrent` or `deluge` container, you can use either: `openvpn`, `wireguard`
-# The Transmission container only supports `openvpn`
+# The Transmission container only supports `openvpn` or `custom`
+#     `custom` requires variables to be configured in `inventory/group_vars/all/transmission.yml`
 hmsdocker_vpn_type: openvpn
 
 # If using `transmission`, find your provider here: https://haugene.github.io/docker-transmission-openvpn/supported-providers/
