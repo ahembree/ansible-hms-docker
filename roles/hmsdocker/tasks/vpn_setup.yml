@@ -24,4 +24,4 @@
   loop:
     - qbittorrent
     - deluge
-
+  changed_when: false
