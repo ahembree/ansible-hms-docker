@@ -57,6 +57,7 @@ update:
 	@sed -i 's\transmission_vpn_user:\hmsdocker_vpn_user:\g' $(CUSTOM_CONF_DIR)/transmission.yml
 	@sed -i 's\transmission_vpn_pass:\hmsdocker_vpn_pass:\g' $(CUSTOM_CONF_DIR)/transmission.yml
 	@sed -i 's\transmission_ovpn_config_local_path:\transmission_ovpn_config_local_dir:\g' $(CUSTOM_CONF_DIR)/transmission.yml
+	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml || echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
 	@echo Update finished
 
 help:
