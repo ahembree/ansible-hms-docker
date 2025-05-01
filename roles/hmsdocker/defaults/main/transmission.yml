@@ -1,4 +1,4 @@
-### VPN and Transmission settings
+# Transmission-specific settings
 
 # Transmission seed ratio settings
 transmission_ratio_limit: "1" # default: "1"
