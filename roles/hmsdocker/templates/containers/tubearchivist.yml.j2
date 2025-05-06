@@ -53,7 +53,7 @@ services:
       {% endif %}
       {% if hmsdocker_homepage_enabled_tubearchivist %}
       - homepage.group=Managers
-      - homepage.name=tubearchivist
+      - homepage.name=Tubearchivist
       - homepage.icon=tubearchivist.png
       - homepage.href=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}
       - homepage.description=YouTube Archiver

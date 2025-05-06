@@ -377,6 +377,28 @@
       "expose_to_public": false,
       "homepage": true,
       "homepage_stats": false,
+    },
+    "tubearchivist": {
+      "enabled": false,
+      "proxy_host_rule": tubearchivist,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
+    "pinchflat": {
+      "enabled": false,
+      "proxy_host_rule": pinchflat,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
     }
   }
 }
