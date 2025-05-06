@@ -104,6 +104,9 @@
 - name: Run VPN initialization tasks
   ansible.builtin.import_tasks: "vpn_setup.yml"
 
+- name: Run Youtube downloader initialization tasks
+  ansible.builtin.import_tasks: "youtube_downloaders.yml"
+
 - name: Ensure Traefik
   ansible.builtin.import_tasks: "traefik.yml"
   when: hmsdocker_container_enabled_traefik

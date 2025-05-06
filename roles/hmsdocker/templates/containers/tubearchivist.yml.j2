@@ -16,7 +16,7 @@ services:
       - 8001:8001
     {% endif %}
     volumes:
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube:/youtube
+      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/tubearchivist:/youtube
       - ${HMSD_APPS_PATH}/tubearchivist/config/cache:/cache
     environment:
       - ES_URL=http://tubearchivist-es:9200
