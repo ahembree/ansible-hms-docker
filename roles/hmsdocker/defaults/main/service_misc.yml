@@ -71,3 +71,6 @@ hmsdocker_recyclarr_force_config_update: no
 
 # VNC password for TinyMediaManager
 hmsdocker_tinymediamanager_vnc_password:
+
+hmsdocker_tubearchivist_username: tubearchivist
+hmsdocker_tubearchivist_password: verysecret
