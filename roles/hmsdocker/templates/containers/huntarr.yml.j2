@@ -1,0 +1,46 @@
+services:
+  huntarr:
+    image: huntarr/huntarr:latest
+    container_name: huntarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_huntarr %}
+    ports:
+      - 9705:9705
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/huntarr/config:/config
+    {% if hmsdocker_traefik_enabled_huntarr or hmsdocker_homepage_enabled_huntarr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_huntarr %}
+      - traefik.enable=true
+      - traefik.http.services.huntarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9705
+      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['huntarr']['proxy_host_rule'] | default('huntarr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_huntarr %}
+      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_huntarr %}
+      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-huntarr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_huntarr %}
+      - homepage.group=Managers
+      - homepage.name=Huntarr
+      - homepage.icon=huntarr.png
+      - homepage.href=http://{{ hms_docker_container_map['huntarr']['proxy_host_rule'] | default('huntarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Download Manager
+      {% if hmsdocker_homepage_stats_enabled_huntarr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

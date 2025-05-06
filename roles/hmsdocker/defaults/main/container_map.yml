@@ -341,3 +341,11 @@ hms_docker_container_map:
     expose_to_public: no
     homepage: yes
     homepage_stats: yes
+  huntarr:
+    enabled: no
+    proxy_host_rule: huntarr
+    authentik: yes
+    directory: yes
+    traefik: yes
+    homepage: yes
+    homepage_stats: yes
