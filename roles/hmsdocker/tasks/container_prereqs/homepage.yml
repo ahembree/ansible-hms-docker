@@ -1,5 +1,5 @@
 ---
-- name: Ensure Watchtower API key
+- name: Homepage Prereq - Ensure Watchtower API key
   ansible.builtin.template:
     src: authentik_secret.j2
     dest: "{{ hms_docker_data_path }}/.watchtower.key"
@@ -12,7 +12,7 @@
   vars:
     key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
 
-- name: Slurp Watchtower key data
+- name: Homepage Prereq - Slurp Watchtower key data
   ansible.builtin.slurp:
     src: "{{ watchtower_key_output.dest }}"
   register: slurped_watchtower_key_data
@@ -20,7 +20,7 @@
   when: watchtower_key_output.dest is defined
   no_log: "{{ not debug_mode }}"
 
-- name: Ensure homepage docker config
+- name: Homepage Prereq - Ensure homepage docker config
   ansible.builtin.copy:
     src: homepage_docker.yaml
     dest: "{{ hms_docker_apps_path }}/homepage/config/docker.yaml"
@@ -29,7 +29,7 @@
     group: "{{ container_gid }}"
     force: no
     
-- name: Ensure homepage services config
+- name: Homepage Prereq - Ensure homepage services config
   ansible.builtin.copy:
     src: homepage_services.yaml
     dest: "{{ hms_docker_apps_path }}/homepage/config/services.yaml"

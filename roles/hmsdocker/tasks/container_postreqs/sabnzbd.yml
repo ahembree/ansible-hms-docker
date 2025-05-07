@@ -1,38 +1,46 @@
 ---
-- name: Check if config file exists
+- name: Sabnzbd Postreq - Check if config file exists
   ansible.builtin.stat:
     path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
   register: sabnzbd_config_path
 
-# Cmd is used here instead of a "trigger" to then restart the container using the docker module since this will trigger automatically
-- name: restart sabnzbd inline if config not exist
-  ansible.builtin.shell:
-    cmd: docker restart sabnzbd && sleep 10
+- name: Sabnzbd Postreq - restart sabnzbd inline if config not exist
   when: not sabnzbd_config_path.stat.exists
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - sabnzbd
 
-- name: Check if config file exists after container restart
+- name: Wait 5 secs for Sabnzbd to init
+  ansible.builtin.wait_for:
+    timeout: 5
+
+- name: Sabnzbd Postreq - Check if config file exists after container restart
   ansible.builtin.stat:
     path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
   register: sabnzbd_config_path
 
-- name: Configure sabnzbd config file
+- name: Sabnzbd Postreq - Configure sabnzbd config file
   when: sabnzbd_config_path.stat.exists
   block:
-    - name: Get current sabnzbd config file contents
+    - name: Sabnzbd Postreq - Get current sabnzbd config file contents
       ansible.builtin.slurp:
         path: "{{ sabnzbd_config_path.stat.path }}"
       register: slurped_sabnzbd_data
       check_mode: false
       no_log: "{{ not debug_mode }}"
 
-    - name: Pull current sabnzbd allowed hosts
+    - name: Sabnzbd Postreq - Pull current sabnzbd allowed hosts
       ansible.builtin.set_fact:
         slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | split(',') }}"
         cacheable: false
       when: slurped_sabnzbd_data['content'] is defined
       no_log: "{{ not debug_mode }}"
 
-    - name: Ensure sabnzbd container config has allowlisted hostname
+    - name: Sabnzbd Postreq - Ensure sabnzbd container config has allowlisted hostname
       ansible.builtin.replace:
         path: "{{ sabnzbd_config_path.stat.path }}"
         regexp: '(?<=host_whitelist = ).*'
