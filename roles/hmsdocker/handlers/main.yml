@@ -17,3 +17,12 @@
     remove_orphans: "{{ container_remove_orphans }}"
     services:
       - sabnzbd
+
+- name: Restart checkrr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - checkrr

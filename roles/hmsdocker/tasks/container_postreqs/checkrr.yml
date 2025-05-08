@@ -1,0 +1,16 @@
+- name: Checkrr Postreq - Ensure config file exists
+  ansible.builtin.template:
+    src: "container_configs/checkrr_config.yaml.j2"
+    dest: "{{ hms_docker_apps_path }}/checkrr/config/checkrr.yaml"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: '600'
+    lstrip_blocks: true
+    trim_blocks: true
+  vars:
+    sonarr_key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    sonarr_4k_key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    radarr_key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    radarr_4k_key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    lidarr_key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+  notify: Restart checkrr

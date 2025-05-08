@@ -1,0 +1,43 @@
+services:
+  checkrr:
+    image: aetaric/checkrr:latest
+    container_name: checkrr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_checkrr %}
+    ports:
+      - 8585:8585
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/checkrr/config:/etc/checkrr
+      - ${HMSD_MOUNT_PATH}:/data:ro
+    {% if hmsdocker_traefik_enabled_checkrr or hmsdocker_homepage_enabled_checkrr %}
+    labels:
+      {% if hmsdocker_traefik_enabled_checkrr %}
+      - traefik.enable=true
+      - traefik.http.services.checkrr-${COMPOSE_PROJECT}.loadbalancer.server.port=8585
+      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_checkrr %}
+      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_checkrr %}
+      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-checkrr-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_checkrr %}
+      - homepage.group=Managers
+      - homepage.name=Checkrr
+      - homepage.icon=checkrr.png
+      - homepage.href=https://{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Integrity Scanner
+      {% if hmsdocker_homepage_stats_enabled_checkrr %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
