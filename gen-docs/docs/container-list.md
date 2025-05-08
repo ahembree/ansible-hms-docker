@@ -29,17 +29,17 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
 - [Maintainerr](https://github.com/jorenn92/Maintainerr): media management
 - [tinyMediaManager](https://gitlab.com/tinyMediaManager/tinyMediaManager): media management
-- [Tube Archivist](https://github.com/tubearchivist/tubearchivist)
-- [Pinchflat](https://github.com/kieraneglin/pinchflat)
-- [Huntarr](https://github.com/plexguide/Huntarr.io)
+- [Tube Archivist](https://github.com/tubearchivist/tubearchivist): YouTube media management
+- [Pinchflat](https://github.com/kieraneglin/pinchflat): YouTube media management
+- [Huntarr](https://github.com/plexguide/Huntarr.io): finds missing and upgrades media items
 
 ## Download Clients
 
 - [Transmission](https://github.com/haugene/docker-transmission-openvpn): download client with VPN and HTTP proxy
 - [NZBGet](https://docs.linuxserver.io/images/docker-nzbget/): download client
 - [Sabnzbd](https://docs.linuxserver.io/images/docker-sabnzbd/): download client
-- [qBittorrent](https://github.com/binhex/arch-qbittorrentvpn/)
-- [Deluge](https://github.com/binhex/arch-delugevpn/)
+- [qBittorrent](https://github.com/binhex/arch-qbittorrentvpn/): download client with VPN and HTTP proxy
+- [Deluge](https://github.com/binhex/arch-delugevpn/): download client with VPN and HTTP proxy
 
 ## Analytics / Dashboards
 
@@ -70,7 +70,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
 - [Netdata](https://github.com/netdata/netdata): observability
 - [Wizarr](https://github.com/wizarrrr/wizarr): media server invite management
-- [Checkrr](https://github.com/aetaric/checkrr)
+- [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 
 ## Adding New Containers
 
