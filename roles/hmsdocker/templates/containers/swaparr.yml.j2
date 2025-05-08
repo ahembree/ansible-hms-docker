@@ -1,0 +1,137 @@
+services:
+{% if hmsdocker_container_enabled_radarr %}
+  swaparr-radarr:
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-radarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - BASEURL=http://radarr:7878
+      - APIKEY=${RADARR_KEY}
+      - PLATFORM=radarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+
+  {% if separate_4k_instances_enable %}
+  swaparr-radarr-4k:
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-radarr-4k
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - BASEURL=http://radarr-4k:7878
+      - APIKEY=${RADARR_4K_KEY}
+      - PLATFORM=radarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+  {% endif %}
+{% endif %}
+
+{% if hmsdocker_container_enabled_sonarr %}
+  swaparr-sonarr: 
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-sonarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - BASEURL=http://sonarr:8989
+      - APIKEY=${SONARR_KEY}
+      - PLATFORM=sonarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+  
+  {% if separate_4k_instances_enable %}
+  swaparr-sonarr-4k: 
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-sonarr-4k
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - BASEURL=http://sonarr-4k:8989
+      - APIKEY=${SONARR_4K_KEY}
+      - PLATFORM=sonarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+  {% endif %}
+{% endif %}
+
+{% if hmsdocker_container_enabled_lidarr %}
+  swaparr-lidarr: 
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-lidarr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - BASEURL=http://lidarr:8686
+      - APIKEY=${LIDARR_KEY}
+      - PLATFORM=lidarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+{% endif %}
+
+{% if hmsdocker_container_enabled_readarr %}
+  swaparr-readarr: 
+    image: ghcr.io/thijmengthn/swaparr:latest
+    container_name: swaparr-readarr
+    restart: unless-stopped
+    environment:
+      - BASEURL=http://readarr:8787
+      - APIKEY=${READARR_KEY}
+      - PLATFORM=readarr
+      - MAX_STRIKES={{ hmsdocker_swaparr_max_strikes }}                 # Positive number      (Optional) default: 3     
+      - SCAN_INTERVAL={{ hmsdocker_swaparr_scan_interval }}             # 1d, 6h, 30m, etc..   (Optional) default: 10m   
+      - MAX_DOWNLOAD_TIME={{ hmsdocker_swaparr_max_download_time }}          # 1d, 6h, 30m, etc..   (Optional) default: 2h    
+      - IGNORE_ABOVE_SIZE={{ hmsdocker_swaparr_ignore_above_zie }}        # 1TB, 1GB, 1MB, etc.. (Optional) default: 25GB  
+      - REMOVE_FROM_CLIENT={{ hmsdocker_swaparr_remove_from_client | lower }}       # Boolean              (Optional) default: true
+      - DRY_RUN={{ hmsdocker_swaparr_dry_run | lower }}                 # Boolean              (Optional) default: false
+{% endif %}

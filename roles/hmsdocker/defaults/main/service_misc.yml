@@ -74,3 +74,14 @@ hmsdocker_tubearchivist_password: verysecret
 
 # If Checkrr should request new copies through Sonarr/Radarr/Lidarr if an issue is found with a file
 hmsdocker_checkrr_enable_arr_processing: false
+
+#######################################################################
+### Swaparr Settings
+hmsdocker_swaparr_max_strikes: 3
+hmsdocker_swaparr_scan_interval: 10m
+hmsdocker_swaparr_max_download_time: 2h
+hmsdocker_swaparr_ignore_above_zie: 25G
+hmsdocker_swaparr_remove_from_client: true
+hmsdocker_swaparr_dry_run: false
+### END Swaparr Settings
+#######################################################################

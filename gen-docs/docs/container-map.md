@@ -67,6 +67,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Huntarr                                  | &#9744;            | `huntarr`            | `9705`                 | `9705`            | &#9745;                |
 | Pinchflat                                | &#9744;            | `pinchflat`          | `8945`                 | `8945`            | &#9745;                |
 | Checkrr                                  | &#9744;            | `checkrr`            | `8585`                 | `8585`            | &#9745;                |
+| Swaparr                                  | &#9744;            | `swaparr`            | None                   | None              | &#9744;                |
 
 
 
