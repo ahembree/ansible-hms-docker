@@ -72,7 +72,7 @@
 - name: Authentik Prereq - Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
     src: authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-{{ separate_4k_instances_suffix }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-4k.outpost.yml"
     mode: 0644
   loop: "{{ authentik_proxy_enabled_containers }}"
   when: 

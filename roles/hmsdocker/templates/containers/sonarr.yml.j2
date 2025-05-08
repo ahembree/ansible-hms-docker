@@ -52,9 +52,9 @@ services:
 
 {% if separate_4k_instances_enable | default(False) %}
   # Sonarr container, tv show indexer
-  sonarr-{{ separate_4k_instances_suffix }}:
+  sonarr-4k:
     image: linuxserver/sonarr:latest
-    container_name: sonarr-{{ separate_4k_instances_suffix }}
+    container_name: sonarr-4k
     restart: ${RESTART_POLICY}
     logging:
       options:
@@ -72,23 +72,23 @@ services:
     labels:
       {% if hmsdocker_traefik_enabled_sonarr %}
       - traefik.enable=true
-      - traefik.http.services.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
-      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}`)
+      - traefik.http.services.sonarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_sonarr %}
-      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_sonarr %}
-      - traefik.http.routers.sonarr-{{ separate_4k_instances_suffix }}-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-{{ separate_4k_instances_suffix }}-midware@docker
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker
         {% endif %}
       {% endif %}
       {% if hmsdocker_homepage_enabled_sonarr %}
       - homepage.group=Managers - 4K
-      - homepage.name=Sonarr - {{ separate_4k_instances_suffix }}
+      - homepage.name=Sonarr - 4K
       - homepage.icon=sonarr.png
-      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-{{ separate_4k_instances_suffix }}.${HMSD_DOMAIN}
+      - homepage.href=http://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}
       - homepage.description=TV Show Manager
       - homepage.widget.type=sonarr
-      - homepage.widget.url=http://sonarr-{{ separate_4k_instances_suffix }}:8989
+      - homepage.widget.url=http://sonarr-4k:8989
       - homepage.widget.key=${SONARR_4K_KEY:-apikeyapikeyapikey}
       {% if hmsdocker_homepage_stats_enabled_sonarr %}
       - homepage.showStats=true
@@ -96,7 +96,7 @@ services:
       {% endif %}
     {% endif %}
     volumes:
-      - ${HMSD_APPS_PATH}/sonarr-{{ separate_4k_instances_suffix }}/config:/config
+      - ${HMSD_APPS_PATH}/sonarr-4k/config:/config
       - ${HMSD_MOUNT_PATH}:/data
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:

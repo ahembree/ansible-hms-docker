@@ -1,9 +1,6 @@
 #######################################################################
 ### Sonarr and Radarr settings
 separate_4k_instances_enable: no
-
-# This will be used for container names, file/folder names and Traefik Host rules and labels
-separate_4k_instances_suffix: "4k"
 ### End of Sonarr and Radarr settings
 #######################################################################
 

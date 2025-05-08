@@ -15,7 +15,7 @@
 
     - name: Check for Sonarr 4K config file
       ansible.builtin.stat:
-        path: "{{ hms_docker_apps_path }}/sonarr-{{ separate_4k_instances_suffix }}/config/config.xml"
+        path: "{{ hms_docker_apps_path }}/sonarr-4k/config/config.xml"
       register: sonarr_4k_conf_path
 
     - name: Slurp Sonarr 4K key data
@@ -40,7 +40,7 @@
 
     - name: Check for Radarr 4K config file
       ansible.builtin.stat:
-        path: "{{ hms_docker_apps_path }}/radarr-{{ separate_4k_instances_suffix }}/config/config.xml"
+        path: "{{ hms_docker_apps_path }}/radarr-4k/config/config.xml"
       register: radarr_4k_conf_path
 
     - name: Slurp Radarr 4K key data

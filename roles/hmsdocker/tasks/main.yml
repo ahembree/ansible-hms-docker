@@ -113,7 +113,7 @@
 
 - name: Ensure separate 4K container config directories exist if enabled
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item }}-{{ separate_4k_instances_suffix }}/config"
+    path: "{{ hms_docker_apps_path }}/{{ item }}-4k/config"
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"

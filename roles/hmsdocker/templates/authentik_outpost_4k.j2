@@ -1,11 +1,11 @@
 log_level: info
 docker_labels:
   traefik.enable: "true"
-  traefik.http.services.authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}-service.loadbalancer.server.port: "9000"
-  traefik.http.routers.authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}-router.rule: Host(`{{ item.proxy_host_rule }}-{{ separate_4k_instances_suffix }}.{{ hms_docker_domain }}`) && PathPrefix(`/outpost.goauthentik.io/`)
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.address: http://authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}:9000/outpost.goauthentik.io/auth/traefik
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.trustForwardHeader: "true"
-  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}-midware.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+  traefik.http.services.authentik-proxy-{{ project_name }}-{{ item.name }}-4k-service.loadbalancer.server.port: "9000"
+  traefik.http.routers.authentik-proxy-{{ project_name }}-{{ item.name }}-4k-router.rule: Host(`{{ item.proxy_host_rule }}-4k.{{ hms_docker_domain }}`) && PathPrefix(`/outpost.goauthentik.io/`)
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-4k-midware.forwardauth.address: http://authentik-proxy-{{ project_name }}-{{ item.name }}-4k:9000/outpost.goauthentik.io/auth/traefik
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-4k-midware.forwardauth.trustForwardHeader: "true"
+  traefik.http.middlewares.authentik-proxy-{{ project_name }}-{{ item.name }}-4k-midware.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
 authentik_host: https://authentik-server:9443
 authentik_host_insecure: true
 authentik_host_browser: {{ authentik_external_host }}
@@ -14,7 +14,7 @@ container_image: null
 docker_map_ports: false
 kubernetes_replicas: 1
 kubernetes_namespace: default
-object_naming_template: authentik-proxy-{{ project_name }}-{{ item.name }}-{{ separate_4k_instances_suffix }}
+object_naming_template: authentik-proxy-{{ project_name }}-{{ item.name }}-4k
 kubernetes_service_type: ClusterIP
 kubernetes_image_pull_secrets: []
 kubernetes_disabled_components: []
