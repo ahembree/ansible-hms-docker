@@ -26,3 +26,4 @@
     remove_orphans: "{{ container_remove_orphans }}"
     services:
       - checkrr
+  when: not ansible_check_mode

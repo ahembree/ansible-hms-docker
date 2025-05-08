@@ -1,7 +1,9 @@
 lang: "en-us"
 checkrr:
-  checkpath: 
-    - "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+  checkpath:
+  {% for library in hms_docker_library_folders %}
+    - "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ library.folder_name }}"
+  {% endfor %}
   database: /etc/checkrr/checkrr.db
   debug: false
   csvfile: "/etc/checkrr/badfiles.csv"
