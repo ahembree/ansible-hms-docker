@@ -373,5 +373,3 @@ hms_docker_container_map:
     traefik: yes
     homepage: yes
     homepage_stats: yes
-  swaparr:
-    enabled: yes
