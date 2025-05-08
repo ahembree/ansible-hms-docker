@@ -1,5 +1,5 @@
 ---
-- name: Ensure authentik secret key file
+- name: Authentik Prereq - Ensure authentik secret key file
   ansible.builtin.template:
     src: authentik_secret.j2
     dest: "{{ authentik_key_path }}"
@@ -13,7 +13,7 @@
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
-- name: Ensure authentik postgres password file
+- name: Authentik Prereq - Ensure authentik postgres password file
   ansible.builtin.template:
     src: authentik_secret.j2
     dest: "{{ authentik_pgpass_path }}"
@@ -27,7 +27,7 @@
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
-- name: Slurp authentik secret key data
+- name: Authentik Prereq - Slurp authentik secret key data
   ansible.builtin.slurp:
     src: "{{ authentik_key_template_output.dest }}"
   register: slurped_key_data
@@ -35,7 +35,7 @@
   when: authentik_key_template_output.dest is defined
   no_log: "{{ not debug_mode }}"
 
-- name: Slurp authentik postgres password data
+- name: Authentik Prereq - Slurp authentik postgres password data
   ansible.builtin.slurp:
     src: "{{ authentik_pgpass_template_output.dest }}"
   register: slurped_pg_pass_data
@@ -43,7 +43,7 @@
   when: authentik_pgpass_template_output.dest is defined
   no_log: "{{ not debug_mode }}"
 
-- name: Ensure Outposts directory
+- name: Authentik Prereq - Ensure Outposts directory
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/authentik/outposts"
     state: directory
@@ -51,14 +51,14 @@
     owner: root
     group: root
 
-- name: Ensure authentik Outpost configs
+- name: Authentik Prereq - Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik_outpost.j2
     dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}.outpost.yml"
     mode: 0644
   loop: "{{ authentik_proxy_enabled_containers }}"
 
-- name: Ensure authentik Outpost configs for static traefik configs
+- name: Authentik Prereq - Ensure authentik Outpost configs for static traefik configs
   ansible.builtin.template:
     src: authentik_outpost_ext_host.j2
     dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.outpost.yml"
@@ -69,10 +69,10 @@
     - item.authentik | default(false) 
     - item.authentik_provider_type | default('proxy') == 'proxy'
 
-- name: Ensure authentik Outpost configs for 4K containers
+- name: Authentik Prereq - Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
     src: authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-{{ separate_4k_instances_suffix }}.outpost.yml"
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-4k.outpost.yml"
     mode: 0644
   loop: "{{ authentik_proxy_enabled_containers }}"
   when: 

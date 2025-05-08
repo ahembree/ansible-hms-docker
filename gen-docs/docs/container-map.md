@@ -63,6 +63,10 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | qBittorrent (HTTP Proxy)                 | &#9744;            | `qbittorrent`        | `8118`                 | `8118`            | &#9744;                |
 | Deluge                                   | &#9744;            | `deluge`             | `8112`                 | `8112`            | &#9745;                |
 | Deluge (HTTP Proxy)                      | &#9744;            | `deluge`             | `8119`                 | `8118`            | &#9744;                |
+| Tubearchivist                            | &#9744;            | `tubearchivist`      | `8001`                 | `8001`            | &#9745;                |
+| Huntarr                                  | &#9744;            | `huntarr`            | `9705`                 | `9705`            | &#9745;                |
+| Pinchflat                                | &#9744;            | `pinchflat`          | `8945`                 | `8945`            | &#9745;                |
+| Checkrr                                  | &#9744;            | `checkrr`            | `8585`                 | `8585`            | &#9745;                |
 
 
 ## Container Map Entry Example

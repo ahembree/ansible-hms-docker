@@ -1,0 +1,97 @@
+lang: "en-us"
+checkrr:
+  checkpath:
+  {% for library in hms_docker_library_folders %}
+    - "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ library.folder_name }}"
+  {% endfor %}
+  database: /etc/checkrr/checkrr.db
+  debug: false
+  csvfile: "/etc/checkrr/badfiles.csv"
+  cron: "@daily"
+  ignorehidden: true
+  requireaudio: true
+  ignoreexts:
+    - .txt
+    - .nfo
+    - .nzb
+    - .url
+    - .srt
+    - .spl
+
+logs:
+  stdout:
+    out: stdout
+    formatter: default
+
+arr:
+{% if hmsdocker_container_enabled_radarr %}
+  radarr:
+    process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
+    service: radarr
+    address: radarr
+    apikey: "{{ radarr_key | default('') }}"
+    baseurl: /
+    port: 7878
+    ssl: false
+    mappings:
+      "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}": "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+
+  {% if separate_4k_instances_enable %}
+  radarr-4k:
+    process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
+    service: radarr
+    address: radarr-4k
+    apikey: "{{ radarr_4k_key | default('') }}"
+    baseurl: /
+    port: 7979
+    ssl: false
+    mappings:
+      "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}": "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+  {% endif %}
+{% endif %}
+
+{% if hmsdocker_container_enabled_sonarr %}
+  sonarr:
+    process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
+    service: sonarr
+    address: sonarr
+    apikey: "{{ sonarr_key | default('') }}"
+    baseurl: /
+    port: 8989
+    ssl: false
+    mappings:
+      "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}": "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+
+  {% if separate_4k_instances_enable %}
+  sonarr-4k:
+    process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
+    service: sonarr
+    address: sonarr-4k
+    apikey: "{{ sonarr_4k_key | default('') }}"
+    baseurl: /
+    port: 8989
+    ssl: false
+    mappings:
+      "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}": "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+  {% endif %}
+{% endif %}
+
+{% if hmsdocker_container_enabled_lidarr %}
+  lidarr:
+    process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
+    service: lidarr
+    address: lidarr
+    apikey: "{{ lidarr_key | default('') }}"
+    baseurl: /
+    port: 8686
+    ssl: false
+    mappings:
+      "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}": "/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}"
+{% endif %}
+
+webserver:
+  port: 8585
+  tls: false
+  baseurl: "/"
+  trustedproxies:
+    - 127.0.0.1

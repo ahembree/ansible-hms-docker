@@ -1,0 +1,45 @@
+services:
+  pinchflat:
+    image: ghcr.io/kieraneglin/pinchflat:latest
+    container_name: pinchflat
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_expose_ports_enabled_pinchflat %}
+    ports:
+      - 8945:8945
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/pinchflat/config:/config
+      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/pinchflat:/downloads
+    {% if hmsdocker_traefik_enabled_pinchflat or hmsdocker_homepage_enabled_pinchflat %}
+    labels:
+      {% if hmsdocker_traefik_enabled_pinchflat %}
+      - traefik.enable=true
+      - traefik.http.services.pinchflat-${COMPOSE_PROJECT}.loadbalancer.server.port=8945
+      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_pinchflat %}
+      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_pinchflat %}
+      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_pinchflat %}
+      - homepage.group=Managers
+      - homepage.name=Pinchflat
+      - homepage.icon=pinchflat.png
+      - homepage.href=https://{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}
+      - homepage.description=YouTube Archiver
+      {% if hmsdocker_homepage_stats_enabled_pinchflat %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}

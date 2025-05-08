@@ -1,9 +1,6 @@
 #######################################################################
 ### Sonarr and Radarr settings
 separate_4k_instances_enable: no
-
-# This will be used for container names, file/folder names and Traefik Host rules and labels
-separate_4k_instances_suffix: "4k"
 ### End of Sonarr and Radarr settings
 #######################################################################
 
@@ -22,7 +19,7 @@ tdarr_enable_node_server: no
 hmsdocker_speedtest_api_key: 
 hmsdocker_speedtest_schedule: 0 0 * * *
 
-hmsdocker_netadata_claim_token:
+hmsdocker_netdata_claim_token:
 hmsdocker_netdata_claim_url: https://app.netdata.cloud
 hmsdocker_netdata_claim_rooms:
 
@@ -71,3 +68,9 @@ hmsdocker_recyclarr_force_config_update: no
 
 # VNC password for TinyMediaManager
 hmsdocker_tinymediamanager_vnc_password:
+
+hmsdocker_tubearchivist_username: tubearchivist
+hmsdocker_tubearchivist_password: verysecret
+
+# If Checkrr should request new copies through Sonarr/Radarr/Lidarr if an issue is found with a file
+hmsdocker_checkrr_enable_arr_processing: false

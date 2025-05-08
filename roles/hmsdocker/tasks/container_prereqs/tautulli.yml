@@ -1,0 +1,16 @@
+- name: Tautulli Prereq - Ensure JBOPS if enabled
+  when: tautulli_jbops_enabled | default(false)
+  block:
+    - name: Ensure global git config ignores dubious ownership permissions
+      community.general.git_config:
+        name: safe.directory
+        scope: global
+        value: "{{ tautulli_jbops_install_path }}"
+
+    - name: Ensure JBOPS repo
+      ansible.builtin.git:
+        repo: https://github.com/blacktwin/JBOPS
+        clone: true
+        dest: "{{ tautulli_jbops_install_path }}"
+      diff: false
+      changed_when: false

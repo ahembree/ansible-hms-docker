@@ -84,6 +84,10 @@ hmsdocker_traefik_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['traefi
 hmsdocker_traefik_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_qbittorrent: "{{ hms_docker_container_map['qbittorrent']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 hmsdocker_traefik_enabled_deluge: "{{ hms_docker_container_map['deluge']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_tubearchivist: "{{ hms_docker_container_map['tubearchivist']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_huntarr: "{{ hms_docker_container_map['huntarr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_pinchflat: "{{ hms_docker_container_map['pinchflat']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
+hmsdocker_traefik_enabled_checkrr: "{{ hms_docker_container_map['checkrr']['traefik'] | default(False) and hmsdocker_container_enabled_traefik }}"
 
 
 # Public container exposure computed variables
@@ -121,6 +125,10 @@ hmsdocker_expose_public_enabled_wizarr: "{{ hms_docker_container_map['wizarr']['
 hmsdocker_expose_public_enabled_jellyseerr: "{{ hms_docker_container_map['jellyseerr']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_qbittorrent: "{{ hms_docker_container_map['qbittorrent']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_deluge: "{{ hms_docker_container_map['deluge']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_tubearchivist: "{{ hms_docker_container_map['tubearchivist']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_huntarr: "{{ hms_docker_container_map['huntarr']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_pinchflat: "{{ hms_docker_container_map['pinchflat']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_checkrr: "{{ hms_docker_container_map['checkrr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -159,6 +167,10 @@ hmsdocker_expose_ports_enabled_wizarr: "{{ True if (container_expose_ports or no
 hmsdocker_expose_ports_enabled_jellyseerr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_jellyseerr) else False }}"
 hmsdocker_expose_ports_enabled_qbittorrent: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_qbittorrent) else False }}"
 hmsdocker_expose_ports_enabled_deluge: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_deluge) else False }}"
+hmsdocker_expose_ports_enabled_tubearchivist: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_tubearchivist) else False }}"
+hmsdocker_expose_ports_enabled_huntarr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_huntarr) else False }}"
+hmsdocker_expose_ports_enabled_pinchflat: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_pinchflat) else False }}"
+hmsdocker_expose_ports_enabled_checkrr: "{{ True if (container_expose_ports or not hmsdocker_container_enabled_traefik or not hmsdocker_traefik_enabled_checkrr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -200,6 +212,10 @@ hmsdocker_authentik_enabled_wizarr:           "{{ hms_docker_container_map['wiza
 hmsdocker_authentik_enabled_jellyseerr:       "{{ hms_docker_container_map['jellyseerr']['authentik']        | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['jellyseerr']['authentik_provider_type']        | default('proxy') == 'proxy' }}"
 hmsdocker_authentik_enabled_qbittorrent:      "{{ hms_docker_container_map['qbittorrent']['authentik']       | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['qbittorrent']['authentik_provider_type']       | default('proxy') == 'proxy' }}"
 hmsdocker_authentik_enabled_deluge:           "{{ hms_docker_container_map['deluge']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['deluge']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_tubearchivist:           "{{ hms_docker_container_map['tubearchivist']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['tubearchivist']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_huntarr:           "{{ hms_docker_container_map['huntarr']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['huntarr']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_pinchflat:           "{{ hms_docker_container_map['pinchflat']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['pinchflat']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_checkrr:           "{{ hms_docker_container_map['checkrr']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['checkrr']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
 
 
 # Homepage
@@ -226,6 +242,10 @@ hmsdocker_homepage_enabled_autobrr: "{{ hmsdocker_container_enabled_homepage and
 hmsdocker_homepage_enabled_jellyseerr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['jellyseerr']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_qbittorrent: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['qbittorrent']['homepage'] | default(False) }}"
 hmsdocker_homepage_enabled_deluge: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['deluge']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_tubearchivist: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['tubearchivist']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_huntarr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['huntarr']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_pinchflat: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['pinchflat']['homepage'] | default(False) }}"
+hmsdocker_homepage_enabled_checkrr: "{{ hmsdocker_container_enabled_homepage and hms_docker_container_map['checkrr']['homepage'] | default(False) }}"
 
 # Controls if the container should show stats (CPU, RAM, RX, TX) on Homepage
 hmsdocker_homepage_stats_enabled_traefik: "{{ hmsdocker_homepage_enabled_traefik and hms_docker_container_map['traefik']['homepage_stats'] | default(False) }}"
@@ -250,6 +270,10 @@ hmsdocker_homepage_stats_enabled_autobrr: "{{ hmsdocker_homepage_enabled_autobrr
 hmsdocker_homepage_stats_enabled_jellyseerr: "{{ hmsdocker_homepage_enabled_jellyseerr and hms_docker_container_map['jellyseerr']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_qbittorrent: "{{ hmsdocker_homepage_enabled_qbittorrent and hms_docker_container_map['qbittorrent']['homepage_stats'] | default(False) }}"
 hmsdocker_homepage_stats_enabled_deluge: "{{ hmsdocker_homepage_enabled_deluge and hms_docker_container_map['deluge']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_tubearchivist: "{{ hmsdocker_homepage_enabled_tubearchivist and hms_docker_container_map['tubearchivist']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_huntarr: "{{ hmsdocker_homepage_enabled_huntarr and hms_docker_container_map['huntarr']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_pinchflat: "{{ hmsdocker_homepage_enabled_pinchflat and hms_docker_container_map['pinchflat']['homepage_stats'] | default(False) }}"
+hmsdocker_homepage_stats_enabled_checkrr: "{{ hmsdocker_homepage_enabled_checkrr and hms_docker_container_map['checkrr']['homepage_stats'] | default(False) }}"
 
 #######################################################################
 

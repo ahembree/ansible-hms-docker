@@ -41,7 +41,7 @@ hms_docker_library_folders:
     {
       type: "tv_shows",
       folder_name: "TV_Shows"
-    },
+    }
   ]
 
 ### End of HMS-Docker settings

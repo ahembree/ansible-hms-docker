@@ -341,3 +341,35 @@ hms_docker_container_map:
     expose_to_public: no
     homepage: yes
     homepage_stats: yes
+  tubearchivist:
+    enabled: no
+    proxy_host_rule: tubearchivist
+    authentik: no
+    directory: yes
+    traefik: yes
+    homepage: yes
+    homepage_stats: yes
+  pinchflat:
+    enabled: no
+    proxy_host_rule: pinchflat
+    authentik: no
+    directory: yes
+    traefik: yes
+    homepage: yes
+    homepage_stats: yes
+  huntarr:
+    enabled: no
+    proxy_host_rule: huntarr
+    authentik: no
+    directory: yes
+    traefik: yes
+    homepage: yes
+    homepage_stats: yes
+  checkrr:
+    enabled: no
+    proxy_host_rule: checkrr
+    authentik: no
+    directory: yes
+    traefik: yes
+    homepage: yes
+    homepage_stats: yes

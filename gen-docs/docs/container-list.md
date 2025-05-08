@@ -29,12 +29,17 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
 - [Maintainerr](https://github.com/jorenn92/Maintainerr): media management
 - [tinyMediaManager](https://gitlab.com/tinyMediaManager/tinyMediaManager): media management
+- [Tube Archivist](https://github.com/tubearchivist/tubearchivist): YouTube media management
+- [Pinchflat](https://github.com/kieraneglin/pinchflat): YouTube media management
+- [Huntarr](https://github.com/plexguide/Huntarr.io): finds missing and upgrades media items
 
 ## Download Clients
 
 - [Transmission](https://github.com/haugene/docker-transmission-openvpn): download client with VPN and HTTP proxy
 - [NZBGet](https://docs.linuxserver.io/images/docker-nzbget/): download client
 - [Sabnzbd](https://docs.linuxserver.io/images/docker-sabnzbd/): download client
+- [qBittorrent](https://github.com/binhex/arch-qbittorrentvpn/): download client with VPN and HTTP proxy
+- [Deluge](https://github.com/binhex/arch-delugevpn/): download client with VPN and HTTP proxy
 
 ## Analytics / Dashboards
 
@@ -65,3 +70,83 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
 - [Netdata](https://github.com/netdata/netdata): observability
 - [Wizarr](https://github.com/wizarrrr/wizarr): media server invite management
+- [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
+
+## Adding New Containers
+
+If you'd like to have a container added, please submit a Discussion post or a Pull Request!
+
+If wanting to submit a pull request, the following Compose file settings are typically used across all containers. The below is an example Jinja2 template, which is how all of the container `.yml` files are generated
+
+A list of the locations where items will need to be updated:
+
+- This documentation
+- `roles/hmsdocker/defaults/main/container_map.yml`
+- `roles/hmsdocker/templates/containers` will store the compose template file (example below) with the naming format of `<container name>.yml.j2`
+- `roles/hmsdocker/vars/main.yml`
+- Any additional container-specific configuration in `roles/hmsdocker/defaults/main/service_misc.yml`
+- Any API keys/secrets in `roles/hmsdocker/templates/env.j2`
+  - If API keys need to be read from a file to auto-populate the `.env`, there is a task file in `roles/hmsdocker/tasks/app_api_key_reader.yml` that retrieves the keys from the file
+  - The task that generates the `.env` file in `roles/hmsdocker/tasks/main.yml` will also need to be updated to use the newly retrieved key
+- If any tasks/prerequisits need to be ran _before_ the container starts, create a `<container name>.yml` Ansible task file in `roles/hmsdocker/tasks/container_prereqs`
+- If any tasks need to be ran _after_ the container starts, create a `<container name>.yml` Ansible task file in `roles/hmsdocker/tasks/container_postreqs`
+- If the container needs to be restarted after any config changes, create a new handler task in `roles/hmsdocker/handlers/main.yml`
+
+```yml
+services:
+  <container name>:
+    image: <container image>
+    container_name: <container name>
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    # Depends on the network access it needs, proxy_net is required for Traefik
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_<container name> %}
+    # Check the container map to see if any existing containers will cause an overlap
+    # If so, this port will need to be changed to no longer overlap
+    ports:
+      - <container UI port>:<container UI port>
+    {% endif %}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/<container name>/config:/config
+      # If the container needs access to your media data, add the below
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_traefik_enabled_<container name> or hmsdocker_homepage_enabled_<container name> %}
+    labels:
+      {% if hmsdocker_traefik_enabled_<container name> %}
+      - traefik.enable=true
+      - traefik.http.services.<container name>-${COMPOSE_PROJECT}.loadbalancer.server.port=<container UI port>
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_<container name> %}
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_<container name> %}
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker
+        {% endif %}
+      {% endif %}
+      # Below is only for Homepage
+      {% if hmsdocker_homepage_enabled_<container name> %}
+      - homepage.group=<Homepage group name>
+      - homepage.name=<container name>
+      - homepage.icon=<container name>.png
+      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}
+      - homepage.description=<homepage description>
+      # If the container supports a widget, there is an additional task that runs to "slurp" the API key from a file automatically (if supported) in `tasks/app_api_key_reader.yml` that is then inserted into the `.env` file template
+      - homepage.widget.type=<container name>
+      - homepage.widget.url=http://<container name>:<container UI port>
+      - homepage.widget.key=${<CONTAINER NAME>_KEY:-apikeyapikeyapikey}
+        {% if hmsdocker_homepage_stats_enabled_<container name> %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+```

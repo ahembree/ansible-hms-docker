@@ -1,5 +1,5 @@
 ---
-- name: Ensure Traefik config.
+- name: Traefik Prereq - Ensure Traefik config.
   ansible.builtin.template:
     src: traefik.yml.j2
     dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
@@ -10,14 +10,14 @@
     trim_blocks: yes
   notify: restart traefik
 
-- name: Ensure Traefik certs directory
+- name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/traefik/config/certs"
     state: directory
     mode: 0755
   register: traefik_certs_dir
 
-- name: Ensure Traefik Static file dir
+- name: Traefik Prereq - Ensure Traefik Static file dir
   ansible.builtin.file:
     path: "{{ hmsdocker_traefik_static_config_location }}"
     state: directory
@@ -25,7 +25,7 @@
     group: docker
   register: traefik_static_config_dir
 
-- name: Ensure Traefik static config file
+- name: Traefik Prereq - Ensure Traefik static config file
   ansible.builtin.template:
     src: hmsd_traefik_middlewares.yml.j2
     dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
@@ -35,27 +35,25 @@
     lstrip_blocks: yes
     trim_blocks: yes
 
-- name: Ensure Traefik static file configs requirements
-  when: traefik_ext_hosts_enabled
-  block:
-    - name: Ensure Traefik static external host configs
-      ansible.builtin.template:
-        src: traefik_additional_routes.yml.j2
-        dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
-        mode: 0644
-        group: docker
-        backup: yes
-      with_items: "{{ traefik_ext_hosts_list }}"
-      when: 
-        - item.friendly_name is defined and item.friendly_name != ''
-        - item.subdomain_name is defined and item.subdomain_name != ''
-        - item.backend_url is defined and item.backend_url != ''
-        - item.enabled is defined and item.enabled
+- name: Traefik Prereq - Ensure Traefik static external host configs
+  ansible.builtin.template:
+    src: traefik_additional_routes.yml.j2
+    dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    mode: 0644
+    group: docker
+    backup: yes
+  with_items: "{{ traefik_ext_hosts_list }}"
+  when:
+    - traefik_ext_hosts_enabled
+    - item.friendly_name is defined and item.friendly_name != ''
+    - item.subdomain_name is defined and item.subdomain_name != ''
+    - item.backend_url is defined and item.backend_url != ''
+    - item.enabled is defined and item.enabled
 
-- name: Ensure disabled Traefik static external host configs are removed
+- name: Traefik Prereq - Ensure disabled Traefik static external host configs are removed
   ansible.builtin.file:
     path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     state: absent
   with_items: "{{ traefik_ext_hosts_list }}"
-  when: 
+  when:
     - not item.enabled or not traefik_ext_hosts_enabled

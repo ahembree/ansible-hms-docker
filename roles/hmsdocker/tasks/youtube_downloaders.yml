@@ -1,0 +1,14 @@
+- name: Ensure Youtube media dir exists
+  ansible.builtin.file:
+    path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube"
+    state: directory
+  when: '"tubearchivist" in enabled_containers or "pinchflat" in enabled_containers'
+
+- name: Ensure Youtube downloader media dir exists
+  ansible.builtin.file:
+    path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/{{ item }}"
+    state: directory
+  loop:
+    - tubearchivist
+    - pinchflat
+  when: item in enabled_containers

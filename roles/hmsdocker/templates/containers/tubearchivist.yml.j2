@@ -1,0 +1,113 @@
+services:
+  tubearchivist:
+    image: bbilly1/tubearchivist
+    container_name: tubearchivist
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+      - tubearchivist_net
+    {% if hmsdocker_expose_ports_enabled_tubearchivist %}
+    ports:
+      - 8001:8001
+    {% endif %}
+    volumes:
+      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/tubearchivist:/youtube
+      - ${HMSD_APPS_PATH}/tubearchivist/config/cache:/cache
+    environment:
+      - ES_URL=http://tubearchivist-es:9200
+      - REDIS_CON=redis://tubearchivist-redis:6379
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TA_HOST=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if hmsdocker_expose_ports_enabled_tubearchivist }}  # set your host name with protocol and port
+      - TA_USERNAME=${TUBEARCHIVIST_USERNAME}
+      - TA_PASSWORD=${TUBEARCHIVIST_PASSWORD}
+      - ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd
+      - TA_PORT=8001
+      - TZ=${TIMEZONE}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - tubearchivist-es
+      - tubearchivist-redis
+    {% if hmsdocker_traefik_enabled_tubearchivist or hmsdocker_homepage_enabled_tubearchivist %}
+    labels:
+      {% if hmsdocker_traefik_enabled_tubearchivist %}
+      - traefik.enable=true
+      - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
+        {% if not hmsdocker_expose_public_enabled_tubearchivist %}
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+        {% endif %}
+        {% if hmsdocker_authentik_enabled_tubearchivist %}
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker
+        {% endif %}
+      {% endif %}
+      {% if hmsdocker_homepage_enabled_tubearchivist %}
+      - homepage.group=Managers
+      - homepage.name=Tubearchivist
+      - homepage.icon=tubearchivist.png
+      - homepage.href=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}
+      - homepage.description=YouTube Archiver
+      {% if hmsdocker_homepage_stats_enabled_tubearchivist %}
+      - homepage.showStats=true
+      {% endif %}
+      {% endif %}
+    {% endif %}
+
+  tubearchivist-redis:
+    image: redis
+    container_name: tubearchivist-redis
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - tubearchivist_net
+    volumes:
+      - tubearchivist_redis:/data
+    depends_on:
+      - tubearchivist-es
+
+  tubearchivist-es:
+    image: {{ 'bbilly1/tubearchivist-es' if ansible_architecture == 'x86_64' else 'elasticsearch:8.17.2' }}         # only for amd64, or use official es 8.17.2
+    container_name: tubearchivist-es
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - tubearchivist_net
+    environment:
+      - "ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "xpack.security.enabled=true"
+      - "discovery.type=single-node"
+      - "path.repo=/usr/share/elasticsearch/data/snapshot"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - tubearchivist_es:/usr/share/elasticsearch/data    # check for permission error when using bind mount, see readme
+
+networks:
+  tubearchivist_net:
+    attachable: false
+    driver: bridge
+
+volumes:
+  tubearchivist_redis:
+  tubearchivist_es:

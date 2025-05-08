@@ -52,6 +52,29 @@
           {% endfor %}
           ]
 
+- name: Get list of container task files in the role
+  ansible.builtin.set_fact:
+    container_prereq_task_files: "{{ lookup('fileglob', role_path + '/tasks/container_prereqs/*.yml', wantlist=True) }}"
+    container_postreq_task_files: "{{ lookup('fileglob', role_path + '/tasks/container_postreqs/*.yml', wantlist=True) }}"
+
+- name: Get names of available container tasks
+  ansible.builtin.set_fact:
+    container_prereq_task_names: >-
+      {{ container_prereq_task_files
+        | map('basename')
+        | map('regex_replace', '\.yml$', '')
+        | list }}
+    container_postreq_task_names: >-
+      {{ container_postreq_task_files
+        | map('basename')
+        | map('regex_replace', '\.yml$', '')
+        | list }}
+
+- name: Slim variables
+  ansible.builtin.set_fact:
+    container_prereqs: "{{ enabled_containers | intersect(container_prereq_task_names) }}"
+    container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
+
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"
@@ -90,7 +113,7 @@
 
 - name: Ensure separate 4K container config directories exist if enabled
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/{{ item }}-{{ separate_4k_instances_suffix }}/config"
+    path: "{{ hms_docker_apps_path }}/{{ item }}-4k/config"
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
@@ -101,36 +124,21 @@
   when: 
     - separate_4k_instances_enable | default(false)
 
+- name: Ensure Authentik
+  ansible.builtin.import_tasks: "container_prereqs/authentik.yml"
+  when: hmsdocker_authentik_enabled_globally
+
+- name: Run container prereqs if available
+  ansible.builtin.include_tasks: "container_prereqs/{{ container_task_name }}.yml"
+  loop: '{{ container_prereqs }}'
+  loop_control:
+    loop_var: container_task_name
+
 - name: Run VPN initialization tasks
   ansible.builtin.import_tasks: "vpn_setup.yml"
 
-- name: Ensure Traefik
-  ansible.builtin.import_tasks: "traefik.yml"
-  when: hmsdocker_container_enabled_traefik
-
-- name: Ensure Authentik
-  ansible.builtin.import_tasks: "authentik.yml"
-  when: hmsdocker_authentik_enabled_globally
-
-- name: Ensure homepage
-  ansible.builtin.import_tasks: "homepage.yml"
-  when: hmsdocker_container_enabled_homepage
-
-- name: Ensure JBOPS if enabled
-  when: tautulli_jbops_enabled | default(false)
-  block:
-    - name: Ensure global git config ignores dubious ownership permissions
-      community.general.git_config:
-        name: safe.directory
-        scope: global
-        value: "{{ tautulli_jbops_install_path }}"
-    - name: Ensure JBOPS repo
-      ansible.builtin.git:
-        repo: https://github.com/blacktwin/JBOPS
-        clone: true
-        dest: "{{ tautulli_jbops_install_path }}"
-      diff: false
-      changed_when: false
+- name: Run Youtube downloader initialization tasks
+  ansible.builtin.import_tasks: "youtube_downloaders.yml"
   
 - name: Retrieve app API keys if available
   ansible.builtin.import_tasks: "app_api_key_reader.yml"
@@ -212,9 +220,11 @@
   when:
     - not ansible_check_mode
 
-- name: Sabnzbd additional config
-  ansible.builtin.import_tasks: "sabnzbd.yml"
-  when: hmsdocker_container_enabled_sabnzbd
+- name: Run container postreqs if available
+  ansible.builtin.include_tasks: "tasks/container_postreqs/{{ container_task_name }}.yml"
+  loop: '{{ container_postreqs }}'
+  loop_control:
+    loop_var: container_task_name
 
 - name: Ensure Plex SSL script and resources
   ansible.builtin.import_tasks: "plex_ssl.yml"

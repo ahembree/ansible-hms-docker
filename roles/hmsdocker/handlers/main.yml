@@ -7,7 +7,9 @@
     remove_orphans: "{{ container_remove_orphans }}"
     services:
       - traefik
-  when: not traefik_certs_dir.changed
+  when:
+    - not traefik_certs_dir.changed
+    - not ansible_check_mode
 
 - name: restart sabnzbd
   community.docker.docker_compose_v2:
@@ -17,3 +19,14 @@
     remove_orphans: "{{ container_remove_orphans }}"
     services:
       - sabnzbd
+  when: not ansible_check_mode
+
+- name: Restart checkrr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - checkrr
+  when: not ansible_check_mode
