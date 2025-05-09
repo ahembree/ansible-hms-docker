@@ -1,6 +1,9 @@
 name: Test Docusaurus Deployment
 
 on:
+  push:
+    paths:
+      - 'gen-docs/**'
   pull_request:
     branches:
       - master
