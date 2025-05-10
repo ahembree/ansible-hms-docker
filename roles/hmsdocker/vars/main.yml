@@ -24,7 +24,7 @@ hmsdocker_container_enabled_sabnzbd: "{{ hms_docker_container_map['sabnzbd']['en
 hmsdocker_container_enabled_tdarr: "{{ hms_docker_container_map['tdarr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_homepage: "{{ hms_docker_container_map['homepage']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_tailscale: "{{ tailscale_enabled | default(False) }}"
-hmsdocker_container_enabled_flaresolverr: '{{ flaresolverr_enabled | default(False) }}'
+hmsdocker_container_enabled_flaresolverr: "{{ flaresolverr_enabled | default(False) or hms_docker_container_map['flaresolverr']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_uptimekuma: "{{ hms_docker_container_map['uptimekuma']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_heimdall: "{{ hms_docker_container_map['heimdall']['enabled'] | default(False) }}"
 hmsdocker_container_enabled_readarr: "{{ hms_docker_container_map['readarr']['enabled'] | default(False) }}"

@@ -11,9 +11,6 @@ include:
 {% if (cloudflare_tunnel_enabled or cloudflare_ddns_enabled) and cloudflare_compose_file_path is defined | default(False) %}
   - {{ cloudflare_compose_file_path.dest | default(compose_dir.path + '/cloudflare.yml') }}
 {% endif %}
-{% if flaresolverr_enabled and flaresolverr_compose_file_path is defined | default(False) %}
-  - {{ flaresolverr_compose_file_path.dest | default(compose_dir.path + '/flaresolverr.yml') }}
-{% endif %}
 {% if hmsdocker_authentik_enabled_globally and authentik_compose_file_path is defined | default(False) %}
   - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
 {% endif %}

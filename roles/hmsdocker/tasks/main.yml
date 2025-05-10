@@ -75,6 +75,11 @@
     container_prereqs: "{{ enabled_containers | intersect(container_prereq_task_names) }}"
     container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
 
+- name: Extend enabled_containers list if flaresolverr enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
+  when: flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)
+
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"

@@ -5,7 +5,6 @@
   "separate_4k_instances_enable": true,
   "tautulli_include_jbops": true,
   "traefik_security_hardening": true,
-  "flaresolverr_enabled": true,
   "custom_scripts_enabled": true,
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,

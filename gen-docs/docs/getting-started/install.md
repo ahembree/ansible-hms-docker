@@ -100,8 +100,6 @@ There is a small number of containers not in this list since they do not need co
 
 Current list of containers not in the container map config file:
 
-- Flaresolverr (controlled in `inventory/group_vars/all/cloudflare.yml` in the `flaresolverr_enabled` variable)
-
 - Cloudflare Tunnel (controlled in `inventory/group_vars/all/cloudflare.yml` in the `cloudflare_tunnel_enabled` variable)
 
 - Cloudflare DDNS (see the [Cloudflare DDNS](../config-docs/Cloudflare/ddns.md) page)
