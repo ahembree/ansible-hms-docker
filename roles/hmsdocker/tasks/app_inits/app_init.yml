@@ -1,0 +1,22 @@
+- name: Get list of container task files in the role
+  ansible.builtin.set_fact:
+    container_init_task_files: "{{ lookup('fileglob', role_path + '/tasks/app_inits/*.yml', wantlist=True) }}"
+
+- name: Get names of available container tasks
+  ansible.builtin.set_fact:
+    container_init_task_names: >-
+      {{ container_init_task_files
+        | map('basename')
+        | map('regex_replace', '\.yml$', '')
+        | list }}
+
+- name: Slim variables
+  ansible.builtin.set_fact:
+    app_inits: "{{ enabled_containers | intersect(container_init_task_names) }}"
+
+- name: Run container prereqs if available
+  ansible.builtin.include_tasks: "app_inits/{{ container_init_name }}.yml"
+  when: container_init_name in enabled_containers
+  loop: '{{ app_inits }}'
+  loop_control:
+    loop_var: container_init_name

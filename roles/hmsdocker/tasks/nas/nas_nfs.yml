@@ -1,19 +1,19 @@
 ---
-- name: Ensure RedHat NFS packages.
+- name: NAS - NFS - Ensure RedHat NFS packages.
   ansible.builtin.package:
     name:
       - nfs-utils
     state: "{{ nas_client_package_state }}"
   when: hmsdocker_family_override | lower == "redhat"
 
-- name: Ensure Debian NFS packages.
+- name: NAS - NFS - Ensure Debian NFS packages.
   ansible.builtin.package:
     name:
       - nfs-common
     state: "{{ nas_client_package_state }}"
   when: ansible_facts['os_family'] | lower == "debian"
 
-- name: Ensure NFS fstab entry and mount.
+- name: NAS - NFS - Ensure NFS fstab entry and mount.
   ansible.posix.mount:
     backup: yes
     boot: "{{ nas_client_mount_on_boot }}"

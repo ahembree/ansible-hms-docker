@@ -91,10 +91,10 @@
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.
-  ansible.builtin.include_tasks: "nas_{{ hms_docker_media_share_type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas/nas_{{ hms_docker_media_share_type | lower }}.yml"
 
 - name: Ensure additional NAS configuration
-  ansible.builtin.include_tasks: "nas_additional_{{ item.type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas/nas_additional_{{ item.type | lower }}.yml"
   with_items: "{{ nas_client_remote_additional_paths }}"
   when:
     - nas_client_remote_additional_paths is defined

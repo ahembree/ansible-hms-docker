@@ -1,5 +1,5 @@
 ---
-- name: Ensure CIFS packages.
+- name: NAS - CIFS - Ensure CIFS packages.
   ansible.builtin.package:
     name:
       - cifs-utils
@@ -7,7 +7,7 @@
       - samba-common
     state: "{{ nas_client_package_state }}"
 
-- name: Ensure CIFS credentials file.
+- name: NAS - CIFS - Ensure CIFS credentials file.
   ansible.builtin.template:
     dest: "{{ hms_docker_data_path }}/.{{ project_name }}.cifs_creds"
     src: cifs_creds.j2
@@ -20,7 +20,7 @@
   register: cifs_creds_file
   no_log: "{{ not debug_mode }}"
 
-- name: Ensure CIFS fstab entry.
+- name: NAS - CIFS - Ensure CIFS fstab entry.
   ansible.posix.mount:
     backup: yes
     boot: "{{ nas_client_mount_on_boot }}"
