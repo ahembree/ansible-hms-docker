@@ -231,10 +231,6 @@
   loop_control:
     loop_var: container_task_name
 
-- name: Ensure Plex SSL script and resources
-  ansible.builtin.import_tasks: "plex_ssl.yml"
-  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
-
 - name: Ensure custom scripts
   ansible.builtin.import_tasks: "scripts.yml"
   when: custom_scripts_enabled | default(false)

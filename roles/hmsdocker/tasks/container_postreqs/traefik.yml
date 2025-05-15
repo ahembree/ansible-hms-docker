@@ -1,0 +1,11 @@
+  - name: Verify all Traefik endpoints are accessible
+    ansible.builtin.uri:
+      url: http://{{ item }}.{{ hms_docker_domain }}
+      status_code: 200,302,401,403
+      validate_certs: no
+    loop: "{{ traefik_enabled_subdomains }}"
+    when:
+      - hmsdocker_container_enabled_traefik
+      - traefik_verify_endpoints | default(false)
+    ignore_errors: true
+    register: traefik_successful_endpoints
