@@ -7,6 +7,11 @@
   import_tasks: debian.yml
   when: ansible_facts["os_family"] | lower == "debian"
 
+- name: Ensure the nvidia-container-toolkit package
+  package:
+    name: nvidia-container-toolkit
+    state: "{{ gpu_prereq_packages_state }}"
+
 - name: Verify nvidia-container-runtime-hook is in $PATH
   shell: "which nvidia-container-runtime-hook"
   register: nvidia_container_runtime_hook_path
@@ -17,16 +22,19 @@
     msg: "nvidia-container-runtime-hook not found in $PATH"
   when: nvidia_container_runtime_hook_path.rc != 0
 
-- name: Ensure the nvidia-docker2 package
-  package:
-    name: nvidia-docker2
-    state: "{{ gpu_prereq_packages_state }}"
+- name: Register nvidia-container-toolkit with docker
+  shell:
+    cmd: "nvidia-ctk runtime configure --runtime=docker"
   notify:
     - restart docker
 
+- name: Restart docker
+  shell:
+    cmd: "systemctl restart docker"
+
 - name: Verify CUDA container works
   shell:
-    cmd: "docker run --name nvidia-gpu-test --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi"
+    cmd: "docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi"
   register: nvidia_gpu_test
   changed_when: False
 
