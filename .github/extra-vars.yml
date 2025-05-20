@@ -1,5 +1,6 @@
 {
   "is_github_runner": true,
+  "hms_docker_domain": home.local,
   "container_expose_ports": true,
   "hms_docker_plex_ssl_enabled": true,
   "separate_4k_instances_enable": true,
@@ -9,6 +10,7 @@
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,
   "hmsdocker_expose_ports_enabled_calibre": false,
+  "hmsdocker_app_bootstrap": true,
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,
@@ -41,7 +43,7 @@
       "homepage_stats": false
     },
     "bazarr": {
-      "enabled": true,
+      "enabled": false,
       "proxy_host_rule": bazarr,
       "directory": true,
       "traefik": true,
@@ -85,7 +87,7 @@
       "homepage_stats": false
     },
     "prowlarr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": prowlarr,
       "directory": true,
       "traefik": true,

@@ -1,0 +1,4 @@
+# If the playbook should attempt to connect supported apps together automatically.
+hmsdocker_app_bootstrap: false
+
+hmsdocker_app_bootstrap_prowlarr_enabled: true

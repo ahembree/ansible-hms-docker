@@ -23,6 +23,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
   - You must install the drivers for your Nvidia GPU yourself, it is not included in this playbook, but it will verify GPU acceleration is available
 - Automatic Docker installation
 - Automatic container updates
+- Automatic App Initialization (Sonarr, Radarr, Prowlarr, etc.)
 - Dynamic DNS updates with Cloudflare
 - Wildcard SSL certificate generation
 - Support for multiple network shares

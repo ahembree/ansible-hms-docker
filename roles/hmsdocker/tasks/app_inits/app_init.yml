@@ -1,8 +1,11 @@
-- name: Get list of container task files in the role
+- name: Import API key reader task to retrieve API keys (again)
+  ansible.builtin.import_tasks: "app_api_key_reader.yml"
+
+- name: App init - Get list of app bootstrap task files in the role
   ansible.builtin.set_fact:
     container_init_task_files: "{{ lookup('fileglob', role_path + '/tasks/app_inits/*.yml', wantlist=True) }}"
 
-- name: Get names of available container tasks
+- name: App init - Get names of available app bootstrap files
   ansible.builtin.set_fact:
     container_init_task_names: >-
       {{ container_init_task_files
@@ -10,13 +13,12 @@
         | map('regex_replace', '\.yml$', '')
         | list }}
 
-- name: Slim variables
+- name: App init - Slim variables
   ansible.builtin.set_fact:
     app_inits: "{{ enabled_containers | intersect(container_init_task_names) }}"
 
-- name: Run container prereqs if available
+- name: App init - Run app inits
   ansible.builtin.include_tasks: "app_inits/{{ container_init_name }}.yml"
-  when: container_init_name in enabled_containers
   loop: '{{ app_inits }}'
   loop_control:
     loop_var: container_init_name

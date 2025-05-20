@@ -78,7 +78,7 @@
 - name: Extend enabled_containers list if flaresolverr enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
-  when: flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)
+  when: (flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)) and 'flaresolverr' not in enabled_containers
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
@@ -241,3 +241,14 @@
     - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent or hmsdocker_container_enabled_deluge
     - not ansible_check_mode
     - not is_github_runner | default(false)
+
+- name: Initialize Supported Apps via their APIs
+  when: hmsdocker_app_bootstrap | default(false) and not ansible_check_mode
+  block:
+    - name: Sleep if GitHub Actions runner
+      ansible.builtin.pause:
+        minutes: 1
+      when: is_github_runner | default(false)
+
+    - name: Import App Init task
+      ansible.builtin.import_tasks: "app_inits/app_init.yml"
