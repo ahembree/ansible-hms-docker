@@ -10,6 +10,7 @@
 - name: Ensure the nvidia-container-toolkit package
   package:
     name: nvidia-container-toolkit
+    update_cache: true
     state: "{{ gpu_prereq_packages_state }}"
 
 - name: Verify nvidia-container-runtime-hook is in $PATH
@@ -29,8 +30,9 @@
     - restart docker
 
 - name: Restart docker
-  shell:
-    cmd: "systemctl restart docker"
+  systemd:
+    state: restarted
+    name: "docker"
 
 - name: Verify CUDA container works
   shell:
