@@ -35,12 +35,19 @@
     name: "docker"
 
 - name: Verify CUDA container works
-  shell:
-    cmd: "docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi"
-  register: nvidia_gpu_test
-  changed_when: False
+  community.docker.docker_container:
+    name: nvidia-gpu-validation
+    image: ubuntu
+    command: nvidia-smi
+    runtime: nvidia
+    state: started
+    device_requests:
+      - driver: nvidia
+        count: -1
+        capabilities:
+          - gpu
 
-- name: Exit if CUDA container fails
-  fail:
-    msg: "CUDA container failed to run"
-  when: nvidia_gpu_test.rc != 0
+- name: Remove CUDA container
+  community.docker.docker_container:
+    name: nvidia-gpu-validation
+    state: absent
