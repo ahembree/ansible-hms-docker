@@ -14,12 +14,12 @@
     state: "{{ gpu_prereq_packages_state }}"
 
 - name: Verify nvidia-container-runtime-hook is in $PATH
-  shell: "which nvidia-container-runtime-hook"
+  ansible.builtin.shell: "which nvidia-container-runtime-hook"
   register: nvidia_container_runtime_hook_path
   changed_when: false
 
 - name: Exit if nvidia-container-runtime-hook is not in $PATH
-  fail:
+  ansible.builtin.fail:
     msg: "nvidia-container-runtime-hook not found in $PATH"
   when: nvidia_container_runtime_hook_path.rc != 0
 
@@ -34,17 +34,15 @@
   register: docker_daemon_config
   when: docker_daemon_config_path.stat.exists
 
-- name: Run nvidia-ctk command if existing docker daemon config exists
+- name: Run nvidia-ctk command if existing docker daemon config exists or does not contain nvidia-container-runtime
   ansible.builtin.shell:
     cmd: sudo nvidia-ctk runtime configure --runtime=docker
   when: docker_daemon_config_path.stat.exists and not docker_daemon_config['content'] | b64decode | regex_search('nvidia-container-runtime') | default(false)
-  register: nvidia_ctk_ran
+  notify: Restart docker
 
-- name: Restart Docker after nvidia-ctk execution
-  ansible.builtin.service:
-    name: docker
-    state: restarted
-  when: nvidia_ctk_ran.changed
+# Flush handlers to run them immediately
+- name: Flush handlers to force run Restart Docker handler
+  ansible.builtin.meta: flush_handlers
 
 - name: Verify CUDA container works
   community.docker.docker_container:
