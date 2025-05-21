@@ -1,14 +1,14 @@
 ---
 - name: Run RHEL-based install.
-  import_tasks: redhat.yml
+  ansible.builtin.import_tasks: redhat.yml
   when: gpu_family_override | lower == "redhat"
 
 - name: Run Debian-based install.
-  import_tasks: debian.yml
+  ansible.builtin.import_tasks: debian.yml
   when: ansible_facts["os_family"] | lower == "debian"
 
-- name: Ensure the nvidia-container-toolkit package
-  package:
+- name: Ensure nvidia-container-toolkit package
+  ansible.builtin.package:
     name: nvidia-container-toolkit
     update_cache: true
     state: "{{ gpu_prereq_packages_state }}"
@@ -16,7 +16,7 @@
 - name: Verify nvidia-container-runtime-hook is in $PATH
   shell: "which nvidia-container-runtime-hook"
   register: nvidia_container_runtime_hook_path
-  changed_when: False
+  changed_when: false
 
 - name: Exit if nvidia-container-runtime-hook is not in $PATH
   fail:
