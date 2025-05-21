@@ -23,16 +23,28 @@
     msg: "nvidia-container-runtime-hook not found in $PATH"
   when: nvidia_container_runtime_hook_path.rc != 0
 
-- name: Register nvidia-container-toolkit with docker
-  shell:
-    cmd: "nvidia-ctk runtime configure --runtime=docker"
-  notify:
-    - restart docker
+- name: Check if Docker daemon config exists
+  ansible.builtin.stat:
+    path: '/etc/docker/daemon.json'
+  register: docker_daemon_config_path
 
-- name: Restart docker
-  systemd:
+- name: Get existing Docker daemon config
+  ansible.builtin.slurp:
+    path: '/etc/docker/daemon.json'
+  register: docker_daemon_config
+  when: docker_daemon_config_path.stat.exists
+
+- name: Run nvidia-ctk command if existing docker daemon config exists
+  ansible.builtin.shell:
+    cmd: sudo nvidia-ctk runtime configure --runtime=docker
+  when: docker_daemon_config_path.stat.exists and not docker_daemon_config['content'] | b64decode | regex_search('nvidia-container-runtime') | default(false)
+  register: nvidia_ctk_ran
+
+- name: Restart Docker after nvidia-ctk execution
+  ansible.builtin.service:
+    name: docker
     state: restarted
-    name: "docker"
+  when: nvidia_ctk_ran.changed
 
 - name: Verify CUDA container works
   community.docker.docker_container:
