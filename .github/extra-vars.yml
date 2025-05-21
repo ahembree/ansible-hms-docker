@@ -411,6 +411,9 @@
       "expose_to_public": false,
       "homepage": true,
       "homepage_stats": false,
+    },
+    "flaresolverr": {
+      "enabled": true
     }
   }
 }

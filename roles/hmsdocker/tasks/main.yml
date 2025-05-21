@@ -245,7 +245,7 @@
 - name: Initialize Supported Apps via their APIs
   when: hmsdocker_app_bootstrap | default(false) and not ansible_check_mode
   block:
-    - name: Sleep if GitHub Actions runner
+    - name: Sleep if GitHub Actions runner to wait for app first init and config generation
       ansible.builtin.pause:
         minutes: 1
       when: is_github_runner | default(false)
