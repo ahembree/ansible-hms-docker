@@ -6,7 +6,7 @@
 hmsdocker_vpn_type: openvpn
 
 # If using `transmission`, find your provider here: https://haugene.github.io/docker-transmission-openvpn/supported-providers/
-# If using `qbittorent` or `deluge`, you must copy your VPN config file
+# If using `qbittorrent` or `deluge`, you must copy your VPN config file
 #   to the container config directory (default: /opt/hms-docker/apps/<container>/config/<vpn_type>)
 # NOTE: these directories will be automatically generated after first playbook run
 # Restart the container using `docker restart <container>` after modifying the files
