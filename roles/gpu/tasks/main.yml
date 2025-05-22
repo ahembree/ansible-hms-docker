@@ -1,36 +1,63 @@
 ---
 - name: Run RHEL-based install.
-  import_tasks: redhat.yml
+  ansible.builtin.import_tasks: redhat.yml
   when: gpu_family_override | lower == "redhat"
 
 - name: Run Debian-based install.
-  import_tasks: debian.yml
+  ansible.builtin.import_tasks: debian.yml
   when: ansible_facts["os_family"] | lower == "debian"
 
+- name: Ensure nvidia-container-toolkit package
+  ansible.builtin.package:
+    name: nvidia-container-toolkit
+    update_cache: true
+    state: "{{ gpu_prereq_packages_state }}"
+
 - name: Verify nvidia-container-runtime-hook is in $PATH
-  shell: "which nvidia-container-runtime-hook"
+  ansible.builtin.shell: "which nvidia-container-runtime-hook"
   register: nvidia_container_runtime_hook_path
-  changed_when: False
+  changed_when: false
 
 - name: Exit if nvidia-container-runtime-hook is not in $PATH
-  fail:
+  ansible.builtin.fail:
     msg: "nvidia-container-runtime-hook not found in $PATH"
   when: nvidia_container_runtime_hook_path.rc != 0
 
-- name: Ensure the nvidia-docker2 package
-  package:
-    name: nvidia-docker2
-    state: "{{ gpu_prereq_packages_state }}"
-  notify:
-    - restart docker
+- name: Check if Docker daemon config exists
+  ansible.builtin.stat:
+    path: '/etc/docker/daemon.json'
+  register: docker_daemon_config_path
+
+- name: Get existing Docker daemon config
+  ansible.builtin.slurp:
+    path: '/etc/docker/daemon.json'
+  register: docker_daemon_config
+  when: docker_daemon_config_path.stat.exists
+
+- name: Run nvidia-ctk command if existing docker daemon config exists or does not contain nvidia-container-runtime
+  ansible.builtin.shell:
+    cmd: sudo nvidia-ctk runtime configure --runtime=docker
+  when: docker_daemon_config_path.stat.exists and not docker_daemon_config['content'] | b64decode | regex_search('nvidia-container-runtime') | default(false)
+  notify: Restart docker
+
+# Flush handlers to run them immediately
+- name: Flush handlers to force run Restart Docker handler
+  ansible.builtin.meta: flush_handlers
 
 - name: Verify CUDA container works
-  shell:
-    cmd: "docker run --name nvidia-gpu-test --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi"
-  register: nvidia_gpu_test
-  changed_when: False
+  community.docker.docker_container:
+    name: nvidia-gpu-validation
+    image: ubuntu
+    command: nvidia-smi
+    runtime: nvidia
+    state: started
+    device_requests:
+      - driver: nvidia
+        count: -1
+        capabilities:
+          - gpu
 
-- name: Exit if CUDA container fails
-  fail:
-    msg: "CUDA container failed to run"
-  when: nvidia_gpu_test.rc != 0
+- name: Remove CUDA container
+  community.docker.docker_container:
+    name: nvidia-gpu-validation
+    state: absent
