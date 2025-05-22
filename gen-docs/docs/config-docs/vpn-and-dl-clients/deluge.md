@@ -18,7 +18,7 @@ Requires the following variables:
 * `hmsdocker_vpn_user`: Your VPN account/service account username
 * `hmsdocker_vpn_pass`: Your VPN account/service account password
 
-If using an OpenVPN config file for your VPN connection, please update or place the `.ovpn` file and any other required files in the directory: `/opt/hmsdocker/apps/deluge/config/openvpn` (default)
+If using an OpenVPN config file for your VPN connection, please update or place the `.ovpn` file and any other required files in the directory: `/opt/hms-docker/apps/deluge/config/openvpn` (default)
 
 This folder will not exist until the playbook is ran or the container runs
 
@@ -28,6 +28,6 @@ Requires the following variables:
 
 * `hmsdocker_vpn_type`: `wireguard`
 
-If using WireGuard for your VPN connection, please update or place the `wg0.conf` file and any other required files in the directory: `/opt/hmsdocker/apps/deluge/config/wireguard` (default)
+If using WireGuard for your VPN connection, please update or place the `wg0.conf` file and any other required files in the directory: `/opt/hms-docker/apps/deluge/config/wireguard` (default)
 
 This folder will not exist until the playbook is ran or the container runs
