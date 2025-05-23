@@ -1,0 +1,607 @@
+- name: Radarr bootstrap - Init Radarr
+  block:
+    - name: Radarr bootstrap - Set Global Radarr facts
+      ansible.builtin.set_fact:
+        radarr_download_client_name_prefix: "HMSD - "
+
+    - name: Radarr bootstrap - Ensure Radarr Config
+      block:
+        - name: Radarr bootstrap - Get radarr container info
+          community.docker.docker_container_info:
+            name: radarr
+          register: radarr_container_info
+
+        - name: Radarr bootstrap - Set Radarr facts
+          ansible.builtin.set_fact:
+            radarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_radarr }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if hmsdocker_expose_ports_enabled_radarr }}/api"
+
+        - name: Radarr bootstrap - Precheck Radarr API Key
+          ansible.builtin.uri:
+            url: "{{ radarr_url }}"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: radarr_api_key_precheck
+
+        - name: Radarr bootstrap - Get Radarr root folders
+          ansible.builtin.uri:
+            url: "{{ radarr_url }}/v3/rootfolder"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: radarr_root_folders
+
+        - name: Radarr bootstrap - Set Radarr root folder variables
+          ansible.builtin.set_fact:
+            radarr_accessible_root_folders: "{{ radarr_root_folders.json | json_query('[?accessible==`true`].path') }}"
+            radarr_mount_list: "{{ radarr_container_info.container.Mounts | json_query(mount_query) }}"
+            hmsd_movie_folders: "{{ hms_docker_library_folders | json_query('[?type==`movies`].folder_name') }}"
+          vars:
+            mount_query: "[?Source=='{{ hms_docker_mount_path }}'].Destination"
+
+        - name: Radarr bootstrap - Ensure root folder is configured in Radarr
+          ansible.builtin.uri:
+            url: "{{ radarr_url }}/v3/rootfolder"
+            method: POST
+            status_code:
+              - 201
+            body_format: json
+            return_content: true
+            body:
+              path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in radarr_accessible_root_folders
+          with_nested:
+            - "{{ radarr_mount_list }}"
+            - "{{ hmsd_movie_folders }}"
+          loop_control:
+            loop_var: dir
+          register: radarr_req_add_root
+          changed_when: radarr_req_add_root.status == 201
+
+        - name: Radarr bootstrap - Ensure download clients in Radarr
+          block:
+            - name: Radarr bootstrap - Get download clients
+              ansible.builtin.uri:
+                url: "{{ radarr_url }}/v3/downloadclient"
+                method: GET
+                status_code: 200
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_downloaders
+
+            - name: Radarr bootstrap - Set Radarr download client Facts
+              ansible.builtin.set_fact:
+                radarr_download_clients: "{{ radarr_downloaders.json | json_query('[].name') }}"
+
+            - name: Radarr bootstrap - Configure Transmission download client in Radarr
+              when:
+                - radarr_download_client_name_prefix + 'Transmission' not in radarr_download_clients
+                - "'transmission' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}Transmission",
+                  implementation: "Transmission",
+                  configContract: "TransmissionSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  priority: 1,
+                  enable: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "transmission"
+                    },
+                    {
+                      name: "port",
+                      value: 9091
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase",
+                      value: "/transmission/"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory"
+                    },
+                    {
+                      name: "tvDirectory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "addPaused",
+                      value: false
+                    }
+                  ]
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_req_add_download_client
+              changed_when: radarr_req_add_download_client.status == 201
+
+            - name: Radarr bootstrap - Configure qBittorrent download client in Radarr
+              when:
+                - radarr_download_client_name_prefix + 'qBittorrent' not in radarr_download_clients
+                - "'qbittorrent' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}qBittorrent",
+                  enable: true,
+                  priority: 1,
+                  implementation: "QBittorrent",
+                  configContract: "QBittorrentSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "qbittorrent"
+                    },
+                    {
+                      name: "port",
+                      value: 8086
+                    },
+                    {
+                      "name":"useSsl",
+                      "value":false
+                    },
+                    {
+                      "name":"urlBase"
+                    },
+                    {
+                      "name":"username"
+                    },
+                    {
+                      "name":"password"
+                    },
+                    {
+                      "name":"movieCategory",
+                      "value":"radarr"
+                    },
+                    {
+                      "name":"movieImportedCategory"
+                    },
+                    {
+                      "name":"recentMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"olderMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"initialState",
+                      "value":0
+                    },
+                    {
+                      "name":"sequentialOrder",
+                      "value":false
+                    },
+                    {
+                      "name":"firstAndLast",
+                      "value":false
+                    },
+                    {
+                      "name":"contentLayout",
+                      "value":0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_req_add_download_client
+              changed_when: radarr_req_add_download_client.status == 201
+
+            - name: Radarr bootstrap - Configure Deluge download client in Radarr
+              when:
+                - radarr_download_client_name_prefix + 'Deluge' not in radarr_download_clients
+                - "'deluge' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}Deluge",
+                  enable: true,
+                  priority: 1,
+                  implementation: "Deluge",
+                  configContract: "DelugeSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "deluge"
+                    },
+                    {
+                      name: "port",
+                      value: 8112
+                    },
+                    {
+                      "name":"useSsl",
+                      "value":false
+                    },
+                    {
+                      "name":"urlBase"
+                    },
+                    {
+                      "name":"username"
+                    },
+                    {
+                      "name":"password",
+                      "value": "deluge"
+                    },
+                    {
+                      "name":"movieCategory"
+                    },
+                    {
+                      "name":"movieImportedCategory"
+                    },
+                    {
+                      "name":"recentMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"olderMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"initialState",
+                      "value":0
+                    },
+                    {
+                      "name":"sequentialOrder",
+                      "value":false
+                    },
+                    {
+                      "name":"firstAndLast",
+                      "value":false
+                    },
+                    {
+                      "name":"contentLayout",
+                      "value":0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_req_add_download_client
+              changed_when: radarr_req_add_download_client.status == 201
+
+    - name: Radarr 4K bootstrap - Ensure Radarr 4K Config
+      when: separate_4k_instances_enable
+      block:
+        - name: Radarr 4K bootstrap - Get radarr 4K container info
+          community.docker.docker_container_info:
+            name: radarr-4k
+          register: radarr_4k_container_info
+
+        - name: Radarr 4K bootstrap - Set Radarr 4K facts
+          ansible.builtin.set_fact:
+            radarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_radarr }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if hmsdocker_expose_ports_enabled_radarr }}/api"
+
+        - name: Radarr 4K bootstrap - Precheck Radarr 4K API Key
+          ansible.builtin.uri:
+            url: "{{ radarr_4k_url }}"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: radarr_4k_api_key_precheck
+
+        - name: Radarr 4K bootstrap - Get Radarr 4K root folders
+          ansible.builtin.uri:
+            url: "{{ radarr_4k_url }}/v3/rootfolder"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: radarr_4k_root_folders
+
+        - name: Radarr 4K bootstrap - Set Radarr 4K folder variables
+          ansible.builtin.set_fact:
+            radarr_accessible_root_folders: "{{ radarr_4k_root_folders.json | json_query('[?accessible==`true`].path') }}"
+            radarr_4k_mount_list: "{{ radarr_4k_container_info.container.Mounts | selectattr('Source', 'equalto', hms_docker_mount_path) | map(attribute='Destination') | list }}"
+            hmsd_movie_folders: "{{ hms_docker_library_folders | selectattr('type', 'equalto', 'movies') | map(attribute='folder_name') | list }}"
+
+        - name: Radarr 4K bootstrap - Ensure root folder is configured in Radarr 4K
+          ansible.builtin.uri:
+            url: "{{ radarr_4k_url }}/v3/rootfolder"
+            method: POST
+            status_code:
+              - 201
+            body_format: json
+            return_content: true
+            body:
+              path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
+            headers:
+              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in radarr_accessible_root_folders
+          with_nested:
+            - "{{ radarr_4k_mount_list }}"
+            - "{{ hmsd_movie_folders }}"
+          loop_control:
+            loop_var: dir
+          register: radarr_4k_req_add_root
+          changed_when: radarr_4k_req_add_root.status == 201
+
+        - name: Radarr 4K bootstrap - Ensure download clients in Radarr 4K
+          block:
+            - name: Radarr 4K bootstrap - Get download clients
+              ansible.builtin.uri:
+                url: "{{ radarr_4k_url }}/v3/downloadclient"
+                method: GET
+                status_code: 200
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_4k_downloaders
+
+            - name: Radarr 4K bootstrap - Set download client Facts
+              ansible.builtin.set_fact:
+                radarr_4k_download_clients: "{{ radarr_4k_downloaders.json | json_query('[].name') }}"
+
+            - name: Radarr 4K bootstrap - Configure Transmission download client in Radarr 4K
+              when:
+                - radarr_download_client_name_prefix + 'Transmission' not in radarr_4k_download_clients
+                - - "'transmission' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}Transmission",
+                  implementation: "Transmission",
+                  configContract: "TransmissionSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  priority: 1,
+                  enable: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "transmission"
+                    },
+                    {
+                      name: "port",
+                      value: 9091
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase",
+                      value: "/transmission/"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: "tv-sonarr"
+                    },
+                    {
+                      name: "tvDirectory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "addPaused",
+                      value: false
+                    }
+                  ]
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_4k_req_add_download_client
+              changed_when: radarr_4k_req_add_download_client.status == 201
+
+            - name: Radarr 4K bootstrap - Configure qBittorrent download client in Radarr 4K
+              when:
+                - radarr_download_client_name_prefix + 'qBittorrent' not in radarr_4k_download_clients
+                - "'qbittorrent' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}qBittorrent",
+                  enable: true,
+                  priority: 1,
+                  implementation: "QBittorrent",
+                  configContract: "QBittorrentSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "qbittorrent"
+                    },
+                    {
+                      name: "port",
+                      value: 8086
+                    },
+                    {
+                      "name":"useSsl",
+                      "value":false
+                    },
+                    {
+                      "name":"urlBase"
+                    },
+                    {
+                      "name":"username"
+                    },
+                    {
+                      "name":"password"
+                    },
+                    {
+                      "name":"movieCategory",
+                      "value":"radarr-4k"
+                    },
+                    {
+                      "name":"movieImportedCategory"
+                    },
+                    {
+                      "name":"recentMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"olderMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"initialState",
+                      "value":0
+                    },
+                    {
+                      "name":"sequentialOrder",
+                      "value":false
+                    },
+                    {
+                      "name":"firstAndLast",
+                      "value":false
+                    },
+                    {
+                      "name":"contentLayout",
+                      "value":0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_4k_req_add_download_client
+              changed_when: radarr_4k_req_add_download_client.status == 201
+
+            - name: Radarr 4K bootstrap - Configure Deluge download client in Radarr 4K
+              when:
+                - radarr_download_client_name_prefix + 'Deluge' not in radarr_4k_download_clients
+                - "'deluge' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ radarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ radarr_download_client_name_prefix }}Deluge",
+                  enable: true,
+                  priority: 1,
+                  implementation: "Deluge",
+                  configContract: "DelugeSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "deluge"
+                    },
+                    {
+                      name: "port",
+                      value: 8112
+                    },
+                    {
+                      "name":"useSsl",
+                      "value":false
+                    },
+                    {
+                      "name":"urlBase"
+                    },
+                    {
+                      "name":"username"
+                    },
+                    {
+                      "name":"password",
+                      "value": "deluge"
+                    },
+                    {
+                      "name":"movieCategory"
+                    },
+                    {
+                      "name":"movieImportedCategory"
+                    },
+                    {
+                      "name":"recentMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"olderMoviePriority",
+                      "value":0
+                    },
+                    {
+                      "name":"initialState",
+                      "value":0
+                    },
+                    {
+                      "name":"sequentialOrder",
+                      "value":false
+                    },
+                    {
+                      "name":"firstAndLast",
+                      "value":false
+                    },
+                    {
+                      "name":"contentLayout",
+                      "value":0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: radarr_4k_req_add_download_client
+              changed_when: radarr_4k_req_add_download_client.status == 201

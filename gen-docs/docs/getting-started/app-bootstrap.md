@@ -29,3 +29,15 @@ It will do the following for each service:
     - Deluge
 
   - Configure the Sonarr and Radarr apps (including 4K instances if enabled)
+
+- Radarr (including 4K instance if enabled)
+
+  - Configure root folder
+
+  - Configure download clients (if enabled):
+
+    - Transmission
+
+    - qBittorrent
+
+    - Deluge
