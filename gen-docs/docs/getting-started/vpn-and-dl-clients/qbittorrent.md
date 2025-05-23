@@ -20,7 +20,7 @@ Authentication will be **disabled** by default for private (RFC1918) IP space:
 
 This is to allow the automatic app bootstrap to work and to reduce complexity of retrieving temporary admin password.
 
-If you wish to have authentication, you can configure this in the WebUI settings of qBittorrent.
+If you wish to have authentication, you can configure this in the WebUI settings of qBittorrent. You will also need to update the download client for qBittorrent in the Sonarr and Radarr apps
 
 If you enabled authentication _before_ running the app bootstrap tasks, they will fail. To resolve, turn off authentication in qBittorrent, then run the bootstrap tasks and then configure the qBittorrent download client username/password in the specific apps
 

@@ -4,6 +4,14 @@ This setup uses the container maintained here: [binhex/arch-delugevpn](https://g
 
 Settings mentioned below should already exist in your `inventory/group_vars/all/vpn.yml` file
 
+The default password is `deluge`
+
+:::note
+
+If you update the Deluge password _and_ are using the automatic app bootstrap, you will need to update the password for the `HMSD - Deluge` download client in the Sonarr and Radarr app(s)
+
+:::
+
 :::note
 
 After updating the VPN config file, run `docker restart deluge`

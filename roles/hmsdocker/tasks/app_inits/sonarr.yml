@@ -1,0 +1,609 @@
+- name: Sonarr bootstrap - Init Sonarr
+  block:
+    - name: Sonarr bootstrap - Set Global Sonarr facts
+      ansible.builtin.set_fact:
+        sonarr_download_client_name_prefix: "HMSD - "
+
+    - name: Sonarr bootstrap - Ensure Sonarr Config
+      block:
+        - name: Sonarr bootstrap - Get sonarr container info
+          community.docker.docker_container_info:
+            name: sonarr
+          register: sonarr_container_info
+
+        - name: Sonarr bootstrap - Set Sonarr facts
+          ansible.builtin.set_fact:
+            sonarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if hmsdocker_expose_ports_enabled_sonarr }}/api"
+
+        - name: Sonarr bootstrap - Precheck Sonarr API Key
+          ansible.builtin.uri:
+            url: "{{ sonarr_url }}"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: sonarr_api_key_precheck
+
+        - name: Sonarr bootstrap - Get Sonarr root folders
+          ansible.builtin.uri:
+            url: "{{ sonarr_url }}/v3/rootfolder"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: sonarr_root_folders
+
+        - name: Sonarr bootstrap - Set Sonarr root folder variables
+          ansible.builtin.set_fact:
+            sonarr_accessible_root_folders: "{{ sonarr_root_folders.json | json_query('[?accessible==`true`].path') }}"
+            sonarr_mount_list: "{{ sonarr_container_info.container.Mounts | json_query(mount_query) }}"
+            hmsd_series_folders: "{{ hms_docker_library_folders | json_query('[?type==`tv_shows`].folder_name') }}"
+          vars:
+            mount_query: "[?Source=='{{ hms_docker_mount_path }}'].Destination"
+
+        - name: Sonarr bootstrap - Ensure root folder is configured in Sonarr
+          ansible.builtin.uri:
+            url: "{{ sonarr_url }}/v3/rootfolder"
+            method: POST
+            status_code:
+              - 201
+            body_format: json
+            return_content: true
+            body:
+              path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+          when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in sonarr_accessible_root_folders
+          with_nested:
+            - "{{ sonarr_mount_list }}"
+            - "{{ hmsd_series_folders }}"
+          loop_control:
+            loop_var: dir
+          register: sonarr_req_add_root
+          changed_when: sonarr_req_add_root.status == 201
+
+        - name: Sonarr bootstrap - Ensure download clients in Sonarr
+          block:
+            - name: Sonarr bootstrap - Get download clients
+              ansible.builtin.uri:
+                url: "{{ sonarr_url }}/v3/downloadclient"
+                method: GET
+                status_code: 200
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_downloaders
+
+            - name: Sonarr bootstrap - Set Sonarr download client Facts
+              ansible.builtin.set_fact:
+                sonarr_download_clients: "{{ sonarr_downloaders.json | json_query('[].name') }}"
+
+            - name: Sonarr bootstrap - Configure Transmission download client in Sonarr
+              when:
+                - sonarr_download_client_name_prefix + 'Transmission' not in sonarr_download_clients
+                - "'transmission' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}Transmission",
+                  implementation: "Transmission",
+                  configContract: "TransmissionSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  priority: 1,
+                  enable: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "transmission"
+                    },
+                    {
+                      name: "port",
+                      value: 9091
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase",
+                      value: "/transmission/"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: "tv-sonarr"
+                    },
+                    {
+                      name: "tvDirectory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "addPaused",
+                      value: false
+                    }
+                  ]
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_req_add_download_client
+              changed_when: sonarr_req_add_download_client.status == 201
+
+            - name: Sonarr bootstrap - Configure qBittorrent download client in Sonarr
+              when:
+                - sonarr_download_client_name_prefix + 'qBittorrent' not in sonarr_download_clients
+                - "'qbittorrent' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}qBittorrent",
+                  enable: true,
+                  priority: 1,
+                  implementation: "QBittorrent",
+                  configContract: "QBittorrentSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "qbittorrent"
+                    },
+                    {
+                      name: "port",
+                      value: 8086
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: "tv-sonarr"
+                    },
+                    {
+                      name: "tvImportedCategory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "initialState",
+                      value: 0
+                    },
+                    {
+                      name: "sequentialOrder",
+                      value: false
+                    },
+                    {
+                      name: "firstAndLast",
+                      value: false
+                    },
+                    {
+                      name: "contentLayout",
+                      value: 0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_req_add_download_client
+              changed_when: sonarr_req_add_download_client.status == 201
+
+            - name: Sonarr bootstrap - Configure Deluge download client in Sonarr
+              when:
+                - sonarr_download_client_name_prefix + 'Deluge' not in sonarr_download_clients
+                - "'deluge' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}Deluge",
+                  enable: true,
+                  priority: 1,
+                  implementation: "Deluge",
+                  configContract: "DelugeSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "deluge"
+                    },
+                    {
+                      name: "port",
+                      value: 8112
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password",
+                      value: "deluge"
+                    },
+                    {
+                      name: "tvCategory"
+                    },
+                    {
+                      name: "tvImportedCategory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "initialState",
+                      value: 0
+                    },
+                    {
+                      name: "sequentialOrder",
+                      value: false
+                    },
+                    {
+                      name: "firstAndLast",
+                      value: false
+                    },
+                    {
+                      name: "contentLayout",
+                      value: 0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_req_add_download_client
+              changed_when: sonarr_req_add_download_client.status == 201
+
+    - name: Sonarr 4K bootstrap - Ensure Sonarr 4K Config
+      when: separate_4k_instances_enable
+      block:
+        - name: Sonarr 4K bootstrap - Get sonarr 4K container info
+          community.docker.docker_container_info:
+            name: sonarr-4k
+          register: sonarr_4k_container_info
+
+        - name: Sonarr 4K bootstrap - Set Sonarr 4K facts
+          ansible.builtin.set_fact:
+            sonarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if hmsdocker_expose_ports_enabled_sonarr }}/api"
+
+        - name: Sonarr 4K bootstrap - Precheck Sonarr 4K API Key
+          ansible.builtin.uri:
+            url: "{{ sonarr_4k_url }}"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: sonarr_4k_api_key_precheck
+
+        - name: Sonarr 4K bootstrap - Get Sonarr 4K root folders
+          ansible.builtin.uri:
+            url: "{{ sonarr_4k_url }}/v3/rootfolder"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          register: sonarr_4k_root_folders
+
+        - name: Sonarr 4K bootstrap - Set Sonarr 4K folder variables
+          ansible.builtin.set_fact:
+            sonarr_accessible_root_folders: "{{ sonarr_4k_root_folders.json | json_query('[?accessible==`true`].path') }}"
+            sonarr_4k_mount_list: "{{ sonarr_4k_container_info.container.Mounts | selectattr('Source', 'equalto', hms_docker_mount_path) | map(attribute='Destination') | list }}"
+            hmsd_series_folders: "{{ hms_docker_library_folders | selectattr('type', 'equalto', 'tv_shows') | map(attribute='folder_name') | list }}"
+
+        - name: Sonarr 4K bootstrap - Ensure root folder is configured in Sonarr 4K
+          ansible.builtin.uri:
+            url: "{{ sonarr_4k_url }}/v3/rootfolder"
+            method: POST
+            status_code:
+              - 201
+            body_format: json
+            return_content: true
+            body:
+              path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
+            headers:
+              X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+          when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in sonarr_accessible_root_folders
+          with_nested:
+            - "{{ sonarr_4k_mount_list }}"
+            - "{{ hmsd_series_folders }}"
+          loop_control:
+            loop_var: dir
+          register: sonarr_4k_req_add_root
+          changed_when: sonarr_4k_req_add_root.status == 201
+
+        - name: Sonarr 4K bootstrap - Ensure download clients in Sonarr 4K
+          block:
+            - name: Sonarr 4K bootstrap - Get download clients
+              ansible.builtin.uri:
+                url: "{{ sonarr_4k_url }}/v3/downloadclient"
+                method: GET
+                status_code: 200
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_4k_downloaders
+
+            - name: Sonarr 4K bootstrap - Set download client Facts
+              ansible.builtin.set_fact:
+                sonarr_4k_download_clients: "{{ sonarr_4k_downloaders.json | json_query('[].name') }}"
+
+            - name: Sonarr 4K bootstrap - Configure Transmission download client in Sonarr 4K
+              when:
+                - sonarr_download_client_name_prefix + 'Transmission' not in sonarr_4k_download_clients
+                - "'transmission' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}Transmission",
+                  implementation: "Transmission",
+                  configContract: "TransmissionSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  priority: 1,
+                  enable: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "transmission"
+                    },
+                    {
+                      name: "port",
+                      value: 9091
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase",
+                      value: "/transmission/"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: "tv-sonarr-four-k"
+                    },
+                    {
+                      name: "tvDirectory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "addPaused",
+                      value: false
+                    }
+                  ]
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_4k_req_add_download_client
+              changed_when: sonarr_4k_req_add_download_client.status == 201
+
+            - name: Sonarr 4K bootstrap - Configure qBittorrent download client in Sonarr 4K
+              when:
+                - sonarr_download_client_name_prefix + 'qBittorrent' not in sonarr_4k_download_clients
+                - "'qbittorrent' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}qBittorrent",
+                  enable: true,
+                  priority: 1,
+                  implementation: "QBittorrent",
+                  configContract: "QBittorrentSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "qbittorrent"
+                    },
+                    {
+                      name: "port",
+                      value: 8086
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: "tv-sonarr-four-k"
+                    },
+                    {
+                      name: "tvImportedCategory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "initialState",
+                      value: 0
+                    },
+                    {
+                      name: "sequentialOrder",
+                      value: false
+                    },
+                    {
+                      name: "firstAndLast",
+                      value: false
+                    },
+                    {
+                      name: "contentLayout",
+                      value: 0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_4k_req_add_download_client
+              changed_when: sonarr_4k_req_add_download_client.status == 201
+
+            - name: Sonarr 4K bootstrap - Configure Deluge download client in Sonarr 4K
+              when:
+                - sonarr_download_client_name_prefix + 'Deluge' not in sonarr_4k_download_clients
+                - "'deluge' in enabled_containers"
+              ansible.builtin.uri:
+                url: "{{ sonarr_4k_url }}/v3/downloadclient"
+                method: POST
+                body: {
+                  name: "{{ sonarr_download_client_name_prefix }}Deluge",
+                  enable: true,
+                  priority: 1,
+                  implementation: "Deluge",
+                  configContract: "DelugeSettings",
+                  removeCompletedDownloads: true,
+                  removeFailedDownloads: true,
+                  fields: [
+                    {
+                      name: "host",
+                      value: "deluge"
+                    },
+                    {
+                      name: "port",
+                      value: 8112
+                    },
+                    {
+                      name: "useSsl",
+                      value: false
+                    },
+                    {
+                      name: "urlBase"
+                    },
+                    {
+                      name: "username"
+                    },
+                    {
+                      name: "password",
+                      value: "deluge"
+                    },
+                    {
+                      name: "tvCategory",
+                      value: ""
+                    },
+                    {
+                      name: "tvImportedCategory"
+                    },
+                    {
+                      name: "recentTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "olderTvPriority",
+                      value: 0
+                    },
+                    {
+                      name: "initialState",
+                      value: 0
+                    },
+                    {
+                      name: "sequentialOrder",
+                      value: false
+                    },
+                    {
+                      name: "firstAndLast",
+                      value: false
+                    },
+                    {
+                      name: "contentLayout",
+                      value: 0
+                    }
+                  ],
+                }
+                status_code: 201
+                body_format: json
+                return_content: true
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_4k_req_add_download_client
+              changed_when: sonarr_4k_req_add_download_client.status == 201
