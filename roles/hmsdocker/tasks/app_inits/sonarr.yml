@@ -13,7 +13,7 @@
 
         - name: Sonarr bootstrap - Set Sonarr facts
           ansible.builtin.set_fact:
-            sonarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if hmsdocker_expose_ports_enabled_sonarr }}/api"
+            sonarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8989' if hmsdocker_expose_ports_enabled_sonarr }}/api"
 
         - name: Sonarr bootstrap - Precheck Sonarr API Key
           ansible.builtin.uri:
@@ -316,7 +316,7 @@
 
         - name: Sonarr 4K bootstrap - Set Sonarr 4K facts
           ansible.builtin.set_fact:
-            sonarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if hmsdocker_expose_ports_enabled_sonarr }}/api"
+            sonarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_sonarr }}://{{ hms_docker_container_map['sonarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':8990' if hmsdocker_expose_ports_enabled_sonarr }}/api"
 
         - name: Sonarr 4K bootstrap - Precheck Sonarr 4K API Key
           ansible.builtin.uri:
