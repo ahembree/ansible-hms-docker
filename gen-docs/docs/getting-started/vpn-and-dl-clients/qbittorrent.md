@@ -10,6 +10,22 @@ After updating the VPN config file, run `docker restart qbittorrent`
 
 :::
 
+:::warning
+
+Authentication will be **disabled** by default for private (RFC1918) IP space:
+
+- `10.0.0.0/8`
+- `172.16.0.0/12`
+- `192.168.0.0/16`
+
+This is to allow the automatic app bootstrap to work and to reduce complexity of retrieving temporary admin password.
+
+If you wish to have authentication, you can configure this in the WebUI settings of qBittorrent.
+
+If you enabled authentication _before_ running the app bootstrap tasks, they will fail. To resolve, turn off authentication in qBittorrent, then run the bootstrap tasks and then configure the qBittorrent download client username/password in the specific apps
+
+:::
+
 ## OpenVPN
 
 Requires the following variables:
