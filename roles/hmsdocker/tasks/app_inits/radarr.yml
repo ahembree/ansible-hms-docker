@@ -122,17 +122,18 @@
                       name: "password"
                     },
                     {
-                      name: "tvCategory"
+                      name: "movieCategory",
+                      value: "movie-radarr"
                     },
                     {
-                      name: "tvDirectory"
+                      name: "movieDirectory"
                     },
                     {
-                      name: "recentTvPriority",
+                      name: "recentMoviePriority",
                       value: 0
                     },
                     {
-                      name: "olderTvPriority",
+                      name: "olderMoviePriority",
                       value: 0
                     },
                     {
@@ -174,48 +175,48 @@
                       value: 8086
                     },
                     {
-                      "name":"useSsl",
-                      "value":false
+                      name: "useSsl",
+                      value: false
                     },
                     {
-                      "name":"urlBase"
+                      name: "urlBase"
                     },
                     {
-                      "name":"username"
+                      name: "username"
                     },
                     {
-                      "name":"password"
+                      name: "password"
                     },
                     {
-                      "name":"movieCategory",
-                      "value":"radarr"
+                      name: "movieCategory",
+                      value: "movie-radarr"
                     },
                     {
-                      "name":"movieImportedCategory"
+                      name: "movieImportedCategory"
                     },
                     {
-                      "name":"recentMoviePriority",
-                      "value":0
+                      name: "recentMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"olderMoviePriority",
-                      "value":0
+                      name: "olderMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"initialState",
-                      "value":0
+                      name: "initialState",
+                      value: 0
                     },
                     {
-                      "name":"sequentialOrder",
-                      "value":false
+                      name: "sequentialOrder",
+                      value: false
                     },
                     {
-                      "name":"firstAndLast",
-                      "value":false
+                      name: "firstAndLast",
+                      value: false
                     },
                     {
-                      "name":"contentLayout",
-                      "value":0
+                      name: "contentLayout",
+                      value: 0
                     }
                   ],
                 }
@@ -252,48 +253,49 @@
                       value: 8112
                     },
                     {
-                      "name":"useSsl",
-                      "value":false
+                      name: "useSsl",
+                      value: false
                     },
                     {
-                      "name":"urlBase"
+                      name: "urlBase"
                     },
                     {
-                      "name":"username"
+                      name: "username"
                     },
                     {
-                      "name":"password",
-                      "value": "deluge"
+                      name: "password",
+                      value: "deluge"
                     },
                     {
-                      "name":"movieCategory"
+                      name: "movieCategory",
+                      value: ""
                     },
                     {
-                      "name":"movieImportedCategory"
+                      name: "movieImportedCategory"
                     },
                     {
-                      "name":"recentMoviePriority",
-                      "value":0
+                      name: "recentMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"olderMoviePriority",
-                      "value":0
+                      name: "olderMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"initialState",
-                      "value":0
+                      name: "initialState",
+                      value: 0
                     },
                     {
-                      "name":"sequentialOrder",
-                      "value":false
+                      name: "sequentialOrder",
+                      value: false
                     },
                     {
-                      "name":"firstAndLast",
-                      "value":false
+                      name: "firstAndLast",
+                      value: false
                     },
                     {
-                      "name":"contentLayout",
-                      "value":0
+                      name: "contentLayout",
+                      value: 0
                     }
                   ],
                 }
@@ -422,18 +424,18 @@
                       name: "password"
                     },
                     {
-                      name: "tvCategory",
-                      value: "tv-sonarr"
+                      name: "movieCategory",
+                      value: "movie-radarr-four-k"
                     },
                     {
-                      name: "tvDirectory"
+                      name: "movieDirectory"
                     },
                     {
-                      name: "recentTvPriority",
+                      name: "recentMoviePriority",
                       value: 0
                     },
                     {
-                      name: "olderTvPriority",
+                      name: "olderMoviePriority",
                       value: 0
                     },
                     {
@@ -475,48 +477,48 @@
                       value: 8086
                     },
                     {
-                      "name":"useSsl",
-                      "value":false
+                      name: "useSsl",
+                      value: false
                     },
                     {
-                      "name":"urlBase"
+                      name: "urlBase"
                     },
                     {
-                      "name":"username"
+                      name: "username"
                     },
                     {
-                      "name":"password"
+                      name: "password"
                     },
                     {
-                      "name":"movieCategory",
-                      "value":"radarr-4k"
+                      name: "movieCategory",
+                      value: "movie-radarr-four-k"
                     },
                     {
-                      "name":"movieImportedCategory"
+                      name: "movieImportedCategory"
                     },
                     {
-                      "name":"recentMoviePriority",
-                      "value":0
+                      name: "recentMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"olderMoviePriority",
-                      "value":0
+                      name: "olderMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"initialState",
-                      "value":0
+                      name: "initialState",
+                      value: 0
                     },
                     {
-                      "name":"sequentialOrder",
-                      "value":false
+                      name: "sequentialOrder",
+                      value: false
                     },
                     {
-                      "name":"firstAndLast",
-                      "value":false
+                      name: "firstAndLast",
+                      value: false
                     },
                     {
-                      "name":"contentLayout",
-                      "value":0
+                      name: "contentLayout",
+                      value: 0
                     }
                   ],
                 }
@@ -553,48 +555,49 @@
                       value: 8112
                     },
                     {
-                      "name":"useSsl",
-                      "value":false
+                      name: "useSsl",
+                      value: false
                     },
                     {
-                      "name":"urlBase"
+                      name: "urlBase"
                     },
                     {
-                      "name":"username"
+                      name: "username"
                     },
                     {
-                      "name":"password",
-                      "value": "deluge"
+                      name: "password",
+                      value: "deluge"
                     },
                     {
-                      "name":"movieCategory"
+                      name: "movieCategory",
+                      value: ""
                     },
                     {
-                      "name":"movieImportedCategory"
+                      name: "movieImportedCategory"
                     },
                     {
-                      "name":"recentMoviePriority",
-                      "value":0
+                      name: "recentMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"olderMoviePriority",
-                      "value":0
+                      name: "olderMoviePriority",
+                      value: 0
                     },
                     {
-                      "name":"initialState",
-                      "value":0
+                      name: "initialState",
+                      value: 0
                     },
                     {
-                      "name":"sequentialOrder",
-                      "value":false
+                      name: "sequentialOrder",
+                      value: false
                     },
                     {
-                      "name":"firstAndLast",
-                      "value":false
+                      name: "firstAndLast",
+                      value: false
                     },
                     {
-                      "name":"contentLayout",
-                      "value":0
+                      name: "contentLayout",
+                      value: 0
                     }
                   ],
                 }
