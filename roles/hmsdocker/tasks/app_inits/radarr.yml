@@ -386,7 +386,7 @@
             - name: Radarr 4K bootstrap - Configure Transmission download client in Radarr 4K
               when:
                 - radarr_download_client_name_prefix + 'Transmission' not in radarr_4k_download_clients
-                - - "'transmission' in enabled_containers"
+                - "'transmission' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ radarr_4k_url }}/v3/downloadclient"
                 method: POST
