@@ -34,10 +34,10 @@
   register: docker_daemon_config
   when: docker_daemon_config_path.stat.exists
 
-- name: Run nvidia-ctk command if existing docker daemon config exists or does not contain nvidia-container-runtime
+- name: Run nvidia-ctk command if existing docker daemon config doesn't exist or does not contain nvidia-container-runtime
   ansible.builtin.shell:
     cmd: sudo nvidia-ctk runtime configure --runtime=docker
-  when: docker_daemon_config_path.stat.exists and not docker_daemon_config['content'] | b64decode | regex_search('nvidia-container-runtime') | default(false)
+  when: not docker_daemon_config_path.stat.exists or not docker_daemon_config['content'] | b64decode | regex_search('nvidia-container-runtime') | default(false)
   notify: Restart docker
 
 # Flush handlers to run them immediately
