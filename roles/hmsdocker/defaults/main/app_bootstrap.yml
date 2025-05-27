@@ -1,4 +1,8 @@
 # If the playbook should attempt to connect supported apps together automatically.
 hmsdocker_app_bootstrap: false
 
+# If the created connections in the apps should be removed if the target resource is disabled
+# Example: Disabling qBittorrent after having it enabled will remove the "HMSD - qBittorrent" download client from Sonarr and Radarr
+hmsdocker_app_bootstrap_delete_unused: true
+
 hmsdocker_app_bootstrap_prowlarr_enabled: true

@@ -1,9 +1,5 @@
 - name: Sonarr bootstrap - Init Sonarr
   block:
-    - name: Sonarr bootstrap - Set Global Sonarr facts
-      ansible.builtin.set_fact:
-        sonarr_download_client_name_prefix: "HMSD - "
-
     - name: Sonarr bootstrap - Ensure Sonarr Config
       block:
         - name: Sonarr bootstrap - Get sonarr container info
@@ -81,17 +77,17 @@
 
             - name: Sonarr bootstrap - Set Sonarr download client Facts
               ansible.builtin.set_fact:
-                sonarr_download_clients: "{{ sonarr_downloaders.json | json_query('[].name') }}"
+                sonarr_download_clients: "{{ sonarr_downloaders.json | items2dict(key_name='name', value_name='id') }}"
 
             - name: Sonarr bootstrap - Configure Transmission download client in Sonarr
               when:
-                - sonarr_download_client_name_prefix + 'Transmission' not in sonarr_download_clients
+                - hmsd_app_init_config_prefix + 'Transmission' not in sonarr_download_clients
                 - "'transmission' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}Transmission",
+                  name: "{{ hmsd_app_init_config_prefix }}Transmission",
                   implementation: "Transmission",
                   configContract: "TransmissionSettings",
                   removeCompletedDownloads: true,
@@ -152,13 +148,13 @@
 
             - name: Sonarr bootstrap - Configure qBittorrent download client in Sonarr
               when:
-                - sonarr_download_client_name_prefix + 'qBittorrent' not in sonarr_download_clients
+                - hmsd_app_init_config_prefix + 'qBittorrent' not in sonarr_download_clients
                 - "'qbittorrent' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}qBittorrent",
+                  name: "{{ hmsd_app_init_config_prefix }}qBittorrent",
                   enable: true,
                   priority: 1,
                   implementation: "QBittorrent",
@@ -230,13 +226,13 @@
 
             - name: Sonarr bootstrap - Configure Deluge download client in Sonarr
               when:
-                - sonarr_download_client_name_prefix + 'Deluge' not in sonarr_download_clients
+                - hmsd_app_init_config_prefix + 'Deluge' not in sonarr_download_clients
                 - "'deluge' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}Deluge",
+                  name: "{{ hmsd_app_init_config_prefix }}Deluge",
                   enable: true,
                   priority: 1,
                   implementation: "Deluge",
@@ -305,6 +301,24 @@
                   X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
               register: sonarr_req_add_download_client
               changed_when: sonarr_req_add_download_client.status == 201
+
+            - name: Sonarr bootstrap - Remove download clients in Sonarr if not enabled
+              when:
+                - hmsd_app_init_config_prefix + item in sonarr_download_clients.keys()
+                - item | lower not in enabled_containers
+                - hmsdocker_app_bootstrap_delete_unused
+              ansible.builtin.uri:
+                url: "{{ sonarr_url }}/v3/downloadclient/{{ sonarr_download_clients[hmsd_app_init_config_prefix + item] }}"
+                method: DELETE
+                status_code: 200
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_req_del_download_client
+              changed_when: sonarr_req_del_download_client.status == 200
+              loop:
+                - Transmission
+                - qBittorrent
+                - Deluge
 
     - name: Sonarr 4K bootstrap - Ensure Sonarr 4K Config
       when: separate_4k_instances_enable
@@ -380,19 +394,19 @@
                   X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
               register: sonarr_4k_downloaders
 
-            - name: Sonarr 4K bootstrap - Set download client Facts
+            - name: Sonarr 4K bootstrap - Set Sonarr 4K download client Facts
               ansible.builtin.set_fact:
-                sonarr_4k_download_clients: "{{ sonarr_4k_downloaders.json | json_query('[].name') }}"
+                sonarr_4k_download_clients: "{{ sonarr_4k_downloaders.json | items2dict(key_name='name', value_name='id') }}"
 
             - name: Sonarr 4K bootstrap - Configure Transmission download client in Sonarr 4K
               when:
-                - sonarr_download_client_name_prefix + 'Transmission' not in sonarr_4k_download_clients
+                - hmsd_app_init_config_prefix + 'Transmission' not in sonarr_4k_download_clients
                 - "'transmission' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_4k_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}Transmission",
+                  name: "{{ hmsd_app_init_config_prefix }}Transmission",
                   implementation: "Transmission",
                   configContract: "TransmissionSettings",
                   removeCompletedDownloads: true,
@@ -453,13 +467,13 @@
 
             - name: Sonarr 4K bootstrap - Configure qBittorrent download client in Sonarr 4K
               when:
-                - sonarr_download_client_name_prefix + 'qBittorrent' not in sonarr_4k_download_clients
+                - hmsd_app_init_config_prefix + 'qBittorrent' not in sonarr_4k_download_clients
                 - "'qbittorrent' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_4k_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}qBittorrent",
+                  name: "{{ hmsd_app_init_config_prefix }}qBittorrent",
                   enable: true,
                   priority: 1,
                   implementation: "QBittorrent",
@@ -531,13 +545,13 @@
 
             - name: Sonarr 4K bootstrap - Configure Deluge download client in Sonarr 4K
               when:
-                - sonarr_download_client_name_prefix + 'Deluge' not in sonarr_4k_download_clients
+                - hmsd_app_init_config_prefix + 'Deluge' not in sonarr_4k_download_clients
                 - "'deluge' in enabled_containers"
               ansible.builtin.uri:
                 url: "{{ sonarr_4k_url }}/v3/downloadclient"
                 method: POST
                 body: {
-                  name: "{{ sonarr_download_client_name_prefix }}Deluge",
+                  name: "{{ hmsd_app_init_config_prefix }}Deluge",
                   enable: true,
                   priority: 1,
                   implementation: "Deluge",
@@ -607,3 +621,22 @@
                   X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
               register: sonarr_4k_req_add_download_client
               changed_when: sonarr_4k_req_add_download_client.status == 201
+
+            - name: Sonarr 4K bootstrap - Remove download clients in Sonarr 4K if not enabled
+              when:
+                - hmsd_app_init_config_prefix + item in sonarr_4k_download_clients.keys()
+                - item | lower not in enabled_containers
+                - hmsdocker_app_bootstrap_delete_unused
+              ansible.builtin.uri:
+                url: "{{ sonarr_4k_url }}/v3/downloadclient/{{ sonarr_4k_download_clients[hmsd_app_init_config_prefix + item] }}"
+                method: DELETE
+                status_code: 200
+                headers:
+                  X-Api-Key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              register: sonarr_4k_req_del_download_client
+              changed_when: sonarr_4k_req_del_download_client.status == 200
+              loop:
+                - Transmission
+                - qBittorrent
+                - Deluge
+

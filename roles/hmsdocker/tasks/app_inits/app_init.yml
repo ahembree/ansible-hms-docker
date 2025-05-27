@@ -13,9 +13,10 @@
         | map('regex_replace', '\.yml$', '')
         | list }}
 
-- name: App init - Slim variables
+- name: App init - Slim variables and set global app variables
   ansible.builtin.set_fact:
     app_inits: "{{ enabled_containers | intersect(container_init_task_names) }}"
+    hmsd_app_init_config_prefix: "HMSD - "
 
 - name: App init - Run app inits
   ansible.builtin.include_tasks: "app_inits/{{ container_init_name }}.yml"
