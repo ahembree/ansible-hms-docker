@@ -1,4 +1,5 @@
 - name: Readarr bootstrap - Init Readarr
+  when: hmsdocker_app_bootstrap_readarr_enabled
   block:
     - name: Readarr bootstrap - Ensure Readarr Config
       block:

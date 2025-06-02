@@ -1,4 +1,5 @@
 - name: Lidarr bootstrap - Init Lidarr
+  when: hmsdocker_app_bootstrap_lidarr_enabled
   block:
     - name: Lidarr bootstrap - Ensure Lidarr Config
       block:

@@ -1,4 +1,5 @@
 - name: Radarr bootstrap - Init Radarr
+  when: hmsdocker_app_bootstrap_radarr_enabled
   block:
     - name: Radarr bootstrap - Ensure Radarr Config
       block:

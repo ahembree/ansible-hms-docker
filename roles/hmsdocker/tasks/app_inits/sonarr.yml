@@ -1,4 +1,5 @@
 - name: Sonarr bootstrap - Init Sonarr
+  when: hmsdocker_app_bootstrap_sonarr_enabled
   block:
     - name: Sonarr bootstrap - Ensure Sonarr Config
       block:
