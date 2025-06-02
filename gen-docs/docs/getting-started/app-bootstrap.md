@@ -80,6 +80,26 @@ It will do the following for each service:
 
     - Deluge
 
+- Lidarr
+
+  - Configure download clients (if enabled):
+
+    - Transmission
+
+    - qBittorrent
+
+    - Deluge
+
+- Readarr
+
+  - Configure download clients (if enabled):
+
+    - Transmission
+
+    - qBittorrent
+
+    - Deluge
+
 :::note
 
 FlareSolverr uses Prowlarrs `General -> Proxy` settings. If this setting is invalid, the task will fail.
