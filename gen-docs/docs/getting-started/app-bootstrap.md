@@ -1,5 +1,11 @@
 # Automatic App Initialization
 
+:::note
+
+These tasks will **NOT** work in `check` mode, this is a [limitation of the Ansible URI module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html#attributes)
+
+:::
+
 There are tasks within this playbook that will attempt to automatically configure the connections between supported apps to reduce the amount of time it takes to get up and running.
 
 If a service is no longer used it will be removed from the app connections.
@@ -44,7 +50,11 @@ It will do the following for each service:
 
     - Deluge
 
-  - Configure the Sonarr and Radarr apps (including 4K instances if enabled)
+  - Configure the following apps:
+    - Sonarr (including 4K)
+    - Radarr (including 4K)
+    - Lidarr
+    - Readarr
 
 - Radarr (including 4K instance if enabled)
 
@@ -75,3 +85,9 @@ It will do the following for each service:
 FlareSolverr uses Prowlarrs `General -> Proxy` settings. If this setting is invalid, the task will fail.
 
 :::
+
+## Unsupported Services
+
+### Overseerr
+
+Overseerr is unsupported due to it requiring you to initially authenticate with Plex after the container first starts in order for its API key to work and it guides you through the setup process.
