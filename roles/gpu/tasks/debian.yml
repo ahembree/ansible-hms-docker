@@ -1,22 +1,12 @@
 ---
-- name: Ensure nvidia-container-runtime apt GPG key
-  apt_key:
-    url: https://nvidia.github.io/nvidia-container-runtime/gpgkey
+- name: Ensure nvidia-container-toolkit apt GPG key
+  ansible.builtin.apt_key:
+    url: https://nvidia.github.io/libnvidia-container/gpgkey
+    keyring: /etc/apt/trusted.gpg.d/libnvidia-container.gpg
     state: present
 
-- name: Ensure nvidia-container-runtime repo
-  get_url:
-    url: https://nvidia.github.io/nvidia-container-runtime/{{ ansible_facts['lsb']['id'] | lower }}{{ ansible_facts['lsb']['release'] }}/nvidia-container-runtime.list
-    dest: /etc/apt/sources.list.d/nvidia-container-runtime.list
-    force: yes
-
-- name: Ensure nvidia-docker apt GPG key
-  apt_key:
-    url: https://nvidia.github.io/nvidia-docker/gpgkey
+- name: Ensure nvidia-container-toolkit repo
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/etc/apt/trusted.gpg.d/libnvidia-container.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /
     state: present
-
-- name: Ensure nvidia-docker repo
-  get_url:
-    url: https://nvidia.github.io/nvidia-docker/{{ ansible_facts['lsb']['id'] | lower }}{{ ansible_facts['lsb']['release'] }}/nvidia-docker.list
-    dest: /etc/apt/sources.list.d/nvidia-docker.list
-    force: yes
+    filename: nvidia-container-toolkit
