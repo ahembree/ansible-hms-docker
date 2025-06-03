@@ -1,20 +1,6 @@
 # Automatic App Initialization
 
-:::note
-
-These tasks will **NOT** work in `check` mode, this is a [limitation of the Ansible URI module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html#attributes)
-
-:::
-
-There are tasks within this playbook that will attempt to automatically configure the connections between supported apps to reduce the amount of time it takes to get up and running.
-
-If a service is no longer used it will be removed from the app connections.
-
-Example: If qBittorrent was enabled when the bootstrap tasks were ran but then you disable qBittorrent, it will remove the download client `HMSD - qBittorrent` if it exists in Sonar and Radarr and indexer proxy in Prowlarr if it exists.
-
-If you are using qBittorrent and/or Deluge and create or update the password for their WebUI's, you will need to update the password for the download client(s) in the Sonarr and Radarr apps manually.
-
-:::note
+## Requirements
 
 This requires DNS records to be properly configured for the following apps:
 
@@ -24,11 +10,32 @@ This requires DNS records to be properly configured for the following apps:
 
 - Radarr (including 4K instance if enabled)
 
+- Lidarr
+
+- Readarr
+
+:::info
+
+These tasks will **NOT** work in `check` mode, this is a [limitation of the Ansible URI module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html#attributes)
+
 :::
+
+## Details
+
+There are tasks within this playbook that will attempt to automatically configure the connections between supported apps to reduce the amount of time it takes to get up and running.
+
+If a service is no longer used it will be removed from the app connections.
+
+Example: If qBittorrent was enabled when the bootstrap tasks were ran but then you disable qBittorrent, it will remove the download client `HMSD - qBittorrent` if it exists in Sonar and Radarr and indexer proxy in Prowlarr if it exists.
+
+If you are using qBittorrent and/or Deluge and create or update the password for their WebUI's, you will need to update the password for the download client(s) in the Sonarr and Radarr apps manually.
+
 
 By default, the playbook will check for the various apps API keys in their config files.
 
 If you set `hmsdocker_app_bootstrap` to `yes` or `true` in `inventory/group_vars/all/app_bootstrap.yml`, it will also attempt to connect some of the apps together to speed up initial installation process.
+
+## Connections
 
 :::info
 

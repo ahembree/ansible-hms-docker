@@ -24,7 +24,7 @@ If this is your case, see [Remote Host](#remote-host)
 
 ### Local Host
 
-If installing to the same system you will clone/download this repo to, no changes are needed
+If installing to the same system you will clone/download this repo to, proceed to [Install Steps](#install-steps)
 
 ### Remote Host
 
@@ -80,7 +80,7 @@ All configuration files are stored in `inventory/group_vars/all` after running t
 
 :::warning
 
-Re-running this command will overwrite any existing files in the config directory (basically a reset to default configuration)
+Re-running this command will overwrite any existing files in the config directory (a reset to default configuration)
 
 :::
 
@@ -90,7 +90,7 @@ Re-running this command will overwrite any existing files in the config director
 
 To select the containers you want to use, you will need to modify the `inventory/group_vars/all/container_map.yml` file. Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
 
-To enable a container, set its `enabled` value to `yes`.
+To enable a container, set its `enabled` value to `true` or `yes`.
 
 For an example of a container map entry and the description of what each setting does, check the [Container Map](../container-map.md) docs
 
