@@ -195,6 +195,8 @@ Check out [Configuring DNS](./dns-setup.md) on how to setup the DNS records on a
 
 This will allow you to access the containers by going to `https://<container>.<domain>` in a browser and serve the SSL certificate, if enabled.
 
+If you already have DNS enabled and want to get up and running quicker, check out the [Automatic App Initialization](./app-bootstrap.md).
+
 If you are receiving a `404` or `502` error when attempting to access the service, this is either because the container is not running, failing to start, or still starting. To troubleshoot, run `docker logs -f <container name>` and check the container logs.
 
 Or, if you have Portainer enabled, you can also check the container logs there.
