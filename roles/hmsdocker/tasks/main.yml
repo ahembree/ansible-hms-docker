@@ -75,6 +75,11 @@
     container_prereqs: "{{ enabled_containers | intersect(container_prereq_task_names) }}"
     container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
 
+- name: Extend enabled_containers list if flaresolverr enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
+  when: (flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)) and 'flaresolverr' not in enabled_containers
+
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"
@@ -86,10 +91,10 @@
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.
-  ansible.builtin.include_tasks: "nas_{{ hms_docker_media_share_type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas/nas_{{ hms_docker_media_share_type | lower }}.yml"
 
 - name: Ensure additional NAS configuration
-  ansible.builtin.include_tasks: "nas_additional_{{ item.type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas/nas_additional_{{ item.type | lower }}.yml"
   with_items: "{{ nas_client_remote_additional_paths }}"
   when:
     - nas_client_remote_additional_paths is defined
@@ -226,10 +231,6 @@
   loop_control:
     loop_var: container_task_name
 
-- name: Ensure Plex SSL script and resources
-  ansible.builtin.import_tasks: "plex_ssl.yml"
-  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
-
 - name: Ensure custom scripts
   ansible.builtin.import_tasks: "scripts.yml"
   when: custom_scripts_enabled | default(false)
@@ -240,3 +241,14 @@
     - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent or hmsdocker_container_enabled_deluge
     - not ansible_check_mode
     - not is_github_runner | default(false)
+
+- name: Initialize Supported Apps via their APIs
+  when: hmsdocker_app_bootstrap | default(false) and not ansible_check_mode
+  block:
+    - name: Sleep if GitHub Actions runner to wait for app first init and config generation
+      ansible.builtin.pause:
+        minutes: 1
+      when: is_github_runner | default(false)
+
+    - name: Import App Init task
+      ansible.builtin.import_tasks: "app_inits/app_init.yml"

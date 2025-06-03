@@ -1,19 +1,19 @@
 ---
-- name: Ensure RedHat NFS packages.
+- name: NAS - Additional NFS - Ensure RedHat NFS packages.
   ansible.builtin.package:
     name:
       - nfs-utils
     state: "{{ nas_client_package_state }}"
   when: hmsdocker_family_override | lower == "redhat"
 
-- name: Ensure Debian NFS packages.
+- name: NAS - Additional NFS - Ensure Debian NFS packages.
   ansible.builtin.package:
     name:
       - nfs-common
     state: "{{ nas_client_package_state }}"
   when: ansible_facts['os_family'] | lower == "debian"
 
-- name: Ensure additional NFS paths exist if defined
+- name: NAS - Additional NFS - Ensure additional NFS paths exist if defined
   ansible.builtin.file:
     path: "{{ mount_path.local_mount_path }}"
     state: directory
@@ -26,7 +26,7 @@
     - mount_path.type == "nfs"
   register: nfs_additional_paths
 
-- name: Ensure additional NFS fstab entries if defined
+- name: NAS - Additional NFS - Ensure additional NFS fstab entries if defined
   mount:
     backup: yes
     boot: "{{ nas_client_mount_on_boot }}"
@@ -44,7 +44,7 @@
     - nfs_mount.mount_path.type == "nfs"
     - not ansible_check_mode
 
-- name: Ensure library folders for additional paths
+- name: NAS - Additional NFS - Ensure library folders for additional paths
   ansible.builtin.file:
     path: "{{ library_folders[0].path }}/{{ hms_docker_library_folder_name }}/{{ library_folders[1].folder_name }}"
     state: directory

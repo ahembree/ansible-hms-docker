@@ -24,7 +24,7 @@ If this is your case, see [Remote Host](#remote-host)
 
 ### Local Host
 
-If installing to the same system you will clone/download this repo to, no changes are needed
+If installing to the same system you will clone/download this repo to, proceed to [Install Steps](#install-steps)
 
 ### Remote Host
 
@@ -80,7 +80,7 @@ All configuration files are stored in `inventory/group_vars/all` after running t
 
 :::warning
 
-Re-running this command will overwrite any existing files in the config directory (basically a reset to default configuration)
+Re-running this command will overwrite any existing files in the config directory (a reset to default configuration)
 
 :::
 
@@ -90,7 +90,7 @@ Re-running this command will overwrite any existing files in the config director
 
 To select the containers you want to use, you will need to modify the `inventory/group_vars/all/container_map.yml` file. Within there, you will find a giant list of containers to modify in the `hms_docker_container_map` variable.
 
-To enable a container, set its `enabled` value to `yes`.
+To enable a container, set its `enabled` value to `true` or `yes`.
 
 For an example of a container map entry and the description of what each setting does, check the [Container Map](../container-map.md) docs
 
@@ -99,8 +99,6 @@ For an example of a container map entry and the description of what each setting
 There is a small number of containers not in this list since they do not need config directories and are not routed through Traefik.
 
 Current list of containers not in the container map config file:
-
-- Flaresolverr (controlled in `inventory/group_vars/all/cloudflare.yml` in the `flaresolverr_enabled` variable)
 
 - Cloudflare Tunnel (controlled in `inventory/group_vars/all/cloudflare.yml` in the `cloudflare_tunnel_enabled` variable)
 
@@ -196,3 +194,9 @@ Debug mode will also potentially output "secrets" (passwords, API keys) when ena
 Check out [Configuring DNS](./dns-setup.md) on how to setup the DNS records on a (recommended) internal DNS server.
 
 This will allow you to access the containers by going to `https://<container>.<domain>` in a browser and serve the SSL certificate, if enabled.
+
+If you already have DNS enabled and want to get up and running quicker, check out the [Automatic App Initialization](./app-bootstrap.md).
+
+If you are receiving a `404` or `502` error when attempting to access the service, this is either because the container is not running, failing to start, or still starting. To troubleshoot, run `docker logs -f <container name>` and check the container logs.
+
+Or, if you have Portainer enabled, you can also check the container logs there.

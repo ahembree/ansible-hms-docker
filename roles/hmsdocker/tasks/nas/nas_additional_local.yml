@@ -1,5 +1,5 @@
 ---
-- name: Ensure additional local paths exist if defined
+- name: NAS - Additional Local - Ensure additional local paths exist if defined
   ansible.builtin.file:
     path: "{{ mount_path.local_mount_path }}"
     state: directory
@@ -12,7 +12,7 @@
     - mount_path.type == "local"
   register: local_additional_paths
 
-- name: Ensure library folders for additional paths
+- name: NAS - Additional Local - Ensure library folders for additional paths
   ansible.builtin.file:
     path: "{{ library_folders[0].path }}/{{ hms_docker_library_folder_name }}/{{ library_folders[1].folder_name }}"
     state: directory

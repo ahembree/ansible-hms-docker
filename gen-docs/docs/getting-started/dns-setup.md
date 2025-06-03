@@ -1,10 +1,11 @@
+---
+sidebar_position: 5
+---
 # Configuring DNS
 
 :::tip
 
-It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Home) to serve requests that point to an internal private IP address ([RFC1918](https://en.wikipedia.org/wiki/Private_network)). Creating public DNS records that resolve to internal IPs would reveal your internal network IP space, but not allow anyone outside of the same network to access it.
-
-Very small risk but one that should be mentioned.
+It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Home) to resolve requests that point to an internal private IP address
 
 :::
 

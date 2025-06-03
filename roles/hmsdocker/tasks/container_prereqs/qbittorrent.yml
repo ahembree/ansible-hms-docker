@@ -1,0 +1,10 @@
+- name: Ensure qBittorrent config exists before first start to disable authentication
+  ansible.builtin.template:
+    src: container_configs/qbittorrent_config.conf.j2
+    dest: "{{ hms_docker_apps_path }}/qbittorrent/config/qBittorrent/config/qBittorrent.conf"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: '0644'
+    force: false
+    lstrip_blocks: true
+    trim_blocks: true
