@@ -6,6 +6,6 @@ docker==7.1.0
 idna==3.7
 pycparser==2.22
 python-dotenv==1.0.1
-requests==2.32.2
+requests==2.32.4
 urllib3==2.2.2
 xmltodict==0.13.0
