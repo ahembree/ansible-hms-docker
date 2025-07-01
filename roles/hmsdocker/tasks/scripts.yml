@@ -1,4 +1,29 @@
 ---
+- name: Custom Scripts - Ensure venv pip package
+  ansible.builtin.package:
+    name:
+      - python3-venv
+    state: present
+
+- name: Custom Scripts - Ensure pip is updated first
+  ansible.builtin.pip:
+    virtualenv: "{{ hms_docker_data_path }}/.venv"
+    virtualenv_command: "{{ ansible_python_interpreter }} -m venv"
+    name:
+      - pip
+    state: latest
+
+- name: Custom Scripts - Ensure pip environment
+  ansible.builtin.pip:
+    virtualenv: "{{ hms_docker_data_path }}/.venv"
+    virtualenv_site_packages: true
+    name:
+      - requests
+      - python-dotenv
+      - xmltodict
+      - cryptography
+      - docker
+
 - name: Ensure scripts folder
   ansible.builtin.file:
     path: "{{ hms_docker_data_path }}/scripts"

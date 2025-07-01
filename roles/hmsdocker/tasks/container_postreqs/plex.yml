@@ -1,33 +1,6 @@
 - name: Plex Postreq - Ensure Plex SSL script and resources
-  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
+  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled and custom_scripts_enabled
   block:
-    - name: Plex Postreq - Plex SSL - Ensure requirements file
-      ansible.builtin.copy:
-        src: scripts/requirements.txt
-        dest: "{{ hms_docker_data_path }}/requirements.txt"
-        mode: '644'
-      register: scripts_req_file_dest
-
-    - name: Plex Postreq - Plex SSL - Ensure venv pip package
-      ansible.builtin.package:
-        name:
-          - python3-venv
-        state: present
-
-    - name: Plex Postreq - Plex SSL - Ensure pip is updated first
-      ansible.builtin.pip:
-        virtualenv: "{{ hms_docker_data_path }}/.venv"
-        virtualenv_command: python3 -m venv
-        name:
-          - pip
-        state: latest
-
-    - name: Plex Postreq - Plex SSL - Ensure pip environment
-      ansible.builtin.pip:
-        requirements: "{{ scripts_req_file_dest.dest | default(hms_docker_data_path + '/requirements.txt') }}"
-        virtualenv: "{{ hms_docker_data_path }}/.venv"
-        virtualenv_command: python3 -m venv
-
     - name: Plex Postreq - Plex SSL - Ensure pkcs12 script
       ansible.builtin.copy:
         src: scripts/traefik_cert_convert.py
