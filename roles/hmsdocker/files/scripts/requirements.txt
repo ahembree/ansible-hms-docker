@@ -1,5 +1,5 @@
 certifi==2024.7.4
-cffi==1.16.0
+cffi==1.17.0
 charset-normalizer==3.3.2
 cryptography==44.0.1
 docker==7.1.0
