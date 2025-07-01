@@ -225,15 +225,15 @@
   when:
     - not ansible_check_mode
 
+- name: Ensure custom scripts
+  ansible.builtin.import_tasks: "scripts.yml"
+  when: custom_scripts_enabled | default(false) or hms_docker_plex_ssl_enabled | default(false)
+
 - name: Run container postreqs if available
   ansible.builtin.include_tasks: "tasks/container_postreqs/{{ container_task_name }}.yml"
   loop: '{{ container_postreqs }}'
   loop_control:
     loop_var: container_task_name
-
-- name: Ensure custom scripts
-  ansible.builtin.import_tasks: "scripts.yml"
-  when: custom_scripts_enabled | default(false)
 
 - name: Ensure VPN connection
   ansible.builtin.import_tasks: "vpn_validation.yml"
