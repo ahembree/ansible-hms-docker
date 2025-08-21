@@ -47,3 +47,7 @@ Requires the following variables:
 If using WireGuard for your VPN connection, please update or place the `wg0.conf` file and any other required files in the directory: `/opt/hms-docker/apps/qbittorrent/config/wireguard` (default)
 
 This folder will not exist until the playbook is ran or the container runs
+
+## Private Internet Access (PIA)
+
+If you are using PIA and want to use port forwarding through the VPN, see the [Container Overrides](../container-overrides.md) docs
