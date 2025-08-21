@@ -4,7 +4,8 @@
   become: true
   gather_facts: true
   vars:
-    hmsd_current_version: 1.9.1
+    # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
+    hmsd_current_version: 1.9.2
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
