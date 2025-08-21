@@ -215,6 +215,16 @@
     lstrip_blocks: yes
     trim_blocks: yes
 
+- name: Ensure override docker-compose.override.yml file.
+  ansible.builtin.template:
+    src: docker-compose.override.yml.j2
+    dest: "{{ hms_docker_data_path }}/docker-compose.override.yml"
+    group: docker
+    mode: 0644
+    lstrip_blocks: yes
+    trim_blocks: yes
+    force: no
+
 - name: Ensure containers defined in compose file.
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"
