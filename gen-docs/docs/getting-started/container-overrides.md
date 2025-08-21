@@ -9,23 +9,36 @@ This section is meant for those that are familiar with writing/modifying Docker 
 
 :::
 
-If you want to specify custom container Compose settings or only change certain values (without having to modify the Compose files) and persist your own custom settings (such as environment variables), you can configure the `docker-compose.override.yml` file located in `/opt/hms-docker/docker-compose.override.yml` with only the settings you want to override or merge.
+If you want to specify custom container Compose settings or only change certain values (without having to modify the Compose files) and persist your own custom settings (such as environment variables), you can create a `docker-compose.override.yml` file located at `/opt/hms-docker/docker-compose.override.yml` with only the settings you want to override or merge.
 
 Documentation on how to do this can be found here: [Merge | Docker Docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/)
+
+Here is a basic example of this file (assuming Sonarr, Radarr, and Plex are enabled) that will _not_ override any settings:
+
+```yaml
+# /opt/hms-docker/docker-compose.override.yml
+services:
+  sonarr:
+  radarr:
+  plex:
+  ...
+```
+
+:::warning
+
+Only enabled containers must be specified in this file
+
+If a container is not enabled but is specified in this override file, it will fail to validate and throw an error
+
+To resolve, remove the invalid item from the override file
+
+:::
 
 If you want to check the final Compose configuration after modification of the override file, you can run (may need `sudo`):
 
 ```bash
 docker compose config
 ```
-
-:::note
-
-This file _will not_ be modified by this playbook after it is created.
-
-This is to ensure users custom configs persist between playbook runs.
-
-:::
 
 ## Private Internet Access (PIA)
 
