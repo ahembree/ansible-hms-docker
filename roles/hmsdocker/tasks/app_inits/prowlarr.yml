@@ -31,7 +31,7 @@
     - name: Prowlarr bootstrap - Set Prowlarr Tag Facts
       ansible.builtin.set_fact:
         prowlarr_tag_list: "{{ prowlarr_tags.json | items2dict(key_name='label', value_name='id') }}"
-        prowlarr_proxy_tag_prefix: hmsd_
+        prowlarr_proxy_tag_prefix: hmsd-
 
     - name: Prowlarr bootstrap - Create Prowlarr Tags if not exist
       when: prowlarr_proxy_tag_prefix + item not in prowlarr_tag_list.keys() and item in enabled_containers
