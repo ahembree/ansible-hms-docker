@@ -10,6 +10,13 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    healthcheck:
+      test: curl -f http://localhost:6767/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
     {% if hmsdocker_expose_ports_enabled_bazarr %}
     ports:
       - 6767:6767

@@ -47,3 +47,9 @@ services:
     ports:
       - 5055:5055
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:5055 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s

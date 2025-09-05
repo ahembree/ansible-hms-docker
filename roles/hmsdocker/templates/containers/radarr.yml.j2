@@ -49,6 +49,12 @@ services:
     ports:
       - 7878:7878
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:7878/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 {% if separate_4k_instances_enable | default(False) %}
   radarr-4k:
@@ -101,4 +107,9 @@ services:
     ports:
       - 7879:7878
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:7878/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 10
 {% endif %}

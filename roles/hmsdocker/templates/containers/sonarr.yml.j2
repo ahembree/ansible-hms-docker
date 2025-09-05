@@ -49,6 +49,12 @@ services:
     ports:
       - 8989:8989
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8989/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 {% if separate_4k_instances_enable | default(False) %}
   # Sonarr container, tv show indexer
@@ -102,4 +108,9 @@ services:
     ports:
       - 8990:8989
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8989/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 10
 {% endif %}
