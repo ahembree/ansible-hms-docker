@@ -18,6 +18,10 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/readarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/readarr/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/readarr/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_readarr %}
     ports:
       - 8787:8787

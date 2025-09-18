@@ -45,6 +45,10 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sonarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/sonarr/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/sonarr/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8989:8989
@@ -104,6 +108,10 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sonarr-4k/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/sonarr-4k/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/sonarr-4k/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8990:8989

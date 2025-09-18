@@ -1,6 +1,9 @@
 #######################################################################
 ### Sonarr and Radarr settings
 separate_4k_instances_enable: no
+
+## Adds the Arr-Scripts from https://github.com/RandomNinjaAtk/arr-scripts
+hmsdocker_svc_misc_arr_scripts_enabled: no
 ### End of Sonarr and Radarr settings
 #######################################################################
 

@@ -1,0 +1,31 @@
+---
+- name: Arr Scripts - Download Init Script
+  when: item in enabled_containers
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/RandomNinjaAtk/arr-scripts/main/{{ item }}/scripts_init.bash
+    dest: "{{ hms_docker_apps_path }}/{{ item }}/custom-cont-init.d"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: "0755"
+  notify: Restart {{ item }}
+  loop:
+    - radarr
+    - sonarr
+    - lidarr
+    - readarr
+    - sabnzbd
+
+- name: Arr Scripts - 4K Instances - Download Init Script
+  when:
+    - item in enabled_containers
+    - separate_4k_instances_enable | default(false)
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/RandomNinjaAtk/arr-scripts/main/{{ item }}/scripts_init.bash
+    dest: "{{ hms_docker_apps_path }}/{{ item }}-4k/custom-cont-init.d"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: "0755"
+  notify: Restart {{ item }} 4K
+  loop:
+    - radarr
+    - sonarr

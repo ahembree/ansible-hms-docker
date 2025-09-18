@@ -235,6 +235,10 @@
   loop_control:
     loop_var: container_task_name
 
+- name: Run Arr-Scripts install if enabled
+  ansible.builtin.include_tasks: "tasks/arr-scripts.yml"
+  when: hmsdocker_svc_misc_arr_scripts_enabled | default(false)
+
 - name: Ensure VPN connection
   ansible.builtin.import_tasks: "vpn_validation.yml"
   when:

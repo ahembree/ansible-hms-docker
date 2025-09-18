@@ -30,3 +30,63 @@
     services:
       - checkrr
   when: not ansible_check_mode
+
+- name: Restart radarr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - radarr
+  when: not ansible_check_mode
+
+- name: Restart radarr 4K
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - radarr-4k
+  when: not ansible_check_mode
+
+- name: Restart sonarr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - sonarr
+  when: not ansible_check_mode
+
+- name: Restart sonarr 4K
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - sonarr-4k
+  when: not ansible_check_mode
+
+- name: Restart lidarr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - lidarr
+  when: not ansible_check_mode
+
+- name: Restart readarr
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - readarr
+  when: not ansible_check_mode

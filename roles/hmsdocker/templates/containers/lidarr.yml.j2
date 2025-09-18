@@ -18,6 +18,10 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/lidarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/lidarr/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/lidarr/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
