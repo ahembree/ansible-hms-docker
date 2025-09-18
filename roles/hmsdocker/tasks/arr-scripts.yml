@@ -1,6 +1,21 @@
 ---
+- name: Arr Scripts - Check for App Config Dirs
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/{{ item }}"
+  loop:
+    - radarr
+    - sonarr
+    - radarr-4k
+    - sonarr-4k
+    - lidarr
+    - readarr
+    - sabnzbd
+  register: arr_script_app_config_dirs
+
 - name: Arr Scripts - Download Init Script
-  when: item in enabled_containers
+  when:
+    - item in enabled_containers
+    - arr_script_app_config_dirs.results | selectattr('item', 'equalto', item) | selectattr('stat.exists', 'equalto', true) | list | length > 0
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/RandomNinjaAtk/arr-scripts/main/{{ item }}/scripts_init.bash
     dest: "{{ hms_docker_apps_path }}/{{ item }}/custom-cont-init.d"
@@ -19,6 +34,7 @@
   when:
     - item in enabled_containers
     - separate_4k_instances_enable | default(false)
+    - arr_script_app_config_dirs.results | selectattr('item', 'equalto', item) | selectattr('stat.exists', 'equalto', true) | list | length > 0
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/RandomNinjaAtk/arr-scripts/main/{{ item }}/scripts_init.bash
     dest: "{{ hms_docker_apps_path }}/{{ item }}-4k/custom-cont-init.d"
