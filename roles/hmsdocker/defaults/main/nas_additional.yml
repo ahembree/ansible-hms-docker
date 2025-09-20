@@ -27,12 +27,15 @@ nas_client_use_additional_paths: no
 # This is an example template
 
 # It is HIGHLY recommended to set the `local_mount_path` to a subdirectory of `{{ hms_docker_mount_path }}` in order to support hard links
+# The `create_library_folders` will create the library folder structure on the share, if enabled
+
 nas_client_remote_additional_paths:
   [
     {
       name: "Media NAS 2",
       remote_path: "nas.example.com:/volume1/media_2",
       local_mount_path: "{{ hms_docker_mount_path }}/nas_share_2",
+      create_library_folders: true,
       type: nfs,
       nfs_opts: defaults,
     },
@@ -40,6 +43,7 @@ nas_client_remote_additional_paths:
     #  name: "Media NAS 3",
     #  remote_path: "//nas.example.com/media_3",
     #  local_mount_path: "{{ hms_docker_mount_path }}/nas_share_3",
+    #  create_library_folders: false,
     #  type: cifs,
     #  cifs_username: "",
     #  cifs_password: "",

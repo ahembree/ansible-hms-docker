@@ -24,3 +24,4 @@
   when:
     - local_additional_paths is defined
     - library_folders[0].mount_path.type == "local"
+    - library_folders[0].mount_path.create_library_folders | default(false)
