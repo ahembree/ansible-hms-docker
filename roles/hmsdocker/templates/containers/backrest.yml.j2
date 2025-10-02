@@ -1,0 +1,42 @@
+services:
+  backrest:
+    image: garethgeorge/backrest
+    container_name: backrest
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - BACKREST_DATA=/data # path for backrest data. restic binary and the database are placed here.
+      - BACKREST_CONFIG=/config/config.json # path for the backrest config file.
+      - XDG_CACHE_HOME=/cache # path for the restic cache which greatly improves performance.
+    volumes:
+      - ${HMSD_APPS_PATH}/backrest/config:/config
+      - ${HMSD_APPS_PATH}/backrest/repo_configs:/root/.config
+      - ${HMSD_APPS_PATH}/backrest/data:/data
+      - ${HMSD_APPS_PATH}/backrest/cache:/cache
+      - {{ hms_docker_data_path }}:/opt/hms-docker{{ ':ro' if not hmsdocker_backrest_allow_write | default(false) }}
+      - {{ hmsdocker_backrest_restore_path }}:/opt/hms-backup-restore
+    {% if hmsdocker_expose_ports_enabled_backrest %}
+    ports:
+      - 9898:9898
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_backrest %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.backrest-${COMPOSE_PROJECT}.loadbalancer.server.port=9898
+      - traefik.http.routers.backrest-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['backrest']['proxy_host_rule'] | default('backrest') }}.${HMSD_DOMAIN}`)
+      {% if not hmsdocker_expose_public_enabled_backrest %}
+      - traefik.http.routers.backrest-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_backrest %}
+      - traefik.http.routers.backrest-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-backrest-midware@docker
+      {% endif %}
+    {% endif %}

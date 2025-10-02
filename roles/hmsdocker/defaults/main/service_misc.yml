@@ -77,3 +77,7 @@ hmsdocker_tubearchivist_password: verysecret
 
 # If Checkrr should request new copies through Sonarr/Radarr/Lidarr if an issue is found with a file
 hmsdocker_checkrr_enable_arr_processing: false
+
+# If the Backrest container should have write access to the data directory (default: /opt/hms-docker)
+hmsdocker_backrest_allow_write: false
+hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
