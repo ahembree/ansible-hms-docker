@@ -54,6 +54,7 @@ traefik_ext_hosts_enabled: no
 #    subdomain_name: sub-example, # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)
 #    backend_url: http://example.com, # the url of the service you want to proxy through traefik
 #    enabled: yes, # enables or disables the route
+#    expose_publicly: no, # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
 #    authentik: no, # whether or not to apply authentik settings to the service
 #    authentik_provider_type: proxy # typically proxy unless you know it's oauth2
 
@@ -63,6 +64,7 @@ traefik_ext_hosts_list: [
     subdomain_name: example-sub,
     backend_url: "http://example.com",
     enabled: yes,
+    expose_publicly: no,
     authentik: no,
     authentik_provider_type: proxy
   },
@@ -71,6 +73,7 @@ traefik_ext_hosts_list: [
   #  subdomain_name: sub-2,
   #  backend_url: http://example.com,
   #  enabled: yes,
+  #  expose_publicly: no,
   #  authentik: no,
   #  authentik_provider_type: proxy
   #},
@@ -79,6 +82,7 @@ traefik_ext_hosts_list: [
   #  subdomain_name: netdata,
   #  backend_url: "http://netdata.{{ hms_docker_domain }}:19999",
   #  enabled: yes,
+  #  expose_publicly: no,
   #  authentik: no,
   #  authentik_provider_type: proxy
   #},

@@ -42,6 +42,8 @@
     mode: 0644
     group: docker
     backup: yes
+    lstrip_blocks: true
+    trim_blocks: true
   with_items: "{{ traefik_ext_hosts_list }}"
   when:
     - traefik_ext_hosts_enabled
