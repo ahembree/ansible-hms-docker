@@ -1,5 +1,5 @@
 - name: Handle Sonarr configs
-  when: hmsdocker_container_enabled_sonarr
+  when: "'sonarr' in enabled_containers"
   block:
     - name: Check for Sonarr config file
       ansible.builtin.stat:
@@ -25,7 +25,7 @@
       when: separate_4k_instances_enable and sonarr_4k_conf_path.stat.exists
 
 - name: Handle Radarr configs
-  when: hmsdocker_container_enabled_radarr
+  when: "'radarr' in enabled_containers"
   block:
     - name: Check for Radarr config file
       ansible.builtin.stat:
@@ -52,7 +52,7 @@
         - radarr_4k_conf_path.stat.exists
 
 - name: Handle Readarr config
-  when: hmsdocker_container_enabled_readarr
+  when: "'readarr' in enabled_containers"
   block:
     - name: Check for Readarr config file
       ansible.builtin.stat:
@@ -66,7 +66,7 @@
       when: readarr_conf_path.stat.exists
 
 - name: Handle Prowlarr config
-  when: hmsdocker_container_enabled_prowlarr
+  when: "'prowlarr' in enabled_containers"
   block:
     - name: Check for Prowlarr config file
       ansible.builtin.stat:
@@ -80,7 +80,7 @@
       when: prowlarr_conf_path.stat.exists
 
 - name: Handle Bazarr config
-  when: hmsdocker_container_enabled_bazarr
+  when: "'bazarr' in enabled_containers"
   block:
     - name: Check for Bazarr config file
       ansible.builtin.stat:
@@ -94,7 +94,7 @@
       when: bazarr_conf_path.stat.exists
 
 - name: Handle Overseerr config
-  when: hmsdocker_container_enabled_overseerr
+  when: "'overseerr' in enabled_containers"
   block:
     - name: Check for Overseerr config file
       ansible.builtin.stat:
@@ -108,7 +108,7 @@
       when: overseerr_conf_path.stat.exists
 
 - name: Handle Tautulli config
-  when: hmsdocker_container_enabled_tautulli
+  when: "'tautulli' in enabled_containers"
   block:
     - name: Check for Tautulli config file
       ansible.builtin.stat:
@@ -122,7 +122,7 @@
       when: tautulli_conf_path.stat.exists
 
 - name: Handle Sabnzbd config
-  when: hmsdocker_container_enabled_sabnzbd
+  when: "'sabnzbd' in enabled_containers"
   block:
     - name: Check for Sabnzbd config file
       ansible.builtin.stat:
@@ -136,7 +136,7 @@
       when: sabnzbd_conf_path.stat.exists
 
 - name: Handle Plex config file
-  when: hmsdocker_container_enabled_plex
+  when: "'plex' in enabled_containers"
   block:
     - name: Check for Plex config file
       ansible.builtin.stat:
@@ -151,7 +151,7 @@
         - plex_conf_path.stat.exists
 
 - name: Handle Lidarr config
-  when: hmsdocker_container_enabled_lidarr
+  when: "'lidarr' in enabled_containers"
   block:
     - name: Check for Lidarr config file
       ansible.builtin.stat:

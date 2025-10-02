@@ -28,7 +28,7 @@ services:
       - ${VPN_CONFIG_LOCAL_DIR}:/etc/openvpn/custom
     {% endif %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
+    {% if 'homepage' in enabled_containers and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
       - homepage.name=Transmission VPN Route
