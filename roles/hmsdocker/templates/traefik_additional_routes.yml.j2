@@ -2,15 +2,20 @@ http:
   routers:
     {{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-{{ project_name }}:
       entryPoints:
-      {% if traefik_ssl_enabled -%}
-      - websecure
-      {% else -%}
-      - web
-      {% endif -%}
-      {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik -%}
+      {% if traefik_ssl_enabled %}
+        - websecure
+      {% else %}
+        - web
+      {% endif %}
       middlewares:
-      - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
-      {% endif -%}
+      {% if item.expose_publicly | default(false) %}
+        - external-ipallowlist
+      {% else %}
+        - internal-ipallowlist
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik %}
+        - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
+      {% endif %}
       service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}
       rule: Host(`{{ item.subdomain_name }}.{{ hms_docker_domain }}`)
 

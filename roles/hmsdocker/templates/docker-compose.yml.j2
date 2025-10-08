@@ -14,7 +14,7 @@ include:
 {% if hmsdocker_authentik_enabled_globally and authentik_compose_file_path is defined | default(False) %}
   - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
 {% endif %}
-{% if hmsdocker_container_enabled_tailscale and tailscale_compose_file_path is defined | default(False) %}
+{% if 'tailscale' in enabled_containers and tailscale_compose_file_path is defined | default(False) %}
   - {{ tailscale_compose_file_path.dest | default(compose_dir.path + '/tailscale.yml') }}
 {% endif %}
 

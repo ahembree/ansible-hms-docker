@@ -71,3 +71,9 @@ services:
       - ${HMSD_APPS_PATH}/tdarr/config/logs:/app/logs
       - {{ tdarr_transcode_folder }}:/temp_transcode
       - ${HMSD_MOUNT_PATH}:/data
+    healthcheck:
+      test: curl -f http://localhost:8265 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 10s

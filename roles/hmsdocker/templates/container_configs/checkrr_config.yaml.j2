@@ -24,7 +24,7 @@ logs:
     formatter: default
 
 arr:
-{% if hmsdocker_container_enabled_radarr %}
+{% if 'radarr' in enabled_containers %}
   radarr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: radarr
@@ -50,7 +50,7 @@ arr:
   {% endif %}
 {% endif %}
 
-{% if hmsdocker_container_enabled_sonarr %}
+{% if 'sonarr' in enabled_containers %}
   sonarr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: sonarr
@@ -76,7 +76,7 @@ arr:
   {% endif %}
 {% endif %}
 
-{% if hmsdocker_container_enabled_lidarr %}
+{% if 'lidarr' in enabled_containers %}
   lidarr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: lidarr

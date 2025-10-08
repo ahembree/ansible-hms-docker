@@ -1,0 +1,39 @@
+services:
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    container_name: cleanuparr
+    restart: ${RESTART_POLICY}
+    {% if hmsdocker_expose_ports_enabled_cleanuparr %}
+    ports:
+      - "11011:11011"
+    {% endif %}
+    networks:
+      - proxy_net
+    volumes:
+      - ${HMSD_APPS_PATH}/cleanuparr/config:/config
+    environment:
+      - PORT=11011
+      - BASE_PATH=
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=022
+      - TZ=${TIMEZONE}
+    {% if hmsdocker_traefik_enabled_cleanuparr %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.cleanuparr-${COMPOSE_PROJECT}.loadbalancer.server.port=11011
+      - traefik.http.routers.cleanuparr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['cleanuparr']['proxy_host_rule'] | default('cleanuparr') }}.${HMSD_DOMAIN}`)
+      {% if not hmsdocker_expose_public_enabled_cleanuparr %}
+      - traefik.http.routers.cleanuparr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_cleanuparr %}
+      - traefik.http.routers.cleanuparr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-cleanuparr-midware@docker
+      {% endif %}
+    {% endif %}
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s        # Check every 30 seconds
+      timeout: 10s         # Allow up to 10 seconds for response
+      start_period: 30s    # Wait 30 seconds before first check
+      retries: 3           # Mark unhealthy after 3 consecutive failures

@@ -45,10 +45,20 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sonarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/sonarr/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/sonarr/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8989:8989
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8989/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 {% if separate_4k_instances_enable | default(False) %}
   # Sonarr container, tv show indexer
@@ -98,8 +108,17 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/sonarr-4k/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/sonarr-4k/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/sonarr-4k/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_sonarr %}
     ports:
       - 8990:8989
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8989/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 10
 {% endif %}

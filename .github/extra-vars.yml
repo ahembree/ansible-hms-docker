@@ -11,6 +11,7 @@
   "media_avail_script_enabled": true,
   "hmsdocker_expose_ports_enabled_calibre": false,
   "hmsdocker_app_bootstrap": true,
+  "hmsdocker_svc_misc_arr_scripts_enabled": true,
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,
@@ -414,6 +415,28 @@
     },
     "flaresolverr": {
       "enabled": true
-    }
+    },
+    "backrest": {
+      "enabled": false,
+      "proxy_host_rule": backrest,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
+    "cleanuparr": {
+      "enabled": false,
+      "proxy_host_rule": cleanuparr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false,
+    },
   }
 }

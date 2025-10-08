@@ -28,7 +28,7 @@ services:
       - ${VPN_CONFIG_LOCAL_DIR}:/etc/openvpn/custom
     {% endif %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_container_enabled_homepage and hmsdocker_homepage_enabled_transmission %}
+    {% if 'homepage' in enabled_containers and hmsdocker_homepage_enabled_transmission %}
     labels:
       - homepage.group=Downloads
       - homepage.name=Transmission VPN Route
@@ -112,3 +112,9 @@ services:
       - homepage.widget.url=http://transmission-proxy:8080
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8080 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s

@@ -12,6 +12,7 @@ Confused? See the [Example below](#example), a version of it already exists in `
 
 - `name`: Friendly name of the path
 - `local_mount_path`: Local path to the folder
+- `create_library_folders`: If the library folder structure should be created (default: `false`)
 - `type`: Type of path, valid: `local`
 
 ### NFS Share Variables
@@ -19,6 +20,7 @@ Confused? See the [Example below](#example), a version of it already exists in `
 - `name`: Friendly name of the path
 - `remote_path`: Remote path to the folder
 - `local_mount_path`: Local path to where it will be mounted
+- `create_library_folders`: If the library folder structure should be created (default: `false`)
 - `type`: Type of path, valid: `nfs`
 - `nfs_opts`: NFS options, default: `defaults`
 
@@ -27,6 +29,7 @@ Confused? See the [Example below](#example), a version of it already exists in `
 - `name`: Friendly name of the path
 - `remote_path`: Remote path to the folder
 - `local_mount_path`: Local path to where it will be mounted
+- `create_library_folders`: If the library folder structure should be created (default: `false`)
 - `type`: Type of path, valid: `cifs`
 - `cifs_username`: CIFS username, default: `""`
 - `cifs_password`: CIFS password, default: `""`
@@ -43,6 +46,7 @@ nas_client_remote_additional_paths:
       name: "Media 4K",
       remote_path: "192.168.1.5:/Media_4K",
       local_mount_path: "{{ hms_docker_mount_path }}/Media_4k",
+      create_library_folders: true,
       type: nfs,
       nfs_opts: "rw,defaults"
     },
@@ -50,6 +54,7 @@ nas_client_remote_additional_paths:
       name: "Media NAS 3",
       remote_path: "//nas.example.com/media_3",
       local_mount_path: "{{ hms_docker_mount_path }}_custom_path_3",
+      create_library_folders: false,
       type: cifs,
       cifs_username: "insecureusername",
       cifs_password: "veryinsecurepassword",

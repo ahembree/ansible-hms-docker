@@ -21,17 +21,17 @@ services:
       - /etc/machine-id:/etc/machine-id
     environment:
       - DN_API_KEY=${NOTIFIARR_API_KEY}
-    {% if hmsdocker_container_enabled_lidarr %}
+    {% if 'lidarr' in enabled_containers %}
       - DN_LIDARR_0_NAME=Lidarr
       - DN_LIDARR_0_URL=http://lidarr:8686
       - DN_LIDARR_0_API_KEY=${LIDARR_KEY}
     {% endif %}
-    {% if hmsdocker_container_enabled_prowlarr %}
+    {% if 'prowlarr' in enabled_containers %}
       - DN_PROWLARR_0_NAME=Prowlarr
       - DN_PROWLARR_0_URL=http://prowlarr:9696
       - DN_PROWLARR_0_API_KEY=${PROWLARR_KEY}
     {% endif %}
-    {% if hmsdocker_container_enabled_radarr %}
+    {% if 'radarr' in enabled_containers %}
       - DN_RADARR_0_NAME=Radarr
       - DN_RADARR_0_URL=http://radarr:7878
       - DN_RADARR_0_API_KEY=${RADARR_KEY}
@@ -41,12 +41,12 @@ services:
       - DN_RADARR_1_API_KEY=${RADARR_4K_KEY}
       {% endif %}
     {% endif %}
-    {% if hmsdocker_container_enabled_readarr %}
+    {% if 'readarr' in enabled_containers %}
       - DN_READARR_0_NAME=Readarr
       - DN_READARR_0_URL=http://readarr:8787
       - DN_READARR_0_API_KEY=${READARR_KEY}
     {% endif %}
-    {% if hmsdocker_container_enabled_sonarr %}
+    {% if 'sonarr' in enabled_containers %}
       - DN_SONARR_0_NAME=Sonarr
       - DN_SONARR_0_URL=http://sonarr:8989
       - DN_SONARR_0_API_KEY=${SONARR_KEY}
@@ -56,12 +56,12 @@ services:
       - DN_SONARR_1_API_KEY=${SONARR_4K_KEY}
       {% endif %}
     {% endif %}
-    {% if hmsdocker_container_enabled_sabnzbd %}
+    {% if 'sabnzbd' in enabled_containers %}
       - DN_SABNZBD_0_NAME=SABnzbd
       - DN_SABNZBD_0_URL=http://sabnzbd:8080
       - DN_SABNZBD_0_API_KEY=${SABNZBD_KEY}
     {% endif %}
-    {% if hmsdocker_container_enabled_plex %}
+    {% if 'plex' in enabled_containers %}
       - DN_PLEX_NAME=Plex
       - DN_PLEX_URL=http://plex:32400
       - DN_PLEX_TOKEN=${PLEX_KEY}

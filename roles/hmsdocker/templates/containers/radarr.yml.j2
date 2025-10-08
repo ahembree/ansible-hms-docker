@@ -45,10 +45,20 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/radarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/radarr/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/radarr/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_radarr %}
     ports:
       - 7878:7878
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:7878/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
 
 {% if separate_4k_instances_enable | default(False) %}
   radarr-4k:
@@ -97,8 +107,17 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/radarr-4k/config:/config
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/radarr-4k/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/radarr-4k/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
     {% if hmsdocker_expose_ports_enabled_radarr %}
     ports:
       - 7879:7878
     {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:7878/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 10
 {% endif %}

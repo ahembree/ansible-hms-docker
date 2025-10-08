@@ -32,6 +32,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Tube Archivist](https://github.com/tubearchivist/tubearchivist): YouTube media management
 - [Pinchflat](https://github.com/kieraneglin/pinchflat): YouTube media management
 - [Huntarr](https://github.com/plexguide/Huntarr.io): finds missing and upgrades media items
+- [Cleanuparr](https://github.com/Cleanuparr/Cleanuparr): cleanup of unwanted or blocked files
 
 ## Download Clients
 
@@ -71,6 +72,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Netdata](https://github.com/netdata/netdata): observability
 - [Wizarr](https://github.com/wizarrrr/wizarr): media server invite management
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
+- [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
 
 ## Adding New Containers
 

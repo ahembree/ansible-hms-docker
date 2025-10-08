@@ -12,6 +12,7 @@
     name: nvidia-container-toolkit
     update_cache: true
     state: "{{ gpu_prereq_packages_state }}"
+  ignore_errors: '{{ ansible_check_mode }}'
 
 - name: Verify nvidia-container-runtime-hook is in $PATH
   ansible.builtin.shell: "which nvidia-container-runtime-hook"
@@ -56,8 +57,10 @@
         count: -1
         capabilities:
           - gpu
+  ignore_errors: '{{ ansible_check_mode }}'
 
 - name: Remove CUDA container
   community.docker.docker_container:
     name: nvidia-gpu-validation
     state: absent
+  ignore_errors: '{{ ansible_check_mode }}'

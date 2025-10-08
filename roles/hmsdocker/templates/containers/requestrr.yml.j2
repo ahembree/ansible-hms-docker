@@ -32,3 +32,9 @@ services:
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker
         {% endif %}
     {% endif %}
+    healthcheck:
+      test: echo > /dev/tcp/127.0.0.1/4545 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s

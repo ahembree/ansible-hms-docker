@@ -67,6 +67,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Huntarr                                  | &#9744;            | `huntarr`            | `9705`                 | `9705`            | &#9745;                |
 | Pinchflat                                | &#9744;            | `pinchflat`          | `8945`                 | `8945`            | &#9745;                |
 | Checkrr                                  | &#9744;            | `checkrr`            | `8585`                 | `8585`            | &#9745;                |
+| Backrest                                 | &#9744;            | `backrest`           | `9898`                 | `9898`            | &#9745;                |
+| Cleanuparr                               | &#9744;            | `cleanuparr`         | `11011`                | `11011`           | &#9745;                |
 
 
 ## Container Map Entry Example

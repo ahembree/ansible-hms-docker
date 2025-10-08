@@ -1,4 +1,4 @@
-{% if hmsdocker_container_enabled_sonarr %}
+{% if 'sonarr' in enabled_containers %}
 sonarr:
   sonarr:
     base_url: http://sonarr:8989
@@ -11,7 +11,7 @@ sonarr:
   {% endif %}
 {% endif %}
 
-{% if hmsdocker_container_enabled_radarr %}
+{% if 'radarr' in enabled_containers %}
 radarr:
   radarr:
     base_url: http://radarr:7878

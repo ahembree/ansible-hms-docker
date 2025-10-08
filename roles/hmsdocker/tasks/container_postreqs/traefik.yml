@@ -15,7 +15,7 @@
       validate_certs: false
     loop: "{{ traefik_enabled_subdomains }}"
     when:
-      - hmsdocker_container_enabled_traefik
+      - "'traefik' in enabled_containers"
       - traefik_verify_endpoints | default(false)
     ignore_errors: true
     register: traefik_successful_endpoints

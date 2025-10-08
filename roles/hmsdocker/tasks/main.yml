@@ -80,6 +80,12 @@
     enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
   when: (flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)) and 'flaresolverr' not in enabled_containers
 
+- name: Extend enabled_containers list if tailscale enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['tailscale'] }}"
+  when: (tailscale_enabled | default(false) or hms_docker_container_map['tailscale']['enabled'] | default(false)) and 'tailscale' not in enabled_containers
+
+
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
     path: "{{ item }}"
@@ -144,10 +150,10 @@
 
 - name: Run Youtube downloader initialization tasks
   ansible.builtin.import_tasks: "youtube_downloaders.yml"
-  
+
 - name: Retrieve app API keys if available
   ansible.builtin.import_tasks: "app_api_key_reader.yml"
-  when: hmsdocker_container_enabled_homepage
+  when: "'homepage' in enabled_containers"
 
 - name: Ensure env
   ansible.builtin.template:
@@ -235,10 +241,14 @@
   loop_control:
     loop_var: container_task_name
 
+- name: Run Arr-Scripts install if enabled
+  ansible.builtin.include_tasks: "tasks/arr-scripts.yml"
+  when: hmsdocker_svc_misc_arr_scripts_enabled | default(false)
+
 - name: Ensure VPN connection
   ansible.builtin.import_tasks: "vpn_validation.yml"
   when:
-    - hmsdocker_container_enabled_transmission or hmsdocker_container_enabled_qbittorrent or hmsdocker_container_enabled_deluge
+    - "'transmission' in enabled_containers or 'deluge' in enabled_containers or 'qbittorrent' in enabled_containers"
     - not ansible_check_mode
     - not is_github_runner | default(false)
 

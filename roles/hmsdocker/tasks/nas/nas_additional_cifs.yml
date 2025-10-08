@@ -71,4 +71,5 @@
   when:
     - cifs_additional_paths is defined
     - cifs_library_folder[0].mount_path.type == "cifs"
+    - library_folders[0].mount_path.create_library_folders | default(false)
     - not ansible_check_mode
