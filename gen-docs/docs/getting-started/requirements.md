@@ -18,6 +18,7 @@ RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux) may work, but are
 
 - Minimum 4 CPU Cores
 - Minimum 4GB RAM (2GB additional if using Authentik)
+  - Varies widely depending on your selected containers
 - Minimum 8GB free disk space
 
 ## Software / Services
