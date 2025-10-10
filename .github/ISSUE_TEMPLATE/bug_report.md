@@ -8,7 +8,9 @@ assignees: ahembree
 ---
 
 Have you updated your local code to the latest available from the repo: yes/no
+
 Have you ran `make update` after updating your local code: yes/no
+
 What version of HMS-Docker are you currently using (run `cat /opt/hms-docker/.hmsd-version`), or is this a new install: 
 
 Operating System and Version (`uname -a`): 
