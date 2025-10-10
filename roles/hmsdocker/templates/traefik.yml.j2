@@ -13,6 +13,14 @@ api:
   dashboard: true
   insecure: true
 
+{% if hmsdocker_authentik_enabled_through_cftunnel %}
+experimental:
+  plugins:
+    cloudflarewarp:
+      modulename: github.com/PseudoResonance/cloudflarewarp
+      version: v1.4.2
+{% endif %}
+
 entryPoints:
   web:
     address: :80

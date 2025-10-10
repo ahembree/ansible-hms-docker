@@ -1,8 +1,10 @@
 ### Authentik settings
-# This OR the option in the container map will enable or disable the Authentik container
-authentik_enabled: no
 authentik_geoip_account_id: ""
 authentik_geoip_license_key: ""
+
+# If cloudflare should be enabled when routing traffic through a Cloudflare Tunnel
+# This requires a lot of configuring on your end to ensure that any services exposed through a Cloudflare Tunnel are secure
+hmsdocker_authentik_enabled_through_cftunnel: false
 
 # Advanced Authentik settings
 authentik_pg_user: authentik

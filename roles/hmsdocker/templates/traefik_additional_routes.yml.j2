@@ -23,5 +23,5 @@ http:
     {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}:
       loadBalancer:
         servers:
-        - url: {{ item.backend_url }}
+          - url: {{ item.backend_url }}
         passHostHeader: false

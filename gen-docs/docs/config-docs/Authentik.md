@@ -32,7 +32,7 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
 4. Once all containers are started, go to `https://authentik.< domain >/if/flow/initial-setup/` to create the initial user and password to continue Authentik setup (if you changed the `proxy_host_rule` value for the authentik container, use that subdomain instead)
 
-5. Configure an Application Provider within Authentik
+5. Configure an Application and Provider within Authentik
 
     a. Login
 
@@ -40,37 +40,31 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     c. Expand `Applications` on the left
 
-    d. Click `Providers`
+    d. Click `Applications`
 
-    e. Create a new `Proxy Provider`
+    e. Click `Create with Provider`
 
     f. Give it the same name as the application (such as Sonarr)
 
-    g. Select `Forward auth (single application)`
+    g. Select the Provider Type of `Proxy Provider`
 
-    h. Set the `External host` to the URL of the application (such as `sonarr.< domain >`)
+    h. Select `Forward auth (single application)` and configure any other settings
 
-    i. Click finish
+    i. Set the `External host` to the URL of the application (such as `https://sonarr.< domain >`)
 
-6. Configure an Application
+    j. Click through the menus, customizing what you want, and finish
+
+6. Configure an Application Outpost
 
     a. Do a-c (above in step 5) again
 
-    b. Click `Applications`
-
-    c. Create a new Application with its name, slug (lowercase name for it), and select the provider created for the application
-
-    d. Click `Create` and now you should have Authentik in front of the application!
-
-7. Configure an Application Outpost
-
-    a. Do a-c (above in step 6) again
-
-    b. Click `Outposts`
+    b. Click `Outposts` and then `Create`
 
     c. Give it a name, the `type` is `Proxy` and integration should be the `Local Docker connection`
 
-    d. Select the application you created in step 6 to associate it to
+    d. Select the application you created in step 5 to associate it to
+
+    e. Expand `Advanced settings`
 
     :::tip
 
@@ -92,7 +86,7 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     :::
 
-8. Troubleshooting
+7. Troubleshooting
 
     a. Using the Traefik and Portainer dashboards help a LOT during the troubleshooting process
 

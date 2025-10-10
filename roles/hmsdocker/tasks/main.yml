@@ -135,10 +135,6 @@
   when: 
     - separate_4k_instances_enable | default(false)
 
-- name: Ensure Authentik
-  ansible.builtin.import_tasks: "container_prereqs/authentik.yml"
-  when: hmsdocker_authentik_enabled_globally
-
 - name: Run container prereqs if available
   ansible.builtin.include_tasks: "container_prereqs/{{ container_task_name }}.yml"
   loop: '{{ container_prereqs }}'
