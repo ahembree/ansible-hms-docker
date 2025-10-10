@@ -33,6 +33,9 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Pinchflat](https://github.com/kieraneglin/pinchflat): YouTube media management
 - [Huntarr](https://github.com/plexguide/Huntarr.io): finds missing and upgrades media items
 - [Cleanuparr](https://github.com/Cleanuparr/Cleanuparr): cleanup of unwanted or blocked files
+- [Fileflows](https://fileflows.com/): media transcoding
+- [Unmanic](https://github.com/Unmanic/unmanic): media transcoding
+- [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr): IPTV manager
 
 ## Download Clients
 

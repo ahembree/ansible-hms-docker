@@ -1,0 +1,51 @@
+services:
+  unmanic:
+    image: josh5/unmanic:latest
+    container_name: unmanic
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    {% if enable_intel_gpu %}
+    devices:
+      - "/dev/dri:/dev/dri"
+    {% endif %}
+    {% if hmsdocker_expose_ports_enabled_unmanic %}
+    ports:
+      - 8889:8888
+    {% endif %}
+    networks:
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/unmanic/config:/config
+      - ${HMSD_MOUNT_PATH}:/library
+      - {{ hmsdocker_transcode_temp_path }}/unmanic:/tmp/unmanic
+    {% if hmsdocker_traefik_enabled_unmanic %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.unmanic-${COMPOSE_PROJECT}.loadbalancer.server.port=8888
+      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['unmanic']['proxy_host_rule'] | default('unmanic') }}.${HMSD_DOMAIN}`)
+      {% if not hmsdocker_expose_public_enabled_unmanic %}
+      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_unmanic %}
+      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-unmanic-midware@docker
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:8888 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,54 @@
+services:
+  dispatcharr:
+    image: ghcr.io/dispatcharr/dispatcharr:latest
+    container_name: dispatcharr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if hmsdocker_expose_ports_enabled_dispatcharr %}
+    ports:
+      - 9191:9191
+    {% endif %}
+    {% if enable_intel_gpu %}
+    devices:
+      - "/dev/dri:/dev/dri"
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/dispatcharr/config:/data
+      - ${HMSD_MOUNT_PATH}:/library
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - DISPATCHARR_ENV=aio
+      - REDIS_HOST=localhost
+      - CELERY_BROKER_URL=redis://localhost:6379/0
+      - DISPATCHARR_LOG_LEVEL=info
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    {% if hmsdocker_traefik_enabled_dispatcharr %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.dispatcharr-${COMPOSE_PROJECT}.loadbalancer.server.port=9191
+      - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['dispatcharr']['proxy_host_rule'] | default('dispatcharr') }}.${HMSD_DOMAIN}`)
+      {% if not hmsdocker_expose_public_enabled_dispatcharr %}
+      - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_dispatcharr %}
+      - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-dispatcharr-midware@docker
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:9191 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 20s

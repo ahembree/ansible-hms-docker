@@ -1,0 +1,55 @@
+services:
+  fileflows:
+    image: revenz/fileflows
+    container_name: fileflows
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    {% if hmsdocker_expose_ports_enabled_fileflows %}
+    ports:
+      - "19200:5000"
+    {% endif %}
+    networks:
+      - proxy_net
+    {% if enable_intel_gpu %}
+    devices:
+      - "/dev/dri:/dev/dri"
+    {% endif %}
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HMSD_APPS_PATH}/fileflows/config:/app/Data
+      - ${HMSD_APPS_PATH}/fileflows/logs:/app/Logs
+      - ${HMSD_APPS_PATH}/fileflows/common:/app/common
+      - ${HMSD_MOUNT_PATH}:/data
+      - {{ hmsdocker_transcode_temp_path }}/fileflows:/temp
+      - /mnt/hms-docker/backups:/testing_data
+    {% if hmsdocker_traefik_enabled_fileflows %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.fileflows-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
+      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}`)
+      {% if not hmsdocker_expose_public_enabled_fileflows %}
+      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      {% endif %}
+      {% if hmsdocker_authentik_enabled_fileflows %}
+      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:5000 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
