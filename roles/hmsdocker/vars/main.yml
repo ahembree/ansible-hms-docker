@@ -48,6 +48,9 @@ hmsdocker_traefik_enabled_pinchflat: "{{ hms_docker_container_map['pinchflat']['
 hmsdocker_traefik_enabled_checkrr: "{{ hms_docker_container_map['checkrr']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
 hmsdocker_traefik_enabled_backrest: "{{ hms_docker_container_map['backrest']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
 hmsdocker_traefik_enabled_cleanuparr: "{{ hms_docker_container_map['cleanuparr']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
+hmsdocker_traefik_enabled_fileflows: "{{ hms_docker_container_map['fileflows']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
+hmsdocker_traefik_enabled_unmanic: "{{ hms_docker_container_map['unmanic']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
+hmsdocker_traefik_enabled_dispatcharr: "{{ hms_docker_container_map['dispatcharr']['traefik'] | default(False) and 'traefik' in enabled_containers }}"
 
 
 # Public container exposure computed variables
@@ -91,6 +94,9 @@ hmsdocker_expose_public_enabled_pinchflat: "{{ hms_docker_container_map['pinchfl
 hmsdocker_expose_public_enabled_checkrr: "{{ hms_docker_container_map['checkrr']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_backrest: "{{ hms_docker_container_map['backrest']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_cleanuparr: "{{ hms_docker_container_map['cleanuparr']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_fileflows: "{{ hms_docker_container_map['fileflows']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_unmanic: "{{ hms_docker_container_map['unmanic']['expose_to_public'] | default(False) }}"
+hmsdocker_expose_public_enabled_dispatcharr: "{{ hms_docker_container_map['dispatcharr']['expose_to_public'] | default(False) }}"
 
 
 # Container host port mapping computed variables
@@ -135,6 +141,9 @@ hmsdocker_expose_ports_enabled_pinchflat: "{{ True if (container_expose_ports or
 hmsdocker_expose_ports_enabled_checkrr: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_checkrr) else False }}"
 hmsdocker_expose_ports_enabled_backrest: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_backrest) else False }}"
 hmsdocker_expose_ports_enabled_cleanuparr: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_cleanuparr) else False }}"
+hmsdocker_expose_ports_enabled_fileflows: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_fileflows) else False }}"
+hmsdocker_expose_ports_enabled_unmanic: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_unmanic) else False }}"
+hmsdocker_expose_ports_enabled_dispatcharr: "{{ True if (container_expose_ports or not 'traefik' in enabled_containers or not hmsdocker_traefik_enabled_dispatcharr) else False }}"
 
 # Authentik computed variables
 # Controls global authentik variables
@@ -182,6 +191,9 @@ hmsdocker_authentik_enabled_pinchflat:           "{{ hms_docker_container_map['p
 hmsdocker_authentik_enabled_checkrr:           "{{ hms_docker_container_map['checkrr']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['checkrr']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
 hmsdocker_authentik_enabled_backrest:           "{{ hms_docker_container_map['backrest']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['backrest']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
 hmsdocker_authentik_enabled_cleanuparr:           "{{ hms_docker_container_map['cleanuparr']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['cleanuparr']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_fileflows:           "{{ hms_docker_container_map['fileflows']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['fileflows']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_unmanic:           "{{ hms_docker_container_map['unmanic']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['unmanic']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
+hmsdocker_authentik_enabled_dispatcharr:           "{{ hms_docker_container_map['dispatcharr']['authentik']            | default(False) and hmsdocker_authentik_enabled_globally and hms_docker_container_map['dispatcharr']['authentik_provider_type']            | default('proxy') == 'proxy' }}"
 
 
 # Homepage

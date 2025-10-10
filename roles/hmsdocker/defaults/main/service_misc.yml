@@ -11,9 +11,6 @@ hmsdocker_svc_misc_arr_scripts_enabled: no
 
 #######################################################################
 ### Tdarr settings
-tdarr_transcode_folder: "{{ hms_docker_apps_path }}/tdarr/transcode_temp" # default: "{{ hms_docker_apps_path }}/tdarr/transcode_temp"
-tdarr_enable_nvidia_gpu: "{{ enable_nvidia_gpu }}"
-tdarr_enable_intel_gpu: "{{ enable_intel_gpu }}"
 tdarr_enable_node_server: no
 ### End Tdarr
 #######################################################################
@@ -81,3 +78,6 @@ hmsdocker_checkrr_enable_arr_processing: false
 # If the Backrest container should have write access to the data directory (default: /opt/hms-docker)
 hmsdocker_backrest_allow_write: false
 hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
+
+# Temp path used by Tdarr, Fileflows, Unmanic
+hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"

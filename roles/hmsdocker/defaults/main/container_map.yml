@@ -389,3 +389,21 @@ hms_docker_container_map:
     authentik: no
     directory: yes
     traefik: yes
+  fileflows:
+    enabled: no
+    proxy_host_rule: fileflows
+    authentik: no
+    directory: yes
+    traefik: yes
+  unmanic:
+    enabled: no
+    proxy_host_rule: unmanic
+    authentik: no
+    directory: yes
+    traefik: yes
+  dispatcharr:
+    enabled: no
+    proxy_host_rule: dispatcharr
+    authentik: no
+    directory: yes
+    traefik: yes
