@@ -204,15 +204,6 @@
       "authentik_provider_type": proxy,
       "expose_to_public": false
     },
-    "readarr": {
-      "enabled": false,
-      "proxy_host_rule": readarr,
-      "directory": true,
-      "traefik": true,
-      "authentik": false,
-      "authentik_provider_type": proxy,
-      "expose_to_public": false
-    },
     "kavita": {
       "enabled": false,
       "proxy_host_rule": kavita,

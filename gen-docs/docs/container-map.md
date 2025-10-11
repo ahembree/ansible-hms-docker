@@ -45,7 +45,6 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Flaresolverr                             | &#9744;            | `flaresolverr`       | `8191`                 | `8191`            | &#9744;                |
 | Uptime Kuma                              | &#9744;            | `uptime-kuma`        | `3001`                 | `3001`            | &#9745;                |
 | Heimdall                                 | &#9744;            | `heimdall`           | `8000` and `8443`      | `80` and `443`    | &#9745;                |
-| Readarr                                  | &#9744;            | `readarr`            | `8787`                 | `8787`            | &#9745;                |
 | Kavita                                   | &#9744;            | `kavita`             | `5000`                 | `5000`            | &#9745;                |
 | Calibre                                  | &#9744;            | `calibre`            | `8083`, `8182`, `8084` | `8080`, `8181`, `8081`| &#9745;            |
 | Jellyfin                                 | &#9744;            | `jellyfin`           | `8096`, `8920`, `7359`, `1900` | `8096`, `8920`, `7359`, `1900` | &#9745;            |

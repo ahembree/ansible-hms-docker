@@ -23,7 +23,6 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Jellyseerr](https://github.com/Fallenbagel/jellyseerr): request platform with Jellyfin and Emby support
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
-- [Readarr](https://github.com/Readarr/Readarr): ebook management
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding

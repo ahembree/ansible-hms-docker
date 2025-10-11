@@ -11,7 +11,6 @@ At the time of implementation, this list is:
 - Radarr
 - Sonarr
 - Lidarr
-- Readarr
 - SABnzbd
 
 :::note
