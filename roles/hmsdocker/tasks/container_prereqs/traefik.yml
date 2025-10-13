@@ -37,7 +37,7 @@
 
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:
-    src: traefik_additional_routes.yml.j2
+    src: traefik/hmsd_traefik_additional_routes.yml.j2
     dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     mode: 0644
     group: docker
