@@ -58,7 +58,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 30s
 
 {% if separate_4k_instances_enable | default(False) %}
   radarr-4k:
@@ -117,7 +117,8 @@ services:
     {% endif %}
     healthcheck:
       test: curl -f http://localhost:7878/health || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 10
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
 {% endif %}
