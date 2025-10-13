@@ -1,7 +1,7 @@
 ---
 - name: Traefik Prereq - Ensure Traefik config.
   ansible.builtin.template:
-    src: traefik.yml.j2
+    src: traefik/hmsd_traefik_config.yml.j2
     dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
     mode: 0644
     group: docker
