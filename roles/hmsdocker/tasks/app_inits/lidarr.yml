@@ -111,6 +111,8 @@
               when:
                 - hmsd_app_init_config_prefix + 'qBittorrent' not in lidarr_download_clients.keys()
                 - "'qbittorrent' in enabled_containers"
+                # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+                - not is_github_runner
               ansible.builtin.uri:
                 url: "{{ lidarr_url }}/v1/downloadclient"
                 method: POST
