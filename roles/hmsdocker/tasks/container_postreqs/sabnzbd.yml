@@ -5,7 +5,7 @@
   register: sabnzbd_config_path
 
 - name: Sabnzbd Postreq - restart sabnzbd inline if config not exist
-  when: not sabnzbd_config_path.stat.exists
+  when: not sabnzbd_config_path.stat.exists and not ansible_check_mode
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"
     project_name: "{{ project_name }}"
