@@ -82,9 +82,6 @@ services:
         {% if not hmsdocker_expose_public_enabled_authentik %}
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
         {% endif %}
-        {% if hmsdocker_authentik_enabled_authentik %}
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
-        {% endif %}
       {% endif %}
       {% if hmsdocker_homepage_enabled_authentik %}
       - homepage.group=Infrastructure
