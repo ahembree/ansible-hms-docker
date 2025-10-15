@@ -122,7 +122,7 @@
       "homepage_stats": true
     },
     "tautulli": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": tautulli,
       "directory": true,
       "traefik": true,
@@ -144,7 +144,7 @@
       "homepage_stats": true
     },
     "sabnzbd": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": sabnzbd,
       "directory": true,
       "traefik": true,
@@ -264,7 +264,7 @@
       "expose_to_public": false,
     },
     "lidarr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": "lidarr",
       "directory": true,
       "traefik": true,
@@ -340,7 +340,7 @@
       "homepage_stats": false,
     },
     "qbittorrent": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": qbittorrent,
       "directory": true,
       "traefik": true,
@@ -395,7 +395,7 @@
       "homepage_stats": false,
     },
     "checkrr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": checkrr,
       "directory": true,
       "traefik": true,
