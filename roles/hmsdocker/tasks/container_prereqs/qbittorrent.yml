@@ -1,3 +1,12 @@
+- name: Ensure qBittorrent config directory exists if not already
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/qbittorrent/config/qBittorrent/config"
+    state: directory
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: '0755'
+  loop: "{{ enabled_containers_config_dirs }}"
+
 - name: Ensure qBittorrent config exists before first start to disable authentication
   ansible.builtin.template:
     src: container_configs/qbittorrent_config.conf.j2
