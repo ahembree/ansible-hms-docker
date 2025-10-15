@@ -1,5 +1,5 @@
 ---
-- name: restart traefik
+- name: Restart traefik
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"
     project_name: "{{ project_name }}"
@@ -11,7 +11,7 @@
     - not traefik_certs_dir.changed
     - not ansible_check_mode
 
-- name: restart sabnzbd
+- name: Restart sabnzbd
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"
     project_name: "{{ project_name }}"

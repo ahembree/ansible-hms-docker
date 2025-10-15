@@ -6,7 +6,7 @@ custom_scripts_enabled: no
 monitoring_scripts_enabled: no
 
 ### Media Availability script settings
-## Checks to see if the newest "Recently Released Movies" media item is actually available on disk
+## Useful for when there is an issue with a network share that causes media to show as unavailable, but the plex service is still online
 media_avail_script_enabled: no
 
 # The URL from Uptime Kuma for a "Push" notification

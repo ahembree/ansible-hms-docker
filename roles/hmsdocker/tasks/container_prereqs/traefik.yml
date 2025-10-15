@@ -8,7 +8,7 @@
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
-  notify: restart traefik
+  notify: Restart traefik
 
 - name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:
