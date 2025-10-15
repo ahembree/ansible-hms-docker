@@ -1,7 +1,7 @@
 ---
 - name: Homepage Prereq - Ensure Watchtower API key
   ansible.builtin.template:
-    src: authentik_secret.j2
+    src: authentik/authentik_secret.j2
     dest: "{{ hms_docker_data_path }}/.watchtower.key"
     mode: 0600
     owner: "{{ container_uid }}"
