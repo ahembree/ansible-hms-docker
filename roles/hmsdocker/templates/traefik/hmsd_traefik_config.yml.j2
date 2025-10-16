@@ -1,5 +1,5 @@
 global:
-  checkNewVersion: false
+  checkNewVersion: true
   sendAnonymousUsage: false
 
 log:
@@ -11,7 +11,8 @@ accessLog: {}
 
 api:
   dashboard: true
-  insecure: true
+  disabledashboardad: true
+  insecure: {{ "false" if traefik_security_hardening else "true" }}
 
 {% if hmsdocker_authentik_enabled_through_cftunnel %}
 experimental:
@@ -30,6 +31,7 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
+          permanent: true
 
   websecure:
     address: :443
