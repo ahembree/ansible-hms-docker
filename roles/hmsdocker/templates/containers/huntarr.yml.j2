@@ -27,7 +27,7 @@ services:
       - traefik.http.services.huntarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9705
       - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['huntarr']['proxy_host_rule'] | default('huntarr') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_huntarr %}
-      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_huntarr %}
       - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-huntarr-midware@docker

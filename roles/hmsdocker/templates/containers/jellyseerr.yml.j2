@@ -22,7 +22,7 @@ services:
       - traefik.http.services.jellyseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
       - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_jellyseerr %}
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_jellyseerr %}
       - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-jellyseerr-midware@docker

@@ -27,7 +27,7 @@ services:
       - traefik.http.services.autobrr-${COMPOSE_PROJECT}.loadbalancer.server.port=7474
       - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_autobrr %}
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_autobrr %}
       - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker

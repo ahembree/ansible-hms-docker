@@ -39,7 +39,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.service=api@internal
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% if hmsdocker_authentik_enabled_traefik %}
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
         {% endif %}

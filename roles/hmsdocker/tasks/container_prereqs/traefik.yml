@@ -1,4 +1,12 @@
 ---
+- name: Traefik Prereq - Extend Traefik hosts list
+  ansible.builtin.set_fact:
+    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
+  when:
+    - item.enabled
+    - item.subdomain_name not in traefik_enabled_subdomains
+  loop: '{{ traefik_ext_hosts_list }}'
+
 - name: Traefik Prereq - Ensure Traefik config.
   ansible.builtin.template:
     src: traefik/hmsd_traefik_config.yml.j2
@@ -31,7 +39,6 @@
     dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
     mode: 0644
     group: docker
-    backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
 
@@ -41,7 +48,6 @@
     dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     mode: 0644
     group: docker
-    backup: yes
     lstrip_blocks: true
     trim_blocks: true
   with_items: "{{ traefik_ext_hosts_list }}"

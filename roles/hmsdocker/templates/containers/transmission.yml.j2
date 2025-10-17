@@ -96,7 +96,7 @@ services:
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
         {% if not hmsdocker_expose_public_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_transmission %}
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
@@ -114,7 +114,7 @@ services:
     {% endif %}
     healthcheck:
       test: curl -f http://localhost:8080 || exit 1
-      interval: 5s
-      timeout: 2s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
       start_period: 30s

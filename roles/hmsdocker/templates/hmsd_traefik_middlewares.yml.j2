@@ -1,12 +1,41 @@
 http:
   middlewares:
+    internal-secured:
+      chain:
+        middlewares:
+          - internal-ipallowlist
+          - https-only
+          - secure-headers
+
+    external-secured:
+      chain:
+        middlewares:
+          - external-ipallowlist
+          - https-only
+          - secure-headers
+
+    https-only:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    secure-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        allowedHosts: 
+        {% for host in traefik_enabled_subdomains %}
+          - "{{ host }}.{{ hms_docker_domain }}"
+        {% endfor %}
+
     internal-ipallowlist:
       ipAllowList:
         sourceRange:
           - "127.0.0.1/32"
-        {% for address in traefik_subnet_allow_list | split(', ') %}
+        {% for address in traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
           - "{{ address }}"
         {% endfor %}
+
     external-ipallowlist:
       ipAllowList:
         sourceRange:

@@ -26,7 +26,7 @@ services:
       - traefik.http.services.maintainerr-${COMPOSE_PROJECT}.loadbalancer.server.port=6246
       - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['maintainerr']['proxy_host_rule'] | default('maintainerr') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_maintainerr %}
-      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_maintainerr %}
       - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-maintainerr-midware@docker

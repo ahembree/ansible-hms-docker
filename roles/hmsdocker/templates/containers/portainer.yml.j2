@@ -25,7 +25,7 @@ services:
       - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_portainer %}
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_portainer %}
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker

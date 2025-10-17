@@ -33,7 +33,7 @@ services:
       - traefik.http.services.lidarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8686
       - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_lidarr %}
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_lidarr %}
       - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker

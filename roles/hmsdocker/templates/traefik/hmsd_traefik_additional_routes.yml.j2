@@ -9,9 +9,9 @@ http:
       {% endif %}
       middlewares:
       {% if item.expose_publicly | default(false) %}
-        - external-ipallowlist
+        - external-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
       {% else %}
-        - internal-ipallowlist
+        - internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
       {% endif %}
       {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik %}
         - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker

@@ -26,7 +26,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
       - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
       {% if hmsdocker_authentik_enabled_kavita %}
       - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker
       {% endif %}

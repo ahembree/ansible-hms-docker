@@ -46,7 +46,7 @@ services:
       - traefik.http.services.qbittorrent-${COMPOSE_PROJECT}.loadbalancer.server.port=8086
       - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}`)
         {% if not hmsdocker_expose_public_enabled_qbittorrent %}
-      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
         {% endif %}
         {% if hmsdocker_authentik_enabled_qbittorrent %}
       - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-qbittorrent-midware@docker
