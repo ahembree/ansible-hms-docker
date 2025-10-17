@@ -4,7 +4,9 @@
 
 If a container exists outside of this Compose project but on the same host, you can add them to Traefik so they can also have TLS/SSL
 
-1. Add the `hms-docker_proxy_net` (default) network to the container along with required labels:
+1. Add the `HMSD_DOMAIN` to a new or existing `.env` file that your other containers reference with the value of your domain used for this project
+
+2. Add the `hms-docker_proxy_net` (default) network to the container along with the following required labels:
 
     ```yml
     services:
@@ -17,7 +19,8 @@ If a container exists outside of this Compose project but on the same host, you 
           - traefik.enable=true
           - traefik.http.services.<container name>.loadbalancer.server.port=<web UI port for container>
           - traefik.http.routers.<container name>.rule=Host(`<subdomain name>.${HMSD_DOMAIN}`)
-          - traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file
+          # The following restricts it to only internal IP addresses
+          - traefik.http.routers.<container name>.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
     ...
     networks:
       - hms-docker_proxy_net
@@ -31,11 +34,11 @@ If a container exists outside of this Compose project but on the same host, you 
 
     :::
 
-2. [Add DNS records](../../getting-started/dns-setup.md) (if necessary)
+3. [Add DNS records](../../getting-started/dns-setup.md) (if necessary)
 
-3. Restart the containers you just added labels to
+4. Restart the container(s) you just added labels to
 
-4. Check to see if it is working correctly
+5. Check to see if it is working correctly
 
 ## Adding External Services to Traefik
 
