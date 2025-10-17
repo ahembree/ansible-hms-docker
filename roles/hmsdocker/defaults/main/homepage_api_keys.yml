@@ -4,6 +4,7 @@
 homepage_nzbget_key: 
 
 # Authentik
+# See: https://gethomepage.dev/widgets/services/authentik/
 homepage_authentik_key: 
 
 # Portainer

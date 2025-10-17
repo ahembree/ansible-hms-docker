@@ -103,3 +103,168 @@ These values are stored in these files for persistence since they are generated 
 Since the `.env` file will be continually updated with new values and these 2 randomly generated values need to remain persistent, Ansible will read/`slurp` these 2 files created and retrieve the values, ensuring the values within the `.env` are the same each time during every playbook run.
 
 To ensure these key and pgpass files are not changed by Ansible, `force: no` is set on the template resource that creates these files.
+
+## Upgrading Authentik
+
+In Version 1.12, Authentik was upgraded from version `2025.2.4` to the current latest version, `2025.8.4`.
+
+This upgrade introduced a Postgresql update from v12 to v16, which requires performing a manual database update and migration to the new version.
+
+### Wiping and Starting Fresh
+
+If you do not want to do this and do not care to wipe Authentik and start from scratch, you can do the following:
+
+```bash
+cd /opt/hms-docker
+sudo docker compose down
+
+cd /opt/hms-docker/apps
+sudo rm -rf authentik
+
+docker volume rm -f hms-docker_authentik_database hms-docker_authentik_database_backup hms-docker_authentik_geoip hms-docker_authentik_redis
+```
+
+Then re-run the playbook using `sudo make apply` and follow the steps above in [Enabling Authentik on Individual Containers](#enabling-authentik-on-individual-containers)
+
+### Performing Upgrade
+
+The steps below have been adapted from these official docs: https://docs.goauthentik.io/troubleshooting/postgres/upgrade_docker/
+
+Please note I am not responsible for any data loss during this process.
+
+1. Comment out/remove these lines from the `authentik-postgresql` container in `/opt/hms-docker/compose_files/authentik.yml` (lines 6 and 7):
+
+    ```yaml
+    networks:
+      - authentik_net
+    ```
+
+2. Add the following to an existing or new `/opt/hms-docker/docker-compose.override.yml` file:
+
+    ```yaml
+    services:
+      authentik-postgresql:
+        image: postgres:12-alpine
+        network_mode: none
+
+      authentik-redis:
+        image: redis:alpine
+
+      authentik-server:
+        image: ghcr.io/goauthentik/server:latest
+
+      authentik-worker:
+        image: ghcr.io/goauthentik/server:latest
+    ```
+
+3. Run the following commands to perform a backup of the existing database (this will take down Authentik during this process):
+
+    a. Start containers with new override values:
+
+    ```bash
+    cd /opt/hms-docker
+    sudo docker compose up -d
+    ```
+
+    b. Create directory to store backup
+
+    ```bash
+    # In /opt/hms-docker
+    sudo mkdir authentik_upgrade_pg12 && sudo chown ${USER}:${USER} authentik_upgrade_pg12
+    cd authentik_upgrade_pg12
+    ```
+
+    c. Perform postgresql dump to file
+
+    ```bash
+    # In /opt/hms-docker/authentik_upgrade_pg12
+    sudo docker compose -f ../docker-compose.yml -f ../docker-compose.override.yml exec authentik-postgresql pg_dump -U authentik -d authentik -cC > upgrade_backup_12.sql
+    ```
+
+    d. Validate that the new `upgrade_backup_12.sql` file contains your data
+
+    e. Stop only the authentik containers
+
+    ```bash
+    cd /opt/hms-docker
+    sudo docker compose down authentik-postgresql authentik-redis authentik-server authentik-worker
+    ```
+
+    f. Create new volume for database backup
+
+    ```bash
+    docker volume create hms-docker_authentik_database_backup && docker run --rm -v hms-docker_authentik_database:/from -v hms-docker_authentik_database_backup:/to alpine sh -c 'cd /from && cp -a . /to'
+    ```
+
+    g. DANGER: this next command will delete the (now backed up) database, ensure the backup has the correct data before continuing
+
+    ```bash
+    docker volume rm -f hms-docker_authentik_database
+    ```
+
+4. Change the `/opt/hms-docker/docker-compose.override.yml` file to:
+
+    ```yaml
+    services:
+      authentik-postgresql:
+        image: docker.io/library/postgres:16-alpine
+        network_mode: none
+
+      authentik-redis:
+        image: docker.io/library/redis:alpine
+
+      authentik-server:
+        image: ghcr.io/goauthentik/server:2025.8
+
+      authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.8
+    ```
+
+5. Run the following commands:
+
+    a. Pull new images with the new override images and start and force recreate only the postgresql container:
+
+    ```bash
+    cd /opt/hms-docker
+    sudo docker compose pull authentik-postgresql authentik-redis authentik-server authentik-worker && sudo docker compose up --force-recreate -d authentik-postgresql
+    ```
+
+    b. Import the backup into the new postgresql container
+
+    ```bash
+    cd /opt/hms-docker/authentik_upgrade_pg12
+    cat upgrade_backup_12.sql | sudo docker compose -f ../docker-compose.yml -f ../docker-compose.override.yml exec -T authentik-postgresql psql -U authentik
+    ```
+
+6. Change the `/opt/hms-docker/docker-compose.override.yml` to (just removing the `network_mode: none` line):
+
+    ```yaml
+    services:
+      authentik-postgresql:
+        image: docker.io/library/postgres:16-alpine
+
+      authentik-redis:
+        image: docker.io/library/redis:alpine
+
+      authentik-server:
+        image: ghcr.io/goauthentik/server:2025.8
+
+       authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.8
+    ```
+
+7. Force recreate all Authentik containers with new images:
+
+    ```bash
+    sudo docker compose up --force-recreate -d authentik-postgresql authentik-redis authentik-server authentik-worker
+    ```
+
+8. Run the new version of the playbook using `sudo make apply`
+
+9. Validate that Authentik is running, contains your data, and is on the latest version (2025.8.4)
+
+10. Delete the `docker-compose.override.yml` file if not in use, otherwise remove the entries added for Authentik during this process
+
+11. Run `sudo docker compose up -d` after removing or modifying the `docker-compose.override.yml` file
+
+12. Once you've confirmed everything is working as expected, you can then remove the database backup volume by running `docker volume rm hms-docker_authentik_database_backup`
