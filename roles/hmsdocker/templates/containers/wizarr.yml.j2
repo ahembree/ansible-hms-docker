@@ -11,8 +11,10 @@ services:
     networks:
       - proxy_net
     volumes:
-      - ${HMSD_APPS_PATH}/wizarr/config:/data/database
+      - ${HMSD_APPS_PATH}/wizarr/config:/data
     environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TIMEZONE}
     {% if hmsdocker_expose_ports_enabled_wizarr %}
     ports:
