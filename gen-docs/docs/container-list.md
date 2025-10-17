@@ -130,12 +130,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.<container name>-${COMPOSE_PROJECT}.loadbalancer.server.port=<container UI port>
       - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_<container name> %}
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_<container name> %}
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker
-        {% endif %}
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_<container name> else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker' if hmsdocker_authentik_enabled_<container name> }}
       {% endif %}
       # Below is only for Homepage
       {% if hmsdocker_homepage_enabled_<container name> %}
