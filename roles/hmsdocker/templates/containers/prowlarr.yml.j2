@@ -27,12 +27,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_prowlarr %}
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_prowlarr %}
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_prowlarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker' if hmsdocker_authentik_enabled_prowlarr }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_prowlarr %}
       - homepage.group=Managers

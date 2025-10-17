@@ -21,12 +21,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.radarr-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] | default('radarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_radarr %}
-      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_radarr %}
-      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_radarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker' if hmsdocker_authentik_enabled_radarr }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_radarr %}
       - homepage.group=Managers
@@ -83,12 +78,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.radarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] | default('radarr') }}-4k.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_radarr %}
-      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_radarr %}
-      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-4k-midware@docker
-        {% endif %}
+      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_radarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-radarr-4k-midware@docker' if hmsdocker_authentik_enabled_radarr }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_radarr %}
       - homepage.group=Managers - 4K

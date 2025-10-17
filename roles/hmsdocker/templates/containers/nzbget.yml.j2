@@ -28,12 +28,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.nzbget-${COMPOSE_PROJECT}.loadbalancer.server.port=6789
       - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] | default('nzbget') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_nzbget %}
-      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_nzbget %}
-      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker
-        {% endif %}
+      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_nzbget else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker' if hmsdocker_authentik_enabled_nzbget }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_nzbget %}
       - homepage.group=Downloads

@@ -11,7 +11,7 @@ services:
     networks:
       - proxy_net
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}
@@ -25,10 +25,5 @@ services:
       - traefik.enable=true
       - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
       - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_homepage %}
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_homepage %}
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker
-        {% endif %}
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_homepage else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if hmsdocker_authentik_enabled_homepage }}
     {% endif %}

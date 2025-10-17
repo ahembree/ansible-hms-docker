@@ -25,12 +25,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.requestrr-${COMPOSE_PROJECT}.loadbalancer.server.port=4545
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] | default('requestrr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_requestrr %}
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_requestrr %}
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker
-        {% endif %}
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_requestrr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker' if hmsdocker_authentik_enabled_requestrr }}
     {% endif %}
     healthcheck:
       test: echo > /dev/tcp/127.0.0.1/4545 || exit 1

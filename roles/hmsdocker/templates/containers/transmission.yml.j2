@@ -95,12 +95,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-        {% if not hmsdocker_expose_public_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
-        {% endif %}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_transmission else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if hmsdocker_authentik_enabled_transmission }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_transmission %}
       - homepage.group=Downloads

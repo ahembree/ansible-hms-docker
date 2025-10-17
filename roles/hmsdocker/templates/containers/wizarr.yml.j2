@@ -23,10 +23,5 @@ services:
       - traefik.enable=true
       - traefik.http.services.wizarr-${COMPOSE_PROJECT}.loadbalancer.server.port=5690
       - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['wizarr']['proxy_host_rule'] | default('wizarr') }}.${HMSD_DOMAIN}`)
-      {% if not hmsdocker_expose_public_enabled_wizarr %}
-      - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-      {% endif %}
-      {% if hmsdocker_authentik_enabled_wizarr %}
-      - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-wizarr-midware@docker
-      {% endif %}
+      - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_wizarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-wizarr-midware@docker' if hmsdocker_authentik_enabled_wizarr }}
     {% endif %}

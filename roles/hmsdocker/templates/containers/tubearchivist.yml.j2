@@ -44,12 +44,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
       - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_tubearchivist %}
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_tubearchivist %}
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker
-        {% endif %}
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_tubearchivist else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if hmsdocker_authentik_enabled_tubearchivist }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_tubearchivist %}
       - homepage.group=Managers

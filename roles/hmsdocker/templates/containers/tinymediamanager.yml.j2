@@ -32,11 +32,6 @@ services:
       - traefik.enable=true
       - traefik.http.services.tinymediamanager-${COMPOSE_PROJECT}.loadbalancer.server.port=4000
       - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tinymediamanager']['proxy_host_rule'] | default('tmm') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_tinymediamanager %}
-      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_tinymediamanager %}
-      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tinymediamanager-midware@docker
-        {% endif %}
+      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_tinymediamanager else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tinymediamanager-midware@docker' if hmsdocker_authentik_enabled_tinymediamanager }}
       {% endif %}
     {% endif %}

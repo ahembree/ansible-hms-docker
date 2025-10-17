@@ -21,12 +21,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_sonarr %}
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_sonarr %}
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_sonarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if hmsdocker_authentik_enabled_sonarr }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_sonarr %}
       - homepage.group=Managers
@@ -84,12 +79,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.sonarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_sonarr %}
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_sonarr %}
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker
-        {% endif %}
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_sonarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if hmsdocker_authentik_enabled_sonarr }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_sonarr %}
       - homepage.group=Managers - 4K

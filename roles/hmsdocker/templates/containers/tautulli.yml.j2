@@ -20,12 +20,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.tautulli-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] | default('tautulli') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_tautulli %}
-      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_tautulli %}
-      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker
-        {% endif %}
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_tautulli else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker' if hmsdocker_authentik_enabled_tautulli }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_tautulli %}
       - homepage.group=Media

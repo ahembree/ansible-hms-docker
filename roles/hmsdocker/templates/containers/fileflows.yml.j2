@@ -41,7 +41,7 @@ services:
       - traefik.http.services.fileflows-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
       - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}`)
       {% if not hmsdocker_expose_public_enabled_fileflows %}
-      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
+      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_fileflows else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker' if hmsdocker_authentik_enabled_fileflows }}
       {% endif %}
       {% if hmsdocker_authentik_enabled_fileflows %}
       - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker

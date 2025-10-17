@@ -20,12 +20,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.pasta-${COMPOSE_PROJECT}.loadbalancer.server.port=80
       - traefik.http.routers.pasta-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pasta']['proxy_host_rule'] | default('pasta') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_pasta %}
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_pasta %}
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker
-        {% endif %}
+      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_pasta else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker' if hmsdocker_authentik_enabled_pasta }}
       {% endif %}
     {% endif %}
     

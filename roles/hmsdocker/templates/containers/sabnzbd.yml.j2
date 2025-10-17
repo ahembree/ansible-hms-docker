@@ -31,12 +31,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.sabnzbd-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') }}.${HMSD_DOMAIN}`)
-      {% if not hmsdocker_expose_public_enabled_sabnzbd %}
-      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-      {% endif %}
-      {% if hmsdocker_authentik_enabled_sabnzbd %}
-      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
-      {% endif %}
+      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_sabnzbd else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker' if hmsdocker_authentik_enabled_sabnzbd }}
     {% endif %}
     {% if hmsdocker_homepage_enabled_sabnzbd %}
       - homepage.group=Downloads

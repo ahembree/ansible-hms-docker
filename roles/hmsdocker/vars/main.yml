@@ -54,6 +54,7 @@ hmsdocker_traefik_enabled_dispatcharr: "{{ hms_docker_container_map['dispatcharr
 
 # Public container exposure computed variables
 # Controls Traefik rules to allow/disallow accessing the containers from the public internet via an allowlist
+hmsdocker_expose_public_enabled_traefik: "{{ hms_docker_container_map['traefik']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_portainer: "{{ hms_docker_container_map['portainer']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_authentik: "{{ hms_docker_container_map['authentik']['expose_to_public'] | default(False) }}"
 hmsdocker_expose_public_enabled_sonarr: "{{ hms_docker_container_map['sonarr']['expose_to_public'] | default(False) }}"

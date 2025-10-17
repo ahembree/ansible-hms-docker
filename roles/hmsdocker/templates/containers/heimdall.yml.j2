@@ -27,10 +27,5 @@ services:
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] | default('heimdall') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_heimdall %}
-      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_heimdall %}
-      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker
-        {% endif %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_heimdall else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker' if hmsdocker_authentik_enabled_heimdall }}
     {% endif %}

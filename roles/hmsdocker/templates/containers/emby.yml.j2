@@ -43,12 +43,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
       - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_emby %}
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_emby %}
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker
-        {% endif %}
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_emby else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if hmsdocker_authentik_enabled_emby }}
       {% endif %}
       {% if hmsdocker_homepage_enabled_emby %}
       - homepage.group=Media

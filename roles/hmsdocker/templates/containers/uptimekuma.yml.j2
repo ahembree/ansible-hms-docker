@@ -26,10 +26,5 @@ services:
       - traefik.enable=true
       - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
       - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptime-kuma') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_uptimekuma %}
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_uptimekuma %}
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker
-        {% endif %}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_uptimekuma else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if hmsdocker_authentik_enabled_uptimekuma }}
     {% endif %}
