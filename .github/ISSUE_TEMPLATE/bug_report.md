@@ -7,25 +7,39 @@ assignees: ahembree
 
 ---
 
-Please only submit issues in English, thank you.
-
----
+## Basics
 
 Have you updated your local code to the latest available from the repo: yes/no
+
 Have you ran `make update` after updating your local code: yes/no
-What version of HMS-Docker are you currently using (run `cat /opt/hms-docker/.hmsd-version`): 
 
-Operating System and Version (`uname -a`): 
-Ansible Version (`ansible --version`): 
+What version of HMS-Docker are you currently using (run `cat /opt/hms-docker/.hmsd-version`), or is this a new install: 
 
-**Describe the bug**
+## Operating System and Version:
+
+```bash
+uname -a
+ansible --version
+```
+
+OS name and version: 
+
+## Describe the bug:
+
 A clear and concise description of what the bug is.
 
-**Expected behavior**
+## Expected behavior
 A clear and concise description of what you expected to happen.
 
-**List any applicable variables and their values**
+## List any applicable variables and their values
+As some examples, if the issue is related to a below item then provide the variables from the mentioned file:
+- Cloudflare: `cloudflare.yml`
+- Authentik: `authentik.yml`
+- NAS: `nas.yml` and the appropriate type (such as NFS, CIFS, or if it's an additional path)
+- VPN: `vpn.yml`
+- Traefik: `traefik.yml`
+
 Please be sure to redact any sensitive information
 
-**Additional context**
-Add any other context about the problem here.
+## Additional context
+Add any other context about the problem here, such as what you've already tried
