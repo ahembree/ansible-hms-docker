@@ -50,13 +50,13 @@ hmsdocker_traefik_static_config_location: "{{ traefik_ext_hosts_configs_path | d
 # Enables or Disables watching a directory for Traefik static file configs, see https://doc.traefik.io/traefik/providers/file/#configuration-examples // default: "no"
 traefik_ext_hosts_enabled: no
 # Settings for each external host:
-#    friendly_name: host1, # just a friendly name for it
-#    subdomain_name: sub-example, # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)
-#    backend_url: http://example.com, # the url of the service you want to proxy through traefik
-#    enabled: yes, # enables or disables the route
-#    expose_publicly: no, # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
-#    authentik: no, # whether or not to apply authentik settings to the service
-#    authentik_provider_type: proxy # typically proxy unless you know it's oauth2
+#    friendly_name: host1,              # just a friendly name for it
+#    subdomain_name: sub-example,       # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hms_docker_domain you defined above)
+#    backend_url: http://example.com,   # the url of the service you want to proxy through traefik
+#    enabled: yes,                      # enables or disables the route
+#    expose_publicly: no,               # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
+#    authentik: no,                     # whether or not to apply authentik settings to the service
+#    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
 
 traefik_ext_hosts_list: [
   {
