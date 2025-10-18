@@ -14,15 +14,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_tautulli or hmsdocker_homepage_enabled_tautulli %}
+    {% if 'tautulli' in traefik_enabled_containers or 'tautulli' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_tautulli %}
+      {% if 'tautulli' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.tautulli-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tautulli']['proxy_host_rule'] | default('tautulli') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_tautulli else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker' if hmsdocker_authentik_enabled_tautulli }}
+      - traefik.http.routers.tautulli-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tautulli' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tautulli-midware@docker' if 'tautulli' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_tautulli %}
+      {% if 'tautulli' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Tautulli
       - homepage.icon=tautulli.png
@@ -31,12 +31,12 @@ services:
       - homepage.widget.type=tautulli
       - homepage.widget.url=http://tautulli:8181
       - homepage.widget.key=${TAUTULLI_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_tautulli %}
+      {% if 'tautulli' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_tautulli %}
+    {% if 'tautulli' in expose_ports_enabled_containers %}
     ports:
       - 8181:8181
     {% endif %}

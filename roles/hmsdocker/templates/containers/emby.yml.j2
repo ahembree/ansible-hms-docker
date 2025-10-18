@@ -27,9 +27,9 @@ services:
       - {{ plex_transcode_folder }}/cache:/cache
       # media folder where all movies and series are stored
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_expose_ports_enabled_emby %}
+    {% if 'emby' in expose_ports_enabled_containers %}
     ports:
-      {% if hmsdocker_expose_ports_enabled_jellyfin %}
+      {% if 'jellyfin' in expose_ports_enabled_containers %}
       - 8097:8096
       - 8921:8920 #optional
       {% else %}
@@ -37,15 +37,15 @@ services:
       - 8920:8920 #optional
       {% endif %}
     {% endif %}
-    {% if hmsdocker_traefik_enabled_emby or hmsdocker_homepage_enabled_emby %}
+    {% if 'emby' in traefik_enabled_containers or 'emby' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_emby %}
+      {% if 'emby' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
       - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_emby else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if hmsdocker_authentik_enabled_emby }}
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'emby' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if 'emby' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_emby %}
+      {% if 'emby' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Emby
       - homepage.icon=emby.png
@@ -54,7 +54,7 @@ services:
       - homepage.widget.type=emby
       - homepage.widget.url=https://emby:8096
       - homepage.widget.key=${EMBY_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_emby %}
+        {% if 'emby' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

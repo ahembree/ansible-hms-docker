@@ -10,7 +10,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_huntarr %}
+    {% if 'huntarr' in expose_ports_enabled_containers %}
     ports:
       - 9705:9705
     {% endif %}
@@ -20,22 +20,22 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/huntarr/config:/config
-    {% if hmsdocker_traefik_enabled_huntarr or hmsdocker_homepage_enabled_huntarr %}
+    {% if 'huntarr' in traefik_enabled_containers or 'huntarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_huntarr %}
+      {% if 'huntarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.huntarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9705
       - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['huntarr']['proxy_host_rule'] | default('huntarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_huntarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-huntarr-midware@docker' if hmsdocker_authentik_enabled_huntarr }}
+      - traefik.http.routers.huntarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'huntarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-huntarr-midware@docker' if 'huntarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_huntarr %}
+      {% if 'huntarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Huntarr
       - homepage.icon=huntarr.png
       - homepage.href=http://{{ hms_docker_container_map['huntarr']['proxy_host_rule'] | default('huntarr') }}.${HMSD_DOMAIN}
       - homepage.description=Media Download Manager
-      {% if hmsdocker_homepage_stats_enabled_huntarr %}
+        {% if 'huntarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}

@@ -11,7 +11,7 @@ services:
     networks:
       - proxy_net
       - tubearchivist_net
-    {% if hmsdocker_expose_ports_enabled_tubearchivist %}
+    {% if 'tubearchivist' in expose_ports_enabled_containers %}
     ports:
       - 8001:8001
     {% endif %}
@@ -23,7 +23,7 @@ services:
       - REDIS_CON=redis://tubearchivist-redis:6379
       - PUID=${PUID}
       - PGID=${PGID}
-      - TA_HOST=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if hmsdocker_expose_ports_enabled_tubearchivist }}  # set your host name with protocol and port
+      - TA_HOST=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if 'tubearchivist' in expose_ports_enabled_containers }}  # set your host name with protocol and port
       - TA_USERNAME=${TUBEARCHIVIST_USERNAME}
       - TA_PASSWORD=${TUBEARCHIVIST_PASSWORD}
       - ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd
@@ -38,23 +38,23 @@ services:
     depends_on:
       - tubearchivist-es
       - tubearchivist-redis
-    {% if hmsdocker_traefik_enabled_tubearchivist or hmsdocker_homepage_enabled_tubearchivist %}
+    {% if 'tubearchivist' in traefik_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_tubearchivist %}
+      {% if 'tubearchivist' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
       - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_tubearchivist else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if hmsdocker_authentik_enabled_tubearchivist }}
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tubearchivist' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if 'tubearchivist' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_tubearchivist %}
+      {% if 'tubearchivist' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Tubearchivist
       - homepage.icon=tubearchivist.png
       - homepage.href=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}
       - homepage.description=YouTube Archiver
-      {% if hmsdocker_homepage_stats_enabled_tubearchivist %}
+        {% if 'tubearchivist' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
 

@@ -15,16 +15,14 @@ services:
       - ${HMSD_APPS_PATH}/maintainerr/config:/opt/data
     environment:
       - TZ=${TIMEZONE}
-    {% if hmsdocker_expose_ports_enabled_maintainerr %}
+    {% if 'maintainerr' in expose_ports_enabled_containers %}
     ports:
       - 6246:6246
     {% endif %}
-    {% if hmsdocker_traefik_enabled_maintainerr %}
+    {% if 'maintainerr' in traefik_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_maintainerr %}
       - traefik.enable=true
       - traefik.http.services.maintainerr-${COMPOSE_PROJECT}.loadbalancer.server.port=6246
       - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['maintainerr']['proxy_host_rule'] | default('maintainerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_maintainerr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-maintainerr-midware@docker' if hmsdocker_authentik_enabled_maintainerr }}
-      {% endif %}
+      - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'maintainerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-maintainerr-midware@docker' if 'maintainerr' in authentik_enabled_containers }}
     {% endif %}

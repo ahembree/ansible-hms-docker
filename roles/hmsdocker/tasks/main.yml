@@ -3,7 +3,7 @@
   ansible.builtin.import_tasks: "versioning.yml"
 
 # All these facts do is process data from the container map to reduce text output during playbook runs
-- name: Build facts of enabled containers to slim play output
+- name: Build initial facts of enabled containers to slim play output
   ansible.builtin.set_fact:
     enabled_containers: >-
           {{
@@ -23,15 +23,23 @@
             map(attribute='key') |
             list
           }}
+
+# Run these after the task above so that they are aware of the previous facts being set
+- name: Build additional facts of enabled containers to slim play output
+  ansible.builtin.set_fact:
     traefik_enabled_containers: >-
           {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.traefik', 'defined') |
-            selectattr('value.traefik', 'equalto', true) |
-            map(attribute='key') |
-            list
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.traefik', 'defined') |
+              selectattr('value.traefik', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('traefik' in enabled_containers)
+            else []
           }}
     traefik_enabled_subdomains: >-
           {{
@@ -47,7 +55,22 @@
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
+    authentik_enabled_containers: >-
+          {{
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.authentik', 'defined') |
+              selectattr('value.authentik', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('authentik' in enabled_containers and traefik_ssl_enabled)
+            else []
+          }}
     # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
+    # This is ONLY for building the Authentik Outpost templates
     authentik_proxy_enabled_containers: >
           [
           {% for item in hms_docker_container_map | dict2items
@@ -63,13 +86,17 @@
           ]
     homepage_enabled_containers: >-
           {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.homepage', 'defined') |
-            selectattr('value.homepage', 'equalto', true) |
-            map(attribute='key') |
-            list
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.homepage', 'defined') |
+              selectattr('value.homepage', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('homepage' in enabled_containers)
+            else []
           }}
     homepage_stats_enabled_containers: >-
           {{
@@ -82,6 +109,30 @@
             selectattr('value.homepage_stats', 'equalto', true) |
             map(attribute='key') |
             list
+          }}
+    expose_public_enabled_containers: >-
+          {{
+            hms_docker_container_map | dict2items |
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            selectattr('value.expose_to_public', 'defined') |
+            selectattr('value.expose_to_public', 'equalto', true) |
+            map(attribute='key') |
+            list
+          }}
+    expose_ports_enabled_containers: >-
+          {{
+            enabled_containers
+            if ('traefik' not in enabled_containers or container_expose_ports)
+            else (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.expose_ports', 'defined') |
+              selectattr('value.expose_ports', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
           }}
 
 - name: Get list of container task files in the role

@@ -15,15 +15,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_jellyseerr or hmsdocker_homepage_enabled_jellyseerr %}
+    {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_jellyseerr %}
+      {% if 'jellyseerr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.jellyseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
       - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_jellyseerr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyseerr-midware@docker' if hmsdocker_authentik_enabled_jellyseerr }}
+      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyseerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyseerr-midware@docker' if 'jellyseerr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_jellyseerr %}
+      {% if 'jellyseerr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Jellyseerr
       - homepage.icon=jellyseerr.png
@@ -32,14 +32,14 @@ services:
       - homepage.widget.type=jellyseerr
       - homepage.widget.url=http://jellyseerr:5055
       - homepage.widget.key=${JELLYSEERR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_jellyseerr %}
+        {% if 'jellyseerr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/jellyseerr/config:/app/config
-    {% if hmsdocker_expose_ports_enabled_jellyseerr %}
+    {% if 'jellyseerr' in expose_ports_enabled_containers %}
     ports:
       - 5056:5055
     {% endif %}

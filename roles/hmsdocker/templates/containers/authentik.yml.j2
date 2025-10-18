@@ -79,21 +79,21 @@ services:
       - ${HMSD_APPS_PATH}/authentik/media:/media
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
-    {% if hmsdocker_expose_ports_enabled_authentik %}
+    {% if 'authentik' in expose_ports_enabled_containers %}
     ports:
       - 9001:9000
       - 9443:9443
     {% endif %}
-    {% if hmsdocker_traefik_enabled_authentik or hmsdocker_homepage_enabled_authentik %}
+    {% if 'authentik' in traefik_enabled_containers or 'authentik' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_authentik %}
+      {% if 'authentik' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_authentik else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'authentik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
       {% endif %}
-      {% if hmsdocker_homepage_enabled_authentik %}
+      {% if 'authentik' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Authentik
       - homepage.icon=authentik.png
@@ -103,9 +103,9 @@ services:
       - homepage.widget.url=http://authentik-server:9000
       - homepage.widget.version=2
       - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_authentik %}
+        {% if 'authentik' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
 
@@ -145,7 +145,7 @@ services:
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
 
-  {% if hmsdocker_authentik_geoip_enabled %}
+  {% if authentik_geoip_account_id != '' and authentik_geoip_license_key != '' | default(False) %}
   authentik-geoipupdate:
     container_name: authentik-geoipupdate
     image: maxmindinc/geoipupdate:latest

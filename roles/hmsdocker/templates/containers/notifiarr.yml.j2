@@ -11,7 +11,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_notifiarr %}
+    {% if 'notifiarr' in expose_ports_enabled_containers %}
     ports:
       - 5454:5454
     {% endif %}
@@ -61,12 +61,12 @@ services:
       - DN_PLEX_URL=http://plex:32400
       - DN_PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if hmsdocker_traefik_enabled_notifiarr or hmsdocker_homepage_enabled_notifiarr %}
+    {% if 'notifiarr' in traefik_enabled_containers or hmsdocker_homepage_enabled_notifiarr %}
     labels:
-      {% if hmsdocker_traefik_enabled_notifiarr %}
+      {% if 'notifiarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.notifiarr-${COMPOSE_PROJECT}.loadbalancer.server.port=5454
       - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['notifiarr']['proxy_host_rule'] | default('notifiarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_notifiarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker' if hmsdocker_authentik_enabled_notifiarr }}
+      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'notifiarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker' if 'notifiarr' in authentik_enabled_containers }}
       {% endif %}
     {% endif %}

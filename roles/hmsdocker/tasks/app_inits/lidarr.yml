@@ -10,7 +10,7 @@
 
         - name: Lidarr bootstrap - Set Lidarr facts
           ansible.builtin.set_fact:
-            lidarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_lidarr }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if hmsdocker_expose_ports_enabled_lidarr }}/api"
+            lidarr_url: "http{{ 's' if traefik_ssl_enabled and not 'lidarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if 'lidarr' in expose_ports_enabled_containers }}/api"
 
         - name: Lidarr bootstrap - Precheck Lidarr API Key
           ansible.builtin.uri:

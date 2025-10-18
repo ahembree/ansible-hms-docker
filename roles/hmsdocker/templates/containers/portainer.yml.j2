@@ -11,22 +11,22 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_portainer %}
+    {% if 'portainer' in expose_ports_enabled_containers %}
     ports:
       - 9000:9000
     {% endif %}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/portainer/config:/data
-    {% if hmsdocker_traefik_enabled_portainer or hmsdocker_homepage_enabled_portainer %}
+    {% if 'portainer' in traefik_enabled_containers or 'portainer' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_portainer %}
+      {% if 'portainer' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
       - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_portainer else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker' if hmsdocker_authentik_enabled_portainer }}
+      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'portainer' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker' if 'portainer' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_portainer %}
+      {% if 'portainer' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Portainer
       - homepage.icon=portainer.png
@@ -36,7 +36,7 @@ services:
       - homepage.widget.url=https://portainer:9443
       - homepage.widget.env=1
       - homepage.widget.key=${PORTAINER_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_portainer %}
+        {% if 'portainer' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

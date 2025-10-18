@@ -10,29 +10,29 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_checkrr %}
+    {% if 'checkrr' in expose_ports_enabled_containers %}
     ports:
       - 8585:8585
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/checkrr/config:/etc/checkrr
       - ${HMSD_MOUNT_PATH}:/data:ro
-    {% if hmsdocker_traefik_enabled_checkrr or hmsdocker_homepage_enabled_checkrr %}
+    {% if 'checkrr' in traefik_enabled_containers or 'checkrr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_checkrr %}
+      {% if 'checkrr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.checkrr-${COMPOSE_PROJECT}.loadbalancer.server.port=8585
       - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_checkrr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-checkrr-midware@docker' if hmsdocker_authentik_enabled_checkrr }}
+      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'checkrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-checkrr-midware@docker' if 'checkrr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_checkrr %}
+      {% if 'checkrr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Checkrr
       - homepage.icon=checkrr.png
       - homepage.href=https://{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}
       - homepage.description=Media Integrity Scanner
-      {% if hmsdocker_homepage_stats_enabled_checkrr %}
+        {% if 'checkrr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}

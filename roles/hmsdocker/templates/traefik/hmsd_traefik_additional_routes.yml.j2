@@ -13,7 +13,7 @@ http:
       {% else %}
         - internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
       {% endif %}
-      {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik %}
+      {% if ('authentik' in enabled_containers and traefik_ssl_enabled | default(False)) and item.authentik | default(False) %}
         - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
       {% endif %}
       service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}

@@ -15,15 +15,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_sonarr or hmsdocker_homepage_enabled_sonarr %}
+    {% if 'sonarr' in traefik_enabled_containers or 'sonarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_sonarr %}
+      {% if 'sonarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_sonarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if hmsdocker_authentik_enabled_sonarr }}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if 'sonarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_sonarr %}
+      {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Sonarr
       - homepage.icon=sonarr.png
@@ -32,7 +32,7 @@ services:
       - homepage.widget.type=sonarr
       - homepage.widget.url=http://sonarr:8989
       - homepage.widget.key=${SONARR_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_sonarr %}
+        {% if 'sonarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}
@@ -44,7 +44,7 @@ services:
       - ${HMSD_APPS_PATH}/sonarr/custom-services.d:/custom-services.d
       - ${HMSD_APPS_PATH}/sonarr/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_sonarr %}
+    {% if 'sonarr' in expose_ports_enabled_containers %}
     ports:
       - 8989:8989
     {% endif %}
@@ -73,15 +73,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_sonarr or hmsdocker_homepage_enabled_sonarr %}
+    {% if 'sonarr' in traefik_enabled_containers or 'sonarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_sonarr %}
+      {% if 'sonarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.sonarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_sonarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if hmsdocker_authentik_enabled_sonarr }}
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if 'sonarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_sonarr %}
+      {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers - 4K
       - homepage.name=Sonarr - 4K
       - homepage.icon=sonarr.png
@@ -90,7 +90,7 @@ services:
       - homepage.widget.type=sonarr
       - homepage.widget.url=http://sonarr-4k:8989
       - homepage.widget.key=${SONARR_4K_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_sonarr %}
+      {% if 'sonarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}
@@ -102,7 +102,7 @@ services:
       - ${HMSD_APPS_PATH}/sonarr-4k/custom-services.d:/custom-services.d
       - ${HMSD_APPS_PATH}/sonarr-4k/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_sonarr %}
+    {% if 'sonarr' in expose_ports_enabled_containers %}
     ports:
       - 8990:8989
     {% endif %}

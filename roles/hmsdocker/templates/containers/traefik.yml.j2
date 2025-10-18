@@ -33,15 +33,15 @@ services:
       - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ${HMSD_APPS_PATH}/traefik/config/certs/:/certs/
       - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files:ro
-    {% if hmsdocker_traefik_enabled_traefik or hmsdocker_homepage_enabled_traefik %}
+    {% if 'traefik' in traefik_enabled_containers or 'traefik' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_traefik %}
+      {% if 'traefik' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.service=api@internal
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_traefik else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if hmsdocker_authentik_enabled_traefik }}
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_traefik %}
+      {% if 'traefik' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Traefik
       - homepage.icon=traefik.png
@@ -49,7 +49,7 @@ services:
       - homepage.description=Reverse Proxy
       - homepage.widget.type=traefik
       - homepage.widget.url=http://traefik:8080
-        {% if hmsdocker_homepage_stats_enabled_traefik %}
+        {% if 'traefik' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

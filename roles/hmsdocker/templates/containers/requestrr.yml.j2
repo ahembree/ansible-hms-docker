@@ -16,16 +16,16 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/requestrr/config:/root/config
-    {% if hmsdocker_expose_ports_enabled_requestrr %}
+    {% if 'requestrr' in expose_ports_enabled_containers %}
     ports:
       - 4545:4545
     {% endif %}
-    {% if hmsdocker_traefik_enabled_requestrr %}
+    {% if 'requestrr' in traefik_enabled_containers %}
     labels:
       - traefik.enable=true
       - traefik.http.services.requestrr-${COMPOSE_PROJECT}.loadbalancer.server.port=4545
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] | default('requestrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_requestrr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker' if hmsdocker_authentik_enabled_requestrr }}
+      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'requestrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker' if 'requestrr' in authentik_enabled_containers }}
     {% endif %}
     healthcheck:
       test: echo > /dev/tcp/127.0.0.1/4545 || exit 1

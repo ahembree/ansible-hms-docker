@@ -11,7 +11,7 @@
   register: watchtower_compose_file_path
 
 - name: Generate Docker Compose files for Authentik
-  when: hmsdocker_authentik_enabled_globally
+  when: "'authentik' in enabled_containers and traefik_ssl_enabled | default(False)"
   ansible.builtin.template:
     src: containers/authentik.yml.j2
     dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/authentik.yml"

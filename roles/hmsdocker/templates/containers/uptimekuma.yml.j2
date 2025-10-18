@@ -13,7 +13,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-    {% if hmsdocker_expose_ports_enabled_uptimekuma %}
+    {% if 'uptimekuma' in expose_ports_enabled_containers %}
     ports:
       - 3001:3001
     {% endif %}
@@ -21,10 +21,10 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_uptimekuma %}
+    {% if 'uptimekuma' in traefik_enabled_containers %}
     labels:
       - traefik.enable=true
       - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
       - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptime-kuma') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_uptimekuma else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if hmsdocker_authentik_enabled_uptimekuma }}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'uptimekuma' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if 'uptimekuma' in authentik_enabled_containers }}
     {% endif %}

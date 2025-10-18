@@ -17,14 +17,14 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_expose_ports_enabled_kavita %}
+    {% if 'kavita' in expose_ports_enabled_containers %}
     ports:
       - 5000:5000
     {% endif %}
-    {% if hmsdocker_traefik_enabled_kavita %}
+    {% if 'kavita' in traefik_enabled_containers %}
     labels:
       - traefik.enable=true
       - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
       - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_kavita else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker' if hmsdocker_authentik_enabled_kavita }}
+      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'kavita' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker' if 'kavita' in authentik_enabled_containers }}
     {% endif %}

@@ -12,29 +12,29 @@ services:
       - proxy_net
     environment:
       - TZ=${TIMEZONE}
-    {% if hmsdocker_expose_ports_enabled_pinchflat %}
+    {% if 'pinchflat' in expose_ports_enabled_containers %}
     ports:
       - 8945:8945
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/pinchflat/config:/config
       - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/pinchflat:/downloads
-    {% if hmsdocker_traefik_enabled_pinchflat or hmsdocker_homepage_enabled_pinchflat %}
+    {% if 'pinchflat' in traefik_enabled_containers or 'pinchflat' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_pinchflat %}
+      {% if 'pinchflat' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.pinchflat-${COMPOSE_PROJECT}.loadbalancer.server.port=8945
       - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_pinchflat else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker' if hmsdocker_authentik_enabled_pinchflat }}
+      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pinchflat' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker' if 'pinchflat' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_pinchflat %}
+      {% if 'pinchflat' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Pinchflat
       - homepage.icon=pinchflat.png
       - homepage.href=https://{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}
       - homepage.description=YouTube Archiver
-      {% if hmsdocker_homepage_stats_enabled_pinchflat %}
+        {% if 'pinchflat' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}

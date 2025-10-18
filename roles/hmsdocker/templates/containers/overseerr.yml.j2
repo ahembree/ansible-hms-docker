@@ -14,15 +14,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_overseerr or hmsdocker_homepage_enabled_overseerr %}
+    {% if 'overseerr' in traefik_enabled_containers or 'overseerr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_overseerr %}
+      {% if 'overseerr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.overseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
       - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['overseerr']['proxy_host_rule'] | default('overseerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_overseerr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker' if hmsdocker_authentik_enabled_overseerr }}
+      - traefik.http.routers.overseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'overseerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-overseerr-midware@docker' if 'overseerr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_overseerr %}
+      {% if 'overseerr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Overseerr
       - homepage.icon=overseerr.png
@@ -31,14 +31,14 @@ services:
       - homepage.widget.type=overseerr
       - homepage.widget.url=http://overseerr:5055
       - homepage.widget.key=${OVERSEERR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_overseerr %}
+        {% if 'overseerr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/overseerr/config:/config
-    {% if hmsdocker_expose_ports_enabled_overseerr %}
+    {% if 'overseerr' in expose_ports_enabled_containers %}
     ports:
       - 5055:5055
     {% endif %}

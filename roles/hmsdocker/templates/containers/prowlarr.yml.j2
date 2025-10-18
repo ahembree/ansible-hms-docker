@@ -17,19 +17,19 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/prowlarr/config:/config
-    {% if hmsdocker_expose_ports_enabled_prowlarr %}
+    {% if 'prowlarr' in expose_ports_enabled_containers %}
     ports:
       - 9696:9696
     {% endif %}
-    {% if hmsdocker_traefik_enabled_prowlarr or hmsdocker_homepage_enabled_prowlarr %}
+    {% if 'prowlarr' in traefik_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_prowlarr %}
+      {% if 'prowlarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_prowlarr else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker' if hmsdocker_authentik_enabled_prowlarr }}
+      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'prowlarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker' if 'prowlarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_prowlarr %}
+      {% if 'prowlarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
@@ -38,7 +38,7 @@ services:
       - homepage.widget.type=prowlarr
       - homepage.widget.url=http://prowlarr:9696
       - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_prowlarr %}
+      {% if 'prowlarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}

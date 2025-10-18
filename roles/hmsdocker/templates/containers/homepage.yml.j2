@@ -16,14 +16,14 @@ services:
     environment:
       - TZ=${TIMEZONE}
       - HOMEPAGE_ALLOWED_HOSTS={{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN},{{ ansible_default_ipv4.address }}:3000
-    {% if hmsdocker_expose_ports_enabled_homepage %}
+    {% if 'homepage' in expose_ports_enabled_containers %}
     ports:
       - 3000:3000
     {% endif %}
-    {% if hmsdocker_traefik_enabled_homepage %}
+    {% if 'homepage' in traefik_enabled_containers %}
     labels:
       - traefik.enable=true
       - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
       - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_homepage else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if hmsdocker_authentik_enabled_homepage }}
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}
     {% endif %}
