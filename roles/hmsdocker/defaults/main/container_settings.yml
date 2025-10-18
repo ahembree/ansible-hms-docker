@@ -5,9 +5,6 @@ hms_docker_compose_container_state: present
 # Controls how the containers are restarted upon server or docker restart // default: "unless-stopped" // valid: "always", "unless-stopped", "on-failure"
 container_restart_policy: unless-stopped
 
-# Enables the "watchtower" container to automatically download and apply container updates // default: "yes"
-container_enable_auto_updates: yes
-
 # The cron-style schedule for the watchtower container to check for updates in UTC time // default: "0 0 9 * * *"
 container_auto_update_schedule: "0 0 9 * * *"
 

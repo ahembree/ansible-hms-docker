@@ -1,15 +1,3 @@
-- name: Generate Docker Compose files for Watchtower
-  when: container_enable_auto_updates
-  ansible.builtin.template:
-    src: containers/watchtower.yml.j2
-    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/watchtower.yml"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: 0644
-    trim_blocks: yes
-    lstrip_blocks: yes
-  register: watchtower_compose_file_path
-
 - name: Generate Docker Compose files for Authentik
   when: "'authentik' in enabled_containers and traefik_ssl_enabled | default(False)"
   ansible.builtin.template:
