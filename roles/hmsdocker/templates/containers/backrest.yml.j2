@@ -28,10 +28,26 @@ services:
     ports:
       - 9898:9898
     {% endif %}
-    {% if hmsdocker_traefik_enabled_backrest %}
+    {% if 'backrest' in traefik_enabled_containers or 'backrest' in homepage_enabled_containers %}
     labels:
+      {% if 'backrest' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.backrest-${COMPOSE_PROJECT}.loadbalancer.server.port=9898
       - traefik.http.routers.backrest-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['backrest']['proxy_host_rule'] | default('backrest') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.backrest-${COMPOSE_PROJECT}.middlewares={{ 'external' if hmsdocker_expose_public_enabled_backrest else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-backrest-midware@docker' if hmsdocker_authentik_enabled_backrest }}
+      {% endif %}
+      {% if 'backrest' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=backrest
+      - homepage.icon=backrest.png
+      - homepage.href=http://{{ hms_docker_container_map['backrest']['proxy_host_rule'] | default('backrest') }}.${HMSD_DOMAIN}
+      - homepage.description=Backup System
+      - homepage.widget.type=backrest
+      - homepage.widget.url=http://backrest:9898
+      - homepage.widget.username=${BACKREST_USERNAME:-apikeyapikeyapikey}
+      - homepage.widget.password=${BACKREST_PASSWORD:-apikeyapikeyapikey}
+        {% if 'backrest' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
     {% endif %}

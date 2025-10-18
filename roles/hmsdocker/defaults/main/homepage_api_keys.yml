@@ -18,3 +18,7 @@ homepage_emby_key:
 
 # Autobrr
 homepage_autobrr_key: 
+
+# Backrest
+hmsdocker_homepage_backrest_user: 
+hmsdocker_homepage_backrest_pass: 
