@@ -1,20 +1,4 @@
 services:
-  {% if cloudflare_tunnel_enabled and cloudflare_tunnel_token != "" %}
-  cloudflare-tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflare-tunnel
-    restart: ${RESTART_POLICY}
-    networks:
-      - proxy_net
-    logging:
-      options:
-        max-size: "12m"
-        max-file: "5"
-      driver: json-file
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-  {% endif %}
-
-  {% if cloudflare_ddns_enabled %}    
   cloudflare-ddns:
     image: oznu/cloudflare-ddns:latest
     container_name: cloudflare-ddns
@@ -35,4 +19,3 @@ services:
       - SUBDOMAIN={{ cloudflare_ddns_subdomain }}
     {% endif %}
       - PROXIED={{ cloudflare_ddns_proxied }}
-  {% endif %}

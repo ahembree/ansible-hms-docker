@@ -8,14 +8,13 @@
 
     ![Cloudflare Tunnel Token](../../static/img/cloudflare_tunnel_token.png)
 
-2. Once you've generated the token, update the variables in `inventory/group_vars/all/cloudflare.yml`:
+2. Once you've generated the token, update the `cloudflare_tunnel_token` variable in `inventory/group_vars/all/cloudflare.yml` with the newly generated token
 
-    - `cloudflare_tunnel_enabled` to `yes`
-    - `cloudflare_tunnel_token` to your token
+3. Enable the container in `inventory/group_vars/all/container_map.yml`
 
-3. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
+4. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
 
-4. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote/#2-connect-an-application) to link containers to the tunnel, following the [container map](../../container-map.md) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
+5. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote/#2-connect-an-application) to link containers to the tunnel, following the [container map](../../container-map.md) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
 
 Example:
 

@@ -22,3 +22,9 @@ homepage_autobrr_key:
 # Backrest
 hmsdocker_homepage_backrest_user: 
 hmsdocker_homepage_backrest_pass: 
+
+# Cloudflare Tunnel
+# API key requires permissions: Account.Cloudflare Tunnel:Read
+hmsdocker_homepage_cftunnel_key: 
+hmsdocker_homepage_cftunnel_accountid: 
+hmsdocker_homepage_cftunnel_tunnelid: 

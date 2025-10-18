@@ -117,6 +117,17 @@
     enabled_containers: "{{ enabled_containers + ['tailscale'] }}"
   when: (tailscale_enabled | default(false) or hms_docker_container_map['tailscale']['enabled'] | default(false)) and 'tailscale' not in enabled_containers
 
+# Moved to container map in v1.12
+- name: Extend enabled_containers list if Cloudflare Tunnel enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['cloudflare-tunnel'] }}"
+  when: (cloudflare_tunnel_enabled | default(false) or hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false)) and 'cloudflare-tunnel' not in enabled_containers
+
+# Moved to container map in v1.12
+- name: Extend enabled_containers list if Cloudflare DDNS enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['cloudflare-ddns'] }}"
+  when: (cloudflare_ddns_enabled | default(false) or hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false)) and 'cloudflare-ddns' not in enabled_containers
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
