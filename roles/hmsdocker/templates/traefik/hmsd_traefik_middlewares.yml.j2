@@ -6,6 +6,7 @@ http:
           - internal-ipallowlist
           - https-only
           - secure-headers
+          - error-pages
 
     external-secured:
       chain:
@@ -13,6 +14,13 @@ http:
           - external-ipallowlist
           - https-only
           - secure-headers
+          - error-pages
+
+    error-pages:
+      errors:
+        status: 400-599
+        service: error-pages-{{ project_name }}@docker
+        query: /{status}.html
 
     https-only:
       redirectScheme:

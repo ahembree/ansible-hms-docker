@@ -1,3 +1,6 @@
+## Error Pages settings
+hmsdocker_traefik_errorpages_enabled: true
+
 ### SSL and Traefik settings
 
 # Enables or Disables SSL wildcard certificate generation // default: "no"

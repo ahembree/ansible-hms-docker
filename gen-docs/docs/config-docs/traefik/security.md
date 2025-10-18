@@ -34,3 +34,4 @@ The following middlwares are available:
 - `external-secured`: Applies the `externa-ipallowlist`, `https-only`, and `secure-headers` middlewares
 - `https-only`: Configures permanent redirection to HTTPS
 - `secure-headers`: Applies headers to prevent iFrame embedding, blocks requests if MIME types do not match certain criteria, and only allows Host headers for applications that are enabled within this project
+- `error-pages`: Not security related, but it renders pretty error pages
