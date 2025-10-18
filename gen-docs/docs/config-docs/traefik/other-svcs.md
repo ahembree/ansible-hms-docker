@@ -19,8 +19,9 @@ If a container exists outside of this Compose project but on the same host, you 
           - traefik.enable=true
           - traefik.http.services.<container name>.loadbalancer.server.port=<web UI port for container>
           - traefik.http.routers.<container name>.rule=Host(`<subdomain name>.${HMSD_DOMAIN}`)
-          # The following restricts it to only internal IP addresses
-          - traefik.http.routers.<container name>.middlewares=internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
+          # The following restricts it to only internal IP addresses. If you want to add additional security controls and have traefik_security_hardening enabled, you can change this to `internal-secured@file`
+          # See the 'Middlewares' section in the 'Additional Configuration/Traefik/Security' documentation
+          - traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file
     ...
     networks:
       - hms-docker_proxy_net

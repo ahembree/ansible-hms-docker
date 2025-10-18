@@ -24,9 +24,17 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
 ## Enabling Authentik on Individual Containers
 
-1. Enable the `authentik` container either in the [Container Map](../container-map.md) or within the `authentik.yml` config file
+1. Enable the `authentik` container in the [Container Map](../container-map.md)
 
-2. Set the `authentik` variable to `yes` for the containers you want in the [Container Map](../container-map.md).
+2. Set the `authentik` variable to `true` for the containers you want in the [Container Map](../container-map.md).
+
+    a. Example using Sonarr:
+
+      ```yaml
+      hms_docker_container_map:
+        sonarr:
+          authentik: true
+      ```
 
 3. Run the playbook as normal
 
@@ -94,13 +102,15 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     c. If you're getting a `500` server error, this is possibly due to having duplicate Traefik routes for the same host rules, check Traefik logs and/or Portainer logs for the correct `authentik-proxy` container.
 
-## Authentik through Cloudflare Tunnel
+## Authentik Protection through Cloudflare Tunnel
+
+This requires a large amount of work (creating Authentik Applications, Providers, and Outposts for each individual enabled container) and is (in my personal opinion) not recommended. I would use [Tailscale](./Tailscale.md) as a VPN solution to access the services from only internally, but everyones use cases and environment is different. By proceeding, you understand the risks and potential impact.
 
 :::warning
 
 This has not been fully tested as a "secure" solution. I am not responsible for any misconfigurations that may insecurely expose your applications. It is your responsibility to understand and accept the risks and implement security controls where possible.
 
-You will also need to use a first-level subdomain for applications (such as `app1.example.com`) for Traefik TLS/SSL, you cannot use deeper than one level (`app1.sub.example.com`). This is a limitation of Cloudflare Tunnel and [requires you to purchase an Advanced Certificate for the hostname](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/#2a-publish-an-application) if you wish to do this.
+You will also need to use a first-level subdomain for applications (such as `app1.example.com`), so your Traefik TLS/SSL should be issued for `*.example.com`, you cannot use deeper than one level (`app1.sub.example.com`). This is a limitation of Cloudflare Tunnel and [requires you to purchase an Advanced Certificate for the hostname](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/#2a-publish-an-application) if you wish to do this.
 
 This flow also bypasses the Traefik IP Allowlist controls since the request is seen as coming from the Tunnel container, which falls into the RFC1918 private address space
 
@@ -110,7 +120,9 @@ After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudfla
 
 1. Set `hmsdocker_authentik_enabled_through_cftunnel` in `inventory/group_vars/all/authentik.yml` to `true`
 
-    a. This is HIGHLY recommended so that Authentik is configured for containers by default
+    a. This is HIGHLY recommended so that Authentik is enabled for containers by default
+
+    b. Failing to enable this will mean containers are not forced to have Authentik if the container is enabled in the future and forgotten to have Authentik enabled for it individually
 
 2. Create a new published application route with the following settings:
 
