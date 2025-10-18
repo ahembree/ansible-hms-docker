@@ -29,7 +29,7 @@
 
 - name: Set last version if file doesn't exist
   ansible.builtin.set_fact:
-    last_version: "0.0"
+    last_version: "0.0.0"
   when: not version_file_check.stat.exists
 
 - name: Read last version from file
