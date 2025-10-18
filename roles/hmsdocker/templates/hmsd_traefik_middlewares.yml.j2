@@ -40,11 +40,3 @@ http:
       ipAllowList:
         sourceRange:
           - "0.0.0.0/0"
-    {% if hmsdocker_authentik_enabled_through_cftunnel %}
-    cloudflarewarp:
-      plugin:
-        cloudflarewarp:
-          disableDefault: false
-          trustip: # Trust IPS not required if disableDefault is false - we will add Cloudflare IPs automatically
-            - "2400:cb00::/32"
-    {% endif %}

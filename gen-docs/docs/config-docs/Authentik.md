@@ -94,6 +94,48 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     c. If you're getting a `500` server error, this is possibly due to having duplicate Traefik routes for the same host rules, check Traefik logs and/or Portainer logs for the correct `authentik-proxy` container.
 
+## Authentik through Cloudflare Tunnel
+
+:::warning
+
+This has not been fully tested as a "secure" solution. I am not responsible for any misconfigurations that may insecurely expose your applications. It is your responsibility to understand and accept the risks and implement security controls where possible.
+
+You will also need to use a first-level subdomain for applications (such as `app1.example.com`) for Traefik TLS/SSL, you cannot use deeper than one level (`app1.sub.example.com`). This is a limitation of Cloudflare Tunnel and [requires you to purchase an Advanced Certificate for the hostname](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/#2a-publish-an-application) if you wish to do this.
+
+This flow also bypasses the Traefik IP Allowlist controls since the request is seen as coming from the Tunnel container, which falls into the RFC1918 private address space
+
+:::
+
+After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudflare Tunnel Docs](./Cloudflare/tunnel.md#requirements-and-enabling), follow these steps:
+
+1. Set `hmsdocker_authentik_enabled_through_cftunnel` in `inventory/group_vars/all/authentik.yml` to `true`
+
+    a. This is HIGHLY recommended so that Authentik is configured for containers by default
+
+2. Create a new published application route with the following settings:
+
+    a. Subdomain: `*`
+
+    b. Domain: select your domain
+
+    c. Service Type: `HTTPS`
+
+    d. Service URL: `traefik`
+
+3. Enable "No TLS Verify" in the Advanced application settings under TLS:
+
+    ![Enable No TLS Verify](../static/img/cloudflare_tunnel_disable_tls_verify.png)
+
+4. Manually create wildcard DNS `CNAME` record for `*.<domain>` that points to `<Tunnel ID>.cfargotunnel.com` and make sure it's proxied. You cannot create this record via the Tunnel dashboard
+
+5. Test to see if it works
+
+:::warning
+
+If you ever decide to disable/remove Authentik in the future, YOU MUST CLEAN UP THE CLOUDFLARE TUNNEL MANUALLY BEFORE DOING SO, otherwise services will be exposed to the public WITH NO PROTECTION through the Tunnel
+
+:::
+
 ## How the Authentik secret keys are stored
 
 There are 2 files created when enabling Authentik, `.authentik.key` and `.authentik.pgpass` within the project directory. These files store the Authentik secret key and Authentik postgres database password respectively. For security, these files are owned by `root:root` with mode `0600` so no one other than the root user can read/modify them.

@@ -14,14 +14,6 @@ api:
   disabledashboardad: true
   insecure: {{ "false" if traefik_security_hardening else "true" }}
 
-{% if hmsdocker_authentik_enabled_through_cftunnel %}
-experimental:
-  plugins:
-    cloudflarewarp:
-      modulename: github.com/PseudoResonance/cloudflarewarp
-      version: v1.4.2
-{% endif %}
-
 entryPoints:
   web:
     address: :80
