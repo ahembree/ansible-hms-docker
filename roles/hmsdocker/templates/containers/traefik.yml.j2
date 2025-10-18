@@ -13,7 +13,7 @@ services:
     ports:
       - 80:80
       - 443:443
-    {% if not traefik_security_hardening %}
+    {% if not traefik_security_hardening and 'traefik' in expose_ports_enabled_containers %}
       - 8080:8080
     {% endif %}
     environment:
@@ -33,7 +33,7 @@ services:
       - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ${HMSD_APPS_PATH}/traefik/config/certs/:/certs/
       - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files:ro
-    {% if 'traefik' in traefik_enabled_containers or 'traefik' in homepage_enabled_containers %}
+    {% if 'traefik' in traefik_enabled_containers or ('traefik' in homepage_enabled_containers and not traefik_security_hardening) %}
     labels:
       {% if 'traefik' in traefik_enabled_containers %}
       - traefik.enable=true
@@ -41,7 +41,7 @@ services:
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.service=api@internal
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}
       {% endif %}
-      {% if 'traefik' in homepage_enabled_containers %}
+      {% if 'traefik' in homepage_enabled_containers and not traefik_security_hardening %}
       - homepage.group=Infrastructure
       - homepage.name=Traefik
       - homepage.icon=traefik.png

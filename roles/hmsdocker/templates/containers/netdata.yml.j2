@@ -32,6 +32,19 @@ services:
       - NETDATA_CLAIM_TOKEN=${NETDATA_CLAIM_TOKEN}
       - NETDATA_CLAIM_URL=${NETDATA_CLAIM_URL}
       - NETDATA_CLAIM_ROOMS=${NETDATA_CLAIM_ROOMS}
+    {% if 'netdata' in homepage_enabled_containers %}
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Netdata
+      - homepage.icon=netdata.png
+      - homepage.href=http://{{ hms_docker_container_map['netdata']['proxy_host_rule'] | default('netdata') }}.${HMSD_DOMAIN}
+      - homepage.description=Infrastructure Monitoring
+      - homepage.widget.type=netdata
+      - homepage.widget.url=https://{{ hms_docker_container_map['netdata']['proxy_host_rule'] | default('netdata') }}.${HMSD_DOMAIN}
+      {% if 'netdata' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+      {% endif %}
+    {% endif %}
 
 volumes:
   netdataconfig:

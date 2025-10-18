@@ -48,11 +48,11 @@ services:
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tdarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker' if 'tdarr' in authentik_enabled_containers }}
       {% endif %}
       {% if 'tdarr' in homepage_enabled_containers %}
-      - homepage.group=Managers
+      - homepage.group=Media
       - homepage.name=Tdarr
       - homepage.icon=tdarr.png
       - homepage.href=http://{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Transcode Manager
+      - homepage.description=Media Transcoder
       - homepage.widget.type=tdarr
       - homepage.widget.url=http://tdarr:8265
       {% if 'tdarr' in homepage_stats_enabled_containers %}

@@ -34,7 +34,7 @@ services:
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
       - homepage.href=http://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr')}}.${HMSD_DOMAIN}
-      - homepage.description=Indexer Management
+      - homepage.description=Indexer Manager
       - homepage.widget.type=prowlarr
       - homepage.widget.url=http://prowlarr:9696
       - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}

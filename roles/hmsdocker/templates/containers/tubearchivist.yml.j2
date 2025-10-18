@@ -52,6 +52,9 @@ services:
       - homepage.icon=tubearchivist.png
       - homepage.href=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}
       - homepage.description=YouTube Archiver
+      - homepage.widget.type=tubearchivist
+      - homepage.widget.url=http://tubearchivist:8001
+      - homepage.widget.key=${TUBEARCHIVIST_API_KEY:-apikeyapikeyapikey}
         {% if 'tubearchivist' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}

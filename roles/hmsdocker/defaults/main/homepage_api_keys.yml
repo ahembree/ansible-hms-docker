@@ -28,3 +28,17 @@ hmsdocker_homepage_backrest_pass:
 hmsdocker_homepage_cftunnel_key: 
 hmsdocker_homepage_cftunnel_accountid: 
 hmsdocker_homepage_cftunnel_tunnelid: 
+
+# Tailscale
+hmsdocker_homepage_tailscale_api_key: 
+hmsdocker_homepage_tailscale_device_id: 
+
+# Speedtest Tracker
+hmsdocker_homepage_speedtest_api_key:
+
+# Tubearchivist
+hmsdocker_homepage_tubearchivist_api_key: 
+
+# Uptime Kuma
+# Input the "slug" for the status page you want to monitor (example: `uptimekuma.example.com/status/hmsdocker` you would input `hmsdocker`)
+hmsdocker_homepage_uptimekuma_statuspage_slug: 
