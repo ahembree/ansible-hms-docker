@@ -20,7 +20,7 @@
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    mode: 0755
+    mode: '0755'
 
 - name: Check if version file exists
   ansible.builtin.stat:
@@ -44,7 +44,7 @@
   when: version_file_check.stat.exists
 
 - name: Compare versions and prompt if newer
-  when: hmsd_current_version is version(last_version, '>') and hmsd_data_dir.stat.exists and not (is_github_runner | default(false))
+  when: hmsd_current_version is version(last_version, '>', version_type='semver') and hmsd_data_dir.stat.exists and not (is_github_runner | default(false))
   block:
     - name: Display current and last versions
       ansible.builtin.debug:
@@ -60,12 +60,12 @@
           Your version; {{ last_version }}
 
           This may introduce breaking changes, please review all changes and understand them before applying.
-          
+
           Do you want to continue? (yes/no)
       register: continue_playbook
 
     - name: Hardlink path migration version prompt
-      when: last_version is version(0.2, '<')
+      when: last_version is version('0.2.0', '<', version_type='semver')
       block:
         - name: Prompt user if they want to continue
           ansible.builtin.pause:
@@ -73,14 +73,42 @@
 
               Version 0.2 (you are on version {{ last_version }}) changed the paths that media and downloads are mounted to within containers.
               You will need to update the apps config to point to the new location in the container after the playbook run.
-              
+
               Do you want to continue? (yes/no)"
           register: continue_playbook_hardlink_update
-        
+
         - name: Fail if user does not want to continue
           ansible.builtin.fail:
             msg: "Playbook execution aborted."
           when: continue_playbook_hardlink_update.user_input | lower != "yes"
+
+    - name: Version v1.12 Authentik upgrade prompt
+      when: last_version is version('1.12.0', '<', version_type='semver')
+      block:
+        - name: Prompt user if they want to continue
+          ansible.builtin.pause:
+            prompt: |
+
+              Version 1.12 (you are on version {{ last_version }}) had major changes and changed the following
+
+              - Authentik was upgraded, requiring MANUAL STEPS if you use Authentik (see release notes for 1.12... https://docs.hmsdocker.dev/release-notes/v1.12)
+              - Multiple containers moved to container map (Cloudflare Tunnel, Cloudflare DDNS, Watchtower, Tailscale)
+              - Wizarr permission changes
+              - Removed Readarr
+              - Deprecated a number of variables
+              - Added a number of new variables
+              - Fix Traefik middleware
+              - Fix Sabnzbd host_whitelist
+              - Remove Authentik protection from Authentik
+              - Additional Traefik hardening
+
+              Do you want to continue? (yes/no)"
+          register: continue_playbook_v1_12_update
+
+        - name: Fail if user does not want to continue
+          ansible.builtin.fail:
+            msg: "Playbook execution aborted."
+          when: continue_playbook_v1_12_update.user_input | lower != "yes"
 
     - name: Fail if user does not want to continue
       ansible.builtin.fail:
@@ -93,4 +121,4 @@
     dest: "{{ hmsd_version_file }}"
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    mode: 0644
+    mode: '0644'
