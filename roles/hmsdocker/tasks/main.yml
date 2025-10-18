@@ -158,11 +158,13 @@
     container_prereqs: "{{ enabled_containers | intersect(container_prereq_task_names) }}"
     container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
 
+# Moved to container map in v1.9
 - name: Extend enabled_containers list if flaresolverr enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
   when: (flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)) and 'flaresolverr' not in enabled_containers
 
+# Moved to container map in v1.11
 - name: Extend enabled_containers list if tailscale enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['tailscale'] }}"

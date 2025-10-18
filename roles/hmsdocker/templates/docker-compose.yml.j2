@@ -8,9 +8,6 @@ include:
 {% if 'authentik' in enabled_containers and traefik_ssl_enabled | default(False) and authentik_compose_file_path is defined | default(False) %}
   - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
 {% endif %}
-{% if 'tailscale' in enabled_containers and tailscale_compose_file_path is defined | default(False) %}
-  - {{ tailscale_compose_file_path.dest | default(compose_dir.path + '/tailscale.yml') }}
-{% endif %}
 
 networks:
   download_net:
