@@ -18,7 +18,7 @@ Authentik is able to be controlled on a per-container basis, but requires a bit 
 
 If you are using [Cloudflare Tunnel](./Cloudflare/tunnel.md) **AND** you have disabled port forwarding to 80/443, you **MUST** create a new "public hostname" in Tunnel in order for SSO to work since the SSO server needs to be publicly accessible. If your Tunnel is online and working, follow [step 4 when setting up Tunnel](./Cloudflare/tunnel.md) and configure it for the `authentik-server:9001` container.
 
-However, any containers configured to be accessible through the Cloudflare Tunnel **will not be protected by Authentik if accessed via the Tunnel**.
+However, any containers configured to be accessible through the Cloudflare Tunnel **will not be protected by Authentik if accessed via the Tunnel** if you do not configure it as outlined in [the 'Authentik through Cloudflare Tunnel' section below](#authentik-through-cloudflare-tunnel)
 
 :::
 

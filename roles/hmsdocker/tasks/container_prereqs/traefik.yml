@@ -35,7 +35,7 @@
 
 - name: Traefik Prereq - Ensure Traefik static config file
   ansible.builtin.template:
-    src: hmsd_traefik_middlewares.yml.j2
+    src: traefik/hmsd_traefik_middlewares.yml.j2
     dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
     mode: 0644
     group: docker
