@@ -3,22 +3,22 @@ http:
     internal-secured:
       chain:
         middlewares:
-          - internal-ipallowlist
-          - https-only
-          - secure-headers
           {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
           - error-pages
           {% endif %}
+          - internal-ipallowlist
+          - https-only
+          - secure-headers
 
     external-secured:
       chain:
         middlewares:
-          - external-ipallowlist
-          - https-only
-          - secure-headers
           {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
           - error-pages
           {% endif %}
+          - external-ipallowlist
+          - https-only
+          - secure-headers
 
     internal-secured-no-errorpages:
       chain:

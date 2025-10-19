@@ -1,11 +1,21 @@
 ---
-- name: Traefik Prereq - Extend Traefik hosts list
+- name: Traefik Prereq - Extend Traefik subdomain hosts list
   ansible.builtin.set_fact:
     traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
   when:
     - item.enabled
     - item.subdomain_name not in traefik_enabled_subdomains
   loop: '{{ traefik_ext_hosts_list }}'
+
+- name: Traefik Prereq - Extend Traefik subdomain hosts list if 4K instances are enabled
+  ansible.builtin.set_fact:
+    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item + '-4k'] }}"
+  when:
+    - separate_4k_instances_enable
+    - item in traefik_enabled_containers
+  loop:
+    - sonarr
+    - radarr
 
 - name: Traefik Prereq - Ensure Traefik config.
   ansible.builtin.template:

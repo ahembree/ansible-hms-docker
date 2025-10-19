@@ -1,12 +1,3 @@
-  - name: Traefik Postreq - Extend Traefik check list if 4K instances are enabled
-    ansible.builtin.set_fact:
-      traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item + '-4k'] }}"
-    when:
-      - separate_4k_instances_enable
-      - item in traefik_enabled_containers
-    loop:
-      - sonarr
-      - radarr
 
   - name: Traefik Postreq - Verify all Traefik endpoints are accessible
     ansible.builtin.uri:
