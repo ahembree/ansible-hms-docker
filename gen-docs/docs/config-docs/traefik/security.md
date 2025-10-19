@@ -32,6 +32,8 @@ The following middlwares are available:
 - `external-secured`: A chain, applies the `externa-ipallowlist`, `https-only`, `secure-headers`, and `error-pages` middlewares
 - `internal-secured-no-errorpages`: Same as `internal-secured`, but with no `error-pages` middleware since it can cause issues with certain containers
 - `external-secured-no-errorpages`: Same as `external-secured`, but with no `error-pages` middleware since it can cause issues with certain containers
+- `internal-ipallowlist-no-errorpages`: Same as `internal-ipallowlist`, but with no `error-pages` middleware since it can cause issues with certain containers
+- `external-ipallowlist-no-errorpages`: Same as `external-ipallowlist`, but with no `error-pages` middleware since it can cause issues with certain containers
 - `internal-ipallowlist`: Allows only RFC1918 private address space and any other IPs/ranges defined in the `traefik_subnet_allow_list` variable
 - `external-ipallowlist`: Allows all traffic from `0.0.0.0/0`
 - `https-only`: Configures permanent redirection to HTTPS

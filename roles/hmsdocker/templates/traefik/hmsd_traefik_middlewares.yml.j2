@@ -34,6 +34,16 @@ http:
           - https-only
           - secure-headers
 
+    internal-ipallowlist-no-errorpages:
+      chain:
+        middlewares:
+          - internal-ipallowlist
+
+    external-ipallowlist-no-errorpages:
+      chain:
+        middlewares:
+          - external-ipallowlist
+
     {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
     error-pages:
       errors:
