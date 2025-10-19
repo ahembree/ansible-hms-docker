@@ -3,11 +3,11 @@
   ansible.builtin.import_tasks: "versioning.yml"
 
 # All these facts do is process data from the container map to reduce text output during playbook runs
-- name: Build facts of enabled containers to slim play output
+- name: Build initial facts of enabled containers to slim play output
   ansible.builtin.set_fact:
     enabled_containers: >-
           {{
-            hms_docker_container_map | dict2items | 
+            hms_docker_container_map | dict2items |
             selectattr('value.enabled', 'defined') |
             selectattr('value.enabled', 'equalto', true) |
             map(attribute='key') |
@@ -15,7 +15,7 @@
           }}
     enabled_containers_config_dirs: >-
           {{
-            hms_docker_container_map | dict2items | 
+            hms_docker_container_map | dict2items |
             selectattr('value.enabled', 'defined') |
             selectattr('value.enabled', 'equalto', true) |
             selectattr('value.directory', 'defined') |
@@ -23,9 +23,27 @@
             map(attribute='key') |
             list
           }}
+
+# Run these after the task above so that they are aware of the previous facts being set
+- name: Build additional facts of enabled containers to slim play output
+  ansible.builtin.set_fact:
+    traefik_enabled_containers: >-
+          {{
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.traefik', 'defined') |
+              selectattr('value.traefik', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('traefik' in enabled_containers)
+            else []
+          }}
     traefik_enabled_subdomains: >-
           {{
-            hms_docker_container_map | dict2items | 
+            hms_docker_container_map | dict2items |
             selectattr('value.enabled', 'defined') |
             selectattr('value.enabled', 'equalto', true) |
             selectattr('value.traefik', 'defined') |
@@ -37,7 +55,30 @@
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
+    authentik_enabled_containers: >-
+          {{
+            (
+              enabled_containers
+              if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in enabled_containers and traefik_ssl_enabled
+              else
+              (
+                hms_docker_container_map
+                | dict2items
+                | selectattr('value.enabled', 'defined')
+                | selectattr('value.enabled', 'equalto', true)
+                | selectattr('value.authentik', 'defined')
+                | selectattr('value.authentik', 'equalto', true)
+                | map(attribute='key')
+                | list
+                if ('authentik' in enabled_containers and traefik_ssl_enabled)
+                else []
+              )
+            )
+          }}
+
+
     # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
+    # This is ONLY for building the Authentik Outpost templates
     authentik_proxy_enabled_containers: >
           [
           {% for item in hms_docker_container_map | dict2items
@@ -51,6 +92,56 @@
             }{% if not loop.last %},{% endif %}
           {% endfor %}
           ]
+    homepage_enabled_containers: >-
+          {{
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.homepage', 'defined') |
+              selectattr('value.homepage', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('homepage' in enabled_containers)
+            else []
+          }}
+    homepage_stats_enabled_containers: >-
+          {{
+            hms_docker_container_map | dict2items |
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            selectattr('value.homepage', 'defined') |
+            selectattr('value.homepage', 'equalto', true) |
+            selectattr('value.homepage_stats', 'defined') |
+            selectattr('value.homepage_stats', 'equalto', true) |
+            map(attribute='key') |
+            list
+          }}
+    expose_public_enabled_containers: >-
+          {{
+            hms_docker_container_map | dict2items |
+            selectattr('value.enabled', 'defined') |
+            selectattr('value.enabled', 'equalto', true) |
+            selectattr('value.expose_to_public', 'defined') |
+            selectattr('value.expose_to_public', 'equalto', true) |
+            map(attribute='key') |
+            list
+          }}
+    expose_ports_enabled_containers: >-
+          {{
+            enabled_containers
+            if ('traefik' not in enabled_containers or container_expose_ports)
+            else (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.expose_ports', 'defined') |
+              selectattr('value.expose_ports', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+          }}
 
 - name: Get list of container task files in the role
   ansible.builtin.set_fact:
@@ -75,16 +166,38 @@
     container_prereqs: "{{ enabled_containers | intersect(container_prereq_task_names) }}"
     container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
 
+# Moved to container map in v1.9
+- name: Extend enabled_containers list if error pages enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['error-pages'] }}"
+  when:
+    - hmsdocker_traefik_errorpages_enabled | default(true)
+    - "'error-pages' not in enabled_containers"
+    - "'traefik' in enabled_containers"
+
+# Moved to container map in v1.9
 - name: Extend enabled_containers list if flaresolverr enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"
   when: (flaresolverr_enabled | default(false) or hms_docker_container_map['flaresolverr']['enabled'] | default(false)) and 'flaresolverr' not in enabled_containers
 
+# Moved to container map in v1.11
 - name: Extend enabled_containers list if tailscale enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['tailscale'] }}"
   when: (tailscale_enabled | default(false) or hms_docker_container_map['tailscale']['enabled'] | default(false)) and 'tailscale' not in enabled_containers
 
+# Moved to container map in v1.12
+- name: Extend enabled_containers list if Cloudflare Tunnel enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['cloudflare-tunnel'] }}"
+  when: (cloudflare_tunnel_enabled | default(false) or hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false)) and 'cloudflare-tunnel' not in enabled_containers
+
+# Moved to container map in v1.12
+- name: Extend enabled_containers list if Cloudflare DDNS enabled
+  ansible.builtin.set_fact:
+    enabled_containers: "{{ enabled_containers + ['cloudflare-ddns'] }}"
+  when: (cloudflare_ddns_enabled | default(false) or hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false)) and 'cloudflare-ddns' not in enabled_containers
 
 - name: Ensure data, apps, and mount paths exists locally.
   ansible.builtin.file:
@@ -128,16 +241,13 @@
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    mode: 0755
+    mode: '0755'
   loop:
     - sonarr
     - radarr
-  when: 
+  when:
+    - item in enabled_containers
     - separate_4k_instances_enable | default(false)
-
-- name: Ensure Authentik
-  ansible.builtin.import_tasks: "container_prereqs/authentik.yml"
-  when: hmsdocker_authentik_enabled_globally
 
 - name: Run container prereqs if available
   ansible.builtin.include_tasks: "container_prereqs/{{ container_task_name }}.yml"

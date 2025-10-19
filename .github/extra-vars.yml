@@ -1,5 +1,6 @@
 {
   "is_github_runner": true,
+  "debug_mode": true,
   "hms_docker_domain": home.local,
   "container_expose_ports": true,
   "hms_docker_plex_ssl_enabled": true,
@@ -9,7 +10,6 @@
   "custom_scripts_enabled": true,
   "monitoring_scripts_enabled": true,
   "media_avail_script_enabled": true,
-  "hmsdocker_expose_ports_enabled_calibre": false,
   "hmsdocker_app_bootstrap": true,
   "hmsdocker_svc_misc_arr_scripts_enabled": true,
   "hms_docker_container_map": {
@@ -26,7 +26,7 @@
       "proxy_host_rule": sonarr,
       "directory": true,
       "traefik": true,
-      "authentik": false,
+      "authentik": true,
       "authentik_provider_type": proxy,
       "expose_to_public": false,
       "homepage": true,
@@ -121,7 +121,7 @@
       "homepage_stats": true
     },
     "tautulli": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": tautulli,
       "directory": true,
       "traefik": true,
@@ -143,7 +143,7 @@
       "homepage_stats": true
     },
     "sabnzbd": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": sabnzbd,
       "directory": true,
       "traefik": true,
@@ -198,15 +198,6 @@
     "heimdall": {
       "enabled": false,
       "proxy_host_rule": heimdall,
-      "directory": true,
-      "traefik": true,
-      "authentik": false,
-      "authentik_provider_type": proxy,
-      "expose_to_public": false
-    },
-    "readarr": {
-      "enabled": false,
-      "proxy_host_rule": readarr,
       "directory": true,
       "traefik": true,
       "authentik": false,
@@ -272,7 +263,7 @@
       "expose_to_public": false,
     },
     "lidarr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": "lidarr",
       "directory": true,
       "traefik": true,
@@ -348,7 +339,7 @@
       "homepage_stats": false,
     },
     "qbittorrent": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": qbittorrent,
       "directory": true,
       "traefik": true,
@@ -403,7 +394,7 @@
       "homepage_stats": false,
     },
     "checkrr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": checkrr,
       "directory": true,
       "traefik": true,

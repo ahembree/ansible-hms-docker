@@ -1,29 +1,5 @@
-- name: Generate Docker Compose files for Watchtower
-  when: container_enable_auto_updates
-  ansible.builtin.template:
-    src: containers/watchtower.yml.j2
-    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/watchtower.yml"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: 0644
-    trim_blocks: yes
-    lstrip_blocks: yes
-  register: watchtower_compose_file_path
-
-- name: Generate Docker Compose files for Cloudflare
-  when: cloudflare_ddns_enabled | default(false) or cloudflare_tunnel_enabled| default(false) 
-  ansible.builtin.template:
-    src: containers/cloudflare.yml.j2
-    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/cloudflare.yml"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: 0644
-    trim_blocks: yes
-    lstrip_blocks: yes
-  register: cloudflare_compose_file_path
-
 - name: Generate Docker Compose files for Authentik
-  when: hmsdocker_authentik_enabled_globally
+  when: "'authentik' in enabled_containers and traefik_ssl_enabled | default(False)"
   ansible.builtin.template:
     src: containers/authentik.yml.j2
     dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/authentik.yml"
@@ -33,15 +9,3 @@
     trim_blocks: yes
     lstrip_blocks: yes
   register: authentik_compose_file_path
-
-- name: Generate Docker Compose files for Tailscale
-  when: "'tailscale' in enabled_containers"
-  ansible.builtin.template:
-    src: containers/tailscale.yml.j2
-    dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/tailscale.yml"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: 0644
-    trim_blocks: yes
-    lstrip_blocks: yes
-  register: tailscale_compose_file_path

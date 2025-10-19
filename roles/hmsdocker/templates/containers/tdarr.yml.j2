@@ -14,7 +14,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_tdarr %}
+    {% if 'tdarr' in expose_ports_enabled_containers %}
     ports:
       - 8265:8265 # webUI port
       - 8266:8266 # server port
@@ -39,28 +39,23 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
     runtime: nvidia
     {% endif %}
-    {% if hmsdocker_traefik_enabled_tdarr or hmsdocker_homepage_enabled_tdarr %}
+    {% if 'tdarr' in traefik_enabled_containers or 'tdarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_tdarr %}
+      {% if 'tdarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.tdarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8265
       - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_tdarr %}
-      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_tdarr %}
-      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tdarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker' if 'tdarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_tdarr %}
-      - homepage.group=Managers
+      {% if 'tdarr' in homepage_enabled_containers %}
+      - homepage.group=Media
       - homepage.name=Tdarr
       - homepage.icon=tdarr.png
       - homepage.href=http://{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Transcode Manager
+      - homepage.description=Media Transcoder
       - homepage.widget.type=tdarr
       - homepage.widget.url=http://tdarr:8265
-      {% if hmsdocker_homepage_stats_enabled_tdarr %}
+      {% if 'tdarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}
@@ -76,4 +71,4 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 20s
+      start_period: 30s

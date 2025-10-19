@@ -14,7 +14,7 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
-    {% if hmsdocker_expose_ports_enabled_transmission %}
+    {% if 'transmission' in expose_ports_enabled_containers %}
     ports:
       - 9091:9091
       - 8888:8888
@@ -28,7 +28,7 @@ services:
       - ${VPN_CONFIG_LOCAL_DIR}:/etc/openvpn/custom
     {% endif %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'homepage' in enabled_containers and hmsdocker_homepage_enabled_transmission %}
+    {% if 'transmission' in homepage_enabled_containers %}
     labels:
       - homepage.group=Downloads
       - homepage.name=Transmission VPN Route
@@ -85,24 +85,19 @@ services:
       - transmission
     environment:
       - TZ=${TIMEZONE}
-    {% if hmsdocker_expose_ports_enabled_transmission %}
+    {% if 'transmission' in expose_ports_enabled_containers %}
     ports:
       - 8081:8080
     {% endif %}
-    {% if hmsdocker_traefik_enabled_transmission or hmsdocker_homepage_enabled_transmission %}
+    {% if 'transmission' in traefik_enabled_containers or 'transmission' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_transmission %}
+      {% if 'transmission' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-        {% if not hmsdocker_expose_public_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_transmission %}
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker
-        {% endif %}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}-no-errorpages@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_transmission %}
+      {% if 'transmission' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=Transmission
       - homepage.icon=transmission.png
@@ -114,7 +109,7 @@ services:
     {% endif %}
     healthcheck:
       test: curl -f http://localhost:8080 || exit 1
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

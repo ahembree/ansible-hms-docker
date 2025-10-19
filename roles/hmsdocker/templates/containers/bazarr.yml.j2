@@ -15,9 +15,8 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 5s
-
-    {% if hmsdocker_expose_ports_enabled_bazarr %}
+      start_period: 20s
+    {% if 'bazarr' in expose_ports_enabled_containers %}
     ports:
       - 6767:6767
     {% endif %}
@@ -28,20 +27,15 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_traefik_enabled_bazarr or hmsdocker_homepage_enabled_bazarr %}
+    {% if 'bazarr' in traefik_enabled_containers or 'bazarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_bazarr %}
+      {% if 'bazarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
       - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_bazarr %}
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_bazarr %}
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'bazarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker' if 'bazarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_bazarr %}
+      {% if 'bazarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Bazarr
       - homepage.icon=bazarr.png
@@ -50,8 +44,8 @@ services:
       - homepage.widget.type=bazarr
       - homepage.widget.url=http://bazarr:6767
       - homepage.widget.key=${BAZARR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_bazarr %}
+        {% if 'bazarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}

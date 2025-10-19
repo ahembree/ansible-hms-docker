@@ -1,0 +1,24 @@
+services:
+  error-pages:
+    container_name: error-pages
+    image: ghcr.io/tarampampam/error-pages:3 # using the latest tag is highly discouraged
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    environment:
+      TEMPLATE_NAME: connection
+      SEND_SAME_HTTP_CODE: true
+      SHOW_DETAILS: true
+      PROXY_HTTP_HEADERS: true
+    labels:
+      - traefik.enable=true
+      # use as "fallback" for any NON-registered services (with priority below normal)
+      - traefik.http.routers.error-pages-router.rule=HostRegexp(`.+`)
+      - traefik.http.routers.error-pages-router.priority=10
+      - traefik.http.routers.error-pages-router.middlewares=error-pages@file
+      - traefik.http.services.error-pages-${COMPOSE_PROJECT}.loadbalancer.server.port=8080

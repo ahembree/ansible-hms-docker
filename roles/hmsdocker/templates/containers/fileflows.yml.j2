@@ -8,7 +8,7 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if hmsdocker_expose_ports_enabled_fileflows %}
+    {% if 'fileflows' in expose_ports_enabled_containers %}
     ports:
       - "19200:5000"
     {% endif %}
@@ -35,16 +35,25 @@ services:
       - ${HMSD_MOUNT_PATH}:/data
       - {{ hmsdocker_transcode_temp_path }}/fileflows:/temp
       - /mnt/hms-docker/backups:/testing_data
-    {% if hmsdocker_traefik_enabled_fileflows %}
+    {% if 'fileflows' in traefik_enabled_containers or 'fileflows' in homepage_enabled_containers %}
     labels:
+      {% if 'fileflows' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.fileflows-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
       - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}`)
-      {% if not hmsdocker_expose_public_enabled_fileflows %}
-      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'fileflows' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker' if 'fileflows' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_authentik_enabled_fileflows %}
-      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker
+      {% if 'fileflows' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=Fileflows
+      - homepage.icon=fileflows.png
+      - homepage.href=http://{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Transcoder
+      - homepage.widget.type=fileflows
+      - homepage.widget.url=http://fileflows:5000
+        {% if 'fileflows' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
       {% endif %}
     {% endif %}
     healthcheck:

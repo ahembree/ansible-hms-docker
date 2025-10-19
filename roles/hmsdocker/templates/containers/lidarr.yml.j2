@@ -11,7 +11,7 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if hmsdocker_expose_ports_enabled_lidarr %}
+    {% if 'lidarr' in expose_ports_enabled_containers %}
     ports:
       - 8686:8686
     {% endif %}
@@ -26,20 +26,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_lidarr or hmsdocker_homepage_enabled_lidarr %}
+    {% if 'lidarr' in traefik_enabled_containers or 'lidarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_lidarr %}
+      {% if 'lidarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.lidarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8686
       - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_lidarr %}
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_lidarr %}
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'lidarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker' if 'lidarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_lidarr %}
+      {% if 'lidarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Lidarr
       - homepage.icon=lidarr.png
@@ -48,9 +43,9 @@ services:
       - homepage.widget.type=lidarr
       - homepage.widget.url=http://lidarr:8686
       - homepage.widget.key=${LIDARR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_lidarr %}
+        {% if 'lidarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
     healthcheck:
@@ -58,4 +53,4 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 10s
+      start_period: 30s

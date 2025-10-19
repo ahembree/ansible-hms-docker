@@ -33,25 +33,20 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/deluge/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_expose_ports_enabled_deluge %}
+    {% if 'deluge' in expose_ports_enabled_containers %}
     ports:
       - 8112:8112
       - 8119:8118 # privoxy
     {% endif %}
-    {% if hmsdocker_traefik_enabled_deluge or hmsdocker_homepage_enabled_deluge %}
+    {% if 'deluge' in traefik_enabled_containers or 'deluge' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_deluge %}
+      {% if 'deluge' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.deluge-${COMPOSE_PROJECT}.loadbalancer.server.port=8112
       - traefik.http.routers.deluge-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_deluge %}
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_deluge %}
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-deluge-midware@docker
-        {% endif %}
+      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'deluge' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-deluge-midware@docker' if 'deluge' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_deluge %}
+      {% if 'deluge' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=deluge
       - homepage.icon=deluge.png
@@ -59,7 +54,7 @@ services:
       - homepage.description=Torrent Management
       - homepage.widget.type=deluge
       - homepage.widget.url=http://deluge:8112
-        {% if hmsdocker_homepage_stats_enabled_deluge %}
+        {% if 'deluge' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

@@ -10,7 +10,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_heimdall %}
+    {% if 'heimdall' in expose_ports_enabled_containers %}
     ports:
       - 8000:80
       - 8443:443
@@ -21,16 +21,11 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/heimdall/config:/config
-    {% if hmsdocker_traefik_enabled_heimdall %}
+    {% if 'heimdall' in traefik_enabled_containers %}
     labels:
       - traefik.enable=true
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] | default('heimdall') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_heimdall %}
-      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_heimdall %}
-      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker
-        {% endif %}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'heimdall' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker' if 'heimdall' in authentik_enabled_containers }}
     {% endif %}

@@ -1,0 +1,27 @@
+services:
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    {% if 'cloudflare-tunnel' in homepage_enabled_containers %}
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Cloudflare Tunnel
+      - homepage.icon=cloudflare.png
+      - homepage.description=Cloudflare Tunnel
+      - homepage.widget.type=cloudflared
+      - homepage.widget.accountid=${CFTUNNEL_ACCT_ID:-apikeyapikeyapikey}
+      - homepage.widget.tunnelid=${CFTUNNEL_TUNNEL_ID:-apikeyapikeyapikey}
+      - homepage.widget.key=${CFTUNNEL_API_KEY:-apikeyapikeyapikey}
+      {% if 'cloudflare-tunnel' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+      {% endif %}
+    {% endif %}

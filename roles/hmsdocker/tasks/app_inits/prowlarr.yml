@@ -3,7 +3,7 @@
   block:
     - name: Prowlarr bootstrap - Set Prowlarr facts
       ansible.builtin.set_fact:
-        prowlarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_prowlarr }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if hmsdocker_expose_ports_enabled_prowlarr }}/api"
+        prowlarr_url: "http{{ 's' if traefik_ssl_enabled and not 'prowlarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if 'prowlarr' in expose_ports_enabled_containers }}/api"
         prowlarr_api_key: "{{ slurped_api_key_prowlarr['content'] | b64decode | regex_search(arr_apikey) }}"
 
     - name: Prowlarr bootstrap - Precheck Prowlarr API Key
@@ -88,6 +88,8 @@
       when:
         - hmsd_app_init_config_prefix + item not in prowlarr_idx_proxies_http
         - item in enabled_containers
+        # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+        - not is_github_runner
       ansible.builtin.uri:
         url: "{{ prowlarr_url }}/v1/indexerproxy"
         method: POST
@@ -162,7 +164,6 @@
         prowlarr_sonarr_apps: "{{ prowlarr_apps.json | json_query('[?implementation==`Sonarr`]') | items2dict(key_name='name', value_name='id') }}"
         prowlarr_radarr_apps: "{{ prowlarr_apps.json | json_query('[?implementation==`Radarr`]') | items2dict(key_name='name', value_name='id') }}"
         prowlarr_lidarr_apps: "{{ prowlarr_apps.json | json_query('[?implementation==`Lidarr`]') | items2dict(key_name='name', value_name='id') }}"
-        prowlarr_readarr_apps: "{{ prowlarr_apps.json | json_query('[?implementation==`Readarr`]') | items2dict(key_name='name', value_name='id') }}"
 
     - name: Prowlarr bootstrap - Configure Sonarr apps in Prowlarr
       block:
@@ -342,44 +343,6 @@
           register: prowlarr_req_add_lidarr
           changed_when: prowlarr_req_add_lidarr.status == 201
 
-    - name: Prowlarr bootstrap - Configure Readarr app in Prowlarr
-      block:
-        - name: Prowlarr bootstrap - Ensure Prowlarr Readarr app
-          when:
-            - hmsd_app_init_config_prefix + 'Readarr' not in prowlarr_readarr_apps.keys()
-            - "'readarr' in enabled_containers"
-          ansible.builtin.uri:
-            url: "{{ prowlarr_url }}/v1/applications"
-            method: POST
-            body: {
-              name: "{{ hmsd_app_init_config_prefix + 'Readarr' }}",
-              implementation: "Readarr",
-              configContract: "ReadarrSettings",
-              syncLevel: "fullSync",
-              fields: [
-                {
-                  name: "prowlarrUrl",
-                  value: "http://prowlarr:9696"
-                },
-                {
-                  name: "baseUrl",
-                  value: "http://readarr:8787"
-                },
-                {
-                  name: "apiKey",
-                  value: "{{ slurped_api_key_readarr['content'] | b64decode | regex_search(arr_apikey) }}"
-                }
-              ],
-            }
-            status_code: 201
-            body_format: json
-            return_content: true
-            headers:
-              X-Api-Key: '{{ prowlarr_api_key }}'
-          register: prowlarr_req_add_readarr
-          changed_when: prowlarr_req_add_readarr.status == 201
-
-
 - name: Prowlarr bootstrap - Remove disabled resources
   when: hmsdocker_app_bootstrap_delete_unused
   block:
@@ -447,19 +410,6 @@
           X-Api-Key: '{{ prowlarr_api_key }}'
       register: prowlarr_req_del_lidarr
       changed_when: prowlarr_req_del_lidarr.status == 200
-
-    - name: Prowlarr bootstrap - Remove Prowlarr Readarr app if not enabled
-      when:
-        - hmsd_app_init_config_prefix + 'Readarr' in prowlarr_readarr_apps.keys()
-        - "'readarr' not in enabled_containers"
-      ansible.builtin.uri:
-        url: "{{ prowlarr_url }}/v1/applications/{{ prowlarr_readarr_apps[hmsd_app_init_config_prefix + 'Readarr'] }}"
-        method: DELETE
-        status_code: 200
-        headers:
-          X-Api-Key: '{{ prowlarr_api_key }}'
-      register: prowlarr_req_del_readarr
-      changed_when: prowlarr_req_del_readarr.status == 200
 
     - name: Prowlarr bootstrap - Remove Indexer Proxies if not enabled
       when:

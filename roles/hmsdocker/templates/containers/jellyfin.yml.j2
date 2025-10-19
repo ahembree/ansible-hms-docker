@@ -14,7 +14,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_jellyfin %}
+    {% if 'jellyfin' in expose_ports_enabled_containers %}
     ports:
       - 8096:8096
       - 8920:8920 #optional
@@ -33,20 +33,15 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if hmsdocker_traefik_enabled_jellyfin or hmsdocker_homepage_enabled_jellyfin %}
+    {% if 'jellyfin' in traefik_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_jellyfin %}
+      {% if 'jellyfin' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
       - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_jellyfin %}
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_jellyfin %}
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker
-        {% endif %}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyfin' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker' if 'jellyfin' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_jellyfin %}
+      {% if 'jellyfin' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin.png
@@ -55,7 +50,7 @@ services:
       - homepage.widget.type=jellyfin
       - homepage.widget.url=https://jellyfin:8096
       - homepage.widget.key=${JELLYFIN_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_jellyfin %}
+        {% if 'jellyfin' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

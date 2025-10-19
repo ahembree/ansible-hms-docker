@@ -51,20 +51,6 @@
         - separate_4k_instances_enable
         - radarr_4k_conf_path.stat.exists
 
-- name: Handle Readarr config
-  when: "'readarr' in enabled_containers"
-  block:
-    - name: Check for Readarr config file
-      ansible.builtin.stat:
-        path: "{{ hms_docker_apps_path }}/readarr/config/config.xml"
-      register: readarr_conf_path
-
-    - name: Slurp Readarr key data
-      ansible.builtin.slurp:
-        src: "{{ readarr_conf_path.stat.path }}"
-      register: slurped_api_key_readarr
-      when: readarr_conf_path.stat.exists
-
 - name: Handle Prowlarr config
   when: "'prowlarr' in enabled_containers"
   block:

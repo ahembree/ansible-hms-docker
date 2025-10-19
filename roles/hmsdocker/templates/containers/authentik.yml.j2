@@ -1,7 +1,7 @@
 services:
   authentik-postgresql:
     container_name: authentik-postgresql
-    image: postgres:12-alpine
+    image: docker.io/library/postgres:16-alpine
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
@@ -11,10 +11,12 @@ services:
         max-file: "5"
       driver: json-file
     healthcheck:
-      test: ["CMD", "pg_isready"]
-      start_period: 20s
       interval: 30s
       retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
       timeout: 5s
     volumes:
       - authentik_database:/var/lib/postgresql/data
@@ -25,25 +27,30 @@ services:
     
   authentik-redis:
     container_name: authentik-redis
-    image: redis:alpine
+    image: docker.io/library/redis:alpine
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
+    command: --save 60 1 --loglevel warning
     logging:
       options:
         max-size: "12m"
         max-file: "5"
       driver: json-file
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      start_period: 20s
       interval: 30s
       retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - redis-cli ping | grep PONG
       timeout: 3s
+    volumes:
+      - authentik_redis:/data
 
   authentik-server:
     container_name: authentik-server
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
     restart: ${RESTART_POLICY}
     networks:
       - authentik_net
@@ -54,6 +61,11 @@ services:
         max-file: "5"
       driver: json-file
     command: server
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
@@ -67,26 +79,21 @@ services:
       - ${HMSD_APPS_PATH}/authentik/media:/media
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
-    {% if hmsdocker_expose_ports_enabled_authentik %}
+    {% if 'authentik' in expose_ports_enabled_containers %}
     ports:
       - 9001:9000
       - 9443:9443
     {% endif %}
-    {% if hmsdocker_traefik_enabled_authentik or hmsdocker_homepage_enabled_authentik %}
+    {% if 'authentik' in traefik_enabled_containers or 'authentik' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_authentik %}
+      {% if 'authentik' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_authentik %}
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_authentik %}
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-authentik-server-midware@docker
-        {% endif %}
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'authentik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
       {% endif %}
-      {% if hmsdocker_homepage_enabled_authentik %}
+      {% if 'authentik' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Authentik
       - homepage.icon=authentik.png
@@ -94,16 +101,17 @@ services:
       - homepage.description=Single Sign-On
       - homepage.widget.type=authentik
       - homepage.widget.url=http://authentik-server:9000
+      - homepage.widget.version=2
       - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_authentik %}
+        {% if 'authentik' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
 
   authentik-worker:
     container_name: authentik-worker
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-latest}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
     restart: ${RESTART_POLICY}
     logging:
       options:
@@ -113,6 +121,11 @@ services:
     networks:
       - authentik_net
     command: worker
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
@@ -132,7 +145,7 @@ services:
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
 
-  {% if hmsdocker_authentik_geoip_enabled %}
+  {% if authentik_geoip_account_id != '' and authentik_geoip_license_key != '' | default(False) %}
   authentik-geoipupdate:
     container_name: authentik-geoipupdate
     image: maxmindinc/geoipupdate:latest
@@ -161,4 +174,6 @@ volumes:
   authentik_database:
     driver: local
   authentik_geoip:
+    driver: local
+  authentik_redis:
     driver: local

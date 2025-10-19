@@ -23,7 +23,6 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Jellyseerr](https://github.com/Fallenbagel/jellyseerr): request platform with Jellyfin and Emby support
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
-- [Readarr](https://github.com/Readarr/Readarr): ebook management
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
@@ -55,14 +54,14 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 
 - [Traefik](https://hub.docker.com/_/traefik): reverse proxy (with SSL support from Let's Encrypt if configured)
 - [Tailscale](https://hub.docker.com/r/tailscale/tailscale): mesh VPN
-- [Cloudflare-ddns](https://hub.docker.com/r/oznu/cloudflare-ddns/): dynamic dns (if enabled)
+- [Cloudflare-DDNS](https://hub.docker.com/r/oznu/cloudflare-ddns/): dynamic dns (if enabled)
 - [Cloudflare Tunnel](https://hub.docker.com/r/cloudflare/cloudflared): Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 
 ## Misc
 
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
-- [Watchtower](https://github.com/containrrr/watchtower): automatic container updates (if enabled)
-- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On)
+- [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
+- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
@@ -76,6 +75,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Wizarr](https://github.com/wizarrrr/wizarr): media server invite management
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
+- [Error-pages](https://github.com/tarampampam/error-pages): Error pages for Traefik
 
 ## Adding New Containers
 
@@ -88,7 +88,6 @@ A list of the locations where items will need to be updated:
 - This documentation
 - `roles/hmsdocker/defaults/main/container_map.yml`
 - `roles/hmsdocker/templates/containers` will store the compose template file (example below) with the naming format of `<container name>.yml.j2`
-- `roles/hmsdocker/vars/main.yml`
 - Any additional container-specific configuration in `roles/hmsdocker/defaults/main/service_misc.yml`
 - Any API keys/secrets in `roles/hmsdocker/templates/env.j2`
   - If API keys need to be read from a file to auto-populate the `.env`, there is a task file in `roles/hmsdocker/tasks/app_api_key_reader.yml` that retrieves the keys from the file
@@ -111,7 +110,7 @@ services:
     # Depends on the network access it needs, proxy_net is required for Traefik
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_<container name> %}
+    {% if '<container name>' in expose_ports_enabled_containers %}
     # Check the container map to see if any existing containers will cause an overlap
     # If so, this port will need to be changed to no longer overlap
     ports:
@@ -125,21 +124,16 @@ services:
       - ${HMSD_APPS_PATH}/<container name>/config:/config
       # If the container needs access to your media data, add the below
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_traefik_enabled_<container name> or hmsdocker_homepage_enabled_<container name> %}
+    {% if '<container name>' in traefik_enabled_containers or '<container name>' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_<container name> %}
+      {% if '<container name>' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.<container name>-${COMPOSE_PROJECT}.loadbalancer.server.port=<container UI port>
       - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_<container name> %}
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_<container name> %}
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker
-        {% endif %}
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<container name>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker' if '<container name>' in authentik_enabled_containers }}
       {% endif %}
       # Below is only for Homepage
-      {% if hmsdocker_homepage_enabled_<container name> %}
+      {% if '<container name>' in homepage_enabled_containers %}
       - homepage.group=<Homepage group name>
       - homepage.name=<container name>
       - homepage.icon=<container name>.png

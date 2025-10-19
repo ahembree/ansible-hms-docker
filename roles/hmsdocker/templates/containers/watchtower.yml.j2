@@ -11,7 +11,7 @@ services:
     command: --cleanup --schedule "{{ container_auto_update_schedule }}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    {% if 'homepage' in enabled_containers %}
+    {% if 'watchtower' in homepage_enabled_containers %}
     networks:
       - proxy_net
     environment:

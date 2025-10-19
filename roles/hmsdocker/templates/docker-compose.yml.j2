@@ -5,17 +5,8 @@ include:
   - {{ file.dest | default(compose_dir.path + '/' + file.item + '.yml') }}
   {% endif %}
 {% endfor %}
-{% if container_enable_auto_updates and watchtower_compose_file_path is defined | default(False) %}
-  - {{ watchtower_compose_file_path.dest | default(compose_dir.path + '/watchtower.yml') }}
-{% endif %}
-{% if (cloudflare_tunnel_enabled or cloudflare_ddns_enabled) and cloudflare_compose_file_path is defined | default(False) %}
-  - {{ cloudflare_compose_file_path.dest | default(compose_dir.path + '/cloudflare.yml') }}
-{% endif %}
-{% if hmsdocker_authentik_enabled_globally and authentik_compose_file_path is defined | default(False) %}
+{% if 'authentik' in enabled_containers and traefik_ssl_enabled | default(False) and authentik_compose_file_path is defined | default(False) %}
   - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
-{% endif %}
-{% if 'tailscale' in enabled_containers and tailscale_compose_file_path is defined | default(False) %}
-  - {{ tailscale_compose_file_path.dest | default(compose_dir.path + '/tailscale.yml') }}
 {% endif %}
 
 networks:

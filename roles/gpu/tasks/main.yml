@@ -58,9 +58,11 @@
         capabilities:
           - gpu
   ignore_errors: '{{ ansible_check_mode }}'
+  changed_when: false
 
 - name: Remove CUDA container
   community.docker.docker_container:
     name: nvidia-gpu-validation
     state: absent
   ignore_errors: '{{ ansible_check_mode }}'
+  changed_when: false

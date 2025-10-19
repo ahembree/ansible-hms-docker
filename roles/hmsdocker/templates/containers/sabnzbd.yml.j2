@@ -21,24 +21,19 @@ services:
     {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
       - ${HMSD_APPS_PATH}/sabnzbd/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-  {% if hmsdocker_expose_ports_enabled_sabnzbd %}
+  {% if 'sabnzbd' in expose_ports_enabled_containers %}
     ports:
       - 8082:8080
   {% endif %}
-  {% if hmsdocker_traefik_enabled_sabnzbd or hmsdocker_homepage_enabled_sabnzbd %}
+  {% if 'sabnzbd' in traefik_enabled_containers or 'sabnzbd' in homepage_enabled_containers %}
     labels:
-    {% if hmsdocker_traefik_enabled_sabnzbd %}
+    {% if 'sabnzbd' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.sabnzbd-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
       - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') }}.${HMSD_DOMAIN}`)
-      {% if not hmsdocker_expose_public_enabled_sabnzbd %}
-      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-      {% endif %}
-      {% if hmsdocker_authentik_enabled_sabnzbd %}
-      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker
-      {% endif %}
+      - traefik.http.routers.sabnzbd-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sabnzbd' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sabnzbd-midware@docker' if 'sabnzbd' in authentik_enabled_containers }}
     {% endif %}
-    {% if hmsdocker_homepage_enabled_sabnzbd %}
+    {% if 'sabnzbd' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=SABnzbd
       - homepage.icon=sabnzbd.png
@@ -47,7 +42,7 @@ services:
       - homepage.widget.type=sabnzbd
       - homepage.widget.url=http://sabnzbd:8080
       - homepage.widget.key=${SABNZBD_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_sabnzbd %}
+      {% if 'sabnzbd' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
     {% endif %}

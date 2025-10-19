@@ -9,11 +9,11 @@ http:
       {% endif %}
       middlewares:
       {% if item.expose_publicly | default(false) %}
-        - external-ipallowlist
+        - external-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
       {% else %}
-        - internal-ipallowlist
+        - internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
       {% endif %}
-      {% if hmsdocker_authentik_enabled_globally and item.authentik is defined and item.authentik %}
+      {% if ('authentik' in enabled_containers and traefik_ssl_enabled | default(False)) and item.authentik | default(False) %}
         - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
       {% endif %}
       service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}
@@ -23,5 +23,5 @@ http:
     {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}:
       loadBalancer:
         servers:
-        - url: {{ item.backend_url }}
+          - url: {{ item.backend_url }}
         passHostHeader: false

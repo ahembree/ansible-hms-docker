@@ -7,6 +7,7 @@
 #  `authentik`: Enables or disables accessing the container via Authentik
 #  `authentik_provider_type`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
 #  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions, does not expose the container port)
+#  `expose_ports`: Enables the container ports to be open on the host (so you can access the containers via <IP>:<port>)
 #  `homepage`: Enables or disables Homepage container integration (if supported)
 #  `homepage_stats`: Displays the container stats in Homepage (CPU, RAM, network traffic)
 
@@ -153,8 +154,6 @@ hms_docker_container_map:
     proxy_host_rule: authentik
     directory: yes
     traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
     expose_to_public: no
     homepage: yes
     homepage_stats: no
@@ -194,16 +193,6 @@ hms_docker_container_map:
     authentik: no
     authentik_provider_type: proxy
     expose_to_public: no
-  readarr:
-    enabled: no
-    proxy_host_rule: readarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
   kavita:
     enabled: no
     proxy_host_rule: kavita
@@ -407,3 +396,12 @@ hms_docker_container_map:
     authentik: no
     directory: yes
     traefik: yes
+  cloudflare-tunnel:
+    enabled: no
+    homepage: no
+    homepage_stats: no
+  cloudflare-ddns:
+    enabled: no
+  watchtower:
+    enabled: yes
+    homepage: no

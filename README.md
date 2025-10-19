@@ -2,6 +2,8 @@
 
 <img src="./gen-docs/docs/static/img/hmsd.png" alt="hmsdocker-logo"/>
 
+<br>
+
 [![Discord](https://dcbadge.limes.pink/api/server/MqXTXvWSkZ?style=flat-square)](https://discord.gg/MqXTXvWSkZ)
 ![GitHub Release](https://img.shields.io/github/v/release/ahembree/ansible-hms-docker?style=flat-square&color=blue)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ahembree/ansible-hms-docker?style=flat-square&color=blue)

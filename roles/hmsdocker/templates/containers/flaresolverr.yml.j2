@@ -15,7 +15,7 @@ services:
       - LOG_HTML=false
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_expose_ports_enabled_flaresolverr %}
+    {% if 'flaresolverr' in expose_ports_enabled_containers %}
     ports:
       - 8191:8191
     {% endif %}

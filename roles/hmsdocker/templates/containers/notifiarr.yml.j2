@@ -11,7 +11,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if hmsdocker_expose_ports_enabled_notifiarr %}
+    {% if 'notifiarr' in expose_ports_enabled_containers %}
     ports:
       - 5454:5454
     {% endif %}
@@ -41,11 +41,6 @@ services:
       - DN_RADARR_1_API_KEY=${RADARR_4K_KEY}
       {% endif %}
     {% endif %}
-    {% if 'readarr' in enabled_containers %}
-      - DN_READARR_0_NAME=Readarr
-      - DN_READARR_0_URL=http://readarr:8787
-      - DN_READARR_0_API_KEY=${READARR_KEY}
-    {% endif %}
     {% if 'sonarr' in enabled_containers %}
       - DN_SONARR_0_NAME=Sonarr
       - DN_SONARR_0_URL=http://sonarr:8989
@@ -66,17 +61,12 @@ services:
       - DN_PLEX_URL=http://plex:32400
       - DN_PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if hmsdocker_traefik_enabled_notifiarr or hmsdocker_homepage_enabled_notifiarr %}
+    {% if 'notifiarr' in traefik_enabled_containers or hmsdocker_homepage_enabled_notifiarr %}
     labels:
-      {% if hmsdocker_traefik_enabled_notifiarr %}
+      {% if 'notifiarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.notifiarr-${COMPOSE_PROJECT}.loadbalancer.server.port=5454
       - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['notifiarr']['proxy_host_rule'] | default('notifiarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_notifiarr %}
-      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_notifiarr %}
-      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'notifiarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker' if 'notifiarr' in authentik_enabled_containers }}
       {% endif %}
     {% endif %}

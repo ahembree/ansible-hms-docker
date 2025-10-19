@@ -3,6 +3,8 @@ services:
     image: traefik:${TRAEFIK_TAG}
     container_name: traefik
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -11,7 +13,9 @@ services:
     ports:
       - 80:80
       - 443:443
+    {% if not traefik_security_hardening and 'traefik' in expose_ports_enabled_containers %}
       - 8080:8080
+    {% endif %}
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
@@ -25,22 +29,19 @@ services:
     networks:
       - proxy_net
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HMSD_APPS_PATH}/traefik/config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ${HMSD_APPS_PATH}/traefik/config/certs/:/certs/
-      - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files
-    {% if hmsdocker_traefik_enabled_traefik or hmsdocker_homepage_enabled_traefik %}
+      - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files:ro
+    {% if 'traefik' in traefik_enabled_containers or ('traefik' in homepage_enabled_containers and not traefik_security_hardening) %}
     labels:
-      {% if hmsdocker_traefik_enabled_traefik %}
+      {% if 'traefik' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}`)
-      - traefik.http.services.traefik-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% if hmsdocker_authentik_enabled_traefik %}
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker
-        {% endif %}
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.service=api@internal
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_traefik %}
+      {% if 'traefik' in homepage_enabled_containers and not traefik_security_hardening %}
       - homepage.group=Infrastructure
       - homepage.name=Traefik
       - homepage.icon=traefik.png
@@ -48,7 +49,7 @@ services:
       - homepage.description=Reverse Proxy
       - homepage.widget.type=traefik
       - homepage.widget.url=http://traefik:8080
-        {% if hmsdocker_homepage_stats_enabled_traefik %}
+        {% if 'traefik' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}

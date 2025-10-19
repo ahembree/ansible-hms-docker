@@ -10,7 +10,7 @@
 
         - name: Lidarr bootstrap - Set Lidarr facts
           ansible.builtin.set_fact:
-            lidarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_lidarr }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if hmsdocker_expose_ports_enabled_lidarr }}/api"
+            lidarr_url: "http{{ 's' if traefik_ssl_enabled and not 'lidarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if 'lidarr' in expose_ports_enabled_containers }}/api"
 
         - name: Lidarr bootstrap - Precheck Lidarr API Key
           ansible.builtin.uri:
@@ -111,6 +111,8 @@
               when:
                 - hmsd_app_init_config_prefix + 'qBittorrent' not in lidarr_download_clients.keys()
                 - "'qbittorrent' in enabled_containers"
+                # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+                - not is_github_runner
               ansible.builtin.uri:
                 url: "{{ lidarr_url }}/v1/downloadclient"
                 method: POST

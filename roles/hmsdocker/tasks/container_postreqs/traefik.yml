@@ -3,7 +3,7 @@
       traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item + '-4k'] }}"
     when:
       - separate_4k_instances_enable
-      - item in enabled_containers
+      - item in traefik_enabled_containers
     loop:
       - sonarr
       - radarr

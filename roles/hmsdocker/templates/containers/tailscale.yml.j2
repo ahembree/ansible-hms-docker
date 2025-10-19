@@ -23,3 +23,13 @@ services:
     {% if tailscale_advertise_exit_node %}
       - TS_EXTRA_ARGS=--advertise-exit-node
     {% endif %}
+    {% if 'tailscale' in homepage_enabled_containers %}
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Tailscale
+      - homepage.icon=tailscale.png
+      - homepage.description=VPN
+      - homepage.widget.type=tailscale
+      - homepage.widget.deviceid=${TAILSCALE_DEVICE_ID}
+      - homepage.widget.key=${TAILSCALE_API_KEY}
+    {% endif %}

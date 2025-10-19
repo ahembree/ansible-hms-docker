@@ -10,7 +10,7 @@
 
         - name: Radarr bootstrap - Set Radarr facts
           ansible.builtin.set_fact:
-            radarr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_radarr }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if hmsdocker_expose_ports_enabled_radarr }}/api"
+            radarr_url: "http{{ 's' if traefik_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if 'radarr' in expose_ports_enabled_containers }}/api"
 
         - name: Radarr bootstrap - Precheck Radarr API Key
           ansible.builtin.uri:
@@ -151,6 +151,8 @@
               when:
                 - hmsd_app_init_config_prefix + 'qBittorrent' not in radarr_download_clients.keys()
                 - "'qbittorrent' in enabled_containers"
+                # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+                - not is_github_runner
               ansible.builtin.uri:
                 url: "{{ radarr_url }}/v3/downloadclient"
                 method: POST
@@ -332,7 +334,7 @@
 
         - name: Radarr 4K bootstrap - Set Radarr 4K facts
           ansible.builtin.set_fact:
-            radarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_expose_ports_enabled_radarr }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if hmsdocker_expose_ports_enabled_radarr }}/api"
+            radarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if 'radarr' in expose_ports_enabled_containers }}/api"
 
         - name: Radarr 4K bootstrap - Precheck Radarr 4K API Key
           ansible.builtin.uri:
@@ -471,6 +473,8 @@
               when:
                 - hmsd_app_init_config_prefix + 'qBittorrent' not in radarr_4k_download_clients.keys()
                 - "'qbittorrent' in enabled_containers"
+                # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+                - not is_github_runner
               ansible.builtin.uri:
                 url: "{{ radarr_4k_url }}/v3/downloadclient"
                 method: POST

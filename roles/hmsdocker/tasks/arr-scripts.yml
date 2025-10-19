@@ -8,7 +8,6 @@
     - radarr-4k
     - sonarr-4k
     - lidarr
-    - readarr
     - sabnzbd
   register: arr_script_app_config_dirs
 
@@ -27,7 +26,6 @@
     - radarr
     - sonarr
     - lidarr
-    - readarr
     - sabnzbd
 
 - name: Arr Scripts - 4K Instances - Download Init Script

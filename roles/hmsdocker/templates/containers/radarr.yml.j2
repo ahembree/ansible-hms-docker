@@ -15,20 +15,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_radarr or hmsdocker_homepage_enabled_radarr %}
+    {% if 'radarr' in traefik_enabled_containers or 'radarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_radarr %}
+      {% if 'radarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.radarr-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] | default('radarr') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_radarr %}
-      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_radarr %}
-      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker
-        {% endif %}
+      - traefik.http.routers.radarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'radarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-radarr-midware@docker' if 'radarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_radarr %}
+      {% if 'radarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Radarr
       - homepage.icon=radarr.png
@@ -37,7 +32,7 @@ services:
       - homepage.widget.type=radarr
       - homepage.widget.url=http://radarr:7878
       - homepage.widget.key=${RADARR_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_radarr %}
+      {% if 'radarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}
@@ -49,7 +44,7 @@ services:
       - ${HMSD_APPS_PATH}/radarr/custom-services.d:/custom-services.d
       - ${HMSD_APPS_PATH}/radarr/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_radarr %}
+    {% if 'radarr' in expose_ports_enabled_containers %}
     ports:
       - 7878:7878
     {% endif %}
@@ -58,7 +53,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 45s
 
 {% if separate_4k_instances_enable | default(False) %}
   radarr-4k:
@@ -77,20 +72,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_radarr or hmsdocker_homepage_enabled_radarr %}
+    {% if 'radarr' in traefik_enabled_containers or 'radarr' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_radarr %}
+      {% if 'radarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.radarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['radarr']['proxy_host_rule'] | default('radarr') }}-4k.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_radarr %}
-      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_radarr %}
-      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-radarr-4k-midware@docker
-        {% endif %}
+      - traefik.http.routers.radarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'radarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-radarr-4k-midware@docker' if 'radarr' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_radarr %}
+      {% if 'radarr' in homepage_enabled_containers %}
       - homepage.group=Managers - 4K
       - homepage.name=Radarr - 4K
       - homepage.icon=radarr.png
@@ -99,7 +89,7 @@ services:
       - homepage.widget.type=radarr
       - homepage.widget.url=http://radarr-4k:7878
       - homepage.widget.key=${RADARR_4K_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_radarr %}
+      {% if 'radarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}
@@ -111,13 +101,14 @@ services:
       - ${HMSD_APPS_PATH}/radarr-4k/custom-services.d:/custom-services.d
       - ${HMSD_APPS_PATH}/radarr-4k/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-    {% if hmsdocker_expose_ports_enabled_radarr %}
+    {% if 'radarr' in expose_ports_enabled_containers %}
     ports:
       - 7879:7878
     {% endif %}
     healthcheck:
       test: curl -f http://localhost:7878/health || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 10
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 45s
 {% endif %}

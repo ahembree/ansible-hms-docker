@@ -42,21 +42,16 @@ services:
       - {{ plex_transcode_folder }}:/transcode
       # media folder where all movies and series are stored
       - ${HMSD_MOUNT_PATH}:/data
-    {% if hmsdocker_traefik_enabled_plex or hmsdocker_homepage_enabled_plex %}
+    {% if 'plex' in traefik_enabled_containers or 'plex' in homepage_enabled_containers %}
     labels:
-      {% if hmsdocker_traefik_enabled_plex %}
+      {% if 'plex' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_plex %}
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
-        {% endif %}
-        {% if hmsdocker_authentik_enabled_plex %}
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker
-        {% endif %}
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'plex' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker' if 'plex' in authentik_enabled_containers }}
       {% endif %}
-      {% if hmsdocker_homepage_enabled_plex %}
+      {% if 'plex' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Plex
       - homepage.icon=plex.png
@@ -65,9 +60,9 @@ services:
       - homepage.widget.type=plex
       - homepage.widget.url=https://plex:32400
       - homepage.widget.key=${PLEX_KEY:-apikeyapikeyapikey}
-      {% if hmsdocker_homepage_stats_enabled_plex %}
+        {% if 'plex' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
-      {% endif %}
+        {% endif %}
       {% endif %}
     {% endif %}
     healthcheck:
@@ -75,4 +70,4 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-      start_period: 5s
+      start_period: 30s

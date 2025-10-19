@@ -21,7 +21,7 @@ jobs:
 
       - name: Add hosts to /etc/hosts
         run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr transmission bazarr readarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr readarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
+            for name in sonarr radarr sonarr-4k radarr-4k prowlarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
         run: |
@@ -78,7 +78,7 @@ jobs:
 
       - name: Add hosts to /etc/hosts
         run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr transmission bazarr readarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr readarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
+            for name in sonarr radarr sonarr-4k radarr-4k prowlarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
         run: |

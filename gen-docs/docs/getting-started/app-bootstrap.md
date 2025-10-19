@@ -12,8 +12,6 @@ This requires DNS records to be properly configured for the following apps:
 
 - Lidarr
 
-- Readarr
-
 :::info
 
 These tasks will **NOT** work in `check` mode, this is a [limitation of the Ansible URI module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html#attributes)
@@ -64,7 +62,6 @@ It will do the following for each service:
     - Sonarr (including 4K)
     - Radarr (including 4K)
     - Lidarr
-    - Readarr
 
 - Radarr (including 4K instance if enabled)
 
@@ -91,16 +88,6 @@ It will do the following for each service:
     - Deluge
 
 - Lidarr
-
-  - Configure download clients (if enabled):
-
-    - Transmission
-
-    - qBittorrent
-
-    - Deluge
-
-- Readarr
 
   - Configure download clients (if enabled):
 

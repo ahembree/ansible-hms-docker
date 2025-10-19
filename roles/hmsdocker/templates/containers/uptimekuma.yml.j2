@@ -13,7 +13,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-    {% if hmsdocker_expose_ports_enabled_uptimekuma %}
+    {% if 'uptimekuma' in expose_ports_enabled_containers %}
     ports:
       - 3001:3001
     {% endif %}
@@ -21,15 +21,25 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if hmsdocker_traefik_enabled_uptimekuma %}
+    {% if 'uptimekuma' in traefik_enabled_containers or 'uptimekuma' in homepage_enabled_containers %}
     labels:
+      {% if 'uptimekuma' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
       - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptime-kuma') }}.${HMSD_DOMAIN}`)
-        {% if not hmsdocker_expose_public_enabled_uptimekuma %}
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=internal-ipallowlist@file
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'uptimekuma' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if 'uptimekuma' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'uptimekuma' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=Uptime Kuma
+      - homepage.icon=uptime-kuma.png
+      - homepage.href=https://{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptimekuma') }}.${HMSD_DOMAIN}
+      - homepage.description=Infrastructure Monitoring
+      - homepage.widget.type=uptimekuma
+      - homepage.widget.url=https://{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptimekuma') }}.${HMSD_DOMAIN}
+      - homepage.widget.slug=${HOMEPAGE_UPTIMEKUMA_SLUG}
+        {% if 'uptimekuma' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
         {% endif %}
-        {% if hmsdocker_authentik_enabled_uptimekuma %}
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares=authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker
-        {% endif %}
+      {% endif %}
     {% endif %}
