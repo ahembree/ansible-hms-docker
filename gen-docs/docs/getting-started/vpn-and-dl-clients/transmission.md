@@ -50,3 +50,7 @@ For example, if you had a custom file named `test-vpn.ovpn` located in `/opt/hms
 transmission_ovpn_config_file: test-vpn
 transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 ```
+
+### Error Pages
+
+The Error Pages container will not work with Transmission, probably due to there already being a proxy in place for the container and the first `POST` to `/transmission/rpc` results in a `409`, so it is not enabled for the Transmission or Transmission Proxy container.

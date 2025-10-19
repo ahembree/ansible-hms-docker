@@ -28,10 +28,12 @@ There is a `traefik_security_hardening` variable that will do the following if e
 
 The following middlwares are available:
 
+- `internal-secured`: A chain, applies the `internal-ipallowlist`, `https-only`, `secure-headers`, and `error-pages` middlewares
+- `external-secured`: A chain, applies the `externa-ipallowlist`, `https-only`, `secure-headers`, and `error-pages` middlewares
+- `internal-secured-no-errorpages`: Same as `internal-secured`, but with no `error-pages` middleware since it can cause issues with certain containers
+- `external-secured-no-errorpages`: Same as `external-secured`, but with no `error-pages` middleware since it can cause issues with certain containers
 - `internal-ipallowlist`: Allows only RFC1918 private address space and any other IPs/ranges defined in the `traefik_subnet_allow_list` variable
 - `external-ipallowlist`: Allows all traffic from `0.0.0.0/0`
-- `internal-secured`: Applies the `internal-ipallowlist`, `https-only`, and `secure-headers` middlewares
-- `external-secured`: Applies the `externa-ipallowlist`, `https-only`, and `secure-headers` middlewares
 - `https-only`: Configures permanent redirection to HTTPS
 - `secure-headers`: Applies headers to prevent iFrame embedding, blocks requests if MIME types do not match certain criteria, and only allows Host headers for applications that are enabled within this project
 - `error-pages`: Not security related, but it renders pretty error pages
