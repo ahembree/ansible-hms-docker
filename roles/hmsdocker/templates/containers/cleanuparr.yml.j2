@@ -9,6 +9,7 @@ services:
     {% endif %}
     networks:
       - proxy_net
+      - download_net
     volumes:
       - ${HMSD_APPS_PATH}/cleanuparr/config:/config
     environment:
