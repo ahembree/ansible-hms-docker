@@ -157,17 +157,17 @@
   ansible.builtin.debug:
     msg: "{{ item }}"
   loop:
-    - slurped_config_radarr
-    - slurped_config_radarr_4k
-    - slurped_config_lidarr
-    - slurped_config_sabnzbd
-    - slurped_config_sonarr
-    - slurped_config_sonarr_4k
-    - slurped_config_bazarr
-    - slurped_config_overseerr
-    - slurped_config_tautulli
-    - slurped_config_plex
-    - slurped_config_prowlarr
+    - "{{ slurped_config_radarr }}"
+    - "{{ slurped_config_radarr_4k }}"
+    - "{{ slurped_config_lidarr }}"
+    - "{{ slurped_config_sabnzbd }}"
+    - "{{ slurped_config_sonarr }}"
+    - "{{ slurped_config_sonarr_4k }}"
+    - "{{ slurped_config_bazarr }}"
+    - "{{ slurped_config_overseerr }}"
+    - "{{ slurped_config_tautulli }}"
+    - "{{ slurped_config_plex }}"
+    - "{{ slurped_config_prowlarr }}"
 
 - name: Parse and normalize all service configs
   no_log: "{{ not debug_mode }}"
