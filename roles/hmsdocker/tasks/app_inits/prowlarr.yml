@@ -4,7 +4,7 @@
     - name: Prowlarr bootstrap - Set Prowlarr facts
       ansible.builtin.set_fact:
         prowlarr_url: "http{{ 's' if traefik_ssl_enabled and not 'prowlarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if 'prowlarr' in expose_ports_enabled_containers }}/api"
-        prowlarr_api_key: "{{ prowlarr_key | default('') }}"
+        prowlarr_api_key: "{{ api_keys.prowlarr_key | default('') }}"
 
     - name: Prowlarr bootstrap - Precheck Prowlarr API Key
       ansible.builtin.uri:
@@ -188,7 +188,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ sonarr_key | default('') }}"
+                  value: "{{ api_keys.sonarr_key | default('') }}"
                 }
               ],
             }
@@ -221,7 +221,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ sonarr_4k_key | default('') }}"
+                  value: "{{ api_keys.sonarr_4k_key | default('') }}"
                 }
               ],
             }
@@ -258,7 +258,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ radarr_key | default('') }}"
+                  value: "{{ api_keys.radarr_key | default('') }}"
                 }
               ],
             }
@@ -294,7 +294,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ radarr_4k_key | default('') }}"
+                  value: "{{ api_keys.radarr_4k_key | default('') }}"
                 }
               ],
             }
@@ -331,7 +331,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ lidarr_key | default('') }}"
+                  value: "{{ api_keys.lidarr_key | default('') }}"
                 }
               ],
             }

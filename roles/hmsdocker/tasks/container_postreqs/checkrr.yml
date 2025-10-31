@@ -8,9 +8,9 @@
     lstrip_blocks: true
     trim_blocks: true
   vars:
-    sonarr_key: "{{ sonarr_key | default('') }}"
-    sonarr_4k_key: "{{ sonarr_4k_key | default('') }}"
-    radarr_key: "{{ radarr_key | default('') }}"
-    radarr_4k_key: "{{ radarr_4k_key | default('') }}"
-    lidarr_key: "{{ lidarr_key | default('') }}"
+    sonarr_key: "{{ api_keys.sonarr_key | default('') }}"
+    sonarr_4k_key: "{{ api_keys.sonarr_4k_key | default('') }}"
+    radarr_key: "{{ api_keys.radarr_key | default('') }}"
+    radarr_4k_key: "{{ api_keys.radarr_4k_key | default('') }}"
+    lidarr_key: "{{ api_keys.lidarr_key | default('') }}"
   notify: Restart checkrr

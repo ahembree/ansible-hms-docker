@@ -29,7 +29,7 @@ arr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: radarr
     address: radarr
-    apikey: "{{ radarr_key | default('') }}"
+    apikey: "{{ api_keys.radarr_key | default('') }}"
     baseurl: /
     port: 7878
     ssl: false
@@ -41,7 +41,7 @@ arr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: radarr
     address: radarr-4k
-    apikey: "{{ radarr_4k_key | default('') }}"
+    apikey: "{{ api_keys.radarr_4k_key | default('') }}"
     baseurl: /
     port: 7979
     ssl: false
@@ -55,7 +55,7 @@ arr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: sonarr
     address: sonarr
-    apikey: "{{ sonarr_key | default('') }}"
+    apikey: "{{ api_keys.sonarr_key | default('') }}"
     baseurl: /
     port: 8989
     ssl: false
@@ -67,7 +67,7 @@ arr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: sonarr
     address: sonarr-4k
-    apikey: "{{ sonarr_4k_key | default('') }}"
+    apikey: "{{ api_keys.sonarr_4k_key | default('') }}"
     baseurl: /
     port: 8989
     ssl: false
@@ -81,7 +81,7 @@ arr:
     process: {{ hmsdocker_checkrr_enable_arr_processing | lower }}
     service: lidarr
     address: lidarr
-    apikey: "{{ lidarr_key | default('') }}"
+    apikey: "{{ api_keys.lidarr_key | default('') }}"
     baseurl: /
     port: 8686
     ssl: false
