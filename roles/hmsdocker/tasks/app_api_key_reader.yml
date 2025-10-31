@@ -173,7 +173,7 @@
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
     ansible_fact_cachable: false
-    service_configs: "{{ result | trim }}"
+    service_configs: "{{ result | trim | from_yaml }}"
   vars:
     configs:
       # Sabnzbd is not here because it does not have valid INI file syntax by default and adding support for it was too much of a pain
@@ -214,7 +214,6 @@
       {{ res }}
 
 - name: (API Key Reader) Debug GitHub Actions
-  when: is_github_runner
   ansible.builtin.debug:
     msg: "{{ service_configs }}"
 
@@ -224,46 +223,21 @@
     ansible_fact_cachable: false
     api_keys: {}
 
-- name: (API Key Reader) Safely populate API keys
-  no_log: "{{ not debug_mode }}"
-  vars:
-    api_key_specs:
-      - { name: 'sonarr_key', config_name: 'sonarr_config', section: 'Config', key: 'ApiKey' }
-      - { name: 'sonarr_4k_key', config_name: 'sonarr_4k_config', section: 'Config', key: 'ApiKey' }
-      - { name: 'radarr_key', config_name: 'radarr_config', section: 'Config', key: 'ApiKey' }
-      - { name: 'radarr_4k_key', config_name: 'radarr_4k_config', section: 'Config', key: 'ApiKey' }
-      - { name: 'prowlarr_key', config_name: 'prowlarr_config', section: 'Config', key: 'ApiKey' }
-      - { name: 'bazarr_key', config_name: 'bazarr_config', section: 'auth', key: 'apikey' }
-      - { name: 'overseerr_key', config_name: 'overseerr_config', section: 'main', key: 'apiKey' }
-      - { name: 'tautulli_key', config_name: 'tautulli_config', section: 'General', key: 'api_key' }
-      - { name: 'plex_key', config_name: 'plex_config', section: 'Preferences', key: '@PlexOnlineToken' }
-      - { name: 'lidarr_key', config_name: 'lidarr_config', section: 'Config', key: 'ApiKey' }
+- name: Set all service API keys
   ansible.builtin.set_fact:
-    ansible_fact_cachable: false
     api_keys: >-
       {{
-        api_keys | combine({
-          item.name: (
-            service_configs.get(item.config_name)
-            if service_configs.get(item.config_name) is mapping
-            else {}
-          ).get(item.section, {}).get(item.key, '')
-        })
-      }}
-  loop: "{{ api_key_specs }}"
-
-- name: (API Key Reader) Add sabnzbd_key via regex
-  no_log: "{{ not debug_mode }}"
-  ansible.builtin.set_fact:
-    ansible_fact_cachable: false
-    api_keys: >-
-      {{
-        api_keys | combine({
-          'sabnzbd_key': (
-            (slurped_config_sabnzbd | default({})).get('content', '')
-            | b64decode
-            | regex_search('(?<=api_key = )\\S*')
-            | default('')
-          )
-        })
+        {
+          'sonarr_key': service_configs.get('sonarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'sonarr_4k_key': service_configs.get('sonarr_4k_config', {}).get('Config', {}).get('ApiKey', ''),
+          'radarr_key': service_configs.get('radarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'radarr_4k_key': service_configs.get('radarr_4k_config', {}).get('Config', {}).get('ApiKey', ''),
+          'prowlarr_key': service_configs.get('prowlarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'bazarr_key': service_configs.get('bazarr_config', {}).get('auth', {}).get('apikey', ''),
+          'overseerr_key': service_configs.get('overseerr_config', {}).get('main', {}).get('apiKey', ''),
+          'tautulli_key': service_configs.get('tautulli_config', {}).get('General', {}).get('api_key', ''),
+          'plex_key': service_configs.get('plex_config', {}).get('Preferences', {}).get('@PlexOnlineToken', ''),
+          'lidarr_key': service_configs.get('lidarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'sabnzbd_key': ((slurped_config_sabnzbd | default({})).get('content', '') | b64decode | regex_search('(?<=api_key = )\\S*') | default(''))
+        }
       }}
