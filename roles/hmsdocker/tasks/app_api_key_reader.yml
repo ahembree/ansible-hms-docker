@@ -1,4 +1,4 @@
-- name: (API Key Reader) (API Key Reader) Handle Sonarr configs
+- name: (API Key Reader) Handle Sonarr configs
   when: "'sonarr' in enabled_containers"
   block:
     - name: Check for Sonarr config file
@@ -220,7 +220,7 @@
     ansible_fact_cachable: false
     api_keys: {}
 
-- name: Set all service API keys
+- name: (API Key Reader) Set all service API keys
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
     ansible_fact_cachable: false
