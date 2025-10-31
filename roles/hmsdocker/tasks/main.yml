@@ -79,20 +79,19 @@
 
     # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
     # This is ONLY for building the Authentik Outpost templates
-    authentik_proxy_enabled_containers: >-
-      {% set result = [] %}
-      {% for item in hms_docker_container_map | dict2items %}
-        {% if item.value.enabled is defined and item.value.enabled == true
-              and item.value.traefik is defined and item.value.traefik == true
-              and item.value.authentik is defined and item.value.authentik == true
-              and item.value.proxy_host_rule is defined %}
-          {% set _ = result.append({
-                "name": item.key,
-                "proxy_host_rule": item.value.proxy_host_rule
-              }) %}
-        {% endif %}
-      {% endfor %}
-      {{ result }}
+    authentik_proxy_enabled_containers: > 
+      {{ hms_docker_container_map | dict2items
+        | selectattr('value.enabled', 'defined')
+        | selectattr('value.enabled', 'equalto', true)
+        | selectattr('value.traefik', 'defined')
+        | selectattr('value.traefik', 'equalto', true)
+        | selectattr('value.authentik', 'defined')
+        | selectattr('value.authentik', 'equalto', true)
+        | selectattr('value.proxy_host_rule', 'defined')
+        | map('community.general.dict_kv', 'name', 'key', 'proxy_host_rule', 'value.proxy_host_rule')
+        | list
+      }}
+
 
 
     homepage_enabled_containers: >-
