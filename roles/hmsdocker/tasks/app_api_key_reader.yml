@@ -150,6 +150,25 @@
       register: slurped_config_lidarr
       when: lidarr_conf_path.stat.exists
 
+- name: Debug GitHub Runner Configs
+  when:
+    - is_github_runner
+    - item is defined
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop:
+    - slurped_config_radarr
+    - slurped_config_radarr_4k
+    - slurped_config_lidarr
+    - slurped_config_sabnzbd
+    - slurped_config_sonarr
+    - slurped_config_sonarr_4k
+    - slurped_config_bazarr
+    - slurped_config_overseerr
+    - slurped_config_tautulli
+    - slurped_config_plex
+    - slurped_config_prowlarr
+
 - name: Parse and normalize all service configs
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
@@ -192,6 +211,11 @@
         {% set _ = res.update({item.name: parsed}) %}
       {% endfor %}
       {{ res }}
+
+- name: Debug GitHub Actions
+  when: is_github_runner
+  ansible.builtin.debug:
+    msg: "{{ service_configs }}"
 
 - name: Set API Key facts safely
   no_log: "{{ not debug_mode }}"
