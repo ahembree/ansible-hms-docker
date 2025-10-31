@@ -91,9 +91,6 @@
       | map('community.general.json_query', '{name: key, proxy_host_rule: value.proxy_host_rule}')
       | list }}"
 
-
-
-
     homepage_enabled_containers: >-
           {{
             (
@@ -267,66 +264,6 @@
 - name: Retrieve app API keys if available
   ansible.builtin.import_tasks: "app_api_key_reader.yml"
   when: "'homepage' in enabled_containers"
-
-- name: Parse and normalize all service configs
-  no_log: "{{ not debug_mode }}"
-  ansible.builtin.set_fact:
-    ansible_fact_cachable: false
-    service_configs: "{{ result | trim }}"
-  vars:
-    configs:
-      - { name: radarr_config, varname: slurped_config_radarr, type: xml }
-      - { name: radarr_4k_config, varname: slurped_config_radarr_4k, type: xml }
-      - { name: lidarr_config, varname: slurped_config_lidarr, type: xml }
-      - { name: sabnzbd_config, varname: slurped_config_sabnzbd, type: ini }
-      - { name: sonarr_config, varname: slurped_config_sonarr, type: xml }
-      - { name: sonarr_4k_config, varname: slurped_config_sonarr_4k, type: xml }
-      - { name: bazarr_config, varname: slurped_config_bazarr, type: yaml }
-      - { name: overseerr_config, varname: slurped_config_overseerr, type: json }
-      - { name: tautulli_config, varname: slurped_config_tautulli, type: ini }
-      - { name: plex_config, varname: slurped_config_plex, type: xml }
-      - { name: prowlarr_config, varname: slurped_config_prowlarr, type: xml }
-
-    result: >-
-      {% set res = {} %}
-      {% for item in configs %}
-        {% set slurped = lookup('vars', item.varname, default={}) %}
-        {% set content = slurped.get('content', '') | b64decode | trim %}
-        {% set parsed = {} %}
-        {% if content %}
-          {% if item.type == 'xml' %}
-            {% set parsed = content | ansible.utils.from_xml %}
-          {% elif item.type == 'ini' %}
-            {% set parsed = content | community.general.from_ini %}
-          {% elif item.type == 'json' %}
-            {% set parsed = content | from_json %}
-          {% elif item.type == 'yaml' %}
-            {% set parsed = content | from_yaml %}
-          {% endif %}
-        {% endif %}
-        {% if parsed is string %}
-          {% set parsed = parsed | from_yaml %}
-        {% endif %}
-        {% set _ = res.update({item.name: parsed}) %}
-      {% endfor %}
-      {{ res }}
-
-- name: Set API Key facts safely
-  no_log: "{{ not debug_mode }}"
-  ansible.builtin.set_fact:
-    ansible_fact_cachable: false
-    sonarr_key: "{{ service_configs.get('sonarr_config', {}).get('Config', {}).get('ApiKey', '') }}"
-    sonarr_4k_key: "{{ service_configs.get('sonarr_4k_config', {}).get('Config', {}).get('ApiKey', '') }}"
-    radarr_key: "{{ service_configs.get('radarr_config', {}).get('Config', {}).get('ApiKey', '') }}"
-    radarr_4k_key: "{{ service_configs.get('radarr_4k_config', {}).get('Config', {}).get('ApiKey', '') }}"
-    prowlarr_key: "{{ service_configs.get('prowlarr_config', {}).get('Config', {}).get('ApiKey', '') }}"
-    bazarr_key: "{{ service_configs.get('bazarr_config', {}).get('auth', {}).get('apikey', '') }}"
-    overseerr_key: "{{ service_configs.get('overseerr_config', {}).get('main', {}).get('apiKey', '') }}"
-    tautulli_key: "{{ service_configs.get('tautulli_config', {}).get('General', {}).get('api_key', '') }}"
-    plex_key: "{{ service_configs.get('plex_config', {}).get('Preferences', {}).get('@PlexOnlineToken', '') }}"
-    sabnzbd_key: "{{ service_configs.get('sabnzbd_config', {}).get('misc', {}).get('api_key', '') }}"
-    lidarr_key: "{{ service_configs.get('lidarr_config', {}).get('Config', {}).get('ApiKey', '') }}"
-
 
 - name: Ensure env
   ansible.builtin.template:
