@@ -20,7 +20,7 @@
             body_format: json
             return_content: true
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_key | default('') }}"
           register: radarr_api_key_precheck
 
         - name: Radarr bootstrap - Get Radarr root folders
@@ -31,7 +31,7 @@
             body_format: json
             return_content: true
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_key | default('') }}"
           register: radarr_root_folders
 
         - name: Radarr bootstrap - Set Radarr root folder variables
@@ -53,7 +53,7 @@
             body:
               path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_key | default('') }}"
           when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in radarr_accessible_root_folders
           with_nested:
             - "{{ radarr_mount_list }}"
@@ -73,7 +73,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_key | default('') }}"
               register: radarr_downloaders
 
             - name: Radarr bootstrap - Set Radarr download client Facts
@@ -143,7 +143,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_key | default('') }}"
               register: radarr_req_add_download_client
               changed_when: radarr_req_add_download_client.status == 201
 
@@ -223,7 +223,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_key | default('') }}"
               register: radarr_req_add_download_client
               changed_when: radarr_req_add_download_client.status == 201
 
@@ -302,7 +302,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_key | default('') }}"
               register: radarr_req_add_download_client
               changed_when: radarr_req_add_download_client.status == 201
 
@@ -316,7 +316,7 @@
                 method: DELETE
                 status_code: 200
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_key | default('') }}"
               register: radarr_req_del_download_client
               changed_when: radarr_req_del_download_client.status == 200
               loop:
@@ -344,7 +344,7 @@
             body_format: json
             return_content: true
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_4k_key | default('') }}"
           register: radarr_4k_api_key_precheck
 
         - name: Radarr 4K bootstrap - Get Radarr 4K root folders
@@ -355,7 +355,7 @@
             body_format: json
             return_content: true
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_4k_key | default('') }}"
           register: radarr_4k_root_folders
 
         - name: Radarr 4K bootstrap - Set Radarr 4K folder variables
@@ -375,7 +375,7 @@
             body:
               path: "{{ dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ dir[1] }}"
             headers:
-              X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ radarr_4k_key | default('') }}"
           when: (dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + dir[1]) not in radarr_accessible_root_folders
           with_nested:
             - "{{ radarr_4k_mount_list }}"
@@ -395,7 +395,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_4k_key | default('') }}"
               register: radarr_4k_downloaders
 
             - name: Radarr 4K bootstrap - Set download client Facts
@@ -465,7 +465,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_4k_key | default('') }}"
               register: radarr_4k_req_add_download_client
               changed_when: radarr_4k_req_add_download_client.status == 201
 
@@ -545,7 +545,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_4k_key | default('') }}"
               register: radarr_4k_req_add_download_client
               changed_when: radarr_4k_req_add_download_client.status == 201
 
@@ -624,7 +624,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_4k_key | default('') }}"
               register: radarr_4k_req_add_download_client
               changed_when: radarr_4k_req_add_download_client.status == 201
 
@@ -638,7 +638,7 @@
                 method: DELETE
                 status_code: 200
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ radarr_4k_key | default('') }}"
               register: radarr_4k_req_del_download_client
               changed_when: radarr_4k_req_del_download_client.status == 200
               loop:

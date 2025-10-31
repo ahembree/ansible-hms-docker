@@ -8,9 +8,9 @@
     lstrip_blocks: true
     trim_blocks: true
   vars:
-    sonarr_key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    sonarr_4k_key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    radarr_key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    radarr_4k_key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    lidarr_key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+    sonarr_key: "{{ sonarr_key | default('') }}"
+    sonarr_4k_key: "{{ sonarr_4k_key | default('') }}"
+    radarr_key: "{{ radarr_key | default('') }}"
+    radarr_4k_key: "{{ radarr_4k_key | default('') }}"
+    lidarr_key: "{{ lidarr_key | default('') }}"
   notify: Restart checkrr

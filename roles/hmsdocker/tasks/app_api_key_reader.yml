@@ -6,10 +6,10 @@
         path: "{{ hms_docker_apps_path }}/sonarr/config/config.xml"
       register: sonarr_conf_path
 
-    - name: Slurp Sonarr key data
+    - name: Slurp Sonarr config data
       ansible.builtin.slurp:
         src: "{{ sonarr_conf_path.stat.path }}"
-      register: slurped_api_key_sonarr
+      register: slurped_config_sonarr
       when: 
         - sonarr_conf_path.stat.exists
 
@@ -18,10 +18,10 @@
         path: "{{ hms_docker_apps_path }}/sonarr-4k/config/config.xml"
       register: sonarr_4k_conf_path
 
-    - name: Slurp Sonarr 4K key data
+    - name: Slurp Sonarr 4K config data
       ansible.builtin.slurp:
         src: "{{ sonarr_4k_conf_path.stat.path }}"
-      register: slurped_api_key_sonarr_4k
+      register: slurped_config_sonarr_4k
       when: separate_4k_instances_enable and sonarr_4k_conf_path.stat.exists
 
 - name: Handle Radarr configs
@@ -32,10 +32,10 @@
         path: "{{ hms_docker_apps_path }}/radarr/config/config.xml"
       register: radarr_conf_path
 
-    - name: Slurp Radarr key data
+    - name: Slurp Radarr config data
       ansible.builtin.slurp:
         src: "{{ radarr_conf_path.stat.path }}"
-      register: slurped_api_key_radarr
+      register: slurped_config_radarr
       when: radarr_conf_path.stat.exists
 
     - name: Check for Radarr 4K config file
@@ -43,10 +43,10 @@
         path: "{{ hms_docker_apps_path }}/radarr-4k/config/config.xml"
       register: radarr_4k_conf_path
 
-    - name: Slurp Radarr 4K key data
+    - name: Slurp Radarr 4K config data
       ansible.builtin.slurp:
         src: "{{ radarr_4k_conf_path.stat.path }}"
-      register: slurped_api_key_radarr_4k
+      register: slurped_config_radarr_4k
       when: 
         - separate_4k_instances_enable
         - radarr_4k_conf_path.stat.exists
@@ -59,10 +59,10 @@
         path: "{{ hms_docker_apps_path }}/prowlarr/config/config.xml"
       register: prowlarr_conf_path
 
-    - name: Slurp Prowlarr key data
+    - name: Slurp Prowlarr config data
       ansible.builtin.slurp:
         src: "{{ prowlarr_conf_path.stat.path }}"
-      register: slurped_api_key_prowlarr
+      register: slurped_config_prowlarr
       when: prowlarr_conf_path.stat.exists
 
 - name: Handle Bazarr config
@@ -73,10 +73,10 @@
         path: "{{ hms_docker_apps_path }}/bazarr/config/config/config.yaml"
       register: bazarr_conf_path
 
-    - name: Slurp Bazarr key data
+    - name: Slurp Bazarr config data
       ansible.builtin.slurp:
         src: "{{ bazarr_conf_path.stat.path }}"
-      register: slurped_api_key_bazarr
+      register: slurped_config_bazarr
       when: bazarr_conf_path.stat.exists
 
 - name: Handle Overseerr config
@@ -87,10 +87,10 @@
         path: "{{ hms_docker_apps_path }}/overseerr/config/settings.json"
       register: overseerr_conf_path
 
-    - name: Slurp Overseerr key data
+    - name: Slurp Overseerr config data
       ansible.builtin.slurp:
         src: "{{ overseerr_conf_path.stat.path }}"
-      register: slurped_api_key_overseerr
+      register: slurped_config_overseerr
       when: overseerr_conf_path.stat.exists
 
 - name: Handle Tautulli config
@@ -101,10 +101,10 @@
         path: "{{ hms_docker_apps_path }}/tautulli/config/config.ini"
       register: tautulli_conf_path
 
-    - name: Slurp Tautulli key data
+    - name: Slurp Tautulli config data
       ansible.builtin.slurp:
         src: "{{ tautulli_conf_path.stat.path }}"
-      register: slurped_api_key_tautulli
+      register: slurped_config_tautulli
       when: tautulli_conf_path.stat.exists
 
 - name: Handle Sabnzbd config
@@ -115,10 +115,10 @@
         path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
       register: sabnzbd_conf_path
 
-    - name: Slurp Sabnzbd key data
+    - name: Slurp Sabnzbd config data
       ansible.builtin.slurp:
         src: "{{ sabnzbd_conf_path.stat.path }}"
-      register: slurped_api_key_sabnzbd
+      register: slurped_config_sabnzbd
       when: sabnzbd_conf_path.stat.exists
 
 - name: Handle Plex config file
@@ -129,10 +129,10 @@
         path: "{{ hms_docker_apps_path }}/plex/config/Library/Application Support/Plex Media Server/Preferences.xml"
       register: plex_conf_path
 
-    - name: Slurp Plex key data
+    - name: Slurp Plex config data
       ansible.builtin.slurp:
         src: "{{ plex_conf_path.stat.path }}"
-      register: slurped_api_key_plex
+      register: slurped_config_plex
       when:
         - plex_conf_path.stat.exists
 
@@ -144,8 +144,8 @@
         path: "{{ hms_docker_apps_path }}/lidarr/config/config.xml"
       register: lidarr_conf_path
 
-    - name: Slurp Lidarr key data
+    - name: Slurp Lidarr config data
       ansible.builtin.slurp:
         src: "{{ lidarr_conf_path.stat.path }}"
-      register: slurped_api_key_lidarr
+      register: slurped_config_lidarr
       when: lidarr_conf_path.stat.exists
