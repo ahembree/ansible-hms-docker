@@ -1,4 +1,4 @@
-- name: Handle Sonarr configs
+- name: (API Key Reader) (API Key Reader) Handle Sonarr configs
   when: "'sonarr' in enabled_containers"
   block:
     - name: Check for Sonarr config file
@@ -24,7 +24,7 @@
       register: slurped_config_sonarr_4k
       when: separate_4k_instances_enable and sonarr_4k_conf_path.stat.exists
 
-- name: Handle Radarr configs
+- name: (API Key Reader) Handle Radarr configs
   when: "'radarr' in enabled_containers"
   block:
     - name: Check for Radarr config file
@@ -51,7 +51,7 @@
         - separate_4k_instances_enable
         - radarr_4k_conf_path.stat.exists
 
-- name: Handle Prowlarr config
+- name: (API Key Reader) Handle Prowlarr config
   when: "'prowlarr' in enabled_containers"
   block:
     - name: Check for Prowlarr config file
@@ -65,7 +65,7 @@
       register: slurped_config_prowlarr
       when: prowlarr_conf_path.stat.exists
 
-- name: Handle Bazarr config
+- name: (API Key Reader) Handle Bazarr config
   when: "'bazarr' in enabled_containers"
   block:
     - name: Check for Bazarr config file
@@ -79,7 +79,7 @@
       register: slurped_config_bazarr
       when: bazarr_conf_path.stat.exists
 
-- name: Handle Overseerr config
+- name: (API Key Reader) Handle Overseerr config
   when: "'overseerr' in enabled_containers"
   block:
     - name: Check for Overseerr config file
@@ -93,7 +93,7 @@
       register: slurped_config_overseerr
       when: overseerr_conf_path.stat.exists
 
-- name: Handle Tautulli config
+- name: (API Key Reader) Handle Tautulli config
   when: "'tautulli' in enabled_containers"
   block:
     - name: Check for Tautulli config file
@@ -107,7 +107,7 @@
       register: slurped_config_tautulli
       when: tautulli_conf_path.stat.exists
 
-- name: Handle Sabnzbd config
+- name: (API Key Reader) Handle Sabnzbd config
   when: "'sabnzbd' in enabled_containers"
   block:
     - name: Check for Sabnzbd config file
@@ -121,7 +121,7 @@
       register: slurped_config_sabnzbd
       when: sabnzbd_conf_path.stat.exists
 
-- name: Handle Plex config file
+- name: (API Key Reader) Handle Plex config file
   when: "'plex' in enabled_containers"
   block:
     - name: Check for Plex config file
@@ -136,7 +136,7 @@
       when:
         - plex_conf_path.stat.exists
 
-- name: Handle Lidarr config
+- name: (API Key Reader) Handle Lidarr config
   when: "'lidarr' in enabled_containers"
   block:
     - name: Check for Lidarr config file
@@ -150,7 +150,7 @@
       register: slurped_config_lidarr
       when: lidarr_conf_path.stat.exists
 
-- name: Debug GitHub Runner Configs
+- name: (API Key Reader) Debug GitHub Runner Configs
   when:
     - is_github_runner
     - item is defined
@@ -169,17 +169,18 @@
     - "{{ slurped_config_plex }}"
     - "{{ slurped_config_prowlarr }}"
 
-- name: Parse and normalize all service configs
+- name: (API Key Reader) Parse and normalize all service configs
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
     ansible_fact_cachable: false
     service_configs: "{{ result | trim }}"
   vars:
     configs:
+      # Sabnzbd is not here because it does not have valid INI file syntax by default and adding support for it was too much of a pain
+      # So, it uses regex further below
       - { name: radarr_config, varname: slurped_config_radarr, type: xml }
       - { name: radarr_4k_config, varname: slurped_config_radarr_4k, type: xml }
       - { name: lidarr_config, varname: slurped_config_lidarr, type: xml }
-      - { name: sabnzbd_config, varname: slurped_config_sabnzbd, type: ini }
       - { name: sonarr_config, varname: slurped_config_sonarr, type: xml }
       - { name: sonarr_4k_config, varname: slurped_config_sonarr_4k, type: xml }
       - { name: bazarr_config, varname: slurped_config_bazarr, type: yaml }
@@ -212,12 +213,12 @@
       {% endfor %}
       {{ res }}
 
-- name: Debug GitHub Actions
+- name: (API Key Reader) Debug GitHub Actions
   when: is_github_runner
   ansible.builtin.debug:
     msg: "{{ service_configs }}"
 
-- name: Set API Key facts safely
+- name: (API Key Reader) Set API Key facts
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
     ansible_fact_cachable: false
@@ -230,5 +231,11 @@
     overseerr_key: "{{ service_configs.get('overseerr_config', {}).get('main', {}).get('apiKey', '') }}"
     tautulli_key: "{{ service_configs.get('tautulli_config', {}).get('General', {}).get('api_key', '') }}"
     plex_key: "{{ service_configs.get('plex_config', {}).get('Preferences', {}).get('@PlexOnlineToken', '') }}"
-    sabnzbd_key: "{{ service_configs.get('sabnzbd_config', {}).get('misc', {}).get('api_key', '') }}"
     lidarr_key: "{{ service_configs.get('lidarr_config', {}).get('Config', {}).get('ApiKey', '') }}"
+    sabnzbd_key: >-
+      {{
+        (slurped_config_sabnzbd | default({})).get('content', '')
+        | b64decode
+        | regex_search('(?<=api_key = )\\S*')
+        | default('')
+      }}
