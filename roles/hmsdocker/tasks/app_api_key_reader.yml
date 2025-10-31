@@ -218,12 +218,6 @@
   ansible.builtin.debug:
     msg: "{{ service_configs }}"
 
-- name: (API Key Reader) Debug type of each service_config
-  when: is_github_runner
-  ansible.builtin.debug:
-    msg: "Key {{ item.key }} has type {{ item.value | type_debug }}"
-  loop: "{{ service_configs | dict2items }}"
-
 - name: (API Key Reader) Initialize empty API keys dict
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
