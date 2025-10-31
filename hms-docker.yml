@@ -7,6 +7,7 @@
     # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
     hmsd_current_version: 1.12.1
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
+    is_github_runner: false
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     arr_apikey: '(?<=\<ApiKey\>)\w*(?=\<\/ApiKey\>)'

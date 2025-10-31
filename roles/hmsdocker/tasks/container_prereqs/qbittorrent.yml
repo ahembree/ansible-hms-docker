@@ -5,7 +5,6 @@
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
     mode: '0755'
-  loop: "{{ enabled_containers_config_dirs }}"
 
 - name: Ensure qBittorrent config exists before first start to disable authentication
   ansible.builtin.template:

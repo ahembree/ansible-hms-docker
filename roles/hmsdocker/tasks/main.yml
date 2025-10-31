@@ -254,6 +254,7 @@
   loop: '{{ container_prereqs }}'
   loop_control:
     loop_var: container_task_name
+  when: container_task_name in enabled_containers
 
 - name: Run VPN initialization tasks
   ansible.builtin.import_tasks: "vpn_setup.yml"
