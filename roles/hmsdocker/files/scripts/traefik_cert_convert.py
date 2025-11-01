@@ -19,7 +19,7 @@ import base64
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import BestAvailableEncryption, NoEncryption, load_pem_private_key, pkcs12
 import sys
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 import argparse
 import docker
 from dotenv import load_dotenv
@@ -142,6 +142,7 @@ def get_traefik_cert_store(path: str) -> dict:
     """    
     try:
         logging.debug(f'Attempting to load Traefik certificate store file')
+        # deepcode ignore PT: Script allows user to input path to cert file
         json_data = json.load(open(path, 'r'))
     except FileNotFoundError as e:
         logging.error(f'Failed to find certificate file at {path}, has Traefik successfully created one? (Error: {e})')

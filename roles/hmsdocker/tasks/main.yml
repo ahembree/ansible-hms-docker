@@ -79,19 +79,18 @@
 
     # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
     # This is ONLY for building the Authentik Outpost templates
-    authentik_proxy_enabled_containers: >
-          [
-          {% for item in hms_docker_container_map | dict2items
-              if item.value.enabled is defined and item.value.enabled == true
-              and item.value.traefik is defined and item.value.traefik == true
-              and item.value.authentik is defined and item.value.authentik == true
-              and item.value.proxy_host_rule is defined %}
-            {
-              "name": "{{ item.key }}",
-              "proxy_host_rule": "{{ item.value.proxy_host_rule }}"
-            }{% if not loop.last %},{% endif %}
-          {% endfor %}
-          ]
+    authentik_proxy_enabled_containers: "{{ hms_docker_container_map
+      | dict2items
+      | selectattr('value.enabled', 'defined')
+      | selectattr('value.enabled', 'equalto', true)
+      | selectattr('value.traefik', 'defined')
+      | selectattr('value.traefik', 'equalto', true)
+      | selectattr('value.authentik', 'defined')
+      | selectattr('value.authentik', 'equalto', true)
+      | selectattr('value.proxy_host_rule', 'defined')
+      | map('community.general.json_query', '{name: key, proxy_host_rule: value.proxy_host_rule}')
+      | list }}"
+
     homepage_enabled_containers: >-
           {{
             (
@@ -254,6 +253,7 @@
   loop: '{{ container_prereqs }}'
   loop_control:
     loop_var: container_task_name
+  when: container_task_name in enabled_containers
 
 - name: Run VPN initialization tasks
   ansible.builtin.import_tasks: "vpn_setup.yml"
@@ -272,29 +272,18 @@
     mode: "{{ secrets_env_mode }}"
     owner: "{{ secrets_env_user }}"
     group: "{{ secrets_env_group }}"
-    backup: yes
-    lstrip_blocks: yes
-    trim_blocks: yes
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
   no_log: "{{ not debug_mode }}"
   register: compose_env
   vars:
     authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
     authentik_pgpass: "{{ (slurped_pg_pass_data['content'] | b64decode) if slurped_pg_pass_data['content'] is defined else '### Will be obtained during full run ###' }}"
-    authentik_pgu: "{{ authentik_old_pg_user if authentik_old_pg_user is defined and authentik_old_pg_user != '' else authentik_pg_user }}"
-    authentik_pgdb: "{{ authentik_old_pg_db if authentik_old_pg_db is defined and authentik_old_pg_db != '' else authentik_pg_db }}"
+    authentik_pgu: "{{ authentik_old_pg_user | default(authentik_pg_user) }}"
+    authentik_pgdb: "{{ authentik_old_pg_db | default(authentik_pg_db) }}"
     watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
-    sonarr_key: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    sonarr_4k_key: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    radarr_key: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    radarr_4k_key: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    prowlarr_key: "{{ slurped_api_key_prowlarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    bazarr_key: "{{ slurped_api_key_bazarr['content'] | b64decode | from_yaml }}"
-    overseerr_key: "{{ slurped_api_key_overseerr['content'] | b64decode | from_json }}"
-    tautulli_key: "{{ slurped_api_key_tautulli['content'] | b64decode | regex_search('(?<=api_key = )\\w*') | default('') }}"
-    plex_key: "{{ slurped_api_key_plex['content'] | b64decode | regex_search('(?<=PlexOnlineToken=\")(.*?)(?=\")') | default('') }}"
-    sabnzbd_key: "{{ slurped_api_key_sabnzbd['content'] | b64decode | regex_search('(?<=api_key = )\\w*') | default('') }}"
-    readarr_key: "{{ slurped_api_key_readarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
-    lidarr_key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) | default('') }}"
+
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:

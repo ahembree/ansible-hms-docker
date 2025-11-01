@@ -20,7 +20,7 @@
             body_format: json
             return_content: true
             headers:
-              X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+              X-Api-Key: "{{ api_keys.lidarr_key }}"
           register: lidarr_api_key_precheck
 
         - name: Lidarr bootstrap - Ensure download clients in Lidarr
@@ -33,7 +33,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ api_keys.lidarr_key }}"
               register: lidarr_downloaders
 
             - name: Lidarr bootstrap - Set Lidarr download client Facts
@@ -103,7 +103,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ api_keys.lidarr_key }}"
               register: lidarr_req_add_download_client
               changed_when: lidarr_req_add_download_client.status == 201
 
@@ -183,7 +183,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ api_keys.lidarr_key }}"
               register: lidarr_req_add_download_client
               changed_when: lidarr_req_add_download_client.status == 201
 
@@ -262,7 +262,7 @@
                 body_format: json
                 return_content: true
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ api_keys.lidarr_key }}"
               register: lidarr_req_add_download_client
               changed_when: lidarr_req_add_download_client.status == 201
 
@@ -276,7 +276,7 @@
                 method: DELETE
                 status_code: 200
                 headers:
-                  X-Api-Key: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  X-Api-Key: "{{ api_keys.lidarr_key }}"
               register: lidarr_req_del_download_client
               changed_when: lidarr_req_del_download_client.status == 200
               loop:

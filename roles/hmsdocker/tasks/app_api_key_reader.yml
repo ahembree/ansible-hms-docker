@@ -1,4 +1,4 @@
-- name: Handle Sonarr configs
+- name: (API Key Reader) Handle Sonarr configs
   when: "'sonarr' in enabled_containers"
   block:
     - name: Check for Sonarr config file
@@ -6,10 +6,10 @@
         path: "{{ hms_docker_apps_path }}/sonarr/config/config.xml"
       register: sonarr_conf_path
 
-    - name: Slurp Sonarr key data
+    - name: Slurp Sonarr config data
       ansible.builtin.slurp:
         src: "{{ sonarr_conf_path.stat.path }}"
-      register: slurped_api_key_sonarr
+      register: slurped_config_sonarr
       when: 
         - sonarr_conf_path.stat.exists
 
@@ -18,13 +18,13 @@
         path: "{{ hms_docker_apps_path }}/sonarr-4k/config/config.xml"
       register: sonarr_4k_conf_path
 
-    - name: Slurp Sonarr 4K key data
+    - name: Slurp Sonarr 4K config data
       ansible.builtin.slurp:
         src: "{{ sonarr_4k_conf_path.stat.path }}"
-      register: slurped_api_key_sonarr_4k
+      register: slurped_config_sonarr_4k
       when: separate_4k_instances_enable and sonarr_4k_conf_path.stat.exists
 
-- name: Handle Radarr configs
+- name: (API Key Reader) Handle Radarr configs
   when: "'radarr' in enabled_containers"
   block:
     - name: Check for Radarr config file
@@ -32,10 +32,10 @@
         path: "{{ hms_docker_apps_path }}/radarr/config/config.xml"
       register: radarr_conf_path
 
-    - name: Slurp Radarr key data
+    - name: Slurp Radarr config data
       ansible.builtin.slurp:
         src: "{{ radarr_conf_path.stat.path }}"
-      register: slurped_api_key_radarr
+      register: slurped_config_radarr
       when: radarr_conf_path.stat.exists
 
     - name: Check for Radarr 4K config file
@@ -43,15 +43,15 @@
         path: "{{ hms_docker_apps_path }}/radarr-4k/config/config.xml"
       register: radarr_4k_conf_path
 
-    - name: Slurp Radarr 4K key data
+    - name: Slurp Radarr 4K config data
       ansible.builtin.slurp:
         src: "{{ radarr_4k_conf_path.stat.path }}"
-      register: slurped_api_key_radarr_4k
+      register: slurped_config_radarr_4k
       when: 
         - separate_4k_instances_enable
         - radarr_4k_conf_path.stat.exists
 
-- name: Handle Prowlarr config
+- name: (API Key Reader) Handle Prowlarr config
   when: "'prowlarr' in enabled_containers"
   block:
     - name: Check for Prowlarr config file
@@ -59,13 +59,13 @@
         path: "{{ hms_docker_apps_path }}/prowlarr/config/config.xml"
       register: prowlarr_conf_path
 
-    - name: Slurp Prowlarr key data
+    - name: Slurp Prowlarr config data
       ansible.builtin.slurp:
         src: "{{ prowlarr_conf_path.stat.path }}"
-      register: slurped_api_key_prowlarr
+      register: slurped_config_prowlarr
       when: prowlarr_conf_path.stat.exists
 
-- name: Handle Bazarr config
+- name: (API Key Reader) Handle Bazarr config
   when: "'bazarr' in enabled_containers"
   block:
     - name: Check for Bazarr config file
@@ -73,13 +73,13 @@
         path: "{{ hms_docker_apps_path }}/bazarr/config/config/config.yaml"
       register: bazarr_conf_path
 
-    - name: Slurp Bazarr key data
+    - name: Slurp Bazarr config data
       ansible.builtin.slurp:
         src: "{{ bazarr_conf_path.stat.path }}"
-      register: slurped_api_key_bazarr
+      register: slurped_config_bazarr
       when: bazarr_conf_path.stat.exists
 
-- name: Handle Overseerr config
+- name: (API Key Reader) Handle Overseerr config
   when: "'overseerr' in enabled_containers"
   block:
     - name: Check for Overseerr config file
@@ -87,13 +87,13 @@
         path: "{{ hms_docker_apps_path }}/overseerr/config/settings.json"
       register: overseerr_conf_path
 
-    - name: Slurp Overseerr key data
+    - name: Slurp Overseerr config data
       ansible.builtin.slurp:
         src: "{{ overseerr_conf_path.stat.path }}"
-      register: slurped_api_key_overseerr
+      register: slurped_config_overseerr
       when: overseerr_conf_path.stat.exists
 
-- name: Handle Tautulli config
+- name: (API Key Reader) Handle Tautulli config
   when: "'tautulli' in enabled_containers"
   block:
     - name: Check for Tautulli config file
@@ -101,13 +101,13 @@
         path: "{{ hms_docker_apps_path }}/tautulli/config/config.ini"
       register: tautulli_conf_path
 
-    - name: Slurp Tautulli key data
+    - name: Slurp Tautulli config data
       ansible.builtin.slurp:
         src: "{{ tautulli_conf_path.stat.path }}"
-      register: slurped_api_key_tautulli
+      register: slurped_config_tautulli
       when: tautulli_conf_path.stat.exists
 
-- name: Handle Sabnzbd config
+- name: (API Key Reader) Handle Sabnzbd config
   when: "'sabnzbd' in enabled_containers"
   block:
     - name: Check for Sabnzbd config file
@@ -115,13 +115,13 @@
         path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
       register: sabnzbd_conf_path
 
-    - name: Slurp Sabnzbd key data
+    - name: Slurp Sabnzbd config data
       ansible.builtin.slurp:
         src: "{{ sabnzbd_conf_path.stat.path }}"
-      register: slurped_api_key_sabnzbd
+      register: slurped_config_sabnzbd
       when: sabnzbd_conf_path.stat.exists
 
-- name: Handle Plex config file
+- name: (API Key Reader) Handle Plex config file
   when: "'plex' in enabled_containers"
   block:
     - name: Check for Plex config file
@@ -129,14 +129,14 @@
         path: "{{ hms_docker_apps_path }}/plex/config/Library/Application Support/Plex Media Server/Preferences.xml"
       register: plex_conf_path
 
-    - name: Slurp Plex key data
+    - name: Slurp Plex config data
       ansible.builtin.slurp:
         src: "{{ plex_conf_path.stat.path }}"
-      register: slurped_api_key_plex
+      register: slurped_config_plex
       when:
         - plex_conf_path.stat.exists
 
-- name: Handle Lidarr config
+- name: (API Key Reader) Handle Lidarr config
   when: "'lidarr' in enabled_containers"
   block:
     - name: Check for Lidarr config file
@@ -144,8 +144,99 @@
         path: "{{ hms_docker_apps_path }}/lidarr/config/config.xml"
       register: lidarr_conf_path
 
-    - name: Slurp Lidarr key data
+    - name: Slurp Lidarr config data
       ansible.builtin.slurp:
         src: "{{ lidarr_conf_path.stat.path }}"
-      register: slurped_api_key_lidarr
+      register: slurped_config_lidarr
       when: lidarr_conf_path.stat.exists
+
+# - name: (API Key Reader) Debug GitHub Runner Configs
+#   when:
+#     - is_github_runner
+#     - item is defined
+#   ansible.builtin.debug:
+#     msg: "{{ item }}"
+#   loop:
+#     - "{{ slurped_config_radarr }}"
+#     - "{{ slurped_config_radarr_4k }}"
+#     - "{{ slurped_config_lidarr }}"
+#     - "{{ slurped_config_sabnzbd }}"
+#     - "{{ slurped_config_sonarr }}"
+#     - "{{ slurped_config_sonarr_4k }}"
+#     - "{{ slurped_config_bazarr }}"
+#     - "{{ slurped_config_overseerr }}"
+#     - "{{ slurped_config_tautulli }}"
+#     - "{{ slurped_config_plex }}"
+#     - "{{ slurped_config_prowlarr }}"
+
+- name: (API Key Reader) Parse and normalize all service configs
+  no_log: "{{ not debug_mode }}"
+  ansible.builtin.set_fact:
+    ansible_fact_cachable: false
+    service_configs: "{{ result | trim | from_yaml }}"
+  vars:
+    configs:
+      # Sabnzbd is not here because it does not have valid INI file syntax by default and adding support for it was too much of a pain
+      # So, it uses regex further below
+      - { name: radarr_config, varname: slurped_config_radarr, type: xml }
+      - { name: radarr_4k_config, varname: slurped_config_radarr_4k, type: xml }
+      - { name: lidarr_config, varname: slurped_config_lidarr, type: xml }
+      - { name: sonarr_config, varname: slurped_config_sonarr, type: xml }
+      - { name: sonarr_4k_config, varname: slurped_config_sonarr_4k, type: xml }
+      - { name: bazarr_config, varname: slurped_config_bazarr, type: yaml }
+      - { name: overseerr_config, varname: slurped_config_overseerr, type: json }
+      - { name: tautulli_config, varname: slurped_config_tautulli, type: ini }
+      - { name: plex_config, varname: slurped_config_plex, type: xml }
+      - { name: prowlarr_config, varname: slurped_config_prowlarr, type: xml }
+
+    # ChatGPT wrote this, please do not ask me how it works because I don't know :)
+    result: >-
+      {% set res = {} %}
+      {% for item in configs %}
+        {% set slurped = lookup('vars', item.varname, default={}) %}
+        {% set content = slurped.get('content', '') | b64decode | trim %}
+        {% set parsed = {} %}
+        {% if content %}
+          {% if item.type == 'xml' %}
+            {% set parsed = content | ansible.utils.from_xml %}
+          {% elif item.type == 'ini' %}
+            {% set parsed = content | community.general.from_ini %}
+          {% elif item.type == 'json' %}
+            {% set parsed = content | from_json %}
+          {% elif item.type == 'yaml' %}
+            {% set parsed = content | from_yaml %}
+          {% endif %}
+        {% endif %}
+        {% if parsed is string %}
+          {% set parsed = parsed | from_yaml %}
+        {% endif %}
+        {% set _ = res.update({item.name: parsed}) %}
+      {% endfor %}
+      {{ res }}
+
+- name: (API Key Reader) Initialize empty API keys dict
+  no_log: "{{ not debug_mode }}"
+  ansible.builtin.set_fact:
+    ansible_fact_cachable: false
+    api_keys: {}
+
+- name: (API Key Reader) Set all service API keys
+  no_log: "{{ not debug_mode }}"
+  ansible.builtin.set_fact:
+    ansible_fact_cachable: false
+    api_keys: >-
+      {{
+        {
+          'sonarr_key': service_configs.get('sonarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'sonarr_4k_key': service_configs.get('sonarr_4k_config', {}).get('Config', {}).get('ApiKey', ''),
+          'radarr_key': service_configs.get('radarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'radarr_4k_key': service_configs.get('radarr_4k_config', {}).get('Config', {}).get('ApiKey', ''),
+          'prowlarr_key': service_configs.get('prowlarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'bazarr_key': service_configs.get('bazarr_config', {}).get('auth', {}).get('apikey', ''),
+          'overseerr_key': service_configs.get('overseerr_config', {}).get('main', {}).get('apiKey', ''),
+          'tautulli_key': service_configs.get('tautulli_config', {}).get('General', {}).get('api_key', ''),
+          'plex_key': service_configs.get('plex_config', {}).get('Preferences', {}).get('@PlexOnlineToken', ''),
+          'lidarr_key': service_configs.get('lidarr_config', {}).get('Config', {}).get('ApiKey', ''),
+          'sabnzbd_key': ((slurped_config_sabnzbd | default({})).get('content', '') | b64decode | regex_search('(?<=api_key = )\\S*') | default(''))
+        }
+      }}

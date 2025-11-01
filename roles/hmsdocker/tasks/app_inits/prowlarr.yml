@@ -3,8 +3,9 @@
   block:
     - name: Prowlarr bootstrap - Set Prowlarr facts
       ansible.builtin.set_fact:
+        ansible_fact_cachable: false
         prowlarr_url: "http{{ 's' if traefik_ssl_enabled and not 'prowlarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if 'prowlarr' in expose_ports_enabled_containers }}/api"
-        prowlarr_api_key: "{{ slurped_api_key_prowlarr['content'] | b64decode | regex_search(arr_apikey) }}"
+        prowlarr_api_key: "{{ api_keys.prowlarr_key | default('') }}"
 
     - name: Prowlarr bootstrap - Precheck Prowlarr API Key
       ansible.builtin.uri:
@@ -126,7 +127,7 @@
         - hmsd_app_init_config_prefix + 'FlareSolverr' not in prowlarr_idx_proxies_flaresolverr.keys()
         - "'flaresolverr' in enabled_containers"
       ansible.builtin.uri:
-        url: "{{ prowlarr_url }}/v1/indexerproxy"
+        url: "{{ prowlarr_url }}/v1/indexerProxy"
         method: POST
         body: {
           name: "HMSD - FlareSolverr",
@@ -138,7 +139,7 @@
               value: "http://flaresolverr:8191/"
             }
           ],
-          tags: "[{{ prowlarr_tag_list[prowlarr_proxy_tag_prefix + 'flaresolverr'] }}]"
+          tags: ["{{ prowlarr_tag_list[prowlarr_proxy_tag_prefix + 'flaresolverr'] }}"]
         }
         status_code: 201
         body_format: json
@@ -188,7 +189,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ slurped_api_key_sonarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  value: "{{ api_keys.sonarr_key | default('') }}"
                 }
               ],
             }
@@ -221,7 +222,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ slurped_api_key_sonarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  value: "{{ api_keys.sonarr_4k_key | default('') }}"
                 }
               ],
             }
@@ -258,7 +259,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ slurped_api_key_radarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  value: "{{ api_keys.radarr_key | default('') }}"
                 }
               ],
             }
@@ -294,7 +295,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ slurped_api_key_radarr_4k['content'] | b64decode | regex_search(arr_apikey) }}"
+                  value: "{{ api_keys.radarr_4k_key | default('') }}"
                 }
               ],
             }
@@ -331,7 +332,7 @@
                 },
                 {
                   name: "apiKey",
-                  value: "{{ slurped_api_key_lidarr['content'] | b64decode | regex_search(arr_apikey) }}"
+                  value: "{{ api_keys.lidarr_key | default('') }}"
                 }
               ],
             }

@@ -51,6 +51,11 @@
     owner: root
     group: root
 
+- name: Debug for GitHub Actions
+  when: is_github_runner
+  ansible.builtin.debug:
+    msg: "{{ authentik_proxy_enabled_containers }}"
+
 - name: Authentik Prereq - Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik/authentik_outpost.j2

@@ -23,8 +23,9 @@
       - xmltodict
       - cryptography
       - docker
+      - defusedxml
 
-- name: Ensure scripts folder
+- name: Custom Scripts - Ensure scripts folder
   ansible.builtin.file:
     path: "{{ hms_docker_data_path }}/scripts"
     state: directory
@@ -33,10 +34,37 @@
     mode: 0755
   register: scripts_path
 
-- name: Ensure monitoring scripts
+- name: Custom Scripts - Ensure env symlink
+  ansible.builtin.file:
+    state: link
+    src: "{{ compose_env.dest | default(hms_docker_data_path + '/.env') }}"
+    dest: "{{ scripts_path.path }}/.env"
+    force: "{{ ansible_check_mode }}"
+
+- name: Custom Scripts - Plex SSL - Ensure Plex SSL script and resources
+  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
+  block:
+    - name: Custom Scripts - Plex SSL - Ensure pkcs12 script
+      ansible.builtin.copy:
+        src: scripts/traefik_cert_convert.py
+        dest: "{{ scripts_path.path }}"
+        mode: '700'
+        owner: "{{ container_uid }}"
+        group: "{{ container_gid }}"
+      register: cert_script
+
+    - name: Custom Scripts - Plex SSL - Ensure cron job
+      ansible.builtin.cron:
+        name: "{{ project_name }}-plex-ssl"
+        user: root
+        job: "{{ hms_docker_data_path }}/.venv/bin/python {{ cert_script.dest | default(hms_docker_data_path + '/scripts/traefik_cert_convert.py') }}"
+        minute: 0
+        hour: 5
+
+- name: Custom Scripts - Ensure monitoring scripts
   when: monitoring_scripts_enabled | default(false)
   block:
-    - name: Ensure monitoring directory
+    - name: Custom Scripts - Ensure monitoring directory
       ansible.builtin.file:
         path: "{{ scripts_path.path }}/monitoring"
         state: directory
@@ -45,20 +73,20 @@
         mode: 0755
       register: monitoring_scripts_path
 
-    - name: Ensure env symlink
+    - name: Custom Scripts - Ensure env symlink
       ansible.builtin.file:
         state: link
         src: "{{ compose_env.dest | default(hms_docker_data_path + '/.env') }}"
         dest: "{{ monitoring_scripts_path.path }}/.env"
         force: "{{ ansible_check_mode }}"
 
-    - name: Ensure monitoring scripts
+    - name: Custom Scripts - Ensure monitoring scripts
       ansible.builtin.copy:
         src: scripts/monitoring
         dest: "{{ scripts_path.path }}"
         mode: 0700
 
-    - name: Ensure media availability cron
+    - name: Custom Scripts - Ensure media availability cron
       ansible.builtin.cron:
         name: "{{ project_name }}-media-availability-monitoring"
         user: root
