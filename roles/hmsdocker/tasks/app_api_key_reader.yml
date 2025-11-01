@@ -237,6 +237,6 @@
           'tautulli_key': service_configs.get('tautulli_config', {}).get('General', {}).get('api_key', ''),
           'plex_key': service_configs.get('plex_config', {}).get('Preferences', {}).get('@PlexOnlineToken', ''),
           'lidarr_key': service_configs.get('lidarr_config', {}).get('Config', {}).get('ApiKey', ''),
-          'sabnzbd_key': ((slurped_config_sabnzbd | default({})).get('content', '') | b64decode | regex_search('(?<=api_key = )\\S*') | default(''))
+          'sabnzbd_key': slurped_config_sabnzbd['content'] | b64decode | regex_search('(?m)^api_key\s*=\s*(\S+)', '\1') | first | default('')
         }
       }}
