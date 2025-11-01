@@ -139,7 +139,7 @@ In `inventory/group_vars/all/main.yml`:
   - `cifs` if using Samba or a Windows file share
   - `local` if using a local drive/directory on the same system
 
-- `hms_docker_mount_path` : This is where the media and download folders will be "mounted". Recommended to change if using a network share and/or other drive in the system.
+- `hms_docker_mount_path` : This is where the media and download folders will be "mounted". Recommended to change if using a network share and/or other drive in the system. This will translate to `/data` within the containers.
 
 #### Plex (if enabled)
 
@@ -186,6 +186,12 @@ There is a debug mode you can control from a variable in `hms-docker.yml`
 Debug mode will also potentially output "secrets" (passwords, API keys) when enabled
 
 :::
+
+## Where Data is Stored
+
+The `hms_docker_mount_path`, where your network mounts or drives are mounted, will translate to `/data` within the containers.
+
+This means that within the services such as Sonarr, Radarr, Plex, etc. you will need to specify the path to your content starting with `/data`, such as `/data/media_data/_media/movies` or `/data/media_data/_downloads` as examples. Your path depends on your setup, but it will start with `/data`
 
 ## Next Steps
 
