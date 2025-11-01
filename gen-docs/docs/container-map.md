@@ -38,7 +38,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Tautulli                                 | &#9745;            | `tautulli`           | `8181`                         | `8181`                         | &#9745;                | &#9745;              |
 | Traefik                                  | &#9745;            | `traefik`            | `80`, `8080`, `443`            | `80`, `8080`, `443`            | &#9745;                | &#9745;              |
 | Nzbget                                   | &#9744;            | `nzbget`             | `6789`                         | `6789`                         | &#9745;                | &#9745;              |
-| Sabnzb                                   | &#9744;            | `sabnzb`             | `8082`                         | `8080`                         | &#9745;                | &#9745;              |
+| Sabnzbd                                   | &#9744;            | `sabnzbd`             | `8082`                         | `8080`                         | &#9745;                | &#9745;              |
 | Authentik                                | &#9744;            | `authentik-server`   | `9001`, `9443`                 | `9000`, `9443`                 | &#9745;                | &#9745;              |
 | Tdarr                                    | &#9744;            | `tdarr`              | `8265`, `8266`                 | `8265`, `8266`                 | &#9745;                | &#9745;              |
 | HomePage                                 | &#9744;            | `homepage`           | `3000`                         | `3000`                         | &#9745;                | &#9744;              |
