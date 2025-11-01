@@ -83,19 +83,19 @@ def main():
         notify('down', 'Plex API key invalid')
     data = xmltodict.parse(response.content)
 
-    libarary_id = None
+    library_id = None
     # Get the first movie library found
-    for libarary in data['MediaContainer']['Directory']:
-        if libarary['@type'] == 'movie':
-            libarary_id = libarary['@key']
+    for library in data['MediaContainer']['Directory']:
+        if library['@type'] == 'movie':
+            library_id = library['@key']
             break
 
-    if libarary_id is None:
+    if library_id is None:
         logging.error('No movie libraries found, exiting')
         sys.exit(1)
 
     # Get the newest movies
-    url = f'{url}/{libarary_id}/newest'
+    url = f'{url}/{library_id}/newest'
     response = session.get(url)
     newest_movie_list = xmltodict.parse(response.content)
 
