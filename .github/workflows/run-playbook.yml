@@ -15,6 +15,7 @@ jobs:
   Ubuntu_22:
     name: Test Ubuntu 22.04
     runs-on: ubuntu-22.04
+    permissions: {}
     steps:
       - name: Check out repo code
         uses: actions/checkout@v4
@@ -72,6 +73,7 @@ jobs:
   Ubuntu_24:
     name: Test Ubuntu 24.04
     runs-on: ubuntu-24.04
+    permissions: {}
     steps:
       - name: Check out repo code
         uses: actions/checkout@v4
