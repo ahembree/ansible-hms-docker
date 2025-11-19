@@ -1,3 +1,5 @@
+hmsdocker_traefik_version: latest
+
 ## Error Pages settings
 hmsdocker_traefik_errorpages_enabled: true
 

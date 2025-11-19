@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:${TRAEFIK_TAG}
+    image: traefik:${TRAEFIK_TAG:-latest}
     container_name: traefik
     restart: ${RESTART_POLICY}
     security_opt:
