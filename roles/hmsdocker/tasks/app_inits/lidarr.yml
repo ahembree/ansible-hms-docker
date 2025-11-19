@@ -1,285 +1,280 @@
 - name: Lidarr bootstrap - Init Lidarr
   when: hmsdocker_app_bootstrap_lidarr_enabled
   block:
-    - name: Lidarr bootstrap - Ensure Lidarr Config
+    - name: Lidarr bootstrap - Set Lidarr facts
+      ansible.builtin.set_fact:
+        lidarr_url: "http{{ 's' if traefik_ssl_enabled and not 'lidarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if 'lidarr' in expose_ports_enabled_containers }}/api"
+
+    - name: Lidarr bootstrap - Precheck Lidarr API Key
+      ansible.builtin.uri:
+        url: "{{ lidarr_url }}"
+        method: GET
+        status_code: 200
+        body_format: json
+        return_content: true
+        headers:
+          X-Api-Key: "{{ api_keys.lidarr_key }}"
+      register: lidarr_api_key_precheck
+      ignore_errors: true
+
+    - name: Lidarr bootstrap - Ensure Lidarr Bootstrap after API key precheck
+      when: lidarr_api_key_precheck.status == 200
       block:
-        - name: Lidarr bootstrap - Get lidarr container info
-          community.docker.docker_container_info:
-            name: lidarr
-          register: lidarr_container_info
-
-        - name: Lidarr bootstrap - Set Lidarr facts
-          ansible.builtin.set_fact:
-            lidarr_url: "http{{ 's' if traefik_ssl_enabled and not 'lidarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':8686' if 'lidarr' in expose_ports_enabled_containers }}/api"
-
-        - name: Lidarr bootstrap - Precheck Lidarr API Key
+        - name: Lidarr bootstrap - Get download clients
           ansible.builtin.uri:
-            url: "{{ lidarr_url }}"
+            url: "{{ lidarr_url }}/v1/downloadclient"
             method: GET
             status_code: 200
             body_format: json
             return_content: true
             headers:
               X-Api-Key: "{{ api_keys.lidarr_key }}"
-          register: lidarr_api_key_precheck
+          register: lidarr_downloaders
 
-        - name: Lidarr bootstrap - Ensure download clients in Lidarr
-          block:
-            - name: Lidarr bootstrap - Get download clients
-              ansible.builtin.uri:
-                url: "{{ lidarr_url }}/v1/downloadclient"
-                method: GET
-                status_code: 200
-                body_format: json
-                return_content: true
-                headers:
-                  X-Api-Key: "{{ api_keys.lidarr_key }}"
-              register: lidarr_downloaders
+        - name: Lidarr bootstrap - Set Lidarr download client Facts
+          ansible.builtin.set_fact:
+            lidarr_download_clients: "{{ lidarr_downloaders.json | items2dict(key_name='name', value_name='id') }}" # | json_query('[].name') }}"
 
-            - name: Lidarr bootstrap - Set Lidarr download client Facts
-              ansible.builtin.set_fact:
-                lidarr_download_clients: "{{ lidarr_downloaders.json | items2dict(key_name='name', value_name='id') }}" # | json_query('[].name') }}"
-
-            - name: Lidarr bootstrap - Configure Transmission download client in Lidarr
-              when:
-                - hmsd_app_init_config_prefix + 'Transmission' not in lidarr_download_clients.keys()
-                - "'transmission' in enabled_containers"
-              ansible.builtin.uri:
-                url: "{{ lidarr_url }}/v1/downloadclient"
-                method: POST
-                body: {
-                  name: "{{ hmsd_app_init_config_prefix }}Transmission",
-                  implementation: "Transmission",
-                  configContract: "TransmissionSettings",
-                  removeCompletedDownloads: true,
-                  removeFailedDownloads: true,
-                  priority: 1,
-                  enable: true,
-                  fields: [
-                    {
-                      name: "host",
-                      value: "transmission"
-                    },
-                    {
-                      name: "port",
-                      value: 9091
-                    },
-                    {
-                      name: "useSsl",
-                      value: false
-                    },
-                    {
-                      name: "urlBase",
-                      value: "/transmission/"
-                    },
-                    {
-                      name: "username"
-                    },
-                    {
-                      name: "password"
-                    },
-                    {
-                      name: "musicCategory",
-                      value: "music-lidarr"
-                    },
-                    {
-                      name: "musicDirectory"
-                    },
-                    {
-                      name: "recentMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "olderMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "addPaused",
-                      value: false
-                    }
-                  ]
+        - name: Lidarr bootstrap - Configure Transmission download client in Lidarr
+          when:
+            - hmsd_app_init_config_prefix + 'Transmission' not in lidarr_download_clients.keys()
+            - "'transmission' in enabled_containers"
+          ansible.builtin.uri:
+            url: "{{ lidarr_url }}/v1/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}Transmission",
+              implementation: "Transmission",
+              configContract: "TransmissionSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              priority: 1,
+              enable: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "transmission"
+                },
+                {
+                  name: "port",
+                  value: 9091
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase",
+                  value: "/transmission/"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password"
+                },
+                {
+                  name: "musicCategory",
+                  value: "music-lidarr"
+                },
+                {
+                  name: "musicDirectory"
+                },
+                {
+                  name: "recentMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "olderMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "addPaused",
+                  value: false
                 }
-                status_code: 201
-                body_format: json
-                return_content: true
-                headers:
-                  X-Api-Key: "{{ api_keys.lidarr_key }}"
-              register: lidarr_req_add_download_client
-              changed_when: lidarr_req_add_download_client.status == 201
+              ]
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ api_keys.lidarr_key }}"
+          register: lidarr_req_add_download_client
+          changed_when: lidarr_req_add_download_client.status == 201
 
-            - name: Lidarr bootstrap - Configure qBittorrent download client in Lidarr
-              when:
-                - hmsd_app_init_config_prefix + 'qBittorrent' not in lidarr_download_clients.keys()
-                - "'qbittorrent' in enabled_containers"
-                # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
-                - not is_github_runner
-              ansible.builtin.uri:
-                url: "{{ lidarr_url }}/v1/downloadclient"
-                method: POST
-                body: {
-                  name: "{{ hmsd_app_init_config_prefix }}qBittorrent",
-                  enable: true,
-                  priority: 1,
-                  implementation: "QBittorrent",
-                  configContract: "QBittorrentSettings",
-                  removeCompletedDownloads: true,
-                  removeFailedDownloads: true,
-                  fields: [
-                    {
-                      name: "host",
-                      value: "qbittorrent"
-                    },
-                    {
-                      name: "port",
-                      value: 8086
-                    },
-                    {
-                      name: "useSsl",
-                      value: false
-                    },
-                    {
-                      name: "urlBase"
-                    },
-                    {
-                      name: "username"
-                    },
-                    {
-                      name: "password"
-                    },
-                    {
-                      name: "musicCategory",
-                      value: "music-lidarr"
-                    },
-                    {
-                      name: "musicImportedCategory"
-                    },
-                    {
-                      name: "recentMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "olderMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "initialState",
-                      value: 0
-                    },
-                    {
-                      name: "sequentialOrder",
-                      value: false
-                    },
-                    {
-                      name: "firstAndLast",
-                      value: false
-                    },
-                    {
-                      name: "contentLayout",
-                      value: 0
-                    }
-                  ],
+        - name: Lidarr bootstrap - Configure qBittorrent download client in Lidarr
+          when:
+            - hmsd_app_init_config_prefix + 'qBittorrent' not in lidarr_download_clients.keys()
+            - "'qbittorrent' in enabled_containers"
+            # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+            - not is_github_runner
+          ansible.builtin.uri:
+            url: "{{ lidarr_url }}/v1/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}qBittorrent",
+              enable: true,
+              priority: 1,
+              implementation: "QBittorrent",
+              configContract: "QBittorrentSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "qbittorrent"
+                },
+                {
+                  name: "port",
+                  value: 8086
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password"
+                },
+                {
+                  name: "musicCategory",
+                  value: "music-lidarr"
+                },
+                {
+                  name: "musicImportedCategory"
+                },
+                {
+                  name: "recentMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "olderMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "initialState",
+                  value: 0
+                },
+                {
+                  name: "sequentialOrder",
+                  value: false
+                },
+                {
+                  name: "firstAndLast",
+                  value: false
+                },
+                {
+                  name: "contentLayout",
+                  value: 0
                 }
-                status_code: 201
-                body_format: json
-                return_content: true
-                headers:
-                  X-Api-Key: "{{ api_keys.lidarr_key }}"
-              register: lidarr_req_add_download_client
-              changed_when: lidarr_req_add_download_client.status == 201
+              ],
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ api_keys.lidarr_key }}"
+          register: lidarr_req_add_download_client
+          changed_when: lidarr_req_add_download_client.status == 201
 
-            - name: Lidarr bootstrap - Configure Deluge download client in Lidarr
-              when:
-                - hmsd_app_init_config_prefix + 'Deluge' not in lidarr_download_clients.keys()
-                - "'deluge' in enabled_containers"
-              ansible.builtin.uri:
-                url: "{{ lidarr_url }}/v1/downloadclient"
-                method: POST
-                body: {
-                  name: "{{ hmsd_app_init_config_prefix }}Deluge",
-                  enable: true,
-                  priority: 1,
-                  implementation: "Deluge",
-                  configContract: "DelugeSettings",
-                  removeCompletedDownloads: true,
-                  removeFailedDownloads: true,
-                  fields: [
-                    {
-                      name: "host",
-                      value: "deluge"
-                    },
-                    {
-                      name: "port",
-                      value: 8112
-                    },
-                    {
-                      name: "useSsl",
-                      value: false
-                    },
-                    {
-                      name: "urlBase"
-                    },
-                    {
-                      name: "username"
-                    },
-                    {
-                      name: "password",
-                      value: "deluge"
-                    },
-                    {
-                      name: "musicCategory",
-                      value: ""
-                    },
-                    {
-                      name: "musicImportedCategory"
-                    },
-                    {
-                      name: "recentMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "olderMusicPriority",
-                      value: 0
-                    },
-                    {
-                      name: "initialState",
-                      value: 0
-                    },
-                    {
-                      name: "sequentialOrder",
-                      value: false
-                    },
-                    {
-                      name: "firstAndLast",
-                      value: false
-                    },
-                    {
-                      name: "contentLayout",
-                      value: 0
-                    }
-                  ],
+        - name: Lidarr bootstrap - Configure Deluge download client in Lidarr
+          when:
+            - hmsd_app_init_config_prefix + 'Deluge' not in lidarr_download_clients.keys()
+            - "'deluge' in enabled_containers"
+          ansible.builtin.uri:
+            url: "{{ lidarr_url }}/v1/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}Deluge",
+              enable: true,
+              priority: 1,
+              implementation: "Deluge",
+              configContract: "DelugeSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "deluge"
+                },
+                {
+                  name: "port",
+                  value: 8112
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password",
+                  value: "deluge"
+                },
+                {
+                  name: "musicCategory",
+                  value: ""
+                },
+                {
+                  name: "musicImportedCategory"
+                },
+                {
+                  name: "recentMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "olderMusicPriority",
+                  value: 0
+                },
+                {
+                  name: "initialState",
+                  value: 0
+                },
+                {
+                  name: "sequentialOrder",
+                  value: false
+                },
+                {
+                  name: "firstAndLast",
+                  value: false
+                },
+                {
+                  name: "contentLayout",
+                  value: 0
                 }
-                status_code: 201
-                body_format: json
-                return_content: true
-                headers:
-                  X-Api-Key: "{{ api_keys.lidarr_key }}"
-              register: lidarr_req_add_download_client
-              changed_when: lidarr_req_add_download_client.status == 201
+              ],
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ api_keys.lidarr_key }}"
+          register: lidarr_req_add_download_client
+          changed_when: lidarr_req_add_download_client.status == 201
 
-            - name: Lidarr bootstrap - Remove download clients in Lidarr if not enabled
-              when:
-                - hmsd_app_init_config_prefix + item in lidarr_download_clients.keys()
-                - item | lower not in enabled_containers
-                - hmsdocker_app_bootstrap_delete_unused
-              ansible.builtin.uri:
-                url: "{{ lidarr_url }}/v1/downloadclient/{{ lidarr_download_clients[hmsd_app_init_config_prefix + item] }}"
-                method: DELETE
-                status_code: 200
-                headers:
-                  X-Api-Key: "{{ api_keys.lidarr_key }}"
-              register: lidarr_req_del_download_client
-              changed_when: lidarr_req_del_download_client.status == 200
-              loop:
-                - Transmission
-                - qBittorrent
-                - Deluge
+        - name: Lidarr bootstrap - Remove download clients in Lidarr if not enabled
+          when:
+            - hmsd_app_init_config_prefix + item in lidarr_download_clients.keys()
+            - item | lower not in enabled_containers
+            - hmsdocker_app_bootstrap_delete_unused
+          ansible.builtin.uri:
+            url: "{{ lidarr_url }}/v1/downloadclient/{{ lidarr_download_clients[hmsd_app_init_config_prefix + item] }}"
+            method: DELETE
+            status_code: 200
+            headers:
+              X-Api-Key: "{{ api_keys.lidarr_key }}"
+          register: lidarr_req_del_download_client
+          changed_when: lidarr_req_del_download_client.status == 200
+          loop:
+            - Transmission
+            - qBittorrent
+            - Deluge
