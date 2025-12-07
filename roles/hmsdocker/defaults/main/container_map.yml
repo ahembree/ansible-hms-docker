@@ -405,4 +405,3 @@ hms_docker_container_map:
   watchtower:
     enabled: yes
     homepage: no
-    homepage_stats: no
