@@ -34,8 +34,8 @@ jobs:
 
       - name: Test build website
         run: |
-          mkdir -p gen-docs/docs/static/config
-          cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/docs/static/config/container_map.yml
+          mkdir -p gen-docs/static/configs
+          cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/static/configs/container_map.yml
           cd gen-docs
           npm run build
           
