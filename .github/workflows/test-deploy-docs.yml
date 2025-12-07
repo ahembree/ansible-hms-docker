@@ -38,3 +38,8 @@ jobs:
           cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/docs/static/config/container_map.yml
           cd gen-docs
           npm run build
+          
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gen-docs/build

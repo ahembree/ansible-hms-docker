@@ -46,4 +46,4 @@ In order to use Authentik with a container through the Tunnel, you will need to 
 
 ## Using Authentik through Cloudflare Tunnel
 
-See the [Authentik docs for this project](../Authentik.md#authentik-through-cloudflare-tunnel)
+See the [Authentik docs for this project](../Authentik.md#authentik-protection-through-cloudflare-tunnel)
