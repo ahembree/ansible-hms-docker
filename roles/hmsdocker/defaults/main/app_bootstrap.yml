@@ -1,4 +1,5 @@
 # If the playbook should attempt to connect supported apps together automatically.
+# NOTE: This requires DNS records to be configured for the various apps
 hmsdocker_app_bootstrap: false
 
 # If the created connections in the apps should be removed if the target resource is disabled
