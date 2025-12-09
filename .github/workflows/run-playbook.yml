@@ -98,7 +98,6 @@ jobs:
           cp ./roles/hmsdocker/defaults/main/*.yml ./inventory/group_vars/all
           chmod 0600 ./inventory/group_vars/all/*.yml
           make install-reqs
-          make update
 
       - name: Run playbook in check mode
         run: >-
