@@ -76,7 +76,7 @@ verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
 update: $(YQ_LOCAL)
-	@echo "Updating from Git repo..." && git pull
+	@echo "Updating from Git repo..." && git pull origin master
 	@echo "Updating variables..."
 	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
 	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
