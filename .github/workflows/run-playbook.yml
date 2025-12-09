@@ -5,6 +5,8 @@ on:
     paths-ignore: 
       - 'gen-docs/**'
   pull_request:
+    paths-ignore: 
+      - 'gen-docs/**'
   schedule:
     - cron:  '23 9 * * 0'
 
