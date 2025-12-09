@@ -15,7 +15,7 @@ At the time of implementation, this list is:
 
 :::note
 
-Container startup time will take longer after enabling
+Container startup time will take longer after enabling and validations may fail, but it will not stop the playbook or containers from running.
 
 :::
 

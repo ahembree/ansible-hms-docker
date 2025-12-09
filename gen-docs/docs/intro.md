@@ -14,7 +14,9 @@ ansible-hms-docker helps setup a home media server automation pipeline using man
 
 The idea was to go from a fresh OS install to a fully running media server after only installing Ansible and configuring variables.
 
-Setting up the individual container configurations, such as for Sonarr, Radarr, Overseerr, Prowlarr, etc. are outside the scope of this project. The purpose of this project is to ensure the necessary base containers are running with the appropriate configs. There is a basic outline of how to connect the containers together in the [Container Connections](./Examples/container-connections.md) doc.
+Setting up the individual container configurations, such as for Sonarr, Radarr, Overseerr, Prowlarr, etc. are outside the scope of this project as they are typically personal preference, but there is a workflow to automatically _connect_ a number of apps together. See the [App Bootstrap](./getting-started/app-bootstrap.md) documentation for more information.
+
+The purpose of this project is to ensure the necessary base containers are running with the appropriate configs. There is a basic outline of how to connect the containers together in the [Container Connections](./Examples/container-connections.md) doc.
 
 ## Features
 

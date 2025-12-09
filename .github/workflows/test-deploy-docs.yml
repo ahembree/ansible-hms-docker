@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'gen-docs/**'
+      - 'roles/hmsdocker/defaults/main/container_map.yml'
   pull_request:
     branches:
       - master
     paths:
       - 'gen-docs/**'
+      - 'roles/hmsdocker/defaults/main/container_map.yml'
 
 jobs:
   test-deploy:
@@ -32,5 +34,12 @@ jobs:
 
       - name: Test build website
         run: |
+          mkdir -p gen-docs/static/configs
+          cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/static/configs/container_map.yml
           cd gen-docs
           npm run build
+          
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gen-docs/build

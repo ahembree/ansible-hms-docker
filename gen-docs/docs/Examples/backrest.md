@@ -6,11 +6,11 @@ In general:
 
 1. Have a backup destination
 2. Configure a "Repository" to point to that destination
-    a. :::warning
+    :::warning
 
-      BE SURE TO CREATE A BACKUP OF YOUR ENCRYPTION KEY SOMEWHERE SAFE SINCE THIS IS REQUIRED FOR RESTORE
+    Be sure to create a backup of your encryption key somewhere safe since this is required for restore
 
-      :::
+    :::
 3. Configure a "Plan" to perform the backups from `/opt/hms-docker` (mounted in the container as read-only by default) to the configured Repository
 
 Some repositories may require rclone configuration, which is also outside the scope of this project.

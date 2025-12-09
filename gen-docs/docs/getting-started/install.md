@@ -28,6 +28,8 @@ If installing to the same system you will clone/download this repo to, proceed t
 
 ### Remote Host
 
+A "remote host" install method is meant for more advanced users that have familiarity with Ansible.
+
 #### Requirements
 
 - Ability to SSH into remote host
@@ -70,19 +72,19 @@ all:
 
 ## Configuration Files
 
-:::tip
+    :::tip
 
-All configuration files are stored in `inventory/group_vars/all` after running the next command
+    All configuration files are stored in `inventory/group_vars/all` after running the next command
 
-:::
+    :::
+
+    :::warning
+
+    Re-running this command will overwrite any existing files in the config directory (a reset to default configuration)
+
+    :::
 
 4. To copy the default configuration files, run `make config`
-
-:::warning
-
-Re-running this command will overwrite any existing files in the config directory (a reset to default configuration)
-
-:::
 
 ---
 
@@ -93,16 +95,6 @@ To select the containers you want to use, you will need to modify the `inventory
 To enable a container, set its `enabled` value to `true` or `yes`.
 
 For an example of a container map entry and the description of what each setting does, check the [Container Map](../container-map.md) docs
-
----
-
-There is a small number of containers not in this list since they do not need config directories and are not routed through Traefik.
-
-Current list of containers not in the container map config file:
-
-- Cloudflare DDNS (see the [Cloudflare DDNS](../config-docs/Cloudflare/ddns.md) page)
-
----
 
 ## Service Configuration
 
@@ -122,8 +114,6 @@ Any future containers variables will need to be added to your config file manual
 
 The default variable files are found in `roles/hmsdocker/defaults/main/`
 
-For adding a newly supported container, see [Updating](./updating.md#new-containers)
-
 :::
 
 ### Required Settings
@@ -139,7 +129,7 @@ In `inventory/group_vars/all/main.yml`:
   - `cifs` if using Samba or a Windows file share
   - `local` if using a local drive/directory on the same system
 
-- `hms_docker_mount_path` : This is where the media and download folders will be "mounted". Recommended to change if using a network share and/or other drive in the system. This will translate to `/data` within the containers.
+- `hms_docker_mount_path` : This is where the media and download folders will be "mounted". Recommended to change if using a network share and/or other drive in the system. This will mount to `/data` within the containers.
 
 #### Plex (if enabled)
 

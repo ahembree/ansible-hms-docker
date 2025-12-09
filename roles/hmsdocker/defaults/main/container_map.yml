@@ -1,407 +1,444 @@
 # The container map, use this to disable specific containers from running or being accessible by Traefik
+
 # Values:
-#  `enabled`: Enables or disables the container
-#  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
-#  `directory`: Creates the container directory within the apps folder
-#  `traefik`: Enables or disables accessing the container via Traefik
 #  `authentik`: Enables or disables accessing the container via Authentik
-#  `authentik_provider_type`: Enables or disables accessing the container via Authentik HTTP Proxy. Disable if application does NOT need an additional proxy layer (such as for OAuth or OpenID Connect)
-#  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions, does not expose the container port)
+#  `authentik_provider_type`: The type of Authentik provider. Default is `proxy`, add with value of `oauth2` (authentik_provider_type: oauth2) if you know the service uses OAuth2
+#  `directory`: Creates the container directory within the apps folder
+#  `enabled`: Enables or disables the container
 #  `expose_ports`: Enables the container ports to be open on the host (so you can access the containers via <IP>:<port>)
+#  `expose_to_public`: Enables or disables exposing the container to the public internet via Traefik (removes allowlist restrictions, does not expose the container port)
 #  `homepage`: Enables or disables Homepage container integration (if supported)
 #  `homepage_stats`: Displays the container stats in Homepage (CPU, RAM, network traffic)
+#  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
+#  `traefik`: Enables or disables accessing the container via Traefik
 
 hms_docker_container_map:
-  traefik:
-    enabled: yes
-    proxy_host_rule: traefik
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-  sonarr:
-    enabled: yes
-    proxy_host_rule: sonarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  radarr:
-    enabled: yes
-    proxy_host_rule: radarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  bazarr:
-    enabled: yes
-    proxy_host_rule: bazarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  transmission:
-    enabled: yes
-    proxy_host_rule: transmission
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  portainer:
-    enabled: yes
-    proxy_host_rule: portainer
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: oauth2
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  overseerr:
-    enabled: yes
-    proxy_host_rule: overseerr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  jellyseerr:
-    enabled: no
-    proxy_host_rule: jellyseerr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  prowlarr:
-    enabled: yes
-    proxy_host_rule: prowlarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  requestrr:
-    enabled: yes
-    proxy_host_rule: requestrr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  plex:
-    enabled: yes
-    proxy_host_rule: plex
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  tautulli:
-    enabled: yes
-    proxy_host_rule: tautulli
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  nzbget:
-    enabled: no
-    proxy_host_rule: nzbget
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  sabnzbd:
-    enabled: no
-    proxy_host_rule: sabnzbd
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
   authentik:
-    enabled: no
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
     proxy_host_rule: authentik
-    directory: yes
-    traefik: yes
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  tdarr:
-    enabled: no
-    proxy_host_rule: tdarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  homepage:
-    enabled: no
-    proxy_host_rule: homepage
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: no
-  uptimekuma:
-    enabled: no
-    proxy_host_rule: uptime-kuma
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  heimdall:
-    enabled: no
-    proxy_host_rule: heimdall
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  kavita:
-    enabled: no
-    proxy_host_rule: kavita
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  calibre:
-    enabled: no
-    proxy_host_rule: calibre
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  jellyfin:
-    enabled: no
-    proxy_host_rule: jellyfin
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  emby:
-    enabled: no
-    proxy_host_rule: emby
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  maintainerr:
-    enabled: no
-    proxy_host_rule: maintainerr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  unpackerr:
-    enabled: no
-    proxy_host_rule: unpackerr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  lidarr:
-    enabled: no
-    proxy_host_rule: lidarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
+    traefik: true
   autobrr:
-    enabled: no
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
     proxy_host_rule: autobrr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  notifiarr:
-    enabled: no
-    proxy_host_rule: notifiarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  speedtest-tracker:
-    enabled: no
-    proxy_host_rule: speedtest
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  recyclarr:
-    enabled: no
-    directory: yes
-  tinymediamanager:
-    enabled: no
-    proxy_host_rule: tmm
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  pasta:
-    enabled: no
-    proxy_host_rule: pasta
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  netdata:
-    enabled: no
-  wizarr:
-    enabled: no
-    proxy_host_rule: wizarr
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-  qbittorrent:
-    enabled: no
-    proxy_host_rule: qbittorrent
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  deluge:
-    enabled: no
-    proxy_host_rule: deluge
-    directory: yes
-    traefik: yes
-    authentik: no
-    authentik_provider_type: proxy
-    expose_to_public: no
-    homepage: yes
-    homepage_stats: yes
-  tubearchivist:
-    enabled: no
-    proxy_host_rule: tubearchivist
-    authentik: no
-    directory: yes
-    traefik: yes
-    homepage: yes
-    homepage_stats: yes
-  pinchflat:
-    enabled: no
-    proxy_host_rule: pinchflat
-    authentik: no
-    directory: yes
-    traefik: yes
-    homepage: yes
-    homepage_stats: yes
-  huntarr:
-    enabled: no
-    proxy_host_rule: huntarr
-    authentik: no
-    directory: yes
-    traefik: yes
-    homepage: yes
-    homepage_stats: yes
-  checkrr:
-    enabled: no
-    proxy_host_rule: checkrr
-    authentik: no
-    directory: yes
-    traefik: yes
-    homepage: yes
-    homepage_stats: yes
-  flaresolverr:
-    enabled: no
-  tailscale:
-    enabled: no
+    traefik: true
   backrest:
-    enabled: no
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
     proxy_host_rule: backrest
-    authentik: no
-    directory: yes
-    traefik: yes
+    traefik: true
+  bazarr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: bazarr
+    traefik: true
+  calibre:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: calibre
+    traefik: true
+  checkrr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: checkrr
+    traefik: true
   cleanuparr:
-    enabled: no
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
     proxy_host_rule: cleanuparr
-    authentik: no
-    directory: yes
-    traefik: yes
-  fileflows:
-    enabled: no
-    proxy_host_rule: fileflows
-    authentik: no
-    directory: yes
-    traefik: yes
-  unmanic:
-    enabled: no
-    proxy_host_rule: unmanic
-    authentik: no
-    directory: yes
-    traefik: yes
-  dispatcharr:
-    enabled: no
-    proxy_host_rule: dispatcharr
-    authentik: no
-    directory: yes
-    traefik: yes
-  cloudflare-tunnel:
-    enabled: no
-    homepage: no
-    homepage_stats: no
+    traefik: true
   cloudflare-ddns:
-    enabled: no
+    enabled: false
+  cloudflare-tunnel:
+    enabled: false
+    homepage: false
+    homepage_stats: false
+  deluge:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: deluge
+    traefik: true
+  dispatcharr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: dispatcharr
+    traefik: true
+  emby:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: emby
+    traefik: true
+  fileflows:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: fileflows
+    traefik: true
+  flaresolverr:
+    enabled: false
+    expose_ports: false
+  heimdall:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: heimdall
+    traefik: true
+  homepage:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: homepage
+    traefik: true
+  huntarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: huntarr
+    traefik: true
+  jellyfin:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: jellyfin
+    traefik: true
+  jellyseerr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: jellyseerr
+    traefik: true
+  kavita:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: kavita
+    traefik: true
+  lidarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: lidarr
+    traefik: true
+  maintainerr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: maintainerr
+    traefik: true
+  netdata:
+    enabled: false
+    homepage: true
+    homepage_stats: false
+  notifiarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: notifiarr
+    traefik: true
+  nzbget:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: nzbget
+    traefik: true
+  overseerr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: overseerr
+    traefik: true
+  pasta:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: pasta
+    traefik: true
+  pinchflat:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: pinchflat
+    traefik: true
+  plex:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: plex
+    traefik: true
+  portainer:
+    authentik: false
+    authentik_provider_type: oauth2
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: portainer
+    traefik: true
+  prowlarr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: prowlarr
+    traefik: true
+  qbittorrent:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: qbittorrent
+    traefik: true
+  radarr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: radarr
+    traefik: true
+  recyclarr:
+    directory: true
+    enabled: false
+  requestrr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: requestrr
+    traefik: true
+  sabnzbd:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: sabnzbd
+    traefik: true
+  sonarr:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: sonarr
+    traefik: true
+  speedtest-tracker:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: speedtest
+    traefik: true
+  tailscale:
+    enabled: false
+    homepage: false
+    homepage_stats: false
+  tautulli:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tautulli
+    traefik: true
+  tdarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tdarr
+    traefik: true
+  tinymediamanager:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: tmm
+    traefik: true
+  traefik:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: traefik
+    traefik: true
+  transmission:
+    authentik: false
+    directory: true
+    enabled: true
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: transmission
+    traefik: true
+  tubearchivist:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: tubearchivist
+    traefik: true
+  unmanic:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: unmanic
+    traefik: true
+  unpackerr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: unpackerr
+    traefik: true
+  uptimekuma:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: uptime-kuma
+    traefik: true
   watchtower:
-    enabled: yes
-    homepage: no
+    enabled: true
+    homepage: true
+    homepage_stats: false
+  wizarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: wizarr
+    traefik: true

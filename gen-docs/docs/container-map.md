@@ -22,6 +22,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 
 | Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik | Homepage Integration |
 | ---------------------------------------- | ------------------ | -------------------- | ------------------------------ | ------------------------------ | ---------------------- | -------------------- |
+| Watchtower                               | &#9745;            | `watchtower`         |                                |                                | &#9744;                | &#9744;              |
+| Error Pages                              | &#9745;            | `error-pages`        |                                |                                | &#9744;                | &#9744;              |
 | Plex                                     | &#9745;            | `plex`               | `32400`                        | `32400`                        | &#9745;                | &#9745;              |
 | Sonarr                                   | &#9745;            | `sonarr`             | `8989`                         | `8989`                         | &#9745;                | &#9745;              |
 | Sonarr (Separate 4K instance if enabled) | &#9745;            | `sonarr-4k`          | `8990`                         | `8989`                         | &#9745;                | &#9745;              |
@@ -74,9 +76,6 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Cloudflare Tunnel                        | &#9744;            | `cloudflare-tunnel`  |                                |                                | &#9744;                | &#9744;              |
 | Cloudflare DDNS                          | &#9744;            | `cloudflare-ddns`    |                                |                                | &#9744;                | &#9744;              |
 | Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9744;              |
-| Watchtower                               | &#9745;            | `watchtower`         |                                |                                | &#9744;                | &#9744;              |
-| Error Pages                              | &#9745;            | `error-pages`        |                                |                                | &#9744;                | &#9744;              |
-
 
 ## Container Map Entry Example
 
@@ -85,15 +84,15 @@ Here is an example of a container map entry for Sonarr:
 ```yaml
 ...
   sonarr: # Do not modify this value, this is the "key"
-    enabled: yes # Enables or disables the container named above
-    proxy_host_rule: sonarr # The subdomain that will route to the container (based on HTTP Host header)
-    directory: yes # Do not modify, controls if a container "app" folder is created
-    traefik: yes # If container should be accessible via Traefik (such as `<proxy_host_rule>.<domain>`)
     authentik: no # If container should be protected by Authentik
-    authentik_provider_type: proxy # The type of integration with Authentik. Likely `proxy` unless you know it's `oauth2`
-    expose_to_public: no # If the container should be exposed to public (0.0.0.0/0) traffic
+    authentik_provider_type: proxy # The type of integration with Authentik. Only required to set to `oauth2` if you know it's OAuth2, otherwise `proxy` is the default
+    directory: yes # Do not modify, controls if a container "app" folder is created
+    enabled: yes # Enables or disables the container named above
     expose_ports: no # If the container ports should be open on the host
+    expose_to_public: no # If the container should be exposed to public (0.0.0.0/0) traffic through Traefik IP allowlist rules
     homepage: yes # If the integration with the Homepage container should be enabled
     homepage_stats: no # Enables advanced stats for the container within Homepage (CPU, RAM, RX/TX)
+    proxy_host_rule: sonarr # The subdomain that will route to the container (based on HTTP Host header)
+    traefik: yes # If container should be accessible via Traefik (such as `<proxy_host_rule>.<domain>`)
 ...
 ```

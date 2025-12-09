@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'gen-docs/**'
+      - 'roles/hmsdocker/defaults/main/container_map.yml'
 
 jobs:
   build:
@@ -31,6 +32,8 @@ jobs:
 
       - name: Build website
         run: |
+          mkdir -p gen-docs/static/configs
+          cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/static/configs/container_map.yml
           cd gen-docs
           npm run build
 

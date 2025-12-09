@@ -15,9 +15,12 @@ RHEL based systems (CentOS 8, Fedora, Alma Linux, Rocky Linux) may work, but are
 ## Hardware
 
 - Minimum 4 CPU Cores
-- Minimum 4GB RAM (2GB additional if using Authentik)
+  - Recommended to use Intel chips for [Intel Quick Sync Video (QSV)](https://www.intel.com/content/www/us/en/support/articles/000029338/graphics.html) hardware transcoding
+- Minimum 8GB RAM recommended
   - Varies widely depending on your selected containers
-- Minimum 8GB free disk space
+- Minimum 32GB free disk space
+  - Varies based on containers used and where media data is stored
+  - Highly recommended to have separate or network attached storage for media data
 
 ## Software / Services
 

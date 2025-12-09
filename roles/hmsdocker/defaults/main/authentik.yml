@@ -1,6 +1,4 @@
 ### Authentik settings
-authentik_geoip_account_id: ""
-authentik_geoip_license_key: ""
 
 # If cloudflare should be enabled when routing traffic through a Cloudflare Tunnel
 # This requires a lot of configuring on your end to ensure that any services exposed through a Cloudflare Tunnel are secure
@@ -12,3 +10,7 @@ authentik_pg_db: authentik
 authentik_key_path: "{{ hms_docker_data_path }}/.authentik.key"
 authentik_pgpass_path: "{{ hms_docker_data_path }}/.authentik.pgpass"
 authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+
+# These are not required if not using GeoIP
+authentik_geoip_account_id: ""
+authentik_geoip_license_key: ""
