@@ -8,6 +8,8 @@ Container data directory: `/opt/hms-docker/apps/<container>`
 
 Default mount path for local share (known as the `mount_path` in this readme): `/opt/hms-docker/media_data/`
 
+* This will be mounted to `/data` within containers
+
 Media folder that contains movie and tv show folders (known as the `media_path` in this readme): `<mount_path>/_library`
 
 Movie folder: `<media_path>/Movies`

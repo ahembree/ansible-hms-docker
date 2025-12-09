@@ -15,6 +15,8 @@ The domain used is defined in the variable `hms_docker_domain` in `inventory/gro
 
 ### Internally
 
+DNS records can come down to personal preference depending on how you want your infrastructure setup, so the below are just examples.
+
 If you do not already have a "wildcard" DNS record (`*.example.com`) setup for the domain you used on your LOCAL DNS server, create this `A` record to point to the private IP address of the server.
 
 You can also create individual `A` records for each container listed in the [Container Map](../container-map.md), or have 1 `A` record with multiple `CNAME` records pointed to the `A` record. This will allow you to change 1 DNS record if the IP were to ever change, instead of having to change many individual records.

@@ -89,7 +89,7 @@ update: $(YQ_LOCAL)
 	@echo "Fetching container map updates from $(REMOTE_CONFIG_URL)/container_map.yml..."
 	@tmpfile=$$(mktemp); \
 	curl -s "$(REMOTE_CONFIG_URL)/container_map.yml" > "$$tmpfile"; \
-	export PATH="$(PWD)/bin:$$PATH"; \
+	echo Checking for new services...; \
 	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$tmpfile" | while read service; do \
 		exists=$$($(YQ_LOCAL) eval ".hms_docker_container_map | has(\"$$service\")" "$(CUSTOM_CONF_DIR)/container_map.yml"); \
 		if [ "$$exists" = "false" ]; then \
@@ -105,6 +105,7 @@ update: $(YQ_LOCAL)
 			done; \
 		fi; \
 	done; \
+	echo Coalescing service controls...; \
 	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$tmpfile" | while read service; do \
 		remote_keys=$$($(YQ_LOCAL) -r '.hms_docker_container_map."'$$service'" | keys | .[]' "$$tmpfile"); \
 		local_keys=$$($(YQ_LOCAL) -r '.hms_docker_container_map."'$$service'" | keys | .[]' "$(CUSTOM_CONF_DIR)/container_map.yml"); \
