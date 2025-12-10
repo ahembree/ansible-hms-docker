@@ -27,9 +27,11 @@ services:
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] | default('requestrr') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'requestrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker' if 'requestrr' in authentik_enabled_containers }}
     {% endif %}
-    healthcheck:
-      test: echo > /dev/tcp/127.0.0.1/4545 || exit 1
-      interval: 5s
-      timeout: 2s
-      retries: 3
-      start_period: 30s
+    # This healthcheck does not work, causing this container to not be accessible via Traefik since Traefik looks at health status
+    # Commented out instead of removing so I know not to add it back or try something different that does work
+    # healthcheck:
+    #   test: echo > /dev/tcp/127.0.0.1/4545 || exit 1
+    #   interval: 5s
+    #   timeout: 2s
+    #   retries: 3
+    #   start_period: 30s
