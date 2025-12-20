@@ -26,7 +26,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
 - [Calibre](https://github.com/linuxserver/docker-calibre): ebook management
 - [Tdarr](https://github.com/HaveAGitGat/Tdarr): media transcoding
-- [Maintainerr](https://github.com/jorenn92/Maintainerr): media management
+- [Maintainerr](https://github.com/Maintainerr/Maintainerr): media management
 - [tinyMediaManager](https://gitlab.com/tinyMediaManager/tinyMediaManager): media management
 - [Tube Archivist](https://github.com/tubearchivist/tubearchivist): YouTube media management
 - [Pinchflat](https://github.com/kieraneglin/pinchflat): YouTube media management
