@@ -56,8 +56,6 @@ all:
 
 2. Install requirements and clone the repository:
 
-   Ubuntu:
-
    ```bash
    sudo apt install git make python3-pip -y
    ```
@@ -157,6 +155,8 @@ If you have your media content stored on a NAS that will be connected via NFS or
 
 ## Running the playbook
 
+### Running on Local Host
+
 You can run the playbook using the following commands:
 
 ```bash
@@ -165,6 +165,18 @@ sudo make check
 
 # Apply changes
 sudo make apply
+```
+
+### Running on Remote Host
+
+If you are running the playbook using a "control node" as outlined in [the Remote Host](#remote-host) section,
+
+```bash
+# Run in "Check mode"
+ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff --check
+
+# Apply changes
+ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff
 ```
 
 ### Debug mode

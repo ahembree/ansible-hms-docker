@@ -15,24 +15,27 @@ Have you ran `make update` after updating your local code: yes/no
 
 What version of HMS-Docker are you currently using (run `cat /opt/hms-docker/.hmsd-version`), or is this a new install: 
 
-## Operating System and Version:
+## Operating System and Version
 
 ```bash
-uname -a
+cat /etc/os-release
 ansible --version
 ```
 
 OS name and version: 
 
-## Describe the bug:
+## Describe the bug
 
 A clear and concise description of what the bug is.
 
 ## Expected behavior
+
 A clear and concise description of what you expected to happen.
 
 ## List any applicable variables and their values
+
 As some examples, if the issue is related to a below item then provide the variables from the mentioned file:
+
 - Cloudflare: `cloudflare.yml`
 - Authentik: `authentik.yml`
 - NAS: `nas.yml` and the appropriate type (such as NFS, CIFS, or if it's an additional path)
@@ -42,4 +45,5 @@ As some examples, if the issue is related to a below item then provide the varia
 Please be sure to redact any sensitive information
 
 ## Additional context
+
 Add any other context about the problem here, such as what you've already tried
