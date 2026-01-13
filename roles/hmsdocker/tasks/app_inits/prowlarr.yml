@@ -112,7 +112,7 @@
                   value: "{{ '8888' if item == 'transmission' else '8118' }}"
                 }
               ],
-              tags: "[{{ prowlarr_tag_list[prowlarr_proxy_tag_prefix + item] }}]"
+              tags: ["{{ prowlarr_tag_list[prowlarr_proxy_tag_prefix + item] }}"]
             }
             status_code: 201
             body_format: json
