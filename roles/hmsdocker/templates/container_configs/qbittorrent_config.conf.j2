@@ -1,3 +1,7 @@
+[BitTorrent]
+Session\DefaultSavePath=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/qbittorrent
+Session\TempPath=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/qbittorrent/incomplete
+
 [Preferences]
 WebUI\Address=*
 WebUI\AuthSubnetWhitelist=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
