@@ -105,6 +105,6 @@ FlareSolverr uses Prowlarrs `General -> Proxy` settings. If this setting is inva
 
 ## Unsupported Services
 
-### Overseerr
+### Overseerr (and maybe Jellyseerr)
 
 Overseerr is unsupported due to it requiring you to initially authenticate with Plex after the container first starts in order for its API key to work and it guides you through the setup process.

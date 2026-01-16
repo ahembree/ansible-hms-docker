@@ -17,7 +17,11 @@ services:
     environment:
       - TZ=${TIMEZONE}
       - RECYCLARR_CREATE_CONFIG=true
+      - SONARR_URL=http://sonarr:8989
       - SONARR_KEY=${SONARR_KEY}
+      - SONARR_4K_URL=http://sonarr-4k:8989
       - SONARR_4K_KEY=${SONARR_4K_KEY}
+      - RADARR_URL=http://radarr:7878
       - RADARR_KEY=${RADARR_KEY}
+      - RADARR_4K_URL=http://radarr-4k:7878
       - RADARR_4K_KEY=${RADARR_4K_KEY}
