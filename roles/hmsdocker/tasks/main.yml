@@ -326,6 +326,7 @@
     project_name: "{{ project_name }}"
     state: "{{ hms_docker_compose_container_state }}"
     remove_orphans: "{{ container_remove_orphans }}"
+    build: never
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location
   when:
     - not ansible_check_mode
