@@ -54,10 +54,10 @@ In order to enable this port forwarding, you will need to add the following to t
 services:
   qbittorrent:
     environment:
-      VPN_PROV=pia
-      STRICT_PORT_FORWARDING=yes
+      - VPN_PROV=pia
+      - STRICT_PORT_FORWARDING=yes
   deluge:
     environment:
-      VPN_PROV=pia
-      STRICT_PORT_FORWARDING=yes
+      - VPN_PROV=pia
+      - STRICT_PORT_FORWARDING=yes
 ```
