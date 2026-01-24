@@ -1,0 +1,22 @@
+services:
+  cross-seed:
+    image: ghcr.io/cross-seed/cross-seed:6
+    container_name: cross-seed
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+    {% if 'cross-seed' in expose_ports_enabled_containers %}
+    ports:
+      - "2468:2468"
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/cross-seed/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    command: daemon
+    environment:
+      - TZ=${TIMEZONE}

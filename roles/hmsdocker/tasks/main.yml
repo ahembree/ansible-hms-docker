@@ -263,7 +263,6 @@
 
 - name: Retrieve app API keys if available
   ansible.builtin.import_tasks: "app_api_key_reader.yml"
-  when: "'homepage' in enabled_containers"
 
 - name: Ensure env
   ansible.builtin.template:
@@ -283,7 +282,6 @@
     authentik_pgu: "{{ authentik_old_pg_user | default(authentik_pg_user) }}"
     authentik_pgdb: "{{ authentik_old_pg_db | default(authentik_pg_db) }}"
     watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
-
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:
@@ -330,6 +328,15 @@
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location
   when:
     - not ansible_check_mode
+
+- name: Sleep for 15 to allow container configs to generate
+  ansible.builtin.wait_for:
+    timeout: 15
+  when:
+    - not ansible_check_mode
+
+- name: Retrieve app API keys after containers start
+  ansible.builtin.import_tasks: "app_api_key_reader.yml"
 
 - name: Ensure custom scripts
   ansible.builtin.import_tasks: "scripts.yml"
