@@ -34,7 +34,6 @@ services:
       - ${HMSD_APPS_PATH}/fileflows/common:/app/common
       - ${HMSD_MOUNT_PATH}:/data
       - {{ hmsdocker_transcode_temp_path }}/fileflows:/temp
-      - /mnt/hms-docker/backups:/testing_data
     {% if 'fileflows' in traefik_enabled_containers or 'fileflows' in homepage_enabled_containers %}
     labels:
       {% if 'fileflows' in traefik_enabled_containers %}
