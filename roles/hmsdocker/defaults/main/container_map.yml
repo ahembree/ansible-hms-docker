@@ -84,6 +84,10 @@ hms_docker_container_map:
     enabled: false
     homepage: false
     homepage_stats: false
+  cross-seed:
+    directory: true
+    enabled: false
+    expose_ports: false
   deluge:
     authentik: false
     directory: true
@@ -371,6 +375,16 @@ hms_docker_container_map:
     expose_ports: false
     expose_to_public: false
     proxy_host_rule: tmm
+    traefik: true
+  tracearr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tracearr
     traefik: true
   traefik:
     authentik: false

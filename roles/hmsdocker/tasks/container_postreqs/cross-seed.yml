@@ -1,0 +1,12 @@
+# This is a postreq since it relies on API keys being available and prereqs run before API key retrieval
+
+- name: (Postreq - Cross-Seed) - Init config file
+  ansible.builtin.template:
+    src: container_configs/cross-seed.js.j2
+    dest: "{{ hms_docker_apps_path }}/cross-seed/config/config.js"
+    mode: '0644'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    lstrip_blocks: true
+    trim_blocks: true
+    force: false

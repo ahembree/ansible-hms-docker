@@ -46,6 +46,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 
 ## Analytics / Dashboards
 
+- [Tracearr](https://github.com/connorgallopo/Tracearr): real-time monitoring and analytics
 - [Tautulli](https://github.com/Tautulli/Tautulli): analytics
 - [Homepage](https://github.com/gethomepage/homepage): dashboarding / homepage
 - [Heimdall](https://github.com/linuxserver/Heimdall): dashboarding / homepage
@@ -76,6 +77,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
 - [Error-pages](https://github.com/tarampampam/error-pages): Error pages for Traefik
+- [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
 
 ## Adding New Containers
 

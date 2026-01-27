@@ -4,9 +4,18 @@ Session\TempPath=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloa
 
 [Preferences]
 WebUI\Address=*
+{% if 'qbittorrent' in traefik_enabled_containers %}
+WebUI\AuthSubnetWhitelist=172.16.0.0/12
+WebUI\AuthSubnetWhitelistEnabled=true
+WebUI\ReverseProxySupportEnabled=true
+WebUI\TrustedReverseProxiesList=traefik
+WebUI\HostHeaderValidation=true
+WebUI\ServerDomains="localhost;qbittorrent;{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.{{ hms_docker_domain }}"
+{% else %}
 WebUI\AuthSubnetWhitelist=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
 WebUI\AuthSubnetWhitelistEnabled=true
-WebUI\CSRFProtection=false
+{% endif %}
+WebUI\CSRFProtection=true
 WebUI\LocalHostAuth=false
 WebUI\Port=8086
 WebUI\ServerDomains=*
