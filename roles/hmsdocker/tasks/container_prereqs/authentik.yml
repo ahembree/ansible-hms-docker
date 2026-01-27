@@ -1,7 +1,7 @@
 ---
 - name: Authentik Prereq - Ensure authentik secret key file
   ansible.builtin.template:
-    src: authentik/authentik_secret.j2
+    src: secret_key_file.j2
     dest: "{{ authentik_key_path }}"
     mode: 0600
     owner: root
@@ -15,7 +15,7 @@
 
 - name: Authentik Prereq - Ensure authentik postgres password file
   ansible.builtin.template:
-    src: authentik/authentik_secret.j2
+    src: secret_key_file.j2
     dest: "{{ authentik_pgpass_path }}"
     mode: 0600
     owner: root

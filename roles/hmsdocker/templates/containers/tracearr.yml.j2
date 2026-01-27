@@ -1,0 +1,116 @@
+# Tracearr - Standard Deployment (Separate Services)
+
+services:
+  tracearr:
+    image: ghcr.io/connorgallopo/tracearr:latest
+    container_name: tracearr
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    {% if 'tracearr' in expose_ports_enabled_containers %}
+    ports:
+      - "3002:3000"
+    {% endif %}
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - TZ=${TIMEZONE}
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-timescale:5432/tracearr
+      - REDIS_URL=redis://tracearr-redis:6379
+      - JWT_SECRET=${TRACEARR_JWT_SECRET}
+      - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - LOG_LEVEL=${TRACEARR_LOG_LEVEL:-info} # Log level (debug, info, warn, error)
+      # - DATABASE_POOL_MAX=50  # Database connection pool size (default: 50)
+    depends_on:
+      tracearr-timescale:
+        condition: service_healthy
+      tracearr-redis:
+        condition: service_healthy
+    networks:
+      - tracearr_net
+      - proxy_net
+    {% if 'tracearr' in traefik_enabled_containers or 'tracearr' in homepage_enabled_containers %}
+    labels:
+      {% if 'tracearr' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.tracearr-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
+      - traefik.http.routers.tracearr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tracearr']['proxy_host_rule'] | default('tracearr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.tracearr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tracearr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tracearr-midware@docker' if 'tracearr' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'tracearr' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=Tracearr
+      - homepage.icon=tracearr.png
+      - homepage.href=http://{{ hms_docker_container_map['tracearr']['proxy_host_rule'] | default('tracearr') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Analytics
+        {% if 'tracearr' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+
+  tracearr-timescale:
+    image: timescale/timescaledb-ha:pg18
+    container_name: tracearr-db
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 512mb  # Required for PostgreSQL shared memory (increase for large imports)
+    # Allow unlimited tuple decompression for migrations on compressed hypertables
+    # Increase lock table size for large imports (Tautulli imports with many TimescaleDB chunks)
+    command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
+    environment:
+      - POSTGRES_USER=tracearr
+      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
+      - POSTGRES_DB=tracearr
+    volumes:
+      - ${HMSD_APPS_PATH}/tracearr/config/postgres:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracearr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tracearr_net
+
+  tracearr-redis:
+    image: redis:8-alpine
+    container_name: tracearr-redis
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    user: ${PUID}:${PGID}
+    security_opt:
+      - no-new-privileges:true
+    command: redis-server --appendonly yes
+    volumes:
+      - ${HMSD_APPS_PATH}/tracearr/config/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tracearr_net
+
+networks:
+  tracearr_net:
+    driver: bridge
+    attachable: false

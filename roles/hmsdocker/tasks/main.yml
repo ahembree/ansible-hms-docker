@@ -282,6 +282,8 @@
     authentik_pgu: "{{ authentik_old_pg_user | default(authentik_pg_user) }}"
     authentik_pgdb: "{{ authentik_old_pg_db | default(authentik_pg_db) }}"
     watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
+    tracearr_jwt_secret: "{{ (prereq_tracearr_slurped_jwt_secret['content'] | b64decode) if prereq_tracearr_slurped_jwt_secret['content'] is defined else '### Will be obtained during full run ###' }}"
+    tracearr_cookie_secret: "{{ (prereq_tracearr_slurped_cookie_secret['content'] | b64decode) if prereq_tracearr_slurped_cookie_secret['content'] is defined else '### Will be obtained during full run ###' }}"
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:

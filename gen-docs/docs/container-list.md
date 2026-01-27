@@ -46,6 +46,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 
 ## Analytics / Dashboards
 
+- [Tracearr](https://github.com/connorgallopo/Tracearr): real-time monitoring and analytics
 - [Tautulli](https://github.com/Tautulli/Tautulli): analytics
 - [Homepage](https://github.com/gethomepage/homepage): dashboarding / homepage
 - [Heimdall](https://github.com/linuxserver/Heimdall): dashboarding / homepage

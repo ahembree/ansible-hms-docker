@@ -76,6 +76,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Cloudflare Tunnel                        | &#9744;            | `cloudflare-tunnel`  |                                |                                | &#9744;                | &#9744;              |
 | Cloudflare DDNS                          | &#9744;            | `cloudflare-ddns`    |                                |                                | &#9744;                | &#9744;              |
 | Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9744;              |
+| Tracearr                                 | &#9744;            | `tracearr`           | `3002`                         | `3000`                         | &#9745;                | &#9745;              |
+| Cross-Seed                               | &#9744;            | `cross-seed`         | `2468`                         | `2468`                         | &#9744;                | &#9744;              |
 
 ## Container Map Entry Example
 

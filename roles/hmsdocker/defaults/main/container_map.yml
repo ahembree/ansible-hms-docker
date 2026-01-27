@@ -376,6 +376,16 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: tmm
     traefik: true
+  tracearr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tracearr
+    traefik: true
   traefik:
     authentik: false
     directory: true

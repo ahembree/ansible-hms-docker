@@ -1,0 +1,55 @@
+- name: (Prereq - Tracearr) - Ensure postgres directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/tracearr/config/postgres"
+    state: directory
+    mode: '0700'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - Tracearr) - Ensure redis directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/tracearr/config/redis"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - Tracearr) - Generate JWT secret
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/tracearr/config/.tracearr_jwt_secret' }}"
+    mode: 0600
+    backup: yes
+    force: no
+  no_log: "{{ not debug_mode }}"
+  register: prereq_tracearr_jwt_secret
+  vars:
+    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+
+- name: (Prereq - Tracearr) - Generate Cookie secret
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/tracearr/config/.tracearr_cookie_secret' }}"
+    mode: 0600
+    backup: yes
+    force: no
+  no_log: "{{ not debug_mode }}"
+  register: prereq_tracearr_cookie_secret
+  vars:
+    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+
+- name: (Prereq - Tracearr) - Slurp Tracearr JWT secret
+  ansible.builtin.slurp:
+    src: "{{ prereq_tracearr_jwt_secret.dest }}"
+  register: prereq_tracearr_slurped_jwt_secret
+  check_mode: false
+  when: prereq_tracearr_jwt_secret.dest is defined
+  no_log: "{{ not debug_mode }}"
+
+- name: (Prereq - Tracearr) - Slurp Tracearr Cookie secret
+  ansible.builtin.slurp:
+    src: "{{ prereq_tracearr_cookie_secret.dest }}"
+  register: prereq_tracearr_slurped_cookie_secret
+  check_mode: false
+  when: prereq_tracearr_cookie_secret.dest is defined
+  no_log: "{{ not debug_mode }}"
