@@ -77,6 +77,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
 - [Error-pages](https://github.com/tarampampam/error-pages): Error pages for Traefik
+- [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
 
 ## Adding New Containers
 
