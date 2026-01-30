@@ -86,6 +86,10 @@ services:
       retries: 5
     networks:
       - tracearr_net
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
   tracearr-redis:
     image: redis:8-alpine
