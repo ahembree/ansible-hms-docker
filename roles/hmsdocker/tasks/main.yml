@@ -166,15 +166,6 @@
     container_postreqs: "{{ enabled_containers | intersect(container_postreq_task_names) }}"
 
 # Moved to container map in v1.9
-- name: Extend enabled_containers list if error pages enabled
-  ansible.builtin.set_fact:
-    enabled_containers: "{{ enabled_containers + ['error-pages'] }}"
-  when:
-    - hmsdocker_traefik_errorpages_enabled | default(true)
-    - "'error-pages' not in enabled_containers"
-    - "'traefik' in enabled_containers"
-
-# Moved to container map in v1.9
 - name: Extend enabled_containers list if flaresolverr enabled
   ansible.builtin.set_fact:
     enabled_containers: "{{ enabled_containers + ['flaresolverr'] }}"

@@ -3,9 +3,6 @@ http:
     internal-secured:
       chain:
         middlewares:
-          {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
-          - error-pages
-          {% endif %}
           - internal-ipallowlist
           - https-only
           - secure-headers
@@ -13,44 +10,9 @@ http:
     external-secured:
       chain:
         middlewares:
-          {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
-          - error-pages
-          {% endif %}
           - external-ipallowlist
           - https-only
           - secure-headers
-
-    internal-secured-no-errorpages:
-      chain:
-        middlewares:
-          - internal-ipallowlist
-          - https-only
-          - secure-headers
-
-    external-secured-no-errorpages:
-      chain:
-        middlewares:
-          - external-ipallowlist
-          - https-only
-          - secure-headers
-
-    internal-ipallowlist-no-errorpages:
-      chain:
-        middlewares:
-          - internal-ipallowlist
-
-    external-ipallowlist-no-errorpages:
-      chain:
-        middlewares:
-          - external-ipallowlist
-
-    {% if hmsdocker_traefik_errorpages_enabled | default(true) %}
-    error-pages:
-      errors:
-        status: 400-599
-        service: error-pages-{{ project_name }}@docker
-        query: /{status}.html
-    {% endif %}
 
     https-only:
       redirectScheme:
