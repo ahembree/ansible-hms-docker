@@ -20,7 +20,7 @@ traefik_ssl_sans: [
   '*.{{ hms_docker_domain }}',
 ]
 
-# The DNS provider to use for SSL generation, check this for supported providers: https://doc.traefik.io/traefik/https/acme/#providers
+# The DNS provider to use for SSL generation, check this for supported providers: https://go-acme.github.io/lego/dns/
 traefik_ssl_dns_provider_code: ""
 
 # The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hms_docker_domain }}"
@@ -30,8 +30,8 @@ traefik_ssl_dns_provider_zone: "{{ hms_docker_domain }}"
 # This is an example if using Cloudflare
 traefik_ssl_dns_provider_environment_vars:
   {
-    "CF_DNS_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
-    "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, can use the same API token as the one for DDNS
+    "CF_DNS_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
+    "CF_ZONE_API_TOKEN": "{{ cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
   }
 
 # The DNS servers to use when generating your SSL certificate
