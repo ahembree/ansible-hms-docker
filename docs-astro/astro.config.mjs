@@ -42,7 +42,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: '/opengraph/hmsd_logo.png'
+						content: '/opengraph/hmsd_opengraph.png'
 					}
 				},
 				{
