@@ -1,7 +1,0 @@
-{
-  "label": "Release Notes",
-  "link": {
-    "type": "generated-index",
-    "description": "Release notes for ansible-hms-docker"
-  }
-}
