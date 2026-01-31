@@ -18,4 +18,4 @@ secrets_env_mode: "0600"
 # These are used to generate Traefik allow-list rules for the proxy so only internal networks are permitted to access certain containers
 # Also controls how some containers treat local network traffic (e.g. Plex, transmission)
 hms_docker_subnet_mask: "24"
-hms_docker_network_subnet: "{{ ansible_default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
+hms_docker_network_subnet: "{{ ansible_facts.default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
