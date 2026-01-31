@@ -13,22 +13,19 @@ export default defineConfig({
 	site: 'https://hmsdocker.dev',
   integrations: [
 		astroExpressiveCode({
-      // Replace the default themes with a custom set of bundled themes:
-      // "dracula" (a dark theme) and "solarized-light"
       themes: ['github-dark-default'],
     }),
 		starlight({
 			favicon: 'favicon.ico',
       plugins: [starlightThemeNext()],
 			customCss: [
-				// Path to your Tailwind base styles:
 				'./src/styles/global.css',
 				'./src/styles/landing.css'
 			],
-			//components: {
-      //  ThemeProvider: './src/components/ForceDarkTheme.astro',
-      //  ThemeSelect: './src/components/EmptyThemeSelect.astro',
-      //},
+			components: {
+        ThemeProvider: './src/components/ForceDarkTheme.astro',
+        ThemeSelect: './src/components/EmptyThemeSelect.astro',
+      },
       title: 'HMS-Docker',
 			logo: {
 				src: './src/assets/hmsd_logo.png'
@@ -39,13 +36,6 @@ export default defineConfig({
 				{ icon: 'document', label: 'Documentation', href: '/intro' }
 			],
       sidebar: [
-				//{
-				//    label: 'Guides',
-				//    items: [
-				//        // Each item here is one entry in the navigation menu.
-				//        { label: 'Example Guide', slug: 'guides/example' },
-				//    ],
-				//},
 				{
 					label: 'Introduction',
 					link: 'intro'
