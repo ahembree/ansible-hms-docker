@@ -5,13 +5,14 @@ on:
     branches:
       - master
     paths:
-      - 'gen-docs/**'
+      - 'docs-astro/**'
       - 'roles/hmsdocker/defaults/main/container_map.yml'
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Docusaurus
-    runs-on: ubuntu-22.04
+    name: Build Astro Docs
+    runs-on: ubuntu-latest
     permissions: {}
     steps:
       - uses: actions/checkout@v4
@@ -23,24 +24,24 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: gen-docs/package-lock.json
+          cache-dependency-path: docs-astro/package-lock.json
 
       - name: Install dependencies
         run: |
-          cd gen-docs
+          cd docs-astro
           npm install --frozen-lockfile
 
       - name: Build website
         run: |
-          mkdir -p gen-docs/static/configs
-          cp roles/hmsdocker/defaults/main/container_map.yml gen-docs/static/configs/container_map.yml
-          cd gen-docs
+          mkdir -p docs-astro/public/configs
+          cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
+          cd docs-astro
           npm run build
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: gen-docs/build
+          path: docs-astro/dist
 
   deploy:
     name: Deploy to GitHub Pages

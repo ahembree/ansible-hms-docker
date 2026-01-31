@@ -9,7 +9,7 @@ BASEDIR=$(shell pwd)
 
 CUSTOM_CONF_DIR = inventory/group_vars/all
 
-REMOTE_CONFIG_URL = https://docs.hmsdocker.dev/configs
+REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
 
 ARCH = $(shell uname -m)
 BIN_DIR = ./bin
@@ -64,9 +64,11 @@ config:
 	fi
 
 check: install-reqs
+	@echo > logs/hms-docker.log
 	@ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff --check
 
 apply: install-reqs
+	@echo > logs/hms-docker.log
 	@ansible-playbook -i inventory/hosts.yml hms-docker.yml --diff
 
 install-reqs:

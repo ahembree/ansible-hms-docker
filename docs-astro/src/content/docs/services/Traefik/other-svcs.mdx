@@ -1,0 +1,69 @@
+---
+title: Containers Outside of Compose Project
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+## Adding other Containers to Traefik
+
+If a container exists outside of this Compose project but on the same host, you can add them to Traefik so they can also have TLS/SSL
+
+<Steps>
+
+1. Add the `HMSD_DOMAIN` and the domain you use to a new or existing `.env` file that your other containers reference with the value of your domain used for this project
+
+2. Add the `hms-docker_proxy_net` network to the container along with the following required labels:
+
+    ```yml
+    #myothercontainer.yml
+    services:
+      mycontainer:
+        image: mycontainerimage:latest
+        ...
+        network:
+          - hms-docker_proxy_net
+        labels:
+          - traefik.enable=true
+          - traefik.http.services.<container name>.loadbalancer.server.port=<web UI port for container>
+          - traefik.http.routers.<container name>.rule=Host(`<subdomain name>.${HMSD_DOMAIN}`)
+          # The following restricts it to only internal IP addresses. If you want to add additional security controls and have traefik_security_hardening enabled, you can change this to `internal-secured@file`
+          # See the 'Middlewares' section in the 'Services and Integrations/Traefik/Security' documentation
+          - traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file
+    ...
+    networks:
+      - hms-docker_proxy_net
+          external: true
+    ...
+    ```
+
+    :::note
+
+      If you changed the `project_name` in the `hmsd_advanced.yml` config file, use that `project_name` instead of `hms-docker`
+
+    :::
+
+3. [Add DNS records](/getting-started/dns) (if necessary)
+
+4. Recreate the container(s) you just added labels to
+
+5. Check to see if it is working correctly
+
+</Steps>
+
+## Adding External Services to Traefik
+
+You can add external services (such as services running on another host/server, like an external grafana server) to this projects Traefik config.
+
+In `inventory/group_vars/all/traefik.yml` you _must_ set `traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `traefik_ext_hosts_list` array.
+
+:::caution[Warning]
+
+All traffic between the host that runs Traefik and the target external service will be **unencrypted**:
+
+> By default, an HTTP router with a TLS field will terminate the TLS connections, meaning that it will send decrypted data to the services.
+
+**_[Source](https://doc.traefik.io/traefik/reference/routing-configuration/http/tls/overview/)_**.
+
+You may be able to add additional Traefik configuration to configure certificates for HTTPS or bypass certificate checking, but that is outside this scope.
+
+:::

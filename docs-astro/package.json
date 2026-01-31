@@ -1,0 +1,29 @@
+{
+  "name": "",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.4",
+    "@astrojs/starlight-tailwind": "^4.0.2",
+    "@iconify-json/mdi": "^1.2.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.6.1",
+    "astro-icon": "^1.1.5",
+    "sharp": "^0.34.2",
+    "starlight-theme-next": "^0.3.3",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.87",
+    "@iconify-json/tabler": "^1.2.26",
+    "sass": "1.94.2",
+    "typescript": "5.9.3"
+  }
+}

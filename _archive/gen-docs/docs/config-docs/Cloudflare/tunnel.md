@@ -6,7 +6,7 @@
 
     a. You can find the token here:
 
-    ![Cloudflare Tunnel Token](../../static/img/cloudflare_tunnel_token.png)
+    ![Cloudflare Tunnel Token](../../static/img/cloudflare/cloudflare_tunnel_token.png)
 
 2. Once you've generated the token, update the `cloudflare_tunnel_token` variable in `inventory/group_vars/all/cloudflare.yml` with the newly generated token
 
@@ -26,7 +26,7 @@ I am not responsible for any misconfigurations that may insecurely expose your a
 
 Example:
 
-![Cloudflare Tunnel Example](../../static/img/cloudflare_tunnel_example.png)
+![Cloudflare Tunnel Example](../../static/img/cloudflare/cloudflare_tunnel_example.png)
 
 ## Important Notes
 

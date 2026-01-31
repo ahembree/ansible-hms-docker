@@ -1,0 +1,130 @@
+---
+title: Backrest
+---
+
+import { Badge, Steps } from '@astrojs/starlight/components';
+
+
+Backrest is available to perform backups. Configuring Backrest and the required repository is outside the scope of this project as there are way too many different configurations.
+
+In general:
+
+<Steps>
+
+1. Have a backup destination (S3, OneDrive, GDrive, etc)
+
+2. Configure a "Repository" to point to that destination
+
+    <Badge text="Important" variant="caution"/> Be sure to create a backup of your encryption key somewhere safe since this is required for restore, do **NOT** put it somewhere that is backed up by Backrest
+
+3. Configure a "Plan" to perform the backups from `/opt/hms-docker` (mounted in the container as read-only by default) to the configured Repository
+
+</Steps>
+
+Some repositories may require rclone configuration, which is outside the scope of this project. See the [rclone documentation](https://rclone.org/docs/)
+
+The intent of the initial implementation is to backup the container configs and _not_ the media data, unless your media data lives in the default data path (`/opt/hms-docker`). If you'd like support for backing up media as well, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions).
+
+## Inclusion and Exclusion Configs
+
+The following was used to decide on the paths to exclude for Plex: https://www.plexopedia.com/plex-media-server/general/migrate-plex-server/
+
+Case-Sensitive Excludes:
+
+```bash
+**/apps/plex/config/Library/Application Support/Plex Media Server/Crash Reports/** # Plex crash reports
+**/apps/plex/config/Library/Application Support/Plex Media Server/Diagnostics/** # Plex Diagnostics
+**/apps/plex/config/Library/Application Support/Plex Media Server/Updates/** # Plex updates
+**/MediaCover/** # The poster and artwork files for the Arr apps. If excluded, you will need to manually click "Update All" within the Arr apps
+```
+
+Case-_Insensitive_ Excludes:
+
+```bash
+**/cache/**
+**/tmp/**
+**/logs/**
+**/transcode_temp/**
+*.log
+*.tmp
+*.pid
+**/.venv/**
+```
+
+## Restoring from backup
+
+If a backup/snapshot has been performed, you can follow these steps to restore:
+
+<Steps>
+
+1. Enable write access for Backrest: 
+
+    ```yaml
+    #inventory/group_vars/all/service_misc.yml
+    ...
+    hmsdocker_backrest_allow_write: true
+    # - OR if you want to restore to a different path -
+    hmsdocker_backrest_enable_restore_path: true
+    hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
+    ...
+    ```
+
+2. Stop all containers:
+
+    ```bash
+    cd /opt/hms-docker
+    sudo docker compose down
+    ```
+
+3. Start only Traefik and Backrest:
+
+    ```bash
+    sudo docker compose up traefik backrest -d
+    ```
+
+4. Reconnect your Backrest repository that you used for backups
+
+    <Badge text="Important" variant="danger"/> If you don't have your encryption key saved from when you created the repository, you will likely not be able to restore.
+
+5. List your available snapshots by using the "run command" from within your Backrest respository:
+
+    ```bash
+    snapshots
+    ```
+
+6. Restore to the snapshot ID that you want:
+
+    ```bash
+    restore <snapshot ID> --target=/opt/hms-docker
+    # - OR if you enabled the different restore path (or defined a custom one)-
+    restore <snapshot ID> --target=/opt/hms-docker-restore
+    ```
+
+    :::note[Note]
+
+    It will restore the **full path of the files under this folder** (example: `/opt/hms-docker-restore/opt/hms-docker`), so folders will need to be moved after the restore has completed. This gives a little more control to the restore process.
+
+    To avoid this, you can set the target to `/`, **but this will overwrite any existing files**
+
+    :::
+
+7. Wait for the restore to finish
+
+8. Start containers again:
+
+    ```bash
+    cd /opt/hms-docker
+    sudo docker compose up -d
+    ```
+
+</Steps>
+
+## OneDrive
+
+I personally only currently have experience with setting up OneDrive as a backup destination.
+
+Since there is no native support for OneDrive through Backrest/restic, it is done through rclone.
+
+The documentation on configuring and connecting rclone to OneDrive can be found here: https://rclone.org/onedrive/
+
+When configuring OneDrive, make sure that the Backrest containers version of rclone (can be found using `docker run -it --rm garethgeorge/backrest rclone version`) matches the version of rclone used to generate the config. If not, you will need to find a way to use the same version.

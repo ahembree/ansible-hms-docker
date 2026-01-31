@@ -1,0 +1,27 @@
+---
+title: Remote Host Install
+---
+
+## Remote Host
+
+A "remote host" install method is meant for users that have familiarity with Ansible and have a system that already has Ansible installed that will control other hosts.
+
+### Requirements
+
+- Ability to SSH into remote host
+- `sudo` privileges on remote host
+
+If installing to a remote host (a different system than where Ansible is installed), you will need to modify your `inventory/hosts.yml` file to specify the remote host:
+
+```yaml
+all:
+  hosts:
+    hmsdockerhost:
+      ansible_host: 192.168.1.2 # The IP address of the target host you want to install to
+      # Uncomment and modify the following if you have a specific user you use for Ansible:
+      #ansible_user: ansibleuser
+      #ansible_ssh_private_key_file: /path/to/key/file
+      #ansible_ssh_pass: foo #leave as-is if key does not have a password
+      # You can also specify host-specific variables here:
+      #hms_docker_domain: secondary.example.com
+```
