@@ -1,12 +1,17 @@
 <div align="center">
 
-<img src="./gen-docs/docs/static/img/hmsd.png" alt="hmsdocker-logo"/>
+<img src="./docs-astro/src/content/docs/static/img/hmsd.png" alt="hmsdocker-logo" style="
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, #3b82f6, #ef4444);
+  "/>
 
 <br>
 
 [![Discord](https://dcbadge.limes.pink/api/server/MqXTXvWSkZ?style=flat-square)](https://discord.gg/MqXTXvWSkZ)
 ![GitHub Release](https://img.shields.io/github/v/release/ahembree/ansible-hms-docker?style=flat-square&color=blue)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ahembree/ansible-hms-docker?style=flat-square&color=blue)
+
 <br>
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ahembree/ansible-hms-docker/run-playbook.yml?style=flat-square&label=Ubuntu%2022.04%20Deployment)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ahembree/ansible-hms-docker/run-playbook.yml?style=flat-square&label=Ubuntu%2024.04%20Deployment)
