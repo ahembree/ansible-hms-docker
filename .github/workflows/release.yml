@@ -1,0 +1,63 @@
+name: Automate Release
+
+on:
+  push:
+    branches: 
+      - master
+    paths:
+      - 'hms-docker.yml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For tagging and releasing
+      pull-requests: write  # Optional for changelog
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0  # For git history
+
+    - name: Get Version from playbook
+      id: version
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq '.[0].vars.hmsd_current_version' 'hms-docker.yml'
+
+    - name: Bump version and push tag
+      id: tag_version
+      uses: mathieudutour/github-tag-action@v6.2
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        custom_tag: ${{ steps.version.outputs.result }}
+
+    - name: Extract changelog body
+      id: changelog_body
+      run: |
+        CONTENT=$(awk 'f{print} /^---$/{c++; if(c==2) f=1}' docs-astro/src/content/docs/docs/release-notes/v$(echo "${{ steps.version.outputs.result }}" | cut -d. -f1,2).md*)
+
+        {
+          echo "content<<EOF"
+          echo "$CONTENT"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.tag_version.outputs.new_tag }}
+        name: Release ${{ steps.tag_version.outputs.new_tag }}
+        body: |
+          ## Changes
+          ${{ steps.changelog_body.outputs.content }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ACTIONS_STEP_DEBUG: true
+      
+    - name: Delete tag on failure
+      if: failure()
+      run: |
+        git push --delete origin ${{ steps.version.outputs.result }}
