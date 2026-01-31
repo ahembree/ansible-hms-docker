@@ -3,8 +3,8 @@
 # Visit https://plex.tv/claim to obtain this token specific to your account
 plex_claim_token: ""
 
-# This will grab the default interface IPv4 address of the host // default: "{{ ansible_default_ipv4.address }}"
-plex_advertise_ip: "{{ ansible_default_ipv4.address }}"
+# This will grab the default interface IPv4 address of the host // default: "{{ ansible_facts.default_ipv4.address }}"
+plex_advertise_ip: "{{ ansible_facts.default_ipv4.address }}"
 
 # Transcode folder location for Plex.
 # If you have enough RAM, you can change this to "/dev/shm/plex_transcode" to use RAM for transcoding

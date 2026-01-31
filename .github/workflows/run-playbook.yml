@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - 'roles/**'
+      - 'hms-docker.yml'
   schedule:
     - cron:  '23 9 * * 0'
 
