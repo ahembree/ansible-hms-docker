@@ -2,11 +2,11 @@ name: Ubuntu Deployment Tests
 run-name: Test Ubuntu Deployments
 on:
   push:
-    paths-ignore: 
-      - 'gen-docs/**'
+    paths:
+      - 'roles/**'
   pull_request:
-    paths-ignore: 
-      - 'gen-docs/**'
+    paths:
+      - 'roles/**'
   schedule:
     - cron:  '23 9 * * 0'
 

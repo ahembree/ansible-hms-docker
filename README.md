@@ -1,10 +1,6 @@
 <div align="center">
 
-<img src="./docs-astro/src/content/docs/static/img/hmsd.png" alt="hmsdocker-logo" style="
-    border-radius: 12px;
-    padding: 1px;
-    background: linear-gradient(135deg, #3b82f6, #ef4444);
-  "/>
+<img src="./docs-astro/src/content/docs/static/img/hmsd.png" alt="hmsdocker-logo" style="border-radius: 12px; padding: 1px; background: linear-gradient(135deg, #3b82f6, #ef4444); "/>
 
 <br>
 
