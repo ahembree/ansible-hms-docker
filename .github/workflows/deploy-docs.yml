@@ -35,10 +35,6 @@ jobs:
           path: docs-astro # The root location of your Astro project inside the repository. (optional)
         # env:
           # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Use single quotation marks for the variable value. (optional)
-      - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs-astro/dist
 
   deploy:
     name: Deploy to GitHub Pages
