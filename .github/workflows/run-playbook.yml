@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'roles/**'
+      - 'hms-docker.yml'
   pull_request:
     paths:
       - 'roles/**'
