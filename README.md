@@ -40,7 +40,7 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 
 ## Getting Started
 
-Please see the docs page at: https://docs.hmsdocker.dev
+Please see the docs page at: https://hmsdocker.dev
 
 ## Contributing
 
