@@ -77,12 +77,12 @@ export default defineConfig({
       social: [
 				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/MqXTXvWSkZ' },
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/ahembree/ansible-hms-docker' },
-				{ icon: 'document', label: 'Documentation', href: '//docs/intro' }
+				{ icon: 'document', label: 'Documentation', href: '/docs/' }
 			],
       sidebar: [
 				{
 					label: 'Introduction',
-					link: '/docs/intro'
+					link: '/docs/'
 				},
 				{
 					label: 'Container List',
