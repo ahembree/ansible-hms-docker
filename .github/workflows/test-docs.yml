@@ -1,0 +1,45 @@
+name: Test Astro Docs Build
+
+on:
+  push:
+    paths:
+      - 'docs-astro/**'
+      - 'roles/hmsdocker/defaults/main/container_map.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'docs-astro/**'
+      - 'roles/hmsdocker/defaults/main/container_map.yml'
+  workflow_dispatch:
+
+# Allow this job to clone the repo and create a page deployment
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and Build Astro Docs
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Checkout your repository using git
+        uses: actions/checkout@v5
+
+      - name: Copy container_map config to site
+        run: |
+          mkdir -p docs-astro/public/configs
+          cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
+
+      - name: Check Astro before Build
+        run: |
+          cd docs-astro
+          npm install
+          npm run astro check
+
+      - name: Install and build
+        uses: withastro/action@v5
+        with:
+          path: docs-astro # The root location of your Astro project inside the repository. (optional)
+        # env:
+          # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Use single quotation marks for the variable value. (optional)
