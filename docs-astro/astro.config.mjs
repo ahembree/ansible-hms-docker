@@ -30,6 +30,36 @@ export default defineConfig({
 			logo: {
 				src: './src/assets/hmsd_logo.png'
 			},
+			head: [
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:title',
+						content: 'HMS-Docker'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image',
+						content: './src/content/docs/static/img/hmsd.png'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:type',
+						content: 'website'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:url',
+						content: 'https://hmsdocker.dev'
+					}
+				},
+			],
       social: [
 				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/MqXTXvWSkZ' },
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/ahembree/ansible-hms-docker' },
