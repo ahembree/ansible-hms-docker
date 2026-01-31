@@ -35,7 +35,16 @@ jobs:
     - name: Extract changelog body
       id: changelog_body
       run: |
-        CONTENT=$(awk 'f{print} /^---$/{c++; if(c==2) f=1}' docs-astro/src/content/docs/docs/release-notes/v$(echo "${{ steps.version.outputs.result }}" | cut -d. -f1,2).md*)
+        VERSION="${{ steps.version.outputs.result }}"
+
+        FILE="docs-astro/src/content/docs/docs/release-notes/v$(echo ${VERSION} |cut -d. -f1,2).md"
+        HEADER="v$VERSION"
+
+        CONTENT=$(awk -v v="$HEADER" '
+          $0 == "## " v {flag=1; next}
+          /^## / && flag {exit}
+          flag
+        ' "$FILE")
 
         {
           echo "content<<EOF"
