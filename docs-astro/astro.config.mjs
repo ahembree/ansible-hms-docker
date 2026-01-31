@@ -42,7 +42,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: './src/content/docs/static/img/hmsd.png'
+						content: '/opengraph/hmsd_logo.png'
 					}
 				},
 				{
@@ -57,6 +57,13 @@ export default defineConfig({
 					attrs: {
 						property: 'og:url',
 						content: 'https://hmsdocker.dev'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:description',
+						content: 'An orchestrated Home Media Server deployment tool using Ansible and Docker'
 					}
 				},
 			],
