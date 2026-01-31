@@ -115,7 +115,7 @@ export default defineConfig({
       ],
 			lastUpdated: true,
 			editLink:{
-				baseUrl: 'https://github.com/ahembree/ansible-hms-docker/edit/master/'
+				baseUrl: 'https://github.com/ahembree/ansible-hms-docker/edit/master/docs-astro'
 			}
 		}),
 		icon({
