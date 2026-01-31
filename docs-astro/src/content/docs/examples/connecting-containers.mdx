@@ -1,0 +1,48 @@
+---
+title: Connecting Containers
+---
+
+import { Image } from 'astro:assets';
+
+import prowlarr_example from '../static/img/container_connections/container_connect_example.png';
+import proxy_example from '../static/img/container_connections/container_connect_proxy_example.png';
+
+## Connecting the Containers to each other
+
+When connecting containers together, such as Prowlarr to Sonarr and Radarr or Sonarr/Radarr to Overseerr etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
+
+For the names and port of each container to use, get the `Container Name` and `Container Port` values from the **[Container Map](/container-list#container-map)**.
+
+:::note[Note]
+
+Do **NOT use HTTPS/SSL/TLS when connecting the apps using this method** as it will likely fail.
+
+This is due to apps not having a certificate by default or having a self-signed certificate.
+
+This may seem insecure, and _technically_ it is, but all communication that uses this method only happens _within the internal Docker network_, so the risk is reduced as the traffic never leaves the system.
+
+If you use your DNS records to connect them, then that is when you would want HTTPS.
+
+:::
+
+## Prowlarr Example
+
+Here's an example within Prowlarr that would connect it to Radarr:
+
+<Image
+  src={prowlarr_example}
+  alt="Example connecting an arr app to prowlarr"
+  class="rounded-lg border"
+/>
+
+## HTTP Proxy for Arr Services
+
+Transmission, qBittorrent, and Deluge all have a HTTP proxy that will route requests through the VPN connection.
+
+You can configure other apps to connect to these containers proxy services by using `transmission:8888`, `qbittorrent:8118`, or `deluge:8118`, depending on which you are using.
+
+<Image
+  src={proxy_example}
+  alt="Example connecting a proxy to an arr app"
+  class="rounded-lg border"
+/>

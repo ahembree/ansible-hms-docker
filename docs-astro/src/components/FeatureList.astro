@@ -1,0 +1,54 @@
+---
+import { CardGrid } from '@astrojs/starlight/components';
+import FeatureCard from './FeatureCard.astro';
+---
+
+<CardGrid stagger>
+	<FeatureCard title="Extensive List of Services" icon="mdi:format-list-bulleted" iconColor="text-blue-400">
+		There are currently **over 50 services** available to use, and the list is always expanding
+	</FeatureCard>
+
+	<FeatureCard title="Automatic Updates" icon="mdi:refresh-auto" iconColor="text-emerald-400">
+		Containers update to their most recent version nightly
+	</FeatureCard>
+
+	<FeatureCard title="Wildcard SSL/TLS" icon="mdi:shield-lock" iconColor="text-emerald-400">
+		Generate a trusted wildcard (`*.domain.com`) SSL/TLS certificate to secure traffic
+	</FeatureCard>
+
+	<FeatureCard title="Dynamic DNS" icon="tabler:brand-cloudflare" iconColor="text-orange-400">
+		Dynamically update DNS records for Cloudflare-hosted DNS zones
+	</FeatureCard>
+
+	<FeatureCard title="App Bootstrapping" icon="mdi:cog-transfer-outline" iconColor="text-red-400">
+		Automatically configures download clients and proxies in supported apps
+	</FeatureCard>
+
+	<FeatureCard title="GPU Acceleration" icon="lucide:gpu" iconColor="text-emerald-400">
+		Use your GPU (Intel/Nvidia) in supported containers for hardware transcoding
+	</FeatureCard>
+
+	<FeatureCard title="Multiple NAS/Drive Mounts" icon="mdi:nas" iconColor="text-amber-400">
+		Mount multiple drives or NAS shares
+	</FeatureCard>
+
+	<FeatureCard title="Single Sign-On" icon="mdi:account-lock" iconColor="text-amber-400">
+		Authentik is available to configure for SSO
+	</FeatureCard>
+
+	<FeatureCard title="Separate 4K Instances" icon="mdi:video-4k-box" iconColor="text-purple-400">
+		Supports multiple instances of Sonarr and Radarr that are specific for 4K content.
+	</FeatureCard>
+
+	<FeatureCard title="Security Hardening" icon="mdi:lock" iconColor="text-emerald-400">
+		Options available to secure the Traefik reverse proxy
+	</FeatureCard>
+
+	<FeatureCard title="Homepage Integrations" icon="mdi:home">
+		Automatically configures Homepage integrations for supported containers
+	</FeatureCard>
+
+	<FeatureCard title="Custom Scripts" icon="mdi:script" iconColor="text-red-400">
+		Custom Uptime-Kuma monitoring script and Traefik-to-Plex-TLS conversion script
+	</FeatureCard>
+</CardGrid>

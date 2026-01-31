@@ -77,6 +77,7 @@ hmsdocker_checkrr_enable_arr_processing: false
 
 # If the Backrest container should have write access to the data directory (default: /opt/hms-docker)
 hmsdocker_backrest_allow_write: false
+hmsdocker_backrest_enable_restore_path: false
 hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
 
 # Temp path used by Tdarr, Fileflows, Unmanic

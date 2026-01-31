@@ -136,7 +136,7 @@ After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudfla
 
 3. Enable "No TLS Verify" in the Advanced application settings under TLS:
 
-    ![Enable No TLS Verify](../static/img/cloudflare_tunnel_disable_tls_verify.png)
+    ![Enable No TLS Verify](../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png)
 
 4. Manually create wildcard DNS `CNAME` record for `*.<domain>` that points to `<Tunnel ID>.cfargotunnel.com` and make sure it's proxied. You cannot create this record via the Tunnel dashboard
 

@@ -1,0 +1,161 @@
+---
+title: Download Clients and VPNs
+sidebar:
+  order: 7
+---
+
+## Transmission
+
+This setup uses the container maintained here: [haugene/docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn)
+
+Settings mentioned below should already exist in your `inventory/group_vars/all/vpn.yml` or `inventory/group_vars/all/transmission.yml` file
+
+### OpenVPN
+
+Requires the following variables:
+
+* `hmsdocker_vpn_provider`: see [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
+* `hmsdocker_vpn_user`: Your VPN account/service account username
+* `hmsdocker_vpn_pass`: Your VPN account/service account password
+
+#### Using a different VPN location or type
+
+For supported providers, you can change the server location and/or type.
+
+1. Make sure `hmsdocker_vpn_provider` is set to your correct provider
+
+    a. You can find supported providers at [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
+
+2. Find your VPN providers folder in [this github repo](https://github.com/haugene/vpn-configs-contrib/tree/main/openvpn)
+
+3. Find the correct VPN config you want to use, and use this as the value for `transmission_ovpn_config_file`, and remove the `.ovpn` from the end
+
+For example, if you wanted to use the US Chicago server for mullvad:
+
+```yml
+hmsdocker_vpn_provider: MULLVAD
+...
+transmission_ovpn_config_file: us_chi
+```
+
+#### Custom Provider
+
+##### Using a local OpenVPN config file
+
+1. Change `hmsdocker_vpn_provider` to `custom`
+
+2. Change `transmission_ovpn_config_file` to the `.ovpn` file name, and remove the `.ovpn` from the end
+
+3. Change `transmission_ovpn_config_local_dir` to the folder path where the above file is stored
+
+    a. If needed by your provider/server, make sure certificate files and any others are also in the same folder
+
+For example, if you had a custom file named `test-vpn.ovpn` located in `/opt/hms-docker/vpn_configs` (this folder does not exist by default, just an example):
+
+```yml
+transmission_ovpn_config_file: test-vpn
+transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
+```
+
+
+## qBittorrent
+
+This setup uses the container maintained here: [binhex/arch-qbittorrentvpn](https://github.com/binhex/arch-qbittorrentvpn)
+
+Settings mentioned below should already exist in your `inventory/group_vars/all/vpn.yml` file
+
+:::caution[Caution]
+
+Authentication will be **disabled** by default for private (RFC1918) IP space:
+
+- `10.0.0.0/8`
+- `172.16.0.0/12`
+- `192.168.0.0/16`
+
+This is to allow the automatic app bootstrap to work and to reduce complexity of retrieving a temporary admin password.
+
+If you wish to have authentication, you can configure this in the WebUI settings of qBittorrent. You will also need to update the download client for qBittorrent in the Sonarr and Radarr apps
+
+If you enabled authentication _before_ running the app bootstrap tasks, they will fail. To resolve, turn off authentication in qBittorrent, then run the bootstrap tasks and then configure the qBittorrent download client username/password in the specific apps
+
+:::
+
+:::note[If Using Traefik]
+
+If you also have Traefik enabled when first deploying qBittorrent, then the following security settings will be enabled by default:
+
+* Allowlists only Docker default subnet range (`172.16.0.0/12`)
+
+* Enables reverse proxy support for only the `traefik` address
+
+* Enables Host-header validation for: `localhost`, `qbittorrent`, `qbittorrent.<domain>`
+
+:::
+
+### OpenVPN
+
+Requires the following variables:
+
+* `hmsdocker_vpn_type`: `openvpn`
+* `hmsdocker_vpn_user`: Your VPN account/service account username
+* `hmsdocker_vpn_pass`: Your VPN account/service account password
+
+If using OpenVPN for your VPN connection, please update or place the `.ovpn` file and any other required files in the directory: `/opt/hms-docker/apps/qbittorrent/config/openvpn` (default)
+
+This folder will not exist until the playbook is ran or the container runs for the first time
+
+### WireGuard
+
+Requires the following variables:
+
+* `hmsdocker_vpn_type`: `wireguard`
+
+If using WireGuard for your VPN connection, please update or place the `wg0.conf` file and any other required files in the directory: `/opt/hms-docker/apps/qbittorrent/config/wireguard` (default)
+
+This folder will not exist until the playbook is ran or the container runs for the first time
+
+### Private Internet Access (PIA)
+
+If you are using PIA and want to use port forwarding through the VPN, see the [Container Overrides](/getting-started/container-overrides) docs
+
+
+
+## Deluge
+
+This setup uses the container maintained here: [binhex/arch-delugevpn](https://github.com/binhex/arch-delugevpn)
+
+Settings mentioned below should already exist in your `inventory/group_vars/all/vpn.yml` file
+
+The default password is `deluge`
+
+:::note
+
+If you update the Deluge password _and_ are using the automatic app bootstrap, you will need to update the password for the `HMSD - Deluge` download client in the Sonarr and Radarr app(s)
+
+:::
+
+### OpenVPN
+
+Requires the following variables:
+
+* `hmsdocker_vpn_type`: `openvpn`
+* `hmsdocker_vpn_user`: Your VPN account/service account username
+* `hmsdocker_vpn_pass`: Your VPN account/service account password
+
+If using an OpenVPN config file for your VPN connection, please update or place the `.ovpn` file and any other required files in the directory: `/opt/hms-docker/apps/deluge/config/openvpn` (default)
+
+This folder will not exist until the playbook is ran or the container runs for the first time
+
+### WireGuard
+
+Requires the following variables:
+
+* `hmsdocker_vpn_type`: `wireguard`
+
+If using WireGuard for your VPN connection, please update or place the `wg0.conf` file and any other required files in the directory: `/opt/hms-docker/apps/deluge/config/wireguard` (default)
+
+This folder will not exist until the playbook is ran or the container runs for the first time
+
+### Private Internet Access (PIA)
+
+If you are using PIA and want to use port forwarding through the VPN, see the [Container Overrides](/getting-started/container-overrides) docs

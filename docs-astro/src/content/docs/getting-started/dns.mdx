@@ -1,0 +1,53 @@
+---
+title: DNS
+sidebar:
+  order: 3
+---
+
+import { Badge, Steps } from '@astrojs/starlight/components';
+
+:::tip[Tip]
+
+It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Home) to resolve requests that point to an internal private IP address
+
+:::
+
+The domain used is defined in the variable `hms_docker_domain` in `inventory/group_vars/all/main.yml`
+
+## Accessing the Containers
+
+### Internally
+
+DNS records can come down to personal preference depending on how you want your infrastructure setup, so the below are just examples.
+
+If you do not already have a "wildcard" DNS record (`*.example.com`) setup for the domain you used on your LOCAL DNS server, create the wildcard `A` record to point to the private IP address of the server.
+
+You can also create individual `A` records for each container listed in the [Container Map](/container-list#container-map), or have one `A` record with multiple `CNAME` records pointed to the `A` record. This will allow you to change one DNS record if the IP were to ever change, instead of having to change many individual records.
+
+If the appropriate DNS records exist (you can test by running `nslookup <domain>`, or optionally `nslookup <domain> <DNS server IP>` to query a specific DNS server), you can then access the containers from your network by going to `<name>.<domain>` where `<name>` is the `proxy_host_rule` value (from the container map config file) and `<domain>` is the domain you used for the variable `hms_docker_domain`.
+
+You can also change the name/subdomain of each application within the `hms_docker_container_map` in the containers `proxy_host_rule` value.
+
+### Externally
+
+If you enabled Cloudflare DDNS, a `request.<domain>` public `A` record will be created automatically that points to your networks _public_ IP.
+
+- This default `A` record can be changed in the `cloudflare_ddns_subdomain` variable located in `inventory/group_vars/all/cloudflare.yml`.
+
+Unless port `80` and/or `443` are port forwarded on the router to your host, accessing this public address from outside your main network **will not work**.
+
+To grant public access to containers, you will need to:
+
+<Steps>
+
+1. <Badge text="Preferred" variant="tip"/> Use a [Cloudflare Tunnel](/services/cloudflare/tunnel)
+
+2. OR Create a public DNS record for it that is either:
+
+    * `A` record that points to the public IP
+
+    * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `overseerr.example.com`)
+
+3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/container-list#container-map)
+
+</Steps>

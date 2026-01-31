@@ -9,8 +9,8 @@ cloudflare_api_token: ""
 # Automatically uses the same domain defined in `main.yml`
 cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 
-# The A (or AAAA) record to be created // default: "overseerr"
-cloudflare_ddns_subdomain: overseerr
+# The A (or AAAA) record to be created // default: "hmsdpublic"
+cloudflare_ddns_subdomain: hmsdpublic
 
 # Whether to proxy the above record through Cloudflare // default: "true"
 cloudflare_ddns_proxied: "true"

@@ -23,7 +23,9 @@ services:
       - ${HMSD_APPS_PATH}/backrest/data:/data
       - ${HMSD_APPS_PATH}/backrest/cache:/cache
       - {{ hms_docker_data_path }}:/opt/hms-docker{{ ':ro' if not hmsdocker_backrest_allow_write | default(false) }}
+      {% if hmsdocker_backrest_enable_restore_path | default(false) %}
       - {{ hmsdocker_backrest_restore_path }}:/opt/hms-backup-restore
+      {% endif %}
     {% if 'backrest' in expose_ports_enabled_containers %}
     ports:
       - 9898:9898

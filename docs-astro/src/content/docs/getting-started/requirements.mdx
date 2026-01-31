@@ -1,0 +1,72 @@
+---
+title: Requirements
+sidebar:
+  order: 1
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+Below outlines the minimum hardware, software, networking, and knowledge requirements in order to use HMS-Docker
+
+## Supported Platforms
+
+* Ubuntu 22.04
+* Ubuntu 24.04
+* Raspberry Pi
+
+I have not tested against other ARM-based systems (Apple Silicon, NAS systems, etc).
+
+RHEL-based systems (CentOS, Fedora, Alma Linux, Rocky Linux) may work, but are no longer being tested against and are not officially supported.
+
+## Hardware
+
+- Minimum 4 CPU Cores (probably)
+  - Recommended to use Intel chips for [Intel Quick Sync Video (QSV)](https://www.intel.com/content/www/us/en/support/articles/000029338/graphics.html) hardware transcoding in supported apps
+- Minimum 8GB RAM recommended
+  - Varies widely depending on your selected containers
+    - Authentik requires 2GB additional
+    - Tracearr requires 3GB additional
+- Minimum 64GB free disk space
+  - Varies based on containers used and where media data is stored
+  - Highly recommended to have separate or network attached storage for media data
+
+## Software / Services
+
+- [Supported Platform](#supported-platforms)
+- `root` or `sudo` access
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
+- [Nvidia GPU drivers](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/) already installed (if using Nvidia GPU acceleration)
+- You own a domain name and are able to modify DNS `A` and `TXT` records (if you want SSL and/or dynamic DNS)
+  - <Badge text="Preferred" variant="note" /> Have an internal DNS server that can resolve some or all of your domain name/zone.
+    - A DNS service is not available in this project and there are no plans to add one, 
+- You use a supported VPN provider (if a torrent client is enabled)
+  - [Transmission supported providers](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers)
+  - [qBittorrent and Deluge](https://github.com/binhex/documentation/blob/master/docker/guides/vpn.md) both support OpenVPN and WireGuard config files, and have native support for Private Internet Access (PIA) with port-forwarding
+- You use a [supported DNS provider](https://go-acme.github.io/lego/dns/) (if SSL is enabled, only DNS challenge is supported)
+- You have a Cloudflare account with the correct DNS zones and API keys configured (if Tunnel, Dynamic DNS and/or SSL is enabled)
+
+## Network
+
+If you plan to make Plex available outside your local network, the following port must be forwarded in your router to the IP of the server that will be running the app.
+
+- `32400/tcp` (Plex)
+
+Instructions for forwarding ports to the correct device is outside the scope of this project as every router/gateway has different instructions.
+
+However, the general gist is:
+
+```
+Public Port -> Internal host IP and port for app
+```
+
+This is in no way guaranteed to be the best or most secure way to do this, and this assumes your ISP does not block these ports.
+
+If you have a CGNAT address (in the `100.64.0.0/10` range), you probably won't be able to port-forward.
+
+## Technical Skills
+
+- Familiarity with DNS, networking, file permissions
+- Familiarity with editing config files (mainly YAML format)
+- Familiarity with Linux (installing packages, troubleshooting, etc)
+- Familiarity with Docker/containers (debugging, starting/stopping, getting a shell/CLI)
+- And if any/all of this is new to you, then the ambition to learn new things

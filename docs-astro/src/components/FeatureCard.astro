@@ -1,0 +1,36 @@
+---
+import { Icon } from 'astro-icon/components'
+
+interface Props {
+  title: string;
+  icon?: string;          // Starlight icon name, or replace with your own icon set
+  iconColor?: string;     // Tailwind text-* class or arbitrary color
+}
+
+const {
+  title,
+  icon,
+  iconColor = 'text-sky-500',
+} = Astro.props;
+
+// For icons, see: https://icones.js.org/collection/mdi
+// Be sure to update the astro-icon include section: https://www.astroicon.dev/reference/configuration#include
+---
+
+<article class="group rounded-md border border-purple-700/60 bg-neutral-950 p-4 shadow-sm hover:border-purple-500/80 hover:bg-gray-900/90 hover:scale-102 transition-all duration-200">
+  <header class="mb-2 flex items-center gap-3">
+    {icon && (
+      <span
+        class={`inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/10 ${iconColor}`}
+      >
+        <Icon name={icon} size="1.35rem" />
+      </span>
+    )}
+    <h3 class="m-0 text-lg font-semibold text-slate-30 leading-none">
+      {title}
+    </h3>
+  </header>
+  <p class="text-sm leading-relaxed text-slate-300">
+    <slot />
+  </p>
+</article>

@@ -1,0 +1,155 @@
+---
+title: Install Steps
+sidebar:
+  order: 2
+---
+
+import { Badge, Steps } from '@astrojs/starlight/components';
+
+:::caution[Warning]
+
+This playbook **assumes that it is a fresh install of an operating system** that has not been configured yet.
+
+To ensure no conflicting changes with an existing system, you can run this playbook in "check mode" (dry-run, preview, etc.) to see what, if any, changes would be made
+
+:::
+
+## Installation
+
+<Steps>
+
+1. Install Ansible for your system by following the instructions available here: https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
+
+2. Install requirements:
+
+    ```bash
+    sudo apt install git make python3-pip -y
+    ```
+
+3. Clone the repository:
+
+    ```bash
+    git clone https://github.com/ahembree/ansible-hms-docker.git
+    ```
+
+4. Go into the project folder:
+
+    ```bash
+    cd ansible-hms-docker/
+    ```
+
+5. Copy the default configuration files:
+
+    ```bash
+    make config
+    ```
+
+    :::tip
+
+    All configuration files are stored in `inventory/group_vars/all`
+
+    :::
+
+6. <Badge text="Optional" variant="tip" /> If you will be installing to a remote host that is not the system you just cloned the repo to, see the [Remote Host Install](/other/remote-host) docs
+
+</Steps>
+
+---
+
+## Container Selection
+
+To select the containers you want to use:
+
+<Steps>
+
+1. Modify the `inventory/group_vars/all/container_map.yml` file
+
+2. Within there, you will find a giant list of the available containers and their config items
+
+3. To enable a container, set its `enabled` value to `true` or `yes`
+
+</Steps>
+
+For an example of a container map entry and the description of what each setting does, check the [Container List](/container-list#container-map-entry-example) docs
+
+## Service Configuration
+
+All configuration options are in a (hopefully) aptly-named `.yml` file.
+
+:::note
+
+Any future containers variables will need to be added to your config file manually, if you chose to change them from the default values.
+
+The default variable files are found in `roles/hmsdocker/defaults/main/`
+
+:::
+
+### Required Settings
+
+#### General
+
+<Steps>
+
+1. Modify `inventory/group_vars/all/main.yml` to set the following variables
+
+2. `hms_docker_domain` : the local domain name of the server to be used for proxy rules and (if enabled) SSL certificates (e.g. `home.local`)
+
+3. `hms_docker_media_share_type` : the type of network share (`cifs`, `nfs`, `local`)
+
+    - See [the NAS setup page](/getting-started/nas) if using `nfs` or `cifs`
+    - `nfs` if using an NFS share/mount
+    - `cifs` if using Samba or a Windows file share
+    - `local` if using a local drive/directory on the same system
+    
+4. `hms_docker_mount_path` : This is where the media and download folders will be "mounted" to the host. Recommended to change if using a network share and/or other drive in the system. This will mount to `/data` within the containers.
+
+5. <Badge text="Plex" variant="caution"/> If you have Plex enabled:
+
+    - Modify `inventory/group_vars/all/plex.yml` and set:
+    - `plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
+
+6. <Badge text="VPN Download Client" variant="success"/> If torrent download clients are enabled, see the [Download Clients and VPNs](/getting-started/vpn-and-dl-clients) documentation for the required variables
+
+7. <Badge text="SSL/TLS Certificate" variant="success"/> If you want a SSL/TLS certificate for Traefik, see the **[SSL Certificates](/services/traefik/ssl)** docs.
+
+
+</Steps>
+
+## Running the playbook
+
+You can run the playbook using the following commands:
+
+```bash
+# Run in "Check mode" to see changes before they are made
+sudo make check
+
+# Apply changes
+sudo make apply
+```
+
+### Debug mode
+
+There is a `debug_mode` you can control from a variable in `hms-docker.yml`
+
+:::caution[Warning]
+
+Debug mode will also potentially output "secrets" (passwords, API keys) when enabled
+
+:::
+
+## Where Data is Stored
+
+See the [File Layout](/other/paths) documentation for info on where data is stored.
+
+
+## Next Steps
+
+Check out [Configuring DNS](/getting-started/dns) on how to setup the DNS records on a (recommended) internal DNS server.
+
+This will allow you to access the containers by going to `https://<container>.<domain>` in a browser and serve the SSL certificate, if enabled.
+
+If you already have DNS enabled and want to get up and running quicker, check out the [Automatic App Initialization](/getting-started/app-bootstrap).
+
+If you are receiving a `404` or `5XX` error when attempting to access the service, this is either because the container is not running, failing to start, or still starting. To troubleshoot, run `docker logs -f <container name>` and check the container logs.
+
+Or, if you have Portainer enabled, you can also check the container logs there.

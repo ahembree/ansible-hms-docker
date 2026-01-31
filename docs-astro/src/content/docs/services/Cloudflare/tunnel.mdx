@@ -1,0 +1,75 @@
+---
+title: Cloudflare Tunnel
+---
+import { Image } from 'astro:assets';
+import { Steps } from '@astrojs/starlight/components';
+import cf_tunnel_token from '../../static/img/cloudflare/cloudflare_tunnel_token.png';
+import cf_tunnel_example from '../../static/img/cloudflare/cloudflare_tunnel_example.png';
+import cf_tunnel_disable_tls_verify from '../../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
+
+## Requirements and Enabling
+
+<Steps>
+
+1. You will need to first generate a token by following the steps [here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#1-create-a-tunnel)
+
+    a. You can find the token here:
+
+    <Image
+        src={cf_tunnel_token}
+        alt="Obtaining Cloudflare Tunnel token"
+        class="rounded border"
+    />
+
+    b. Once you copied the command it provides, paste it somewhere safe and then copy the long string of random text, that is your token
+
+2. Once you've generated the token, update the variable in `inventory/group_vars/all/cloudflare.yml` with the newly generated token:
+
+    ```yaml
+    #inventory/group_vars/all/cloudflare.yml
+    cloudflare_tunnel_token: <token>
+    ```
+
+3. Enable the container in `inventory/group_vars/all/container_map.yml`
+
+4. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
+
+5. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#2a-publish-an-application) to link containers to the tunnel, following the [container map](/container-list#container-map) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
+
+</Steps>
+
+:::danger[Warning]
+
+Traffic does NOT pass through Traefik first for this request flow, so no security controls from Traefik will be applied, such as the IP Allowlist controls since the request is seen as coming from the Tunnel container, which falls into the RFC1918 private address space
+
+I am not responsible for any misconfigurations that may insecurely expose your applications. It is your responsibility to understand and accept the risks and implement security controls where possible.
+
+:::
+
+Example:
+
+<Image
+    src={cf_tunnel_example}
+    alt="Cloudflare Tunnel config"
+    class="rounded border"
+/>
+
+## Important Notes
+
+:::tip[Tip]
+
+The "public hostname" subdomain you use does not need to match any Traefik proxy rule as **this traffic does NOT pass through Traefik**, it goes directly from Cloudflare Tunnel -> container via the internal Docker network.
+
+:::
+
+:::caution[Warning]
+
+This also means that **SSO using Authentik will not work for any container individually configured to go through the Tunnel** by default due to the authentication middleware being applied _by_ Traefik.
+
+In order to use Authentik with a container through the Tunnel, you will need to port forward or see below for more information
+
+:::
+
+## Using Authentik through Cloudflare Tunnel
+
+See the [Authentik docs for this project](/services/authentik#authentik-protection-through-cloudflare-tunnel)

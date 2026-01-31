@@ -1,6 +1,7 @@
 {
   "is_github_runner": true,
   "debug_mode": true,
+  "hms_docker_mount_path": /opt/hms-docker,
   "hms_docker_domain": home.local,
   "container_expose_ports": true,
   "hms_docker_plex_ssl_enabled": true,
