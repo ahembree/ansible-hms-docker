@@ -33,6 +33,8 @@ jobs:
 
       - name: Check Astro before Build
         run: |
+          cd docs-astro
+          npm install
           npm run astro check
 
       - name: Install and build
