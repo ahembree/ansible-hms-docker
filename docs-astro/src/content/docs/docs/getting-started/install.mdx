@@ -50,7 +50,7 @@ To ensure no conflicting changes with an existing system, you can run this playb
 
     :::
 
-6. <Badge text="Optional" variant="tip" /> If you will be installing to a remote host that is not the system you just cloned the repo to, see the [Remote Host Install](/other/remote-host) docs
+6. <Badge text="Optional" variant="tip" /> If you will be installing to a remote host that is not the system you just cloned the repo to, see the [Remote Host Install](/docs/other/remote-host) docs
 
 </Steps>
 
@@ -70,7 +70,7 @@ To select the containers you want to use:
 
 </Steps>
 
-For an example of a container map entry and the description of what each setting does, check the [Container List](/container-list#container-map-entry-example) docs
+For an example of a container map entry and the description of what each setting does, check the [Container List](/docs/container-list#container-map-entry-example) docs
 
 ## Service Configuration
 
@@ -96,7 +96,7 @@ The default variable files are found in `roles/hmsdocker/defaults/main/`
 
 3. `hms_docker_media_share_type` : the type of network share (`cifs`, `nfs`, `local`)
 
-    - See [the NAS setup page](/getting-started/nas) if using `nfs` or `cifs`
+    - See [the NAS setup page](/docs/getting-started/nas) if using `nfs` or `cifs`
     - `nfs` if using an NFS share/mount
     - `cifs` if using Samba or a Windows file share
     - `local` if using a local drive/directory on the same system
@@ -108,9 +108,9 @@ The default variable files are found in `roles/hmsdocker/defaults/main/`
     - Modify `inventory/group_vars/all/plex.yml` and set:
     - `plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
 
-6. <Badge text="VPN Download Client" variant="success"/> If torrent download clients are enabled, see the [Download Clients and VPNs](/getting-started/vpn-and-dl-clients) documentation for the required variables
+6. <Badge text="VPN Download Client" variant="success"/> If torrent download clients are enabled, see the [Download Clients and VPNs](/docs/getting-started/vpn-and-dl-clients) documentation for the required variables
 
-7. <Badge text="SSL/TLS Certificate" variant="success"/> If you want a SSL/TLS certificate for Traefik, see the **[SSL Certificates](/services/traefik/ssl)** docs.
+7. <Badge text="SSL/TLS Certificate" variant="success"/> If you want a SSL/TLS certificate for Traefik, see the **[SSL Certificates](/docs/services/traefik/ssl)** docs.
 
 
 </Steps>
@@ -139,16 +139,16 @@ Debug mode will also potentially output "secrets" (passwords, API keys) when ena
 
 ## Where Data is Stored
 
-See the [File Layout](/other/paths) documentation for info on where data is stored.
+See the [File Layout](/docs/other/paths) documentation for info on where data is stored.
 
 
 ## Next Steps
 
-Check out [Configuring DNS](/getting-started/dns) on how to setup the DNS records on a (recommended) internal DNS server.
+Check out [Configuring DNS](/docs/getting-started/dns) on how to setup the DNS records on a (recommended) internal DNS server.
 
 This will allow you to access the containers by going to `https://<container>.<domain>` in a browser and serve the SSL certificate, if enabled.
 
-If you already have DNS enabled and want to get up and running quicker, check out the [Automatic App Initialization](/getting-started/app-bootstrap).
+If you already have DNS enabled and want to get up and running quicker, check out the [Automatic App Initialization](/docs/getting-started/app-bootstrap).
 
 If you are receiving a `404` or `5XX` error when attempting to access the service, this is either because the container is not running, failing to start, or still starting. To troubleshoot, run `docker logs -f <container name>` and check the container logs.
 

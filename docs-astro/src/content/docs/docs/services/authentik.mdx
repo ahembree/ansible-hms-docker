@@ -4,7 +4,7 @@ title: Authentik
 
 import { Image } from 'astro:assets';
 import { Steps } from '@astrojs/starlight/components';
-import cf_tunnel_disable_tls_verify from '../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
+import cf_tunnel_disable_tls_verify from '../../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
 
 :::note[Note]
 
@@ -22,7 +22,7 @@ Authentik is able to be controlled on a per-container basis, but requires a bit 
 
 :::warning
 
-If you are using [Cloudflare Tunnel](/services/cloudflare/tunnel) **AND** you have disabled port forwarding to 80/443, you **MUST** create a new "public hostname" in Tunnel in order for SSO to work since the SSO server needs to be publicly accessible. If your Tunnel is online and working, follow [step 4 when setting up Tunnel](/services/cloudflare/tunnel) and configure it for the `authentik-server:9001` container.
+If you are using [Cloudflare Tunnel](/docs/services/cloudflare/tunnel) **AND** you have disabled port forwarding to 80/443, you **MUST** create a new "public hostname" in Tunnel in order for SSO to work since the SSO server needs to be publicly accessible. If your Tunnel is online and working, follow [step 4 when setting up Tunnel](/docs/services/cloudflare/tunnel) and configure it for the `authentik-server:9001` container.
 
 However, any containers configured to be accessible through the Cloudflare Tunnel **will not be protected by Authentik if accessed via the Tunnel** if you do not configure it as outlined in [the 'Authentik through Cloudflare Tunnel' section below](#authentik-protection-through-cloudflare-tunnel)
 
@@ -32,9 +32,9 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
 <Steps>
 
-1. Enable the `authentik` container in the [Container Map](/container-list#container-map)
+1. Enable the `authentik` container in the [Container Map](/docs/container-list#container-map)
 
-2. Set the `authentik` variable to `true` for the containers you want in the [Container Map](/container-list#container-map).
+2. Set the `authentik` variable to `true` for the containers you want in the [Container Map](/docs/container-list#container-map).
 
     a. Example using Sonarr:
 
@@ -136,7 +136,7 @@ This can expose your services publicly **without authentication** if not careful
 
 This requires a large amount of work (creating Authentik Applications, Providers, and Outposts for _each individual enabled container_ for full protection) and is (in my personal opinion) not recommended.
 
-I would recommend using [Tailscale](/services/tailscale) as a VPN solution to access the services from only internally, but everyones use cases and environment are different. By proceeding, you understand the risks and potential impact.
+I would recommend using [Tailscale](/docs/services/tailscale) as a VPN solution to access the services from only internally, but everyones use cases and environment are different. By proceeding, you understand the risks and potential impact.
 
 :::caution[Warning]
 
@@ -148,7 +148,7 @@ This flow also bypasses the Traefik IP Allowlist controls since the request is s
 
 :::
 
-After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudflare Tunnel Docs](/services/cloudflare/tunnel#requirements-and-enabling), follow these steps:
+After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudflare Tunnel Docs](/docs/services/cloudflare/tunnel#requirements-and-enabling), follow these steps:
 
 <Steps>
 

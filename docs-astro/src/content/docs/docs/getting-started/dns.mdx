@@ -22,7 +22,7 @@ DNS records can come down to personal preference depending on how you want your 
 
 If you do not already have a "wildcard" DNS record (`*.example.com`) setup for the domain you used on your LOCAL DNS server, create the wildcard `A` record to point to the private IP address of the server.
 
-You can also create individual `A` records for each container listed in the [Container Map](/container-list#container-map), or have one `A` record with multiple `CNAME` records pointed to the `A` record. This will allow you to change one DNS record if the IP were to ever change, instead of having to change many individual records.
+You can also create individual `A` records for each container listed in the [Container Map](/docs/container-list#container-map), or have one `A` record with multiple `CNAME` records pointed to the `A` record. This will allow you to change one DNS record if the IP were to ever change, instead of having to change many individual records.
 
 If the appropriate DNS records exist (you can test by running `nslookup <domain>`, or optionally `nslookup <domain> <DNS server IP>` to query a specific DNS server), you can then access the containers from your network by going to `<name>.<domain>` where `<name>` is the `proxy_host_rule` value (from the container map config file) and `<domain>` is the domain you used for the variable `hms_docker_domain`.
 
@@ -40,7 +40,7 @@ To grant public access to containers, you will need to:
 
 <Steps>
 
-1. <Badge text="Preferred" variant="tip"/> Use a [Cloudflare Tunnel](/services/cloudflare/tunnel)
+1. <Badge text="Preferred" variant="tip"/> Use a [Cloudflare Tunnel](/docs/services/cloudflare/tunnel)
 
 2. OR Create a public DNS record for it that is either:
 
@@ -48,6 +48,6 @@ To grant public access to containers, you will need to:
 
     * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `overseerr.example.com`)
 
-3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/container-list#container-map)
+3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/docs/container-list#container-map)
 
 </Steps>

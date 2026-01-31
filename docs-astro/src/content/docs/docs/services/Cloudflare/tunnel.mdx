@@ -3,9 +3,9 @@ title: Cloudflare Tunnel
 ---
 import { Image } from 'astro:assets';
 import { Steps } from '@astrojs/starlight/components';
-import cf_tunnel_token from '../../static/img/cloudflare/cloudflare_tunnel_token.png';
-import cf_tunnel_example from '../../static/img/cloudflare/cloudflare_tunnel_example.png';
-import cf_tunnel_disable_tls_verify from '../../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
+import cf_tunnel_token from '../../../static/img/cloudflare/cloudflare_tunnel_token.png';
+import cf_tunnel_example from '../../../static/img/cloudflare/cloudflare_tunnel_example.png';
+import cf_tunnel_disable_tls_verify from '../../../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
 
 ## Requirements and Enabling
 
@@ -34,7 +34,7 @@ import cf_tunnel_disable_tls_verify from '../../static/img/cloudflare/cloudflare
 
 4. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
 
-5. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#2a-publish-an-application) to link containers to the tunnel, following the [container map](/container-list#container-map) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
+5. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#2a-publish-an-application) to link containers to the tunnel, following the [container map](/docs/container-list#container-map) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
 
 </Steps>
 
@@ -72,4 +72,4 @@ In order to use Authentik with a container through the Tunnel, you will need to 
 
 ## Using Authentik through Cloudflare Tunnel
 
-See the [Authentik docs for this project](/services/authentik#authentik-protection-through-cloudflare-tunnel)
+See the [Authentik docs for this project](/docs/services/authentik#authentik-protection-through-cloudflare-tunnel)

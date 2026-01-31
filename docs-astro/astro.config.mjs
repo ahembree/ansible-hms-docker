@@ -77,42 +77,46 @@ export default defineConfig({
       social: [
 				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/MqXTXvWSkZ' },
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/ahembree/ansible-hms-docker' },
-				{ icon: 'document', label: 'Documentation', href: '/intro' }
+				{ icon: 'document', label: 'Documentation', href: '//docs/intro' }
 			],
       sidebar: [
 				{
 					label: 'Introduction',
-					link: 'intro'
+					link: '/docs/intro'
 				},
 				{
 					label: 'Container List',
-					link: 'container-list'
+					link: '/docs/container-list'
 				},
 				{
 					label: 'Getting Started',
-					autogenerate: { directory: 'getting-started' },
+					autogenerate: { directory: '/docs/getting-started' },
 				},
 				{
 					label: 'Examples',
-					autogenerate: { directory: 'examples' },
+					autogenerate: { directory: '/docs/examples' },
 					collapsed: true
 				},
 				{
 					label: 'Services and Integrations',
-					autogenerate: { directory: 'services' },
+					autogenerate: { directory: '/docs/services' },
 					collapsed: true
 				},
 				{
 					label: 'Other',
-					autogenerate: { directory: 'other' },
+					autogenerate: { directory: '/docs/other' },
 					collapsed: true
 				},
 				{
 					label: 'Release Notes',
-					autogenerate: { directory: 'release-notes' },
+					autogenerate: { directory: '/docs/release-notes' },
 					collapsed: true
 				},
       ],
+			lastUpdated: true,
+			editLink:{
+				baseUrl: 'https://github.com/ahembree/ansible-hms-docker/edit/master/'
+			}
 		}),
 		icon({
 			include: {
@@ -130,7 +134,6 @@ export default defineConfig({
 				],
 				tabler: [
 					'brand-cloudflare',
-					'cog-transfer-outline'
 				],
 				lucide: [
 					'gpu'
