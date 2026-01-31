@@ -7,7 +7,7 @@ on:
     paths:
       - 'docs-astro/**'
       - 'roles/hmsdocker/defaults/main/container_map.yml'
-    workflow_dispatch:
+  workflow_dispatch:
 
 # Allow this job to clone the repo and create a page deployment
 permissions:
