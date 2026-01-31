@@ -108,6 +108,11 @@ export default defineConfig({
 					collapsed: true
 				},
 				{
+					label: 'Troubleshooting',
+					autogenerate: { directory: '/docs/troubleshooting' },
+					collapsed: true
+				},
+				{
 					label: 'Release Notes',
 					autogenerate: { directory: '/docs/release-notes' },
 					collapsed: true

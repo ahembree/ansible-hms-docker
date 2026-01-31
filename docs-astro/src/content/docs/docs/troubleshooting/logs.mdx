@@ -1,3 +1,35 @@
 ---
 title: Logs
 ---
+
+:::tip[Tip]
+
+Please check logs and understand what the logs indicate the error is before submitting an Issue.
+
+Only errors that stop the playbook or prevent it from running will be accepted.
+
+:::
+
+## Playbook Logs
+
+By default, logs will be stored in the `logs/hms-docker.log` within the `ansible-hms-docker` directory where you downloaded this project to.
+
+Only the most recent playbook run will be logged.
+
+If you encounter an issue/error during the playbook run, please provide the failed task item and its log output if you choose to submit a [GitHub Issue](https://github.com/ahembree/ansible-hms-docker/issues) or reach out in the Discord server.
+
+:::note[Note]
+
+Errors for the `Traefik Postreq - Verify all Traefik endpoints are accessible` task are not valid for GitHub Issues as these errors are typically related to your own networking/DNS or container startup.
+
+:::
+
+## Container Logs
+
+You can view individual container logs by running:
+
+```bash
+docker logs -f <container name>
+```
+
+While container-specific issues are outside the scope of this project, if the underlying cause is due to permissions implemented by this project then please submit a [GitHub Issue](https://github.com/ahembree/ansible-hms-docker/issues) or reach out in the Discord server.
