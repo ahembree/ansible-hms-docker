@@ -54,6 +54,7 @@ jobs:
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
       with:
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
         name: Release ${{ steps.tag_version.outputs.new_tag }}
@@ -64,7 +65,6 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        ACTIONS_STEP_DEBUG: true
       
     - name: Delete tag on failure
       if: failure()
