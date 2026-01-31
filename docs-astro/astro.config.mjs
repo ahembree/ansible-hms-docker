@@ -42,7 +42,14 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: '/opengraph/hmsd_opengraph.png'
+						content: 'https://hmsdocker.dev/opengraph/hmsd_opengraph.png'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:logo',
+						content: 'https://hmsdocker.dev/opengraph/hmsd_logo.png'
 					}
 				},
 				{
