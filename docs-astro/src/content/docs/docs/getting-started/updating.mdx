@@ -13,3 +13,11 @@ Previous variable names will still work for at least a year after the change and
 If any new containers or container controls were added since you last updated, your `container_map.yml` file will also be updated with the defaults for the new container(s) and controls.
 
 Please see the [Release Notes](/docs/release-notes/) if you are updating from a previous version.
+
+:::note[Note]
+
+If you are running before version 1.9.0, you may need to append an additional patch version to your version file.
+
+If your `/opt/hms-docker/.hmsd_version` only has a major and minor version (eg. `1.8`), add a patch version by adding another `.0` to the end (eg. `1.8.0`)
+
+:::
