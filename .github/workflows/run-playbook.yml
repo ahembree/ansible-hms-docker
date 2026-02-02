@@ -6,6 +6,9 @@ on:
       - 'roles/**'
       - 'hms-docker.yml'
   pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened]
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
@@ -16,68 +19,13 @@ permissions:
   contents: read
 
 jobs:
-  Ubuntu_22:
-    name: Test Ubuntu 22.04
-    runs-on: ubuntu-22.04
-    permissions: {}
-    steps:
-      - name: Check out repo code
-        uses: actions/checkout@v4
+  Ubuntu:
+    name: Test Ubuntu ${{ matrix.os-version }}
+    runs-on: ${{ matrix.os-version }}
+    strategy:
+      matrix:
+        os-version: ["ubuntu-22.04", "ubuntu-24.04"]
 
-      - name: Add hosts to /etc/hosts
-        run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
-
-      - name: Install ansible
-        run: |
-          sudo apt update
-          sudo sudo apt install software-properties-common
-          sudo add-apt-repository --yes --update ppa:ansible/ansible
-          sudo apt install ansible
-
-      - name: Ensure base playbook requirements
-        # does not use the `make` command since it requires input and we cannot input in a Runner
-        run: |
-          mkdir -p ./inventory/group_vars/all
-          cp ./roles/hmsdocker/defaults/main/*.yml ./inventory/group_vars/all
-          chmod 0600 ./inventory/group_vars/all/*.yml
-          make install-reqs
-
-      - name: Run playbook in check mode
-        run: >-
-          sudo ansible-playbook
-          -i inventory/hosts.yml
-          hms-docker.yml
-          --diff
-          --check
-          --extra-vars "@.github/extra-vars.yml"
-
-      - name: Run playbook
-        run: >-
-          sudo ansible-playbook
-          -i inventory/hosts.yml
-          hms-docker.yml
-          --diff
-          --extra-vars "@.github/extra-vars.yml"
-
-      - name: Check containers
-        run: |
-          sleep 60
-          sudo pip3 install requests python-dotenv xmltodict cryptography docker
-          sudo make verify-containers
-
-      - name: Run playbook again to ensure API keys are retrieved
-        run: >-
-          sudo ansible-playbook
-          -i inventory/hosts.yml
-          hms-docker.yml
-          --diff
-          --extra-vars "@.github/extra-vars.yml"
-
-  Ubuntu_24:
-    name: Test Ubuntu 24.04
-    runs-on: ubuntu-24.04
-    permissions: {}
     steps:
       - name: Check out repo code
         uses: actions/checkout@v4
