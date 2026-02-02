@@ -1,5 +1,5 @@
 name: Ubuntu Deployment Tests
-run-name: Test Ubuntu Deployments
+
 on:
   push:
     paths:
