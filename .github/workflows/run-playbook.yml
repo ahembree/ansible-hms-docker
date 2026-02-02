@@ -23,8 +23,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  Ubuntu:
-    name: Test Ubuntu ${{ matrix.os-version }}
+  playbook-run:
+    name: Test ${{ matrix.os-version }}
     runs-on: ${{ matrix.os-version }}
     strategy:
       matrix:
