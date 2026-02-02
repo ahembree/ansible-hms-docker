@@ -26,11 +26,11 @@ To enable the Traefik-to-Plex Certificate script:
 
 1. Change `hms_docker_plex_ssl_enabled` to `true`
 
-2. Set `hms_docker_plex_ssl_subdomain` to the subdomain used to access Plex on your domain name
+2. Set `hms_docker_plex_ssl_public_hostname` to the publicly-accessible FQDN/hostname used to access Plex, such as `plex.example.com` or `media.public.example.com`
 
-    a. For example, if your domain was `example.com` and the subdomain to access Plex was `media.example.com`, set this value to `media`
+    a. NOTE: It **must** match a hostname, wildcard, or SAN covered by the Traefik certificate. If it is not and you want to add a SAN, see the [Traefik SSL docs](/docs/services/traefik/ssl/#changing-ssl-certificate-sans)
 
-    b. NOTE: It **must** match a hostname, wildcard or SAN covered by the Traefik certificate
+    b. This FQDN should resolve to the public IP of the Plex server
 
 </Steps>
 
