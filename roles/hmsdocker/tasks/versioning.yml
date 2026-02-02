@@ -59,7 +59,7 @@
           New version;  {{ hmsd_current_version }}
           Your version; {{ last_version }}
 
-          This may introduce breaking changes, please review all changes and understand them before applying.
+          This may introduce breaking changes, please review all changes at https://hmsdocker.dev/docs/release-notes/ and understand them before applying.
 
           Do you want to continue? (yes/no)
       register: continue_playbook

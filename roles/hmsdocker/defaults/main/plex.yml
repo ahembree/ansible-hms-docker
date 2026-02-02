@@ -16,9 +16,8 @@ plex_transcode_folder: "/tmp/{{ project_name }}/plex_transcode" # default: "/tmp
 # NOTE: You must also have "traefik_ssl_enabled" set to "yes"
 # Enables the script and other resources // default: no // valid: yes, no
 hms_docker_plex_ssl_enabled: no
-# The subdomain that will be published to Plex and is within scope of the certificates being generated // default: plex
-# Example: "plex" if the subdomain record were "plex.example.com"
-hms_docker_plex_ssl_subdomain: plex
+# The hostname that will be published to Plex and is within scope of the certificates being generated // default: "plex.{{ hms_docker_domain }}"
+hms_docker_plex_ssl_public_hostname: "plex.{{ hms_docker_domain }}"
 # If the script should update the Plex server config file to point to the newly converted script // default: no // valid: yes, no
 hms_docker_plex_ssl_update_config: no
 # If the script should restart the Plex server after modifying the config // default: no // valid yes, no

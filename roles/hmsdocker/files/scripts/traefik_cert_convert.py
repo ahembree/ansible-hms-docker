@@ -5,7 +5,7 @@ from datetime import datetime
 
 LOG_PATH=f"{os.path.dirname(os.path.abspath(__file__))}/cert_convert.log"
 logger = logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler(LOG_PATH, mode='a'),
@@ -32,7 +32,7 @@ try:
     COMPOSE_PROJECT = os.getenv('COMPOSE_PROJECT', 'hms-docker')
     HMSD_USER_ID = os.getenv('PUID', 1234)
     HMSD_GROUP_ID = os.getenv('PGID', 1234)
-    PLEX_PUBLIC_SUBDOMAIN = os.getenv('PLEX_PUBLIC_SUBDOMAIN', 'plex')
+    PLEX_PUBLIC_HOSTNAME = os.getenv('PLEX_PUBLIC_HOSTNAME', 'plex')
     PLEX_CERT_PASSPHRASE = os.getenv('PLEX_CERTIFICATE_PASSPHRASE', None)
     PLEX_MODIFY_CONFIG = os.getenv('PLEX_CERT_UPDATE_CONFIG', False)
     PLEX_RESTART = os.getenv('PLEX_CERT_RESTART', False)
@@ -59,12 +59,20 @@ def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: str=N
     else:
         key = load_pem_private_key(str.encode(priv), None)
         p12 = pkcs12.serialize_key_and_certificates(None, key, cert, None, NoEncryption())
-    with open(filename, 'wb') as file:
-        file.write(p12)
-        logging.info(f'PKCS12 data written to {filename}{" and encrypted" if priv_passphrase is not None else ""}')
+    try:
+        with open(filename, 'wb') as file:
+            file.write(p12)
+            logging.info(f'PKCS12 data written to {filename}{" and encrypted" if priv_passphrase is not None else ""}')
+    except FileNotFoundError as e:
+        logging.error(f'Failed to write PKCS12 file to {filename}, directory may not exist (Error: {e})')
+        sys.exit(1)
     file.close()
     os.chmod(filename, 0o600)
-    os.chown(filename, uid=int(HMSD_USER_ID), gid=int(HMSD_GROUP_ID))
+    try:
+        os.chown(filename, uid=int(HMSD_USER_ID), gid=int(HMSD_GROUP_ID))
+    except PermissionError as e:
+        logging.error(f'Failed to change ownership of file {filename}, try running script with sudo (Error: {e})')
+        sys.exit(1)
 
 def modify_plex_config(config_path: str, attrib_key: str, attrib_value: str) -> None:
     """Modifies the Plex server config XML file to have expected values output by this script
@@ -194,7 +202,7 @@ def main():
         description='Converts a Traefik certificate file to PKCS12 format and applies it to a Plex server'
     )
     parser.add_argument('-r', '--restart-plex', choices=[True, False], default=PLEX_RESTART, help='Whether or not to restart the Plex container when updating the server config')
-    parser.add_argument('-s', '--subdomain', default=PLEX_PUBLIC_SUBDOMAIN, help='The publicly accessible subdomain to access the Plex server. Must be in scope of the main certificate domain or a SAN')
+    parser.add_argument('-s', '--hostname', default=PLEX_PUBLIC_HOSTNAME, help='The publicly accessible hostname to access the Plex server. Must be in scope of the certificate domain or a SAN')
     parser.add_argument('-p', '--passphrase', default=PLEX_CERT_PASSPHRASE, help='Passphrase to protect the PKSC12 certificate file')
     parser.add_argument('-c', '--plex-config', default=f'{PLEX_CONFIG_DIR}/Library/Application Support/Plex Media Server/Preferences.xml', help='Path to the Plex servers Preferences.xml file')
     parser.add_argument('-m', '--modify-plex-config', choices=[True, False], default=PLEX_MODIFY_CONFIG, help='If True, this will update the Plex config file to point to the converted certificate file')
@@ -206,7 +214,7 @@ def main():
     passphrase = args.passphrase
     traefik_cert_file_path = args.traefik_cert_file
     plex_config_path = args.plex_config
-    plex_subdomain = args.subdomain
+    plex_hostname = args.hostname
     modify_plex_conf = args.modify_plex_config
 
     if passphrase == "":
@@ -245,9 +253,26 @@ def main():
             f.close()
 
         logging.debug(f'Working with main domain: {main_domain}')
+        logging.debug(f'Checking if hostname {plex_hostname} is covered by main domain or SANs')
+        covered = False
+        plex_dns_parent_zone = '.'.join(plex_hostname.split('.')[1:])
         if sans:
             for san in sans:
                 logging.debug(f'\t\tFound SAN: {san}')
+                san_dns_parent_zone = '.'.join(san.split('.')[1:])
+                if plex_dns_parent_zone == san_dns_parent_zone or plex_hostname == san:
+                    covered = True
+                    logging.info(f'Hostname {plex_hostname} is covered by SAN: {san}')
+                    break
+
+        if not covered:
+            if plex_hostname == main_domain:
+                covered = True
+                logging.info(f'Hostname {plex_hostname} is covered by main domain: {main_domain}')
+
+        if not covered:
+            logging.error(f'Hostname {plex_hostname} is NOT covered by main domain or SANs, cannot continue')
+            sys.exit(1)
 
         logging.debug(f'Getting serial for Traefik certificate')
         new_serial = get_pem_serial(certificate)
@@ -257,7 +282,7 @@ def main():
             logging.info(f'Serials DO NOT match, updating file')
             convert_to_pkcs12(pkcs12_file_path, certificate, certificate_priv_key, priv_passphrase=passphrase)
             if modify_plex_conf:
-                modify_plex_config(plex_config_path, 'customCertificateDomain', f'{plex_subdomain}.{main_domain}')
+                modify_plex_config(plex_config_path, 'customCertificateDomain', f'{plex_hostname}')
                 modify_plex_config(plex_config_path, 'customCertificatePath', f'/config/{pkcs12_file_name}')
                 if passphrase:
                     modify_plex_config(plex_config_path, 'customCertificateKey', passphrase)
