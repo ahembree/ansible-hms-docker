@@ -87,6 +87,7 @@ update: $(YQ_LOCAL)
 	@sed -i 's\transmission_vpn_pass:\hmsdocker_vpn_pass:\g' $(CUSTOM_CONF_DIR)/transmission.yml
 	@sed -i 's\transmission_ovpn_config_local_path:\transmission_ovpn_config_local_dir:\g' $(CUSTOM_CONF_DIR)/transmission.yml
 	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml || echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
+	@sed -i 's\hms_docker_plex_ssl_subdomain:\hms_docker_plex_ssl_public_hostname:\g' $(CUSTOM_CONF_DIR)/plex.yml
 
 	@echo "Fetching container map updates from $(REMOTE_CONFIG_URL)/container_map.yml..."
 	@tmpfile=$$(mktemp); \

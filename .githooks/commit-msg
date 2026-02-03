@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+MSG_FILE="$1"
+MSG="$(head -n1 "$MSG_FILE")"
+
+# Basic Conventional Commits regex: type(optional scope): description
+regex='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-zA-Z0-9_-]+\))?!?: .+$'
+
+if ! echo "$MSG" | grep -Eq "$regex"; then
+  echo "ERROR: Commit message must follow Conventional Commits:"
+  echo "  <type>(<optional-scope>): <description>"
+  echo "Examples: 'feat: add login', 'fix(api): handle 500 error'"
+  exit 1
+fi
