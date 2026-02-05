@@ -35,7 +35,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:title',
-						content: 'Home Media Server deployment tool - HMS-Docker'
+						content: 'HMS-Docker - A Home Media Server deployment orchestrator'
 					}
 				},
 				{
