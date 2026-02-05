@@ -70,7 +70,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:description',
-						content: 'An orchestrated Home Media Server deployment tool using Ansible and Docker'
+						content: 'An orchestrated Home Media Server deployment tool that runs everything in Docker while Ansible does all the heavy lifting of maintaining configurations.'
 					}
 				},
 			],
