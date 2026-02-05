@@ -37,6 +37,7 @@ jobs:
         uses: withastro/action@v5
         with:
           path: docs-astro # The root location of your Astro project inside the repository. (optional)
+          build-cmd: npm run build && touch dist/.nojekyll
         # env:
           # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Use single quotation marks for the variable value. (optional)
 
