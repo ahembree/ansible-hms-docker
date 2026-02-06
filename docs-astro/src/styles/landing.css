@@ -1,27 +1,27 @@
 :root {
-  --purple-hsl: 290, 75%, 55%; /* Ansible red + Docker blue = purple-ish */
-  --overlay-purple: hsla(var(--purple-hsl), 0.2);
+  --teal-hsl: 183, 75%, 55%;
+  --overlay-teal: hsla(var(--teal-hsl), 0.2);
 }
 
 :root[data-theme='light'] {
-  --purple-hsl: 290, 80%, 60%;
+  --teal-hsl: 183, 80%, 60%;
   --sl-hue-accent: 290;
 }
 
-/* Purple theme for title on hover */
+/* theme for title on hover */
 .site-title {
   color: whitesmoke !important;
 }
 .site-title:hover {
-  color: hsl(var(--purple-hsl)) !important;
+  color: hsl(var(--teal-hsl)) !important;
 }
 
-/* Purple theme for hero page */
+/* theme for hero page */
 [data-has-hero] .page {
   background:
-    linear-gradient(215deg, var(--overlay-purple), transparent 40%),
-    radial-gradient(var(--overlay-purple), transparent 40%) no-repeat -60vw -40vh / 105vw 200vh,
-    radial-gradient(var(--overlay-purple), transparent 65%) no-repeat 50% calc(100% + 20rem) / 60rem 30rem;
+    linear-gradient(215deg, var(--overlay-teal), transparent 40%),
+    radial-gradient(var(--overlay-teal), transparent 40%) no-repeat -60vw -40vh / 105vw 200vh,
+    radial-gradient(var(--overlay-teal), transparent 65%) no-repeat 50% calc(100% + 20rem) / 60rem 30rem;
 }
 
 [data-has-hero] header {
@@ -32,47 +32,46 @@
 }
 
 [data-has-hero] .hero > img {
-  filter: drop-shadow(0 0 3rem var(--overlay-purple));
+  filter: drop-shadow(0 0 3rem var(--overlay-teal));
 }
 
-/* Purple theme for hero action button */
 [data-has-hero] .actions a,
 [data-has-hero] [variant="primary"] {
-  background: hsla(var(--purple-hsl), 0.1) !important; /* Darker, more transparent */
-  border-color: hsla(var(--purple-hsl), 0.5) !important;
+  background: hsla(var(--teal-hsl), 0.1) !important; /* Darker, more transparent */
+  border-color: hsla(var(--teal-hsl), 0.5) !important;
   color: whitesmoke !important;
 }
 
 [data-has-hero] .actions a:hover,
 [data-has-hero] [variant="primary"]:hover {
-  border-color: hsl(var(--purple-hsl)) !important;
-  box-shadow: 0 10px 25px hsla(var(--purple-hsl), 0.3);
+  border-color: hsl(var(--teal-hsl)) !important;
+  box-shadow: 0 10px 25px hsla(var(--teal-hsl), 0.3);
   background: transparent !important;
   transition: all 0.25s ease; /* Smooth fade animation */
 }
 
 [data-has-hero] .actions a:focus-visible {
-  box-shadow: 0 0 0 3px hsla(var(--purple-hsl), 0.4);
+  box-shadow: 0 0 0 3px hsla(var(--teal-hsl), 0.4);
 }
 
-/* Purple sidebar hover */
+/* sidebar hover */
 .sidebar-content a:hover,
 .sidebar-content [data-collapsible]:hover {
-  background: hsla(var(--purple-hsl), 0.15);
+  background: hsla(var(--teal-hsl), 0.15);
   transition: all 0.25s ease; /* Smooth fade animation */
 }
 
 .sidebar-content a[aria-current]:hover,
 .sidebar-content a:focus-visible {
-  background: hsla(var(--purple-hsl), 0.25);
-  box-shadow: 0 0 0 2px hsla(var(--purple-hsl), 0.4);
+  background: hsla(var(--teal-hsl), 0.25);
+  box-shadow: 0 0 0 2px hsla(var(--teal-hsl), 0.4);
 }
 
-/* Purple accent on active sidebar items */
+/* accent on active sidebar items */
 .sidebar-content a[aria-current] {
-  background: hsla(var(--purple-hsl), 0.2);
+  background: hsla(var(--teal-hsl), 0.2);
   border: 2px solid transparent;
-  border-right-color: hsl(var(--purple-hsl));
+  border-right-color: hsl(var(--teal-hsl));
   border-right-width: 3px;
   color: whitesmoke !important;
 }
@@ -85,7 +84,7 @@
 
 /* Hover state */
 .right-sidebar-panel a:hover {
-  color: hsl(var(--purple-hsl));
+  color: hsl(var(--teal-hsl));
   background: transparent !important;
   transition: all 0.25s ease; /* Smooth fade animation */
 }
@@ -93,41 +92,40 @@
 /* Active/current section link (Starlight uses aria-current) */
 .right-sidebar-panel a[aria-current='true'],
 .right-sidebar-panel a[aria-current='true']:hover {
-  color: hsl(var(--purple-hsl));
+  color: hsl(var(--teal-hsl));
   font-weight: 600;
 }
 
 /* Optional: small left border accent for active heading */
 .right-sidebar-panel a[aria-current='true'] {
-  border-left: 2px solid hsl(var(--purple-hsl));
+  border-left: 2px solid hsl(var(--teal-hsl));
   padding-left: 0.5rem;
 }
 
 
 
 
-/* Purple theme for bottom "Previous/Next" page links - with gap & border */
 .pagination-links {
   gap: 1rem; /* Adds space between buttons */
 }
 
 .pagination-links a {
-  border: 1px solid hsla(var(--purple-hsl), 0.2) !important;
-  color: hsl(var(--purple-hsl)) !important;
+  border: 1px solid hsla(var(--teal-hsl), 0.2) !important;
+  color: hsl(var(--teal-hsl)) !important;
   background: transparent !important;
   transition: all 0.25s ease; /* Smooth fade animation */
 }
 
 .pagination-links a:hover {
-  background: hsla(var(--purple-hsl), 0.15) !important;
-  border-color: hsla(var(--purple-hsl), 0.4) !important; /* Stronger purple on hover */
-  color: hsl(var(--purple-hsl)) !important;
+  background: hsla(var(--teal-hsl), 0.15) !important;
+  border-color: hsla(var(--teal-hsl), 0.4) !important;
+  color: hsl(var(--teal-hsl)) !important;
   transition: all 0.25s ease; /* Smooth fade animation */
 }
 
 .pagination-links a[aria-disabled] {
-  color: hsla(var(--purple-hsl), 0.5) !important;
+  color: hsla(var(--teal-hsl), 0.5) !important;
   cursor: not-allowed;
-  border-color: hsla(var(--purple-hsl), 0.1) !important; /* Faint border when disabled */
+  border-color: hsla(var(--teal-hsl), 0.1) !important; /* Faint border when disabled */
 }
 

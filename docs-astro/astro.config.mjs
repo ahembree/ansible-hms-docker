@@ -28,7 +28,7 @@ export default defineConfig({
       },
       title: 'HMS-Docker',
 			logo: {
-				src: './src/assets/hmsd_logo.png'
+				src: './src/content/docs/static/img/logo.svg'
 			},
 			head: [
 				{
