@@ -22,7 +22,7 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - TZ=${TIMEZONE}
-      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-timescale:5432/tracearr
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-db:5432/tracearr
       - REDIS_URL=redis://tracearr-redis:6379
       - JWT_SECRET=${TRACEARR_JWT_SECRET}
       - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
@@ -30,7 +30,7 @@ services:
       - LOG_LEVEL=${TRACEARR_LOG_LEVEL:-info} # Log level (debug, info, warn, error)
       # - DATABASE_POOL_MAX=50  # Database connection pool size (default: 50)
     depends_on:
-      tracearr-timescale:
+      tracearr-db:
         condition: service_healthy
       tracearr-redis:
         condition: service_healthy
@@ -57,7 +57,7 @@ services:
       {% endif %}
     {% endif %}
 
-  tracearr-timescale:
+  tracearr-db:
     image: timescale/timescaledb-ha:pg18
     container_name: tracearr-db
     restart: ${RESTART_POLICY}
