@@ -78,6 +78,7 @@ verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
 update: $(YQ_LOCAL)
+	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 	@echo "Updating from Git repo..." && git pull origin master -q
 	@echo "Updating variables..."
 	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
@@ -122,7 +123,7 @@ update: $(YQ_LOCAL)
 	$(YQ_LOCAL) eval -i 'sort_keys(.hms_docker_container_map)' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
 	rm -f "$$tmpfile"; \
 	echo "Update finished"
-	@echo "Version: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
+	@echo "Version Now: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 
 help:
 	@echo make config :: copy default config files

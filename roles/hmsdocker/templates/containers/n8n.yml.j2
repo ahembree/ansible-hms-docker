@@ -1,0 +1,120 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
+    container_name: n8n
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+      - n8n_net
+    {% if 'n8n' in expose_ports_enabled_containers %}
+    ports:
+      - "5678:5678"
+    {% endif %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}`)
+      - traefik.http.services.n8n-${COMPOSE_PROJECT}.loadbalancer.server.port=5678
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.SSLHost=${HMSD_DOMAIN}
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSPreload=true
+      - traefik.http.routers.n8n-${COMPOSE_PROJECT}.middlewares=n8n-${COMPOSE_PROJECT}@docker
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST={{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_HIRING_BANNER_ENABLED=false
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://{{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}/
+      - GENERIC_TIMEZONE=${TIMEZONE}
+      - TZ=${TIMEZONE}
+      - N8N_USER_FOLDER=/data
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${N8N_POSTGRES_DB:-n8n}
+      - DB_POSTGRESDB_USER=${N8N_POSTGRES_NON_ROOT_USER:-n8nnonroot}
+      - DB_POSTGRESDB_PASSWORD=${N8N_POSTGRES_NON_ROOT_PASSWORD:-n8nnonr00tpassw0rd}
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=n8n-redis
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-asdfasdfasdfasdfasdfasdfasdf}
+    volumes:
+      - ${HMSD_APPS_PATH}/n8n/config:/data
+      - ${HMSD_APPS_PATH}/n8n/files:/files
+    depends_on:
+      n8n-redis:
+        condition: service_healthy
+      n8n-postgres:
+        condition: service_healthy
+    links:
+      - n8n-postgres
+      - n8n-redis
+
+  n8n-redis:
+    image: redis:6-alpine
+    container_name: n8n-redis
+    restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
+    networks:
+      - n8n_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    volumes:
+      - ${HMSD_APPS_PATH}/n8n/redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  n8n-postgres:
+    image: postgres:16
+    container_name: n8n-postgres
+    restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
+    networks:
+      - n8n_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    environment:
+      - POSTGRES_USER=${N8N_POSTGRES_USER:-n8nroot}
+      - POSTGRES_PASSWORD=${N8N_POSTGRES_PASS:-n8nr00tpassw0rd}
+      - POSTGRES_DB=${N8N_POSTGRES_DB:-n8n}
+      - POSTGRES_NON_ROOT_USER=${N8N_POSTGRES_NON_ROOT_USER:-n8nnonroot}
+      - POSTGRES_NON_ROOT_PASSWORD=${N8N_POSTGRES_NON_ROOT_PASSWORD:-n8nnonr00tpassw0rd}
+    volumes:
+      - ${HMSD_APPS_PATH}/n8n/db:/var/lib/postgresql/data
+      - ${HMSD_APPS_PATH}/n8n/db-init/init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${N8N_POSTGRES_USER:-n8nroot} -d ${N8N_POSTGRES_DB:-n8n}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n_net:
+    driver: bridge
+    attachable: false

@@ -201,6 +201,14 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: maintainerr
     traefik: true
+  n8n:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: n8n
+    traefik: true
   netdata:
     enabled: false
     homepage: true
