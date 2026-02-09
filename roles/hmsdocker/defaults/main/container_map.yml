@@ -106,6 +106,17 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: dispatcharr
     traefik: true
+  dockhand:
+    authentik: false
+    authentik_provider_type: oauth2
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: dockhand
+    traefik: true
   emby:
     authentik: false
     directory: true
