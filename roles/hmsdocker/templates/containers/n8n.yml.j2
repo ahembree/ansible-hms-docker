@@ -48,41 +48,14 @@ services:
       - DB_POSTGRESDB_DATABASE=${N8N_POSTGRES_DB:-n8n}
       - DB_POSTGRESDB_USER=${N8N_POSTGRES_NON_ROOT_USER:-n8nnonroot}
       - DB_POSTGRESDB_PASSWORD=${N8N_POSTGRES_NON_ROOT_PASSWORD:-n8nnonr00tpassw0rd}
-      - EXECUTIONS_MODE=queue
-      - QUEUE_BULL_REDIS_HOST=n8n-redis
-      - QUEUE_HEALTH_CHECK_ACTIVE=true
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-asdfasdfasdfasdfasdfasdfasdf}
     volumes:
       - ${HMSD_APPS_PATH}/n8n/config:/data
       - ${HMSD_APPS_PATH}/n8n/files:/files
     depends_on:
-      n8n-redis:
-        condition: service_healthy
       n8n-postgres:
         condition: service_healthy
     links:
       - n8n-postgres
-      - n8n-redis
-
-  n8n-redis:
-    image: redis:6-alpine
-    container_name: n8n-redis
-    restart: ${RESTART_POLICY}
-    user: ${PUID}:${PGID}
-    networks:
-      - n8n_net
-    logging:
-      options:
-        max-size: "12m"
-        max-file: "5"
-      driver: json-file
-    volumes:
-      - ${HMSD_APPS_PATH}/n8n/redis:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 10
   
   n8n-postgres:
     image: postgres:16
