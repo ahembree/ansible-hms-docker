@@ -11,15 +11,64 @@
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     debug_mode: false
+    # Base Docker daemon settings
+    docker_daemon_options_base:
+      log-driver: "json-file"
+      log-opts:
+        max-size: "10m"
+        max-file: "3"
 
-  roles:
-    - galaxy-roles/geerlingguy.docker
+    # GPU-specific Docker daemon settings
+    docker_daemon_options_gpu:
+      runtimes:
+        nvidia:
+          args: []
+          path: nvidia-container-runtime
+    
+    # Merge Docker daemon settings
+    docker_daemon_options: >-
+      {{
+        docker_daemon_options_base
+        | combine(docker_daemon_options_gpu if enable_nvidia_gpu | default(false) else {}, recursive=True)
+      }}
 
-  tasks:
+  # Run GPU role first to ensure requirements are met
+  # 
+  pre_tasks:
     - name: Ensure Nvidia GPU role if enabled
       ansible.builtin.import_role:
         name: gpu
       when: enable_nvidia_gpu | default(false)
+
+  roles:
+    # Docker role automatically flushes handlers (restarts Docker service) after configuring daemon.json
+    - galaxy-roles/geerlingguy.docker
+
+  tasks:
+    - name: (GPU Validation) Verify CUDA container works
+      when: enable_nvidia_gpu | default(false)
+      block:
+      - name: Run CUDA container
+        community.docker.docker_container:
+          name: nvidia-gpu-validation
+          image: ubuntu
+          command: nvidia-smi
+          runtime: nvidia
+          state: started
+          device_requests:
+            - driver: nvidia
+              count: -1
+              capabilities:
+                - gpu
+        ignore_errors: '{{ ansible_check_mode }}'
+        changed_when: false
+
+      - name: (GPU Validation) Remove CUDA container
+        community.docker.docker_container:
+          name: nvidia-gpu-validation
+          state: absent
+        ignore_errors: '{{ ansible_check_mode }}'
+        changed_when: false
 
     - name: Ensure HMS-Docker role
       ansible.builtin.import_role:
