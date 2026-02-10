@@ -62,7 +62,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 ## Misc
 
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
-- [Dockhand](https://github.com/Finsys/dockhand): container management GUI
+- [Dockhand](https://github.com/Finsys/dockhand): container management GUI <Badge text="New" variant="success"/>
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
 - [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
@@ -93,11 +93,11 @@ If a key (such as `sonarr:`) does not match an available container, an error may
 
 :::
 
-## Notes
+### Notes
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both Jellyfin and Emby)
 
-## Map
+### Map
 
 | Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik | Homepage Integration |
 | ---------------------------------------- | ------------------ | -------------------- | ------------------------------ | ------------------------------ | ---------------------- | -------------------- |
@@ -157,9 +157,9 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Tracearr                                 | &#9744;            | `tracearr`           | `3002`                         | `3000`                         | &#9745;                | &#9745;              |
 | Cross-Seed                               | &#9744;            | `cross-seed`         | `2468`                         | `2468`                         | &#9744;                | &#9744;              |
 | n8n                                      | &#9744;            | `n8n`                | `5678`                         | `5678`                         | &#9744;                | &#9744;              |
-| Dockhand                                 | &#9744;            | `dockhand`           | `3002`                         | `3000`                         | &#9744;                | &#9744;              |
+| Dockhand                                 | &#9744;            | `dockhand`           | `3003`                         | `3000`                         | &#9744;                | &#9744;              |
 
-## Container Map Entry Example
+### Container Map Entry Example
 
 Here is an example of a container map entry for Sonarr:
 

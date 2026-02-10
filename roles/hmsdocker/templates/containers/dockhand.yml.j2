@@ -12,7 +12,7 @@ services:
       - proxy_net
     {% if 'dockhand' in expose_ports_enabled_containers %}
     ports:
-      - 3002:3000
+      - 3003:3000
     {% endif %}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
