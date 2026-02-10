@@ -40,6 +40,14 @@ The following settings are optional:
 - `hms_docker_plex_ssl_restart_plex` : If the script should restart the Plex container after the config has been updated
 - `hms_docker_plex_ssl_cert_pass` : The passphrase for the certificate if you want to further secure it, but it is not necessary
 
+### Running Manually
+
+If you wish to run the script manually after a known certificate change:
+
+```bash
+/opt/hms-docker/.venv/bin/python /opt/hms-docker/scripts/traefik_cert_convert.py
+```
+
 ## Uptime-Kuma Media Availability Script
 
 A script that will monitor for media availability within Plex.
