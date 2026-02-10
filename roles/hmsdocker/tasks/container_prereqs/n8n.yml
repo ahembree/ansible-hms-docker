@@ -31,7 +31,7 @@
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
   # Ignore error when in check mode if the parent directory does not exist yet
-  ignore_errors: '{{ ansible_check_mode and n8n_dbinit_dir.diff.before.state == "absent" }}'
+  ignore_errors: '{{ ansible_check_mode and ((n8n_dbinit_dir.diff.before.state is defined and n8n_dbinit_dir.diff.before.state == "absent") | default(false) ) }}'
 
 - name: (Prereq - n8n) - Generate Encryption Key
   ansible.builtin.template:
