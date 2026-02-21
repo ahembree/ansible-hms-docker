@@ -60,6 +60,7 @@ config:
 	@if $(MAKE) -s confirm ; then \
 		mkdir -p $(CUSTOM_CONF_DIR); \
 		cp $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
+		cp roles/unifi_dns/defaults/main.yml $(CUSTOM_CONF_DIR)/unifi.yml; \
 		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
 	fi
 

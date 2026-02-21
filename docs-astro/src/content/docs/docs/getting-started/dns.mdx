@@ -14,6 +14,18 @@ It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Ho
 
 The domain used is defined in the variable `hms_docker_domain` in `inventory/group_vars/all/main.yml`
 
+## UniFi DNS Role
+
+There is an Ansible role available to enable that will manage the required DNS records if you are using a UniFi Network controller.
+
+The role _should_ only modify records that are used in this playbook and will create `CNAME` records that point to a single `A` record. This UniFi DNS role was created by Claude Code, so use at your own risk.
+
+:::note[Note]
+
+If any DNS records were created for this project _prior_ to the UniFi DNS API becoming available, you will likely need to delete the records first. I observed that any records created prior to the API becoming available had the same ID, deleting them resolved the issue.
+
+:::
+
 ## Accessing the Containers
 
 ### Internally

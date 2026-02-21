@@ -70,6 +70,11 @@
         ignore_errors: '{{ ansible_check_mode }}'
         changed_when: false
 
+    - name: Ensure Unifi DNS role to manage records before theyre used in playbook
+      ansible.builtin.import_role:
+        name: unifi_dns
+      when: unifi_dns_enabled | default(false)
+
     - name: Ensure HMS-Docker role
       ansible.builtin.import_role:
         name: hmsdocker
