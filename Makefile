@@ -78,6 +78,15 @@ install-reqs:
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
+manager:
+	@if [ ! -d ".venv" ]; then \
+		echo "Creating Python virtual environment"; \
+		python3 -m venv .venv; \
+		echo "Installing Python requirements"; \
+		.venv/bin/pip3 install -r requirements.txt > /dev/null; \
+	fi;
+	@.venv/bin/python3 settings_manager.py
+
 update: $(YQ_LOCAL)
 	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 	@echo "Updating from Git repo..." && git pull origin master -q
