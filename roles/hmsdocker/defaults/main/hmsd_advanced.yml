@@ -12,6 +12,9 @@ secrets_env_user: root
 secrets_env_group: root
 secrets_env_mode: "0600"
 
+# Docker daemon network settings
+hmsdocker_docker_network_base_subnet: "172.27.0.0/16"
+
 # Most home networks are a "/24" network, so this is the default // default: "24"
 # If you don't know what this means, leave the next 2 lines alone
 # If you know your specific network mask, you can change that here

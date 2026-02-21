@@ -13,6 +13,9 @@
     debug_mode: false
     # Base Docker daemon settings
     docker_daemon_options_base:
+      default-address-pools:
+        - base: '{{ hmsdocker_docker_network_base_subnet }}'
+          size: 24
       log-driver: "json-file"
       log-opts:
         max-size: "10m"
