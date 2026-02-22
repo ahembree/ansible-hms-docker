@@ -12,6 +12,8 @@ This playbook **assumes that it is a fresh install of an operating system** that
 
 To ensure no conflicting changes with an existing system, you can run this playbook in "check mode" (dry-run, preview, etc.) to see what, if any, changes would be made
 
+This playbook will also configure Docker to use the `172.27.0.0/16` IP range for all Docker networks and provision `/24` chunks for each Docker network from this block. If this overlaps with your internal range or if you wish to use a different range, modify the `hmsdocker_docker_network_base_subnet` variable in `inventory/group_vars/all/hmsd_advanced.yml`
+
 :::
 
 ## Installation
@@ -55,6 +57,17 @@ To ensure no conflicting changes with an existing system, you can run this playb
 </Steps>
 
 ---
+
+
+:::tip[Tip]
+
+There is a script that will allow you to easily edit all variable files mentioned in the following areas, just run the following command:
+
+```bash
+make manager
+```
+
+:::
 
 ## Container Selection
 
