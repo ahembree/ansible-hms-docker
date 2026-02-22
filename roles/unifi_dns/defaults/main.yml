@@ -1,0 +1,39 @@
+---
+# Enable or disable the Unifi DNS role
+unifi_dns_enabled: false
+
+# The Unifi controller base URL (do NOT include a trailing slash)
+# Example: "https://192.168.1.1"
+unifi_dns_controller_url: ""
+
+# The Unifi API key for authentication
+# Generated in the Integrations section of your UniFi application
+unifi_dns_api_key: ""
+
+# The Unifi site name to manage DNS records for
+# This matches the "internalReference" field from the sites API
+unifi_dns_site_name: "default"
+
+# The target A record domain name that all CNAME records will point to
+# Example: "server.home.local"
+unifi_dns_cname_target: ""
+
+# TTL in seconds for CNAME records (range: 0-86400)
+# Auto: 0
+unifi_dns_ttl_seconds: 0
+
+# Whether to validate SSL certificates when connecting to the Unifi controller
+# Set to false for self-signed certificates
+unifi_dns_validate_certs: false
+
+# Whether to include external Traefik hosts in DNS record management
+unifi_dns_include_external_hosts: true
+
+# Whether to include 4K instance subdomains (sonarr-4k, radarr-4k)
+unifi_dns_include_4k_instances: true
+
+# Maximum number of records to fetch per API page (max: 200)
+unifi_dns_api_page_limit: 200
+
+# Timeout in seconds for API requests
+unifi_dns_api_timeout: 30

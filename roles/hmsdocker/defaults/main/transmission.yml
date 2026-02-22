@@ -4,10 +4,6 @@
 transmission_ratio_limit: "1" # default: "1"
 transmission_ratio_enabled: "true" # default: "true"
 
-# DNS servers to use for the transmission container
-transmission_dns_1: "8.8.8.8"
-transmission_dns_2: "8.8.4.4"
-
 # Additional environment variables for Transmission (can be found at link above)
 transmission_additional_env_vars:
   {
@@ -16,7 +12,6 @@ transmission_additional_env_vars:
     "TRANSMISSION_PEER_LIMIT_GLOBAL": "3000",
     "TRANSMISSION_PEER_LIMIT_PER_TORRENT": "300",
   }
-
 
 ## External Providers and Custom VPN Options
 # These are for changing the VPN config to a different server or type for example

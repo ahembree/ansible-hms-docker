@@ -1,0 +1,19 @@
+---
+- name: Delete stale CNAME records from Unifi controller
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_base }}/{{ item.id }}"
+    method: DELETE
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Accept: application/json
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 200
+    return_content: true
+  loop: "{{ unifi_dns_records_to_delete }}"
+  loop_control:
+    label: "{{ item.domain }}"
+  register: unifi_dns_delete_results
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  delegate_to: localhost
+  become: false

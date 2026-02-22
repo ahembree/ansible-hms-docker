@@ -1,0 +1,160 @@
+---
+- name: Validate required Unifi DNS variables
+  ansible.builtin.assert:
+    that:
+      - unifi_dns_controller_url | length > 0
+      - unifi_dns_api_key | length > 0
+      - unifi_dns_cname_target | length > 0
+      - hms_docker_domain is defined
+      - hms_docker_domain | length > 0
+    fail_msg: >-
+      Missing required Unifi DNS configuration. Ensure unifi_dns_controller_url,
+      unifi_dns_api_key, unifi_dns_cname_target, and hms_docker_domain are all
+      defined and non-empty.
+    quiet: true
+
+- name: Ensure controller URL has a scheme
+  ansible.builtin.set_fact:
+    unifi_dns_controller_url: "https://{{ unifi_dns_controller_url }}"
+  when: unifi_dns_controller_url is not regex('^https?://')
+
+- name: Set Unifi API base URL
+  ansible.builtin.set_fact:
+    unifi_dns_api_integration_base: "{{ unifi_dns_controller_url }}/proxy/network/integration/v1"
+
+- name: Fetch site list from Unifi controller
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_integration_base }}/sites"
+    method: GET
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Accept: application/json
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 200
+    return_content: true
+  register: unifi_dns_sites_response
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  check_mode: false
+  delegate_to: localhost
+  become: false
+
+- name: Resolve site ID from site name
+  ansible.builtin.set_fact:
+    unifi_dns_site_id: "{{ (unifi_dns_sites_response.json.data | selectattr('internalReference', 'equalto', unifi_dns_site_name) | first).id | trim }}"
+
+- name: Set Unifi DNS API base URL
+  ansible.builtin.set_fact:
+    unifi_dns_api_base: "{{ unifi_dns_api_integration_base }}/sites/{{ unifi_dns_site_id }}/dns/policies"
+
+- name: Build desired subdomains from container map
+  ansible.builtin.set_fact:
+    unifi_dns_desired_subdomains: "{{ hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true) | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
+
+- name: Extend desired subdomains with 4K instances
+  ansible.builtin.set_fact:
+    unifi_dns_desired_subdomains: "{{ unifi_dns_desired_subdomains + [item + '-4k'] }}"
+  when:
+    - unifi_dns_include_4k_instances
+    - separate_4k_instances_enable | default(false)
+    - item in (
+        hms_docker_container_map | dict2items |
+        selectattr('value.enabled', 'defined') |
+        selectattr('value.enabled', 'equalto', true) |
+        selectattr('value.traefik', 'defined') |
+        selectattr('value.traefik', 'equalto', true) |
+        map(attribute='key') |
+        list
+      )
+  loop:
+    - sonarr
+    - radarr
+
+- name: Extend desired subdomains with external Traefik hosts
+  ansible.builtin.set_fact:
+    unifi_dns_desired_subdomains: "{{ unifi_dns_desired_subdomains + [item.subdomain_name] }}"
+  when:
+    - unifi_dns_include_external_hosts
+    - traefik_ext_hosts_enabled | default(false)
+    - item.enabled | default(false)
+    - item.subdomain_name is defined
+    - item.subdomain_name not in unifi_dns_desired_subdomains
+  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+
+- name: Build desired FQDN list
+  ansible.builtin.set_fact:
+    unifi_dns_desired_fqdns: "{{ unifi_dns_desired_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hms_docker_domain) | list }}"
+
+# Build a list of ALL possible FQDNs this project could manage (enabled or not).
+# This prevents deleting DNS records that exist outside this project.
+- name: Build all manageable subdomains from container map
+  ansible.builtin.set_fact:
+    unifi_dns_all_manageable_subdomains: "{{ hms_docker_container_map | dict2items | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
+
+- name: Extend manageable subdomains with 4K instances
+  ansible.builtin.set_fact:
+    unifi_dns_all_manageable_subdomains: "{{ unifi_dns_all_manageable_subdomains + [item + '-4k'] }}"
+  when:
+    - unifi_dns_include_4k_instances
+    - separate_4k_instances_enable | default(false)
+  loop:
+    - sonarr
+    - radarr
+
+- name: Extend manageable subdomains with external Traefik hosts
+  ansible.builtin.set_fact:
+    unifi_dns_all_manageable_subdomains: "{{ unifi_dns_all_manageable_subdomains + [item.subdomain_name] }}"
+  when:
+    - unifi_dns_include_external_hosts
+    - traefik_ext_hosts_enabled | default(false)
+    - item.subdomain_name is defined
+    - item.subdomain_name not in unifi_dns_all_manageable_subdomains
+  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+
+- name: Build all manageable FQDN list
+  ansible.builtin.set_fact:
+    unifi_dns_all_manageable_fqdns: "{{ unifi_dns_all_manageable_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hms_docker_domain) | list }}"
+
+- name: Display desired DNS FQDNs
+  ansible.builtin.debug:
+    var: unifi_dns_desired_fqdns
+  when: debug_mode | default(false) | bool
+
+# Fetch existing CNAME records from the Unifi controller
+- name: Fetch existing CNAME records from Unifi controller
+  ansible.builtin.include_tasks: fetch_existing.yml
+
+# Determine records to create, delete, and update
+- name: Determine records to CREATE
+  ansible.builtin.set_fact:
+    unifi_dns_records_to_create: "{{ unifi_dns_desired_fqdns | difference(unifi_dns_existing_domains) }}"
+
+- name: Determine records to DELETE
+  ansible.builtin.set_fact:
+    unifi_dns_records_to_delete: "{{ unifi_dns_existing_records | rejectattr('domain', 'in', unifi_dns_desired_fqdns) | selectattr('domain', 'in', unifi_dns_all_manageable_fqdns) | list }}"
+
+- name: Determine records to UPDATE
+  ansible.builtin.set_fact:
+    unifi_dns_records_to_update: "{{ unifi_dns_existing_records | selectattr('domain', 'in', unifi_dns_desired_fqdns) | rejectattr('ttlSeconds', 'equalto', unifi_dns_ttl_seconds | int) | list }}"
+
+- name: Build list of all DNS record changes
+  ansible.builtin.set_fact:
+    unifi_dns_change_list: "{{ (unifi_dns_records_to_create | map('regex_replace', '^(.*)$', '[CREATE] CNAME \\1 -> ' + unifi_dns_cname_target) | list) + (unifi_dns_records_to_delete | map(attribute='domain') | map('regex_replace', '^(.*)$', '[DELETE] CNAME \\1') | list) + (unifi_dns_records_to_update | map(attribute='domain') | map('regex_replace', '^(.*)$', '[UPDATE] CNAME \\1 -> TTL ' + (unifi_dns_ttl_seconds | string)) | list) }}"
+    unifi_dns_unchanged_list: "{{ unifi_dns_existing_records | selectattr('domain', 'in', unifi_dns_desired_fqdns) | selectattr('ttlSeconds', 'equalto', unifi_dns_ttl_seconds | int) | map(attribute='domain') | map('regex_replace', '^(.*)$', '[UNCHANGED] CNAME \\1') | list }}"
+
+- name: Display Unifi DNS reconciliation plan
+  ansible.builtin.debug:
+    msg: "{{ ['--- Unifi DNS Reconciliation ---'] + unifi_dns_change_list + unifi_dns_unchanged_list + ['--- Summary: ' + (unifi_dns_records_to_create | length | string) + ' to create, ' + (unifi_dns_records_to_delete | length | string) + ' to delete, ' + (unifi_dns_records_to_update | length | string) + ' to update, ' + (unifi_dns_unchanged_list | length | string) + ' unchanged ---'] }}"
+
+# Execute the reconciliation
+- name: Create missing CNAME records
+  ansible.builtin.include_tasks: create_records.yml
+  when: unifi_dns_records_to_create | length > 0
+
+- name: Delete stale CNAME records
+  ansible.builtin.include_tasks: delete_records.yml
+  when: unifi_dns_records_to_delete | length > 0
+
+- name: Update CNAME records with changed TTL
+  ansible.builtin.include_tasks: update_records.yml
+  when: unifi_dns_records_to_update | length > 0

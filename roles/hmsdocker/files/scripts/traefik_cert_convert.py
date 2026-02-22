@@ -5,7 +5,7 @@ from datetime import datetime
 
 LOG_PATH=f"{os.path.dirname(os.path.abspath(__file__))}/cert_convert.log"
 logger = logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler(LOG_PATH, mode='a'),

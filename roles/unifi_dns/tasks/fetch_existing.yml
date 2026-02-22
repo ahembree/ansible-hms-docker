@@ -1,0 +1,65 @@
+---
+# Fetch all DNS records from the Unifi controller, then filter locally for
+# CNAME records matching our target domain. Filtering is done in Ansible
+# rather than via API filter to avoid query encoding issues.
+
+- name: Fetch first page of DNS records
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_base }}?offset=0&limit={{ unifi_dns_api_page_limit }}"
+    method: GET
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Accept: application/json
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 200
+    return_content: true
+  register: unifi_dns_first_page
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  check_mode: false
+  delegate_to: localhost
+  become: false
+
+- name: Set total count and initialize records from first page
+  ansible.builtin.set_fact:
+    unifi_dns_total_count: "{{ unifi_dns_first_page.json.totalCount | int }}"
+    unifi_dns_all_fetched_records: "{{ unifi_dns_first_page.json.data }}"
+
+- name: Calculate remaining page offsets
+  ansible.builtin.set_fact:
+    unifi_dns_remaining_offsets: "{{ range(unifi_dns_api_page_limit | int, unifi_dns_total_count | int, unifi_dns_api_page_limit | int) | list }}"
+
+- name: Fetch remaining pages of DNS records
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_base }}?offset={{ item }}&limit={{ unifi_dns_api_page_limit }}"
+    method: GET
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Accept: application/json
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 200
+    return_content: true
+  register: unifi_dns_remaining_pages
+  loop: "{{ unifi_dns_remaining_offsets }}"
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  check_mode: false
+  delegate_to: localhost
+  become: false
+  when: unifi_dns_remaining_offsets | length > 0
+
+- name: Accumulate records from remaining pages
+  ansible.builtin.set_fact:
+    unifi_dns_all_fetched_records: "{{ unifi_dns_all_fetched_records + (unifi_dns_remaining_pages.results | selectattr('json', 'defined') | map(attribute='json.data') | flatten) }}"
+  when: unifi_dns_remaining_pages.results is defined
+
+# Filter to CNAME records pointing to our target within our managed domain.
+- name: Filter fetched records to managed CNAME records
+  ansible.builtin.set_fact:
+    unifi_dns_existing_records: "{{ unifi_dns_all_fetched_records | selectattr('type', 'equalto', 'CNAME_RECORD') | selectattr('targetDomain', 'defined') | selectattr('targetDomain', 'equalto', unifi_dns_cname_target) | selectattr('domain', 'match', '.*\\.' + (hms_docker_domain | regex_escape) + '$') | list }}"
+    unifi_dns_existing_domains: "{{ unifi_dns_all_fetched_records | selectattr('type', 'equalto', 'CNAME_RECORD') | selectattr('targetDomain', 'defined') | selectattr('targetDomain', 'equalto', unifi_dns_cname_target) | selectattr('domain', 'match', '.*\\.' + (hms_docker_domain | regex_escape) + '$') | map(attribute='domain') | list }}"
+
+- name: Display fetched existing records
+  ansible.builtin.debug:
+    msg: "Found {{ unifi_dns_existing_records | length }} existing managed CNAME records: {{ unifi_dns_existing_domains }}"
+  when: debug_mode | default(false) | bool

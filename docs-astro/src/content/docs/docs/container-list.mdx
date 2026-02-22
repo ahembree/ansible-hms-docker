@@ -20,8 +20,9 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Sonarr](https://github.com/Sonarr/Sonarr): tv series management
 - [Radarr](https://github.com/Radarr/Radarr): movie management
 - [Lidarr](https://github.com/Lidarr/Lidarr): music management
-- [Overseerr](https://github.com/sct/overseerr): request platform
-- [Jellyseerr](https://github.com/Fallenbagel/jellyseerr): request platform with Jellyfin and Emby support
+- [Overseerr](https://github.com/sct/overseerr): request platform <Badge text="Pending Removal, use Seerr instead" variant="danger"/>
+- [Jellyseerr](https://github.com/Fallenbagel/jellyseerr): request platform with Jellyfin and Emby support <Badge text="Pending Removal, use Seerr instead" variant="danger"/>
+- [Seerr](https://github.com/seerr-team/seerr): A merger of both Overseerr and Jellyseerr <Badge text="New" variant="success"/>
 - [Prowlarr](https://github.com/Prowlarr/Prowlarr): tracker management
 - [Bazarr](https://github.com/morpheus65535/bazarr): subtitle management
 - [Requestrr](https://github.com/thomst08/requestrr): chat client for requests
@@ -62,6 +63,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 ## Misc
 
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
+- [Dockhand](https://github.com/Finsys/dockhand): container management GUI <Badge text="New" variant="success"/>
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
 - [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
@@ -78,6 +80,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
 - [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
+- [n8n](https://n8n.io/): workflow automations <Badge text="New" variant="success"/>
 
 ## Container Map
 
@@ -91,11 +94,11 @@ If a key (such as `sonarr:`) does not match an available container, an error may
 
 :::
 
-## Notes
+### Notes
 
 If both Jellyfin and Emby are enabled, then Emby will be available on ports `8097` and `8921` (if ports are being exposed for both Jellyfin and Emby)
 
-## Map
+### Map
 
 | Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik | Homepage Integration |
 | ---------------------------------------- | ------------------ | -------------------- | ------------------------------ | ------------------------------ | ---------------------- | -------------------- |
@@ -107,6 +110,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Radarr (Separate 4K instance)            | &#9744;            | `radarr-4k`          | `7879`                         | `7878`                         | &#9745;                | &#9745;              |
 | Prowlarr                                 | &#9745;            | `prowlarr`           | `9696`                         | `9696`                         | &#9745;                | &#9745;              |
 | Overseerr                                | &#9745;            | `overseerr`          | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
+| Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                         | `5055`                         | &#9745;                | &#9745;              |
+| Seerr                                    | &#9744;            | `seerr`              | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
 | Requestrr                                | &#9745;            | `requestrr`          | `4545`                         | `4545`                         | &#9745;                | &#9744;              |
 | Transmission UI Proxy                    | &#9745;            | `transmission-proxy` | `8081`                         | `8080`                         | &#9745;                | &#9745;              |
 | Transmission (HTTP Proxy)                | &#9745;            | `transmission`       | `8888`                         | `8888`                         | &#9744;                | &#9744;              |
@@ -135,7 +140,6 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | tinyMediaManager                         | &#9744;            | `tmm`                | `5900`, `4000`                 | `5900`, `4000`                 | &#9745;                | &#9744;              |
 | PASTA                                    | &#9744;            | `pasta`              | `8085`                         | `80`                           | &#9745;                | &#9744;              |
 | Wizarr                                   | &#9744;            | `wizarr`             | `5690`                         | `5690`                         | &#9745;                | &#9744;              |
-| Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                         | `5055`                         | &#9745;                | &#9745;              |
 | qBittorrent                              | &#9744;            | `qbittorrent`        | `8086`                         | `8086`                         | &#9745;                | &#9745;              |
 | qBittorrent (HTTP Proxy)                 | &#9744;            | `qbittorrent`        | `8118`                         | `8118`                         | &#9744;                | &#9744;              |
 | Deluge                                   | &#9744;            | `deluge`             | `8112`                         | `8112`                         | &#9745;                | &#9745;              |
@@ -154,8 +158,10 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9744;              |
 | Tracearr                                 | &#9744;            | `tracearr`           | `3002`                         | `3000`                         | &#9745;                | &#9745;              |
 | Cross-Seed                               | &#9744;            | `cross-seed`         | `2468`                         | `2468`                         | &#9744;                | &#9744;              |
+| n8n                                      | &#9744;            | `n8n`                | `5678`                         | `5678`                         | &#9744;                | &#9744;              |
+| Dockhand                                 | &#9744;            | `dockhand`           | `3003`                         | `3000`                         | &#9744;                | &#9744;              |
 
-## Container Map Entry Example
+### Container Map Entry Example
 
 Here is an example of a container map entry for Sonarr:
 

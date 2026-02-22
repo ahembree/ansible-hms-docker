@@ -14,6 +14,49 @@ It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Ho
 
 The domain used is defined in the variable `hms_docker_domain` in `inventory/group_vars/all/main.yml`
 
+## UniFi DNS Role
+
+There is an Ansible role available to enable that will manage the required DNS records if you are using a UniFi Network controller.
+
+The role _should_ only modify records that are used in this playbook and will create `CNAME` records that point to a single `A` record. This UniFi DNS role was created by Claude Code, so use at your own risk.
+
+To enable, create the `A` record that points to your host manually in the Unifi console and then in your `inventory/group_vars/all/unifi.yml` file configure the following:
+
+```yaml
+#inventory/group_vars/all/unifi.yml
+---
+# Enable or disable the Unifi DNS role
+unifi_dns_enabled: false
+
+# The Unifi controller base URL (do NOT include a trailing slash)
+# Example: "https://192.168.1.1"
+unifi_dns_controller_url: ""
+
+# The Unifi API key for authentication
+# Generated in the Integrations section of your UniFi application
+unifi_dns_api_key: ""
+
+# The Unifi site name to manage DNS records for
+# This matches the "internalReference" field from the sites API
+unifi_dns_site_name: "default"
+
+# The target A record domain name that all CNAME records will point to
+# Example: "server.home.local"
+unifi_dns_cname_target: ""
+
+# Whether to include external Traefik hosts in DNS record management
+unifi_dns_include_external_hosts: true
+
+# Whether to include 4K instance subdomains (sonarr-4k, radarr-4k)
+unifi_dns_include_4k_instances: true
+```
+
+:::note[Note]
+
+If any DNS records were created for this project _prior_ to the UniFi DNS API becoming available, you will likely need to delete the records first. I observed that any records created prior to the API becoming available had the same ID, deleting them resolved the issue.
+
+:::
+
 ## Accessing the Containers
 
 ### Internally

@@ -1,0 +1,54 @@
+- name: (Prereq - n8n) - Ensure postgres directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/n8n/db"
+    state: directory
+    mode: '0700'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - n8n) - Ensure shared files directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/n8n/files"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - n8n) - Ensure db-init directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/n8n/db-init"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  register: n8n_dbinit_dir
+
+- name: (Prereq - n8n) - Ensure db-init script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/n8n-io/n8n-hosting/refs/heads/main/docker-compose/withPostgres/init-data.sh
+    dest: "{{ hms_docker_apps_path }}/n8n/db-init/init-data.sh"
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  # Ignore error when in check mode if the parent directory does not exist yet
+  ignore_errors: '{{ ansible_check_mode and ((n8n_dbinit_dir.diff.before.state is defined and n8n_dbinit_dir.diff.before.state == "absent") | default(false) ) }}'
+
+- name: (Prereq - n8n) - Generate Encryption Key
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/n8n/config/.n8n_encryption_key' }}"
+    mode: 0600
+    backup: yes
+    force: no
+  no_log: "{{ not debug_mode }}"
+  register: prereq_n8n_encryption_key
+  vars:
+    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+
+- name: (Prereq - n8n) - Slurp n8n Encryption Key
+  ansible.builtin.slurp:
+    src: "{{ prereq_n8n_encryption_key.dest }}"
+  register: prereq_n8n_slurped_encryption_key
+  check_mode: false
+  when: prereq_n8n_encryption_key.dest is defined
+  no_log: "{{ not debug_mode }}"

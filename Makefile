@@ -60,6 +60,7 @@ config:
 	@if $(MAKE) -s confirm ; then \
 		mkdir -p $(CUSTOM_CONF_DIR); \
 		cp $(ADVANCED_CONFS) $(CUSTOM_CONF_DIR); \
+		cp roles/unifi_dns/defaults/main.yml $(CUSTOM_CONF_DIR)/unifi.yml; \
 		chmod 0600 $(CUSTOM_CONF_DIR)/*.yml; \
 	fi
 
@@ -77,7 +78,17 @@ install-reqs:
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
+manager:
+	@if [ ! -d ".venv" ]; then \
+		echo "Creating Python virtual environment"; \
+		python3 -m venv .venv; \
+		echo "Installing Python requirements"; \
+		.venv/bin/pip3 install -r requirements.txt > /dev/null; \
+	fi;
+	@.venv/bin/python3 settings_manager.py
+
 update: $(YQ_LOCAL)
+	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 	@echo "Updating from Git repo..." && git pull origin master -q
 	@echo "Updating variables..."
 	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
@@ -122,7 +133,7 @@ update: $(YQ_LOCAL)
 	$(YQ_LOCAL) eval -i 'sort_keys(.hms_docker_container_map)' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
 	rm -f "$$tmpfile"; \
 	echo "Update finished"
-	@echo "Version: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
+	@echo "Version Now: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 
 help:
 	@echo make config :: copy default config files

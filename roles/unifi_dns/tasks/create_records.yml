@@ -1,0 +1,27 @@
+---
+- name: Create CNAME records on Unifi controller
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_base }}"
+    method: POST
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Content-Type: application/json
+      Accept: application/json
+    body_format: json
+    body:
+      type: "CNAME_RECORD"
+      enabled: true
+      domain: "{{ item }}"
+      targetDomain: "{{ unifi_dns_cname_target }}"
+      ttlSeconds: "{{ unifi_dns_ttl_seconds | int }}"
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 201
+    return_content: true
+  loop: "{{ unifi_dns_records_to_create }}"
+  loop_control:
+    label: "{{ item }}"
+  register: unifi_dns_create_results
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  delegate_to: localhost
+  become: false

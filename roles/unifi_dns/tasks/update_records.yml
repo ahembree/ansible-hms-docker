@@ -1,0 +1,27 @@
+---
+- name: Update CNAME records on Unifi controller
+  ansible.builtin.uri:
+    url: "{{ unifi_dns_api_base }}/{{ item.id }}"
+    method: PUT
+    headers:
+      X-API-KEY: "{{ unifi_dns_api_key }}"
+      Content-Type: application/json
+      Accept: application/json
+    body_format: json
+    body:
+      type: "CNAME_RECORD"
+      enabled: true
+      domain: "{{ item.domain }}"
+      targetDomain: "{{ unifi_dns_cname_target }}"
+      ttlSeconds: "{{ unifi_dns_ttl_seconds | int }}"
+    validate_certs: "{{ unifi_dns_validate_certs }}"
+    timeout: "{{ unifi_dns_api_timeout }}"
+    status_code: 200
+    return_content: true
+  loop: "{{ unifi_dns_records_to_update }}"
+  loop_control:
+    label: "{{ item.domain }}"
+  register: unifi_dns_update_results
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  delegate_to: localhost
+  become: false

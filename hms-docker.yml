@@ -5,21 +5,78 @@
   gather_facts: true
   vars:
     # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
-    hmsd_current_version: 1.15.3
+    hmsd_current_version: 1.16.0
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     debug_mode: false
+    # Base Docker daemon settings
+    docker_daemon_options_base:
+      default-address-pools:
+        - base: '{{ hmsdocker_docker_network_base_subnet }}'
+          size: 24
+      log-driver: "json-file"
+      log-opts:
+        max-size: "10m"
+        max-file: "3"
 
-  roles:
-    - galaxy-roles/geerlingguy.docker
+    # GPU-specific Docker daemon settings
+    docker_daemon_options_gpu:
+      runtimes:
+        nvidia:
+          args: []
+          path: nvidia-container-runtime
+    
+    # Merge Docker daemon settings
+    docker_daemon_options: >-
+      {{
+        docker_daemon_options_base
+        | combine(docker_daemon_options_gpu if enable_nvidia_gpu | default(false) else {}, recursive=True)
+      }}
 
-  tasks:
+  # Run GPU role first to ensure requirements are met
+  # 
+  pre_tasks:
     - name: Ensure Nvidia GPU role if enabled
       ansible.builtin.import_role:
         name: gpu
       when: enable_nvidia_gpu | default(false)
+
+  roles:
+    # Docker role automatically flushes handlers (restarts Docker service) after configuring daemon.json
+    - galaxy-roles/geerlingguy.docker
+
+  tasks:
+    - name: (GPU Validation) Verify CUDA container works
+      when: enable_nvidia_gpu | default(false)
+      block:
+      - name: Run CUDA container
+        community.docker.docker_container:
+          name: nvidia-gpu-validation
+          image: ubuntu
+          command: nvidia-smi
+          runtime: nvidia
+          state: started
+          device_requests:
+            - driver: nvidia
+              count: -1
+              capabilities:
+                - gpu
+        ignore_errors: '{{ ansible_check_mode }}'
+        changed_when: false
+
+      - name: (GPU Validation) Remove CUDA container
+        community.docker.docker_container:
+          name: nvidia-gpu-validation
+          state: absent
+        ignore_errors: '{{ ansible_check_mode }}'
+        changed_when: false
+
+    - name: Ensure Unifi DNS role to manage records before theyre used in playbook
+      ansible.builtin.import_role:
+        name: unifi_dns
+      when: unifi_dns_enabled | default(false)
 
     - name: Ensure HMS-Docker role
       ansible.builtin.import_role:

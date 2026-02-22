@@ -1,0 +1,42 @@
+services:
+  dockhand:
+    image: fnsys/dockhand:latest
+    container_name: dockhand
+    restart: ${RESTART_POLICY}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if 'dockhand' in expose_ports_enabled_containers %}
+    ports:
+      - 3003:3000
+    {% endif %}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HMSD_APPS_PATH}/dockhand/config:/app/data
+    {% if 'dockhand' in traefik_enabled_containers or 'dockhand' in homepage_enabled_containers %}
+    labels:
+      {% if 'dockhand' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.dockhand-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
+      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['dockhand']['proxy_host_rule'] | default('dockhand') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dockhand' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dockhand-midware@docker' if 'dockhand' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'dockhand' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=Dockhand
+      - homepage.icon=dockhand.png
+      - homepage.href=http://{{ hms_docker_container_map['dockhand']['proxy_host_rule'] | default('dockhand') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Server
+      - homepage.widget.type=dockhand
+      - homepage.widget.url=http://dockhand:3000
+      - homepage.widget.username=${DOCKHAND_USER:-dockhanduserisblank}
+      - homepage.widget.password=${DOCKHAND_PASS:-dockhandpasswordisblank}
+        {% if 'dockhand' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
