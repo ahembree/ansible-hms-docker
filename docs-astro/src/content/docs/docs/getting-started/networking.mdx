@@ -12,7 +12,7 @@ Ports are _NOT_ exposed by default (with the exception of Traefik, `80/443`) on 
 
 The service ports (such as for Sonarr (`8989`) or Radarr (`7878`)) will be **exposed/open** on the host machine if:
 
-* `expose_ports` is set to `true` for the specific container in `inventory/group_vars/all/container_settings.yml`
+* `expose_ports` is set to `true` for the specific container in `inventory/group_vars/all/container_map.yml`
 
 * Traefik is disabled entirely
 

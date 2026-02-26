@@ -1,0 +1,79 @@
+---
+title: Common Issues
+---
+
+## Port Conflicts
+
+If a container fails to start with a "port already in use" error, another service on the host is using the same port.
+
+**Solutions:**
+
+- Identify the conflicting service: `sudo ss -tlnp | grep <port>`
+- Change the containers host port using a [Container Override](/docs/getting-started/container-overrides)
+- Stop the conflicting service
+
+See the [Container Map](/docs/container-list#container-map) for the default port mappings. Some containers have modified host ports to avoid overlap (e.g., SABnzbd uses host port `8082` instead of `8080`).
+
+## Permission Issues
+
+If containers cannot read or write files, this is typically a UID/GID mismatch.
+
+**Check your current settings** in `inventory/group_vars/all/container_settings.yml`:
+
+```yaml
+container_uid: 1234
+container_gid: 1234
+```
+
+These should match the owner of your media files. To check file ownership:
+
+```bash
+ls -la /path/to/your/media
+```
+
+To fix ownership of the container data directory:
+
+```bash
+sudo chown -R <uid>:<gid> /opt/hms-docker/apps/
+```
+
+## DNS Resolution Failures
+
+If you get `404` errors or cannot access containers via their subdomain:
+
+1. **Verify DNS resolution:** `nslookup <container>.<domain>` — should resolve to your server's IP
+2. **Check Traefik logs:** `docker logs -f traefik` — look for routing errors
+3. **Verify the container is running:** `docker ps | grep <container>`
+4. **Check the container is healthy:** Some containers take time to start. Wait a few minutes and try again.
+
+If using the [UniFi DNS role](/docs/getting-started/dns#unifi-dns-role), verify the DNS records were created in your UniFi console.
+
+## VPN Connectivity
+
+If VPN-enabled containers (Transmission, qBittorrent, Deluge) fail to start or cannot download:
+
+1. **Check container logs:** `docker logs -f <container>` — look for VPN connection errors
+2. **Verify VPN credentials** in `inventory/group_vars/all/vpn.yml`
+3. **Verify the VPN config file** is placed in the correct directory (see [Download Clients and VPNs](/docs/getting-started/vpn-and-dl-clients))
+4. **Check if your VPN provider is supported** by the container image
+
+## Traefik Certificate Issues
+
+If you see SSL/TLS certificate errors:
+
+1. **Start with staging:** Set `traefik_ssl_use_letsencrypt_staging_url: yes` in `inventory/group_vars/all/traefik.yml` to test without hitting rate limits
+2. **Check Traefik logs:** `docker logs -f traefik` — look for ACME/Let's Encrypt errors
+3. **Verify DNS provider credentials** are correct in `traefik_ssl_dns_provider_environment_vars`
+4. **Check DNS propagation:** The DNS challenge requires your DNS provider API to be accessible and the records to propagate
+
+Once staging certificates work correctly, switch to production by setting `traefik_ssl_use_letsencrypt_staging_url: no`.
+
+## Container Override Errors
+
+If you see a validation error about containers not being defined:
+
+```
+service "container_name" is not defined in the compose file
+```
+
+This means a container listed in your `docker-compose.override.yml` is not enabled. Only enabled containers should be specified in the override file. See [Container Overrides](/docs/getting-started/container-overrides) for details.

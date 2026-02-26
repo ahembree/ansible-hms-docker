@@ -1,0 +1,43 @@
+---
+title: n8n
+---
+
+[n8n](https://n8n.io/) is a workflow automation platform that allows you to connect various services together.
+
+## Architecture
+
+The n8n deployment includes two containers:
+
+- **n8n** — The main application server
+- **n8n-postgres** — PostgreSQL database for persistent storage
+
+These containers communicate over a dedicated `n8n_net` Docker network.
+
+## Setup
+
+n8n is enabled through the [Container Map](/docs/container-list#container-map). No additional configuration is required — the playbook automatically:
+
+1. Creates the required directory structure
+2. Generates a 64-character encryption key for n8n
+3. Downloads the PostgreSQL initialization script
+4. Configures PostgreSQL with default credentials
+
+## Accessing
+
+Once running, n8n is accessible via Traefik at `n8n.<domain>`. The first time you access it, you'll need to create an owner account.
+
+## Default Database Credentials
+
+The PostgreSQL database uses default credentials that are configured in the `.env` file:
+
+- Root user: `n8nroot`
+- Root password: `n8nr00tpassw0rd`
+- Application user: `n8nnonroot`
+- Application password: `n8nnonr00tpassw0rd`
+- Database name: `n8n`
+
+:::caution[Warning]
+
+If you need to change the database credentials, use a [Container Override](/docs/getting-started/container-overrides) to set the environment variables `N8N_POSTGRES_USER`, `N8N_POSTGRES_PASS`, `N8N_POSTGRES_NON_ROOT_USER`, `N8N_POSTGRES_NON_ROOT_PASSWORD`, and `N8N_POSTGRES_DB`.
+
+:::

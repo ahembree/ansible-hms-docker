@@ -1,0 +1,128 @@
+---
+title: Container Settings Reference
+---
+
+## Global Container Settings
+
+These settings apply to all containers and are configured in `inventory/group_vars/all/container_settings.yml`
+
+### Container State
+
+```yaml
+hms_docker_compose_container_state: present
+```
+
+Controls whether containers should exist. Valid values: `present`, `absent`. Setting to `absent` will remove all containers.
+
+### Restart Policy
+
+```yaml
+container_restart_policy: unless-stopped
+```
+
+Controls how containers behave when the Docker daemon or server restarts. Valid values:
+
+- `unless-stopped` (default) — Restarts automatically unless manually stopped
+- `always` — Always restarts regardless of exit status
+- `on-failure` — Only restarts if the container exits with a non-zero exit code
+
+### Auto-Update Schedule
+
+```yaml
+container_auto_update_schedule: "0 0 9 * * *"
+```
+
+The cron schedule (in UTC) for Watchtower to check for container image updates. The default checks daily at 9:00 AM UTC.
+
+### Remove Orphans
+
+```yaml
+container_remove_orphans: yes
+```
+
+When enabled, containers that are disabled in the container map will be automatically stopped and removed on the next playbook run.
+
+### Timezone
+
+```yaml
+container_timezone: America/New_York
+```
+
+The timezone passed to containers via the `TZ` environment variable. Use a valid [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+
+### User and Group IDs
+
+```yaml
+container_uid: 1234
+container_gid: 1234
+```
+
+The UID and GID used for running processes inside containers. These should match the user that owns your media files to avoid permission issues.
+
+:::caution[Warning]
+
+Changing these values after initial setup may cause permission issues with existing container data and media files.
+
+:::
+
+### Global Port Exposure
+
+```yaml
+container_expose_ports: no
+```
+
+When set to `yes`, all container ports will be exposed on the host. If Traefik is disabled in the container map, this is automatically overridden to `yes`.
+
+For per-container port exposure, use the `expose_ports` setting in the [Container Map](/docs/container-list#container-map).
+
+---
+
+## Advanced Settings
+
+These settings are configured in `inventory/group_vars/all/hmsd_advanced.yml`
+
+### Project Name
+
+```yaml
+project_name: hms-docker
+```
+
+Controls the base folder name used for the project. This affects:
+
+- Data path: `/opt/<project_name>/`
+- Docker Compose project name
+- Docker network names (e.g., `<project_name>_proxy_net`)
+
+### Data Path
+
+```yaml
+hms_docker_data_path: "/opt/{{ project_name }}"
+```
+
+Where all container data, configs, compose files, and secrets are stored. See the [File/Folder Layout](/docs/other/paths) docs for the full directory structure.
+
+### Docker Network Subnet
+
+```yaml
+hmsdocker_docker_network_base_subnet: "172.27.0.0/16"
+```
+
+The IP range used for all Docker networks. Individual `/24` subnets are provisioned from this block for each Docker network. Change this if it overlaps with your internal network range.
+
+### Host Network Settings
+
+```yaml
+hms_docker_subnet_mask: "24"
+```
+
+Your local network subnet mask. Used to generate Traefik IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
+
+### Secrets File Permissions
+
+```yaml
+secrets_env_user: root
+secrets_env_group: root
+secrets_env_mode: "0600"
+```
+
+Controls the ownership and permissions of the `.env` file containing API keys and secrets. See the [Secrets files](/docs/other/paths#secrets-files) section in the File/Folder Layout docs for more details on adjusting these.

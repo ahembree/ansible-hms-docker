@@ -59,7 +59,19 @@ By default, the content is in the following directory structure, if you wish to 
 
 ### Authentik Keys
 
+Authentik uses two randomly generated secret files that are persisted across playbook runs:
+
+- `.authentik.key` — The Authentik secret key (default location: `/opt/hms-docker/.authentik.key`)
+- `.authentik.pgpass` — The PostgreSQL password for the Authentik database (default location: `/opt/hms-docker/.authentik.pgpass`)
+
+These are generated automatically on first run and read by Ansible on subsequent runs to populate the `.env` file. Do not delete these files or Authentik will lose access to its database.
+
 ### Tracearr Keys
+
+Tracearr uses two randomly generated secret files:
+
+- `.tracearr_jwt_secret` — JWT authentication secret (location: `/opt/hms-docker/apps/tracearr/config/.tracearr_jwt_secret`)
+- `.tracearr_cookie_secret` — Cookie signing secret (location: `/opt/hms-docker/apps/tracearr/config/.tracearr_cookie_secret`)
 
 ## File Paths
 

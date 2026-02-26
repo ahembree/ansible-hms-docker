@@ -38,7 +38,7 @@ RHEL-based systems (CentOS, Fedora, Alma Linux, Rocky Linux) may work, but are n
 - [Nvidia GPU drivers](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/) already installed (if using Nvidia GPU acceleration)
 - You own a domain name and are able to modify DNS `A` and `TXT` records (if you want SSL and/or dynamic DNS)
   - <Badge text="Preferred" variant="note" /> Have an internal DNS server that can resolve some or all of your domain name/zone.
-    - A DNS service is not available in this project and there are no plans to add one, 
+    - A DNS server (such as PiHole or AdGuard Home) is not available in this project. However, if you use a UniFi Network controller, there is an optional [UniFi DNS role](/docs/getting-started/dns#unifi-dns-role) that can automatically manage DNS records for you.
 - You use a supported VPN provider (if a torrent client is enabled)
   - [Transmission supported providers](https://haugene.github.io/docker-transmission-openvpn/supported-providers/#internal_providers)
   - [qBittorrent and Deluge](https://github.com/binhex/documentation/blob/master/docker/guides/vpn.md) both support OpenVPN and WireGuard config files, and have native support for Private Internet Access (PIA) with port-forwarding

@@ -58,6 +58,16 @@ transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 ```
 
 
+## SABnzbd
+
+SABnzbd does not require a VPN configuration.
+
+:::note[Auto-Configuration]
+
+When SABnzbd is first deployed, the playbook will automatically configure the `host_whitelist` in SABnzbd's config file to include the container hostname (`sabnzbd`) and the Traefik proxy hostname (e.g., `sabnzbd.<domain>`). This allows both internal Docker network access and Traefik reverse proxy access to work without manual configuration.
+
+:::
+
 ## qBittorrent
 
 This setup uses the container maintained here: [binhex/arch-qbittorrentvpn](https://github.com/binhex/arch-qbittorrentvpn)

@@ -1,0 +1,119 @@
+---
+title: Service-Specific Settings
+---
+
+These settings are configured in `inventory/group_vars/all/service_misc.yml` unless otherwise noted.
+
+## Media Transcoding
+
+### Transcoding Temp Path
+
+```yaml
+hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"
+```
+
+The temporary directory on the host used by transcoding containers (Tdarr, FileFlows, Unmanic). Each container gets its own subdirectory within this path (e.g., `/tmp/hmsd_transcode/tdarr`).
+
+### Tdarr Node Mode
+
+```yaml
+tdarr_enable_node_server: no
+```
+
+When enabled, Tdarr runs as both a server and a node on the same host, enabling distributed transcoding capabilities.
+
+## Download Management
+
+### Unpackerr
+
+```yaml
+hmsdocker_unpackerr_additional_env_vars:
+  {
+    "UN_DEBUG": "false",
+    "UN_INTERVAL": "2m",
+    "UN_START_DELAY": "1m",
+    "UN_RETRY_DELAY": "5m",
+    "UN_MAX_RETRIES": "3",
+    "UN_PARALLEL": "1",
+    ...
+  }
+```
+
+Additional environment variables passed to the Unpackerr container. See the [Unpackerr configuration docs](https://unpackerr.zip/docs/install/configuration) for all available options.
+
+## Media Health
+
+### Checkrr
+
+```yaml
+hmsdocker_checkrr_enable_arr_processing: false
+```
+
+When enabled, Checkrr will automatically request replacement copies through Sonarr, Radarr, and Lidarr if it detects a corrupt or problematic media file.
+
+## Backup
+
+### Backrest
+
+```yaml
+hmsdocker_backrest_allow_write: false
+hmsdocker_backrest_enable_restore_path: false
+hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
+```
+
+- `hmsdocker_backrest_allow_write` — Grants the Backrest container write access to the data directory (default: `/opt/hms-docker`). Required for restore operations.
+- `hmsdocker_backrest_enable_restore_path` — Enables a dedicated restore path for Backrest to write restored data to.
+- `hmsdocker_backrest_restore_path` — The path where Backrest will restore data to (default: `/opt/hms-docker-restore`).
+
+## Media Applications
+
+### Tube Archivist
+
+```yaml
+hmsdocker_tubearchivist_username: tubearchivist
+hmsdocker_tubearchivist_password: verysecret
+```
+
+Default credentials for the Tube Archivist web interface.
+
+:::caution[Warning]
+
+Change the default password before deploying. The default value `verysecret` is not secure.
+
+:::
+
+### TinyMediaManager
+
+```yaml
+hmsdocker_tinymediamanager_vnc_password:
+```
+
+The VNC password used to access the TinyMediaManager web interface. Set this to a secure value if you enable TinyMediaManager.
+
+## Monitoring
+
+### Speedtest Tracker
+
+```yaml
+hmsdocker_speedtest_api_key:
+hmsdocker_speedtest_schedule: 0 0 * * *
+```
+
+- `hmsdocker_speedtest_api_key` — API key for the Speedtest Tracker instance.
+- `hmsdocker_speedtest_schedule` — Cron schedule for running speed tests (default: daily at midnight).
+
+### Notifiarr
+
+```yaml
+hmsdocker_notifiarr_api_key:
+```
+
+API key from [Notifiarr](https://notifiarr.com/) for unified notification management.
+
+### Tautulli
+
+```yaml
+tautulli_include_jbops: false
+```
+
+When enabled, downloads and mounts the [JBOPS](https://github.com/blacktwin/JBOPS) scripts into the Tautulli container for additional Plex automation capabilities.

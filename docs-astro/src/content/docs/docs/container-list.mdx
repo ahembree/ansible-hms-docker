@@ -14,6 +14,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Plex](https://docs.linuxserver.io/images/docker-plex/)
 - [Jellyfin](https://docs.linuxserver.io/images/docker-jellyfin/)
 - [Emby](https://docs.linuxserver.io/images/docker-emby/)
+- [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library for comics, manga, and books
 
 ## Media Management Systems
 
@@ -37,6 +38,8 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Fileflows](https://fileflows.com/): media transcoding
 - [Unmanic](https://github.com/Unmanic/unmanic): media transcoding
 - [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr): IPTV manager
+- [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
+- [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
 
 ## Download Clients
 
@@ -45,6 +48,10 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Sabnzbd](https://docs.linuxserver.io/images/docker-sabnzbd/): download client
 - [qBittorrent](https://github.com/binhex/arch-qbittorrentvpn/): download client with VPN and HTTP proxy
 - [Deluge](https://github.com/binhex/arch-delugevpn/): download client with VPN and HTTP proxy
+- [Autobrr](https://github.com/autobrr/autobrr): torrent automation
+- [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
+- [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
+- [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
 
 ## Analytics / Dashboards
 
@@ -66,20 +73,13 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Dockhand](https://github.com/Finsys/dockhand): container management GUI <Badge text="New" variant="success"/>
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
 - [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
-- [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
-- [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library
-- [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
-- [Autobrr](https://github.com/autobrr/autobrr): torrent automation
 - [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
-- [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): notification system
-- [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
-- [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
+- [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): internet speed monitoring
 - [Netdata](https://github.com/netdata/netdata): observability
 - [Wizarr](https://github.com/wizarrrr/wizarr): media server invite management
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
-- [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
 - [n8n](https://n8n.io/): workflow automations <Badge text="New" variant="success"/>
 
 ## Container Map
@@ -102,7 +102,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 
 | Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik | Homepage Integration |
 | ---------------------------------------- | ------------------ | -------------------- | ------------------------------ | ------------------------------ | ---------------------- | -------------------- |
-| Watchtower                               | &#9745;            | `watchtower`         |                                |                                | &#9744;                | &#9744;              |
+| Watchtower                               | &#9745;            | `watchtower`         |                                |                                | &#9744;                | &#9745;              |
 | Plex                                     | &#9745;            | `plex`               | `32400`                        | `32400`                        | &#9745;                | &#9745;              |
 | Sonarr                                   | &#9745;            | `sonarr`             | `8989`                         | `8989`                         | &#9745;                | &#9745;              |
 | Sonarr (Separate 4K instance)            | &#9744;            | `sonarr-4k`          | `8990`                         | `8989`                         | &#9745;                | &#9745;              |
@@ -112,7 +112,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Overseerr                                | &#9745;            | `overseerr`          | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
 | Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                         | `5055`                         | &#9745;                | &#9745;              |
 | Seerr                                    | &#9744;            | `seerr`              | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
-| Requestrr                                | &#9745;            | `requestrr`          | `4545`                         | `4545`                         | &#9745;                | &#9744;              |
+| Requestrr                                | &#9745;            | `requestrr`          | `4545`                         | `4545`                         | &#9745;                | &#9745;              |
 | Transmission UI Proxy                    | &#9745;            | `transmission-proxy` | `8081`                         | `8080`                         | &#9745;                | &#9745;              |
 | Transmission (HTTP Proxy)                | &#9745;            | `transmission`       | `8888`                         | `8888`                         | &#9744;                | &#9744;              |
 | Transmission (RPC)                       | &#9745;            | `transmission`       | `9091`                         | `9091`                         | &#9744;                | &#9744;              |
@@ -158,8 +158,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9744;              |
 | Tracearr                                 | &#9744;            | `tracearr`           | `3002`                         | `3000`                         | &#9745;                | &#9745;              |
 | Cross-Seed                               | &#9744;            | `cross-seed`         | `2468`                         | `2468`                         | &#9744;                | &#9744;              |
-| n8n                                      | &#9744;            | `n8n`                | `5678`                         | `5678`                         | &#9744;                | &#9744;              |
-| Dockhand                                 | &#9744;            | `dockhand`           | `3003`                         | `3000`                         | &#9744;                | &#9744;              |
+| n8n                                      | &#9744;            | `n8n`                | `5678`                         | `5678`                         | &#9745;                | &#9744;              |
+| Dockhand                                 | &#9744;            | `dockhand`           | `3003`                         | `3000`                         | &#9745;                | &#9745;              |
 
 ### Container Map Entry Example
 

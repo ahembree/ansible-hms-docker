@@ -24,7 +24,7 @@ The lack of a DNS service, like PiHole or AdGuard Home, is intentional since a c
 
 ## Key Material Storage
 
-### Authentik and Tracerr Secret Keys
+### Authentik and Tracearr Secret Keys
 
 Since the `.env` file will be continually updated with new values and the 2 randomly generated values for Authentik need to remain persistent, Ansible will read/`slurp` these 2 files created and retrieve the values, ensuring the values within the `.env` are the same each time during every playbook run.
 

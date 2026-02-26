@@ -10,4 +10,3 @@ hmsdocker_app_bootstrap_prowlarr_enabled: true
 hmsdocker_app_bootstrap_sonarr_enabled: true
 hmsdocker_app_bootstrap_radarr_enabled: true
 hmsdocker_app_bootstrap_lidarr_enabled: true
-hmsdocker_app_bootstrap_readarr_enabled: true

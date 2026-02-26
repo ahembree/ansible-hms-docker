@@ -1,0 +1,45 @@
+---
+title: Separate 4K Instances
+---
+
+This project supports running separate 4K instances of Sonarr and Radarr alongside the standard instances. This allows you to manage 4K content with different quality profiles and settings.
+
+## Enabling
+
+To enable separate 4K instances, set the following in `inventory/group_vars/all/service_misc.yml`:
+
+```yaml
+separate_4k_instances_enable: yes
+```
+
+## What This Creates
+
+When enabled, two additional containers will be deployed:
+
+| Container | Host Port | Container Port | Traefik Subdomain |
+|-----------|-----------|----------------|-------------------|
+| `sonarr-4k` | `8990` | `8989` | `sonarr-4k.<domain>` |
+| `radarr-4k` | `7879` | `7878` | `radarr-4k.<domain>` |
+
+These containers share the same media library mount as the standard instances but have their own separate configuration directories.
+
+## App Bootstrap Integration
+
+If [App Bootstrap](/docs/getting-started/app-bootstrap) is enabled, the 4K instances will be automatically connected to:
+
+- **Prowlarr** — Added as additional apps for indexer syncing
+- **Download clients** — Configured with the same download clients (Transmission, qBittorrent, Deluge) as the standard instances
+
+## DNS
+
+If you are using the [UniFi DNS role](/docs/getting-started/dns#unifi-dns-role), 4K instance DNS records (`sonarr-4k`, `radarr-4k`) are automatically created when `unifi_dns_include_4k_instances` is set to `true` (the default).
+
+Otherwise, create DNS records for `sonarr-4k.<domain>` and `radarr-4k.<domain>` pointing to your server.
+
+## Authentik SSO
+
+If Authentik is enabled for Sonarr and/or Radarr, separate Authentik outpost configurations are automatically generated for the 4K instances.
+
+## Homepage
+
+When Homepage is enabled, the 4K instances appear in a separate "Managers - 4K" group on the dashboard.

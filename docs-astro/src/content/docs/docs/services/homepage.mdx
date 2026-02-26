@@ -8,9 +8,31 @@ Homepage is able to integrate directly with Docker, allowing it to "auto-discove
 
 Homepage can also integrate with a very large number of the containers in this project, so setting up the connection is very easy.
 
-A number of applications already have their API keys retrieved automatically, but you may need to define some services API keys in the `inventory/group_vars/all/homepage_api_keys.yml` file. These can be found in the applications setting page.
+A number of applications already have their API keys retrieved automatically from their config files during a playbook run (such as Sonarr, Radarr, Prowlarr, Bazarr, Plex, Tautulli, and others).
 
-It is also _highly_ recommended to ensure the permissions and ownership of this file is locked down. You can do this by running:
+For services that don't support automatic key retrieval, you will need to manually define their API keys in `inventory/group_vars/all/homepage_api_keys.yml`. These can be found in each applications settings page.
+
+### Available Manual API Key Settings
+
+| Service | Variable | Notes |
+|---------|----------|-------|
+| NZBGet | `homepage_nzbget_key` | |
+| Authentik | `homepage_authentik_key` | See [Authentik widget docs](https://gethomepage.dev/widgets/services/authentik/) |
+| Portainer | `homepage_portainer_key` | |
+| Jellyfin | `homepage_jellyfin_key` | |
+| Emby | `homepage_emby_key` | |
+| Autobrr | `homepage_autobrr_key` | |
+| Backrest | `hmsdocker_homepage_backrest_user` / `_pass` | Username and password |
+| Cloudflare Tunnel | `hmsdocker_homepage_cftunnel_key`, `_accountid`, `_tunnelid` | API key requires `Account.Cloudflare Tunnel:Read` permission |
+| Tailscale | `hmsdocker_homepage_tailscale_api_key`, `_device_id` | |
+| Speedtest Tracker | `hmsdocker_homepage_speedtest_api_key` | |
+| Tube Archivist | `hmsdocker_homepage_tubearchivist_api_key` | |
+| Uptime Kuma | `hmsdocker_homepage_uptimekuma_statuspage_slug` | The slug from your status page URL |
+| Dockhand | `hmsdocker_homepage_dockhand_user` / `_pass` | Username and password |
+
+### File Security
+
+It is _highly_ recommended to ensure the permissions and ownership of this file is locked down. You can do this by running:
 
 ```bash
 chmod 0600 inventory/group_vars/all/homepage_api_keys.yml
