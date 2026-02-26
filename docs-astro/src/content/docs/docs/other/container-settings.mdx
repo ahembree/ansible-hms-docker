@@ -115,7 +115,7 @@ The IP range used for all Docker networks. Individual `/24` subnets are provisio
 hms_docker_subnet_mask: "24"
 ```
 
-Your local network subnet mask. Used to generate Traefik IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
+Your local network subnet mask (e.g., for a `192.168.1.0/24` network, use `24`). Used to generate Traefik IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
 
 ### Secrets File Permissions
 

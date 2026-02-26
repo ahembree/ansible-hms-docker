@@ -7,6 +7,14 @@ import cf_tunnel_token from '../../../static/img/cloudflare/cloudflare_tunnel_to
 import cf_tunnel_example from '../../../static/img/cloudflare/cloudflare_tunnel_example.png';
 import cf_tunnel_disable_tls_verify from '../../../static/img/cloudflare/cloudflare_tunnel_disable_tls_verify.png';
 
+:::danger[Security Notice]
+
+Traffic routed through Cloudflare Tunnel goes directly from the Tunnel container to the target container via the internal Docker network. It does **NOT** pass through Traefik, so no Traefik security controls (IP allowlists, middlewares) are applied.
+
+It is your responsibility to understand and accept the risks and implement security controls where possible.
+
+:::
+
 ## Requirements and Enabling
 
 <Steps>
@@ -38,14 +46,6 @@ import cf_tunnel_disable_tls_verify from '../../../static/img/cloudflare/cloudfl
 
 </Steps>
 
-:::danger[Warning]
-
-Traffic does NOT pass through Traefik first for this request flow, so no security controls from Traefik will be applied, such as the IP Allowlist controls since the request is seen as coming from the Tunnel container, which falls into the RFC1918 private address space
-
-I am not responsible for any misconfigurations that may insecurely expose your applications. It is your responsibility to understand and accept the risks and implement security controls where possible.
-
-:::
-
 Example:
 
 <Image
@@ -64,9 +64,9 @@ The "public hostname" subdomain you use does not need to match any Traefik proxy
 
 :::caution[Warning]
 
-This also means that **SSO using Authentik will not work for any container individually configured to go through the Tunnel** by default due to the authentication middleware being applied _by_ Traefik.
+**SSO using Authentik will not work for containers accessed through the Tunnel** by default because Authentik authentication is enforced through Traefik middleware, and Tunnel traffic bypasses Traefik.
 
-In order to use Authentik with a container through the Tunnel, you will need to port forward or see below for more information
+To use Authentik with Tunnel, you need to either forward ports 80/443 to your host (so Traefik handles the request) or follow the guide below.
 
 :::
 

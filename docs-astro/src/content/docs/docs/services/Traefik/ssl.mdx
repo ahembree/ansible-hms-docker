@@ -4,7 +4,7 @@ title: SSL
 
 ## Generating Wildcard SSL Certificate
 
-A wildcard certificate (`*.example.com`) will be the default.
+When SSL is enabled, the playbook generates a wildcard certificate (`*.example.com`) by default.
 
 To change this, see [Changing SSL Certificate SANs](#changing-ssl-certificate-sans). Note that an individual certificate for each container will not be generated due to [Let's Encrypts rate limit of 5 exact hostnames every 7 days](https://letsencrypt.org/docs/rate-limits/#new-certificates-per-exact-set-of-hostnames).
 
@@ -43,14 +43,14 @@ traefik_ssl_dns_provider_environment_vars: [  # the "Environment Variables", alo
   ...
 ] 
 traefik_ssl_letsencrypt_email:                # the email address to use for Let's Encrypt
-traefik_ssl_use_letsencrypt_staging_url: true # whether or not to use the Let's Encrypt staging URL for initial testing (`yes` or `no`) (default: `yes`)
+traefik_ssl_use_letsencrypt_staging_url: true # whether to use the Let's Encrypt staging URL for initial testing (default: `true`)
 ```
 
 ### First Time Test
 
 For the first time generating a certificate, it is recommended to use the staging URL (by configuring above) so you do not encounter [Rate-Limiting from Let's Encrypt](https://letsencrypt.org/docs/rate-limits/)
 
-The certificate will say it is invalid within a browser, but if you check the issuer, it should come from the "Staging" server, meaning it worked successfully and you then change this value to `no` to use the production server and get a valid certificate.
+The certificate will say it is invalid within a browser, but if you check the issuer, it should come from the "Staging" server, meaning it worked successfully and you can then change this value to `false` to use the production server and get a valid certificate.
 
 :::note[Note]
 

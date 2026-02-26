@@ -37,9 +37,7 @@ This playbook does _not_ install the required driver, but it will validate it wo
 
 :::
 
-Nvidia drivers are not installed within this playbook due OS version limitations with the official (?) Nvidia `ansible-role-nvidia-driver` role to install the drivers. I question how official it is since it's in the Nvidia GitHub organization but is basically not maintained...
-
-As of writing (February 2026), it finally had pushes to the repo for the first time since August 2022 and they do not maintain the list of supported OS's, so it is unknown if it'd work with Ubuntu 24.04 or not. There was a [pull request](https://github.com/NVIDIA/ansible-role-nvidia-driver/pull/65) to add support for Ubuntu 22.04 but nothing else reflects this supposed support.
+Nvidia drivers must be installed separately before running this playbook. The official Nvidia `ansible-role-nvidia-driver` role is not reliably maintained and may not support the latest Ubuntu versions.
 
 ```yaml
 # inventory/group_vars/all/gpu.yml

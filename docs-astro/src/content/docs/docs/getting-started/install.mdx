@@ -10,9 +10,17 @@ import { Badge, Steps } from '@astrojs/starlight/components';
 
 This playbook **assumes that it is a fresh install of an operating system** that has not been configured yet.
 
-To ensure no conflicting changes with an existing system, you can run this playbook in "check mode" (dry-run, preview, etc.) to see what, if any, changes would be made
+To ensure no conflicting changes with an existing system, run the playbook in check mode first to preview changes:
 
-This playbook will also configure Docker to use the `172.27.0.0/16` IP range for all Docker networks and provision `/24` chunks for each Docker network from this block. If this overlaps with your internal range or if you wish to use a different range, modify the `hmsdocker_docker_network_base_subnet` variable in `inventory/group_vars/all/hmsd_advanced.yml`
+```bash
+sudo make check
+```
+
+:::
+
+:::caution[Docker Network Range]
+
+This playbook configures Docker to use the `172.27.0.0/16` IP range for all Docker networks and provisions `/24` chunks for each Docker network from this block. If this overlaps with your internal network range, modify the `hmsdocker_docker_network_base_subnet` variable in `inventory/group_vars/all/hmsd_advanced.yml`
 
 :::
 
@@ -77,7 +85,7 @@ To select the containers you want to use:
 
 1. Modify the `inventory/group_vars/all/container_map.yml` file
 
-2. Within there, you will find a giant list of the available containers and their config items
+2. Within there, you will find a list of all available containers and their config items
 
 3. To enable a container, set its `enabled` value to `true` or `yes`
 
@@ -87,7 +95,7 @@ For an example of a container map entry and the description of what each setting
 
 ## Service Configuration
 
-All configuration options are in a (hopefully) aptly-named `.yml` file.
+Configuration options are organized in `.yml` files by topic.
 
 :::note
 
@@ -114,7 +122,7 @@ The default variable files are found in `roles/hmsdocker/defaults/main/`
     - `cifs` if using Samba or a Windows file share
     - `local` if using a local drive/directory on the same system
     
-4. `hms_docker_mount_path` : This is where the media and download folders will be "mounted" to the host. Recommended to change if using a network share and/or other drive in the system. This will mount to `/data` within the containers.
+4. `hms_docker_mount_path` : This is where the media and download folders will be mounted on the host. Recommended to change if using a network share and/or other drive in the system. This path is mounted to `/data` within the containers.
 
 5. <Badge text="Plex" variant="caution"/> If you have Plex enabled:
 

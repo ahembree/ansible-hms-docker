@@ -10,9 +10,15 @@ This section is meant for those that are familiar with writing/modifying Docker 
 
 :::
 
-If you want to specify custom container Compose settings or only change certain values (without having to modify the Compose files) and persist your own custom settings (such as environment variables), you can create a `docker-compose.override.yml` file located at `/opt/hms-docker/docker-compose.override.yml` with only the settings you want to override or merge.
+To persist custom Compose settings — such as environment variables, volume mounts, or other overrides — without modifying the generated Compose files, create a `docker-compose.override.yml` file at `/opt/hms-docker/docker-compose.override.yml` with only the settings you want to override or merge.
 
-Documentation on how to do this can be found here: [Merge | Docker Docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/)
+Documentation on how this works can be found here: [Merge | Docker Docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/)
+
+:::warning
+
+Only enabled containers can be specified in this file. If a disabled container is listed, Docker Compose will fail validation with an error. Remove any disabled containers from the override file to resolve.
+
+:::
 
 Here is a basic example of this file (assuming Sonarr, Radarr, and Plex are enabled) that will _not_ override any settings:
 
@@ -24,16 +30,6 @@ services:
   plex:
   ...
 ```
-
-:::warning
-
-Only enabled containers must be specified in this file.
-
-If a container is not enabled but is specified in this override file, it will fail to validate and throw an error.
-
-To resolve, remove the invalid item from the override file.
-
-:::
 
 If you want to check the final Compose configuration after modification of the override file, you can run:
 
@@ -47,7 +43,7 @@ The Deluge and qBittorrent containers have native support for the VPN provider P
 
 These containers also support port forwarding through PIA, but this means you will only be able to connect to endpoints that support port forwarding.
 
-For more information on this port fowarding feature, see Question 15 (Q15) here: [Binhex Documentation](https://github.com/binhex/documentation/blob/master/docker/faq/vpn.md)
+For more information on this port forwarding feature, see Question 15 (Q15) here: [Binhex Documentation](https://github.com/binhex/documentation/blob/master/docker/faq/vpn.md)
 
 In order to enable this port forwarding, you will need to add the following to the "override" file specified above (`/opt/hms-docker/docker-compose.override.yml`):
 

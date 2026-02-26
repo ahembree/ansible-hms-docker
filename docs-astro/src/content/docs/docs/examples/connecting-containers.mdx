@@ -9,19 +9,17 @@ import proxy_example from '../../static/img/container_connections/container_conn
 
 ## Connecting the Containers to each other
 
-When connecting containers together, such as Prowlarr to Sonarr and Radarr or Sonarr/Radarr to Overseerr etc, you can use the name of the container (e.g. `prowlarr` or `radarr`) and then defining the container port to connect to (e.g. `prowlarr:9696` or `radarr:7878`).
+When connecting containers together, such as Prowlarr to Sonarr and Radarr or Sonarr/Radarr to Seerr, use the container name (e.g. `prowlarr` or `radarr`) and the container port (e.g. `prowlarr:9696` or `radarr:7878`).
 
 For the names and port of each container to use, get the `Container Name` and `Container Port` values from the **[Container Map](/docs/container-list#container-map)**.
 
 :::note[Note]
 
-Do **NOT use HTTPS/SSL/TLS when connecting the apps using this method** as it will likely fail.
+Do **NOT use HTTPS/SSL/TLS when connecting the apps using this method** as it will likely fail. The containers do not have certificates configured for internal communication.
 
-This is due to apps not having a certificate by default or having a self-signed certificate.
+This is safe because all traffic using this method stays within the internal Docker network and never leaves the host.
 
-This may seem insecure, and _technically_ it is, but all communication that uses this method only happens _within the internal Docker network_, so the risk is reduced as the traffic never leaves the system.
-
-If you use your DNS records to connect them, then that is when you would want HTTPS.
+If you connect apps using your DNS records instead of container names, then you would use HTTPS.
 
 :::
 

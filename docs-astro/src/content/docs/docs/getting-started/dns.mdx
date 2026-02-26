@@ -61,19 +61,29 @@ If any DNS records were created for this project _prior_ to the UniFi DNS API be
 
 ### Internally
 
-DNS records can come down to personal preference depending on how you want your infrastructure setup, so the below are just examples.
+There are several approaches for setting up internal DNS records. Choose whichever best fits your environment:
 
-If you do not already have a "wildcard" DNS record (`*.example.com`) setup for the domain you used on your LOCAL DNS server, create the wildcard `A` record to point to the private IP address of the server.
+1. **Wildcard `A` record** (simplest) — Create a `*.<domain>` record on your local DNS server pointing to the private IP address of the server. This covers all subdomains automatically.
 
-You can also create individual `A` records for each container listed in the [Container Map](/docs/container-list#container-map), or have one `A` record with multiple `CNAME` records pointed to the `A` record. This will allow you to change one DNS record if the IP were to ever change, instead of having to change many individual records.
+2. **Individual `A` records** — Create a separate `A` record for each container listed in the [Container Map](/docs/container-list#container-map).
 
-If the appropriate DNS records exist (you can test by running `nslookup <domain>`, or optionally `nslookup <domain> <DNS server IP>` to query a specific DNS server), you can then access the containers from your network by going to `<name>.<domain>` where `<name>` is the `proxy_host_rule` value (from the container map config file) and `<domain>` is the domain you used for the variable `hms_docker_domain`.
+3. **Single `A` record + `CNAME` records** (recommended) — Create one `A` record (e.g., `server.<domain>`) and then `CNAME` records for each container pointing to it. This way, if the server IP changes, you only need to update one record.
 
-You can also change the name/subdomain of each application within the `hms_docker_container_map` in the containers `proxy_host_rule` value.
+To verify DNS is working, run:
+
+```bash
+nslookup <container>.<domain>
+# Or query a specific DNS server:
+nslookup <container>.<domain> <DNS server IP>
+```
+
+Once DNS resolves correctly, access containers at `<name>.<domain>` where `<name>` is the `proxy_host_rule` value from the container map and `<domain>` is the value of `hms_docker_domain`.
+
+You can customize the subdomain for each application by changing its `proxy_host_rule` value in the container map.
 
 ### Externally
 
-If you enabled Cloudflare DDNS, a `request.<domain>` public `A` record will be created automatically that points to your networks _public_ IP.
+For external access, if you enabled Cloudflare DDNS, a `request.<domain>` public `A` record will be created automatically that points to your network's public IP.
 
 - This default `A` record can be changed in the `cloudflare_ddns_subdomain` variable located in `inventory/group_vars/all/cloudflare.yml`.
 
@@ -89,7 +99,7 @@ To grant public access to containers, you will need to:
 
     * `A` record that points to the public IP
 
-    * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `overseerr.example.com`)
+    * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `seerr.example.com`)
 
 3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/docs/container-list#container-map)
 

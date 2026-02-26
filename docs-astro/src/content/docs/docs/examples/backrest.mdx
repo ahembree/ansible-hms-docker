@@ -5,7 +5,7 @@ title: Backrest
 import { Badge, Steps } from '@astrojs/starlight/components';
 
 
-Backrest is available to perform backups. Configuring Backrest and the required repository is outside the scope of this project as there are way too many different configurations.
+Backrest is available to perform backups. Configuring Backrest repositories is outside the scope of this project due to the wide variety of backup destinations and configurations available.
 
 In general:
 
@@ -86,7 +86,7 @@ If a backup/snapshot has been performed, you can follow these steps to restore:
 
     <Badge text="Important" variant="danger"/> If you don't have your encryption key saved from when you created the repository, you will likely not be able to restore.
 
-5. List your available snapshots by using the "run command" from within your Backrest respository:
+5. List your available snapshots by using the "run command" from within your Backrest repository:
 
     ```bash
     snapshots
@@ -121,9 +121,7 @@ If a backup/snapshot has been performed, you can follow these steps to restore:
 
 ## OneDrive
 
-I personally only currently have experience with setting up OneDrive as a backup destination.
-
-Since there is no native support for OneDrive through Backrest/restic, it is done through rclone.
+OneDrive is supported as a backup destination through rclone, since Backrest/restic does not have native OneDrive support.
 
 The documentation on configuring and connecting rclone to OneDrive can be found here: https://rclone.org/onedrive/
 

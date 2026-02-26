@@ -41,7 +41,7 @@ sudo chown -R <uid>:<gid> /opt/hms-docker/apps/
 
 If you get `404` errors or cannot access containers via their subdomain:
 
-1. **Verify DNS resolution:** `nslookup <container>.<domain>` — should resolve to your server's IP
+1. **Verify DNS resolution:** `nslookup <container>.<domain>` — should resolve to your server's IP. If it doesn't resolve, check your DNS server configuration or create the required DNS record (see [DNS docs](/docs/getting-started/dns))
 2. **Check Traefik logs:** `docker logs -f traefik` — look for routing errors
 3. **Verify the container is running:** `docker ps | grep <container>`
 4. **Check the container is healthy:** Some containers take time to start. Wait a few minutes and try again.
@@ -61,12 +61,12 @@ If VPN-enabled containers (Transmission, qBittorrent, Deluge) fail to start or c
 
 If you see SSL/TLS certificate errors:
 
-1. **Start with staging:** Set `traefik_ssl_use_letsencrypt_staging_url: yes` in `inventory/group_vars/all/traefik.yml` to test without hitting rate limits
+1. **Start with staging:** Set `traefik_ssl_use_letsencrypt_staging_url: true` in `inventory/group_vars/all/traefik.yml` to test without hitting rate limits
 2. **Check Traefik logs:** `docker logs -f traefik` — look for ACME/Let's Encrypt errors
 3. **Verify DNS provider credentials** are correct in `traefik_ssl_dns_provider_environment_vars`
 4. **Check DNS propagation:** The DNS challenge requires your DNS provider API to be accessible and the records to propagate
 
-Once staging certificates work correctly, switch to production by setting `traefik_ssl_use_letsencrypt_staging_url: no`.
+Once staging certificates work correctly, switch to production by setting `traefik_ssl_use_letsencrypt_staging_url: false`.
 
 ## Container Override Errors
 

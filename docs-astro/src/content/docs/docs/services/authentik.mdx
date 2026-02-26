@@ -48,7 +48,7 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
 3. Run the playbook as normal
 
-4. Once all containers are started, go to `https://authentik.< domain >/if/flow/initial-setup/` to create the initial user and password to continue Authentik setup (if you changed the `proxy_host_rule` value for the authentik container, use that subdomain instead)
+4. Once all containers are started, go to `https://authentik.<domain>/if/flow/initial-setup/` to create the initial user and password to continue Authentik setup (if you changed the `proxy_host_rule` value for the authentik container, use that subdomain instead)
 
 5. Configure an Application and Provider within Authentik
 
@@ -72,7 +72,7 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     9. Select `Forward auth (single application)`
 
-    10. Set the `External host` to the URL of the application (such as `https://sonarr.< domain >`)
+    10. Set the `External host` to the URL of the application (such as `https://sonarr.<domain>`)
 
     11. Click through the menus, customizing what you want, and finish
 
@@ -92,15 +92,15 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
     5. Expand `Advanced settings`
 
-        :::tip
+        :::caution
 
-        **IMPORTANT**: copy the content of the file for the container generated in: `/opt/hms-docker/apps/authentik/outposts/authentik-< container_name >-output.yml` to your clipboard
+        **IMPORTANT**: copy the content of the file for the container generated in: `/opt/hms-docker/apps/authentik/outposts/authentik-<container_name>-output.yml` to your clipboard
 
         If a configuration file does not exist for the container you want, ensure you've enabled Authentik as outlined in steps 1 and 2
 
         :::
 
-    6. Replace the configuration in the Authentik webpage with this generated configuration, otherwise stuff will not work correctly.
+    6. Replace the configuration in the Authentik webpage with this generated configuration, otherwise the Authentik proxy will not work correctly.
 
     7. Once you click create, it will automatically create a new `authentik-proxy` container that will handle authentication.
 
@@ -134,9 +134,9 @@ This can expose your services publicly **without authentication** if not careful
 
 :::
 
-This requires a large amount of work (creating Authentik Applications, Providers, and Outposts for _each individual enabled container_ for full protection) and is (in my personal opinion) not recommended.
+This requires a significant amount of work (creating Authentik Applications, Providers, and Outposts for _each individual enabled container_ for full protection) and is generally not recommended.
 
-I would recommend using [Tailscale](/docs/services/tailscale) as a VPN solution to access the services from only internally, but everyones use cases and environment are different. By proceeding, you understand the risks and potential impact.
+Consider using [Tailscale](/docs/services/tailscale) as a VPN solution to access services internally instead. However, every environment is different. By proceeding, you understand the risks and potential impact.
 
 :::caution[Warning]
 

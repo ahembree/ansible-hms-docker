@@ -2,11 +2,13 @@
 title: App Bootstrapping
 ---
 
-There are tasks within this playbook that will attempt to automatically configure the connections between supported apps to reduce the amount of time it takes to get up and running.
+The app bootstrap tasks automatically configure the connections between supported apps (such as linking Prowlarr to Sonarr/Radarr, or adding download clients) to reduce the time it takes to get up and running.
 
-If a service is no longer enabled, it will be removed from the app connections.
+:::note[Automatic Cleanup]
 
-Example: If qBittorrent was enabled when the bootstrap tasks were ran but then you disable qBittorrent, it will remove the download client `HMSD - qBittorrent` if it exists in Sonarr and Radarr and indexer proxy in Prowlarr if it exists whenever the playbook is ran next.
+If a service is later disabled, its connections are automatically removed on the next playbook run. For example, if you disable qBittorrent after bootstrapping, the `HMSD - qBittorrent` download client will be removed from Sonarr and Radarr, and its indexer proxy will be removed from Prowlarr.
+
+:::
 
 ## Requirements
 
@@ -28,7 +30,7 @@ These tasks will **NOT** work in `check` mode, this is a [limitation of the Ansi
 
 ## Details
 
-By default, the playbook will check for the various apps API keys in their config files.
+The playbook automatically reads API keys from each app's config file to establish connections between services.
 
 To enable, set:
 
@@ -38,12 +40,6 @@ To enable, set:
 hmsdocker_app_bootstrap: true
 ...
 ```
-
-:::note[Note]
-
-If you are using qBittorrent and/or Deluge and create or update the password for their WebUI's, you will need to update the password for the download client(s) in the Sonarr and Radarr apps manually.
-
-:::
 
 ## Connections
 
@@ -82,6 +78,12 @@ It will do the following for each service:
     - Transmission
     - qBittorrent
     - Deluge
+
+:::note[Note]
+
+If you change the WebUI password for qBittorrent or Deluge after bootstrapping, you will need to manually update the download client password in Sonarr and Radarr.
+
+:::
 
 :::note
 

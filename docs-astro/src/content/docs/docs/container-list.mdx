@@ -90,7 +90,7 @@ By default, the container map is in `inventory/group_vars/all/container_map.yml`
 
 :::note
 
-If a key (such as `sonarr:`) does not match an available container, an error may be thrown.
+The top-level YAML keys (e.g., `sonarr:`, `radarr:`) in the container map must match the supported container names listed above. These keys are used internally to identify which compose template and configuration to use. Adding an unknown key will cause an error.
 
 :::
 
