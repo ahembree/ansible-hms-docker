@@ -15,7 +15,7 @@
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@iconify-json/mdi": "^1.2.3",
     "@tailwindcss/vite": "^4.1.18",
-    "astro": "^5.17.3",
+    "astro": "^5.18.0",
     "astro-icon": "^1.1.5",
     "sharp": "^0.34.2",
     "starlight-theme-next": "^0.3.3",
