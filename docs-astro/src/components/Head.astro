@@ -1,0 +1,61 @@
+---
+const { head, entry, slug, siteTitle } = Astro.locals.starlightRoute;
+const siteUrl = Astro.site?.href ?? 'https://hmsdocker.dev';
+const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
+const title = entry.data.title;
+const description = entry.data.description ?? '';
+const isHome = slug === '' || slug === 'index';
+
+const breadcrumbSegments = Astro.url.pathname
+  .replace(/^\/|\/$/g, '')
+  .split('/')
+  .filter(Boolean);
+
+const breadcrumbItems = breadcrumbSegments.map((segment, i) => ({
+  '@type': 'ListItem',
+  position: i + 1,
+  name: segment.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+  item: new URL(breadcrumbSegments.slice(0, i + 1).join('/') + '/', siteUrl).href,
+}));
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'HMS-Docker',
+  url: siteUrl,
+  description: 'An orchestrated Home Media Server deployment tool using Ansible and Docker',
+};
+
+const breadcrumbSchema = breadcrumbItems.length > 0
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbItems,
+    }
+  : null;
+
+const articleSchema = !isHome && description
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: title,
+      description,
+      url: pageUrl,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+    }
+  : null;
+---
+
+{head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+
+{isHome && (
+  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+)}
+
+{breadcrumbSchema && (
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+)}
+
+{articleSchema && (
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+)}

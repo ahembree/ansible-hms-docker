@@ -25,19 +25,13 @@ export default defineConfig({
 			components: {
         ThemeProvider: './src/components/ForceDarkTheme.astro',
         ThemeSelect: './src/components/EmptyThemeSelect.astro',
+        Head: './src/components/Head.astro',
       },
       title: 'HMS-Docker',
 			logo: {
 				src: './src/content/docs/static/img/logo.svg'
 			},
 			head: [
-				{
-					tag: 'meta',
-					attrs: {
-						property: 'og:title',
-						content: 'HMS-Docker - A Home Media Server deployment orchestrator'
-					}
-				},
 				{
 					tag: 'meta',
 					attrs: {
@@ -57,20 +51,6 @@ export default defineConfig({
 					attrs: {
 						property: 'og:type',
 						content: 'website'
-					}
-				},
-				{
-					tag: 'meta',
-					attrs: {
-						property: 'og:url',
-						content: 'https://hmsdocker.dev'
-					}
-				},
-				{
-					tag: 'meta',
-					attrs: {
-						property: 'og:description',
-						content: 'An orchestrated Home Media Server deployment tool that runs everything in Docker while Ansible does all the heavy lifting of maintaining configurations.'
 					}
 				},
 			],
