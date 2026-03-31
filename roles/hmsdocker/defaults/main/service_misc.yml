@@ -82,10 +82,3 @@ hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
 
 # Temp path used by Tdarr, Fileflows, Unmanic
 hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"
-
-#######################################################################
-### Librariarr settings
-# Database password for the Librariarr PostgreSQL database
-hmsdocker_librariarr_db_pass: librariarr
-### End Librariarr settings
-#######################################################################

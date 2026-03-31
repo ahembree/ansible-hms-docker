@@ -275,7 +275,7 @@
       "homepage_stats": false
     },
     "librariarr": {
-      "enabled": false,
+      "enabled": true,
       "proxy_host_rule": "librariarr",
       "directory": true,
       "traefik": true,

@@ -194,16 +194,6 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: kavita
     traefik: true
-  lidarr:
-    authentik: false
-    directory: true
-    enabled: false
-    expose_ports: false
-    expose_to_public: false
-    homepage: true
-    homepage_stats: true
-    proxy_host_rule: lidarr
-    traefik: true
   librariarr:
     authentik: false
     directory: true
@@ -213,6 +203,16 @@ hms_docker_container_map:
     homepage: true
     homepage_stats: true
     proxy_host_rule: librariarr
+    traefik: true
+  lidarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: true
+    proxy_host_rule: lidarr
     traefik: true
   maintainerr:
     authentik: false
