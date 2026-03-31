@@ -274,6 +274,17 @@
       "homepage": true,
       "homepage_stats": false
     },
+    "librariarr": {
+      "enabled": false,
+      "proxy_host_rule": "librariarr",
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": "proxy",
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
     "autobrr": {
       "enabled": false,
       "proxy_host_rule": "autobrr",

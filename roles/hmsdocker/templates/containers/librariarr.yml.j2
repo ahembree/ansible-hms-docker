@@ -1,0 +1,74 @@
+services:
+  librariarr:
+    image: ahembree/librariarr:latest
+    container_name: librariarr
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    {% if 'librariarr' in expose_ports_enabled_containers %}
+    ports:
+      - 3100:3000
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/librariarr/config:/config
+    environment:
+      - DATABASE_URL=postgresql://librariarr:${LIBRARIARR_DB_PASS:-librariarr}@librariarr-db:5432/librariarr
+      - NEXT_TELEMETRY_DISABLED=1
+      - TZ=${TIMEZONE}
+    depends_on:
+      librariarr-db:
+        condition: service_healthy
+    {% if 'librariarr' in traefik_enabled_containers or 'librariarr' in homepage_enabled_containers %}
+    labels:
+      {% if 'librariarr' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.librariarr-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
+      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['librariarr']['proxy_host_rule'] | default('librariarr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'librariarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-librariarr-midware@docker' if 'librariarr' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'librariarr' in homepage_enabled_containers %}
+      - homepage.group=Managers
+      - homepage.name=Librariarr
+      - homepage.icon=librariarr.png
+      - homepage.href=http://{{ hms_docker_container_map['librariarr']['proxy_host_rule'] | default('librariarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Media Library Manager
+        {% if 'librariarr' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://localhost:3000/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  librariarr-db:
+    image: postgres:18-alpine
+    container_name: librariarr-db
+    restart: ${RESTART_POLICY}
+    networks:
+      - proxy_net
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    environment:
+      - POSTGRES_USER=librariarr
+      - POSTGRES_PASSWORD=${LIBRARIARR_DB_PASS:-librariarr}
+      - POSTGRES_DB=librariarr
+    volumes:
+      - ${HMSD_APPS_PATH}/librariarr/db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U librariarr -d librariarr
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
