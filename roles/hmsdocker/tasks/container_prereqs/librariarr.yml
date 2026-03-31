@@ -1,0 +1,7 @@
+- name: (Prereq - Librariarr) - Ensure postgres directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/librariarr/config/db"
+    state: directory
+    mode: '0700'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"

@@ -5,6 +5,7 @@ services:
     restart: ${RESTART_POLICY}
     networks:
       - proxy_net
+      - librariarr_net
     logging:
       options:
         max-size: "12m"
@@ -15,11 +16,13 @@ services:
       - 3100:3000
     {% endif %}
     volumes:
-      - ${HMSD_APPS_PATH}/librariarr/config:/config
+      - ${HMSD_APPS_PATH}/librariarr/config/app:/config
+      - ${HMSD_MOUNT_PATH}:/data:ro
     environment:
-      - DATABASE_URL=postgresql://librariarr:${LIBRARIARR_DB_PASS:-librariarr}@librariarr-db:5432/librariarr
-      - NEXT_TELEMETRY_DISABLED=1
+      - DATABASE_URL=postgresql://librariarr:librariarr@librariarr-db:5432/librariarr
       - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
     depends_on:
       librariarr-db:
         condition: service_healthy
@@ -53,8 +56,10 @@ services:
     image: postgres:18-alpine
     container_name: librariarr-db
     restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
     networks:
       - proxy_net
+      - librariarr_net
     logging:
       options:
         max-size: "12m"
@@ -64,11 +69,17 @@ services:
       - POSTGRES_USER=librariarr
       - POSTGRES_PASSWORD=${LIBRARIARR_DB_PASS:-librariarr}
       - POSTGRES_DB=librariarr
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ${HMSD_APPS_PATH}/librariarr/db:/var/lib/postgresql/data
+      - ${HMSD_APPS_PATH}/librariarr/config/db:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -U librariarr -d librariarr
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+
+networks:
+  librariarr_net:
+    driver: bridge
+    attachable: false
