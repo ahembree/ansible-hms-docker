@@ -9,8 +9,6 @@ BASEDIR=$(shell pwd)
 
 CUSTOM_CONF_DIR = inventory/group_vars/all
 
-REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
-
 ARCH = $(shell uname -m)
 BIN_DIR = ./bin
 YQ_LOCAL = $(BIN_DIR)/yq
@@ -100,9 +98,10 @@ update: $(YQ_LOCAL)
 	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml || echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
 	@sed -i 's\hms_docker_plex_ssl_subdomain:\hms_docker_plex_ssl_public_hostname:\g' $(CUSTOM_CONF_DIR)/plex.yml
 
-	@echo "Fetching container map updates from $(REMOTE_CONFIG_URL)/container_map.yml..."
-	@tmpfile=$$(mktemp); \
-	curl -s "$(REMOTE_CONFIG_URL)/container_map.yml" > "$$tmpfile"; \
+	@REMOTE_CONFIG_URL="https://hmsdocker.dev/configs"; \
+	echo "Fetching container map updates from $$REMOTE_CONFIG_URL/container_map.yml..."; \
+	tmpfile=$$(mktemp); \
+	curl -s "$$REMOTE_CONFIG_URL/container_map.yml" > "$$tmpfile"; \
 	echo Checking for new services...; \
 	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$tmpfile" | while read service; do \
 		exists=$$($(YQ_LOCAL) eval ".hms_docker_container_map | has(\"$$service\")" "$(CUSTOM_CONF_DIR)/container_map.yml"); \
