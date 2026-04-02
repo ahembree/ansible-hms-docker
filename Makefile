@@ -9,6 +9,8 @@ BASEDIR=$(shell pwd)
 
 CUSTOM_CONF_DIR = inventory/group_vars/all
 
+REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
+
 ARCH = $(shell uname -m)
 BIN_DIR = ./bin
 YQ_LOCAL = $(BIN_DIR)/yq
@@ -98,7 +100,7 @@ update: $(YQ_LOCAL)
 	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml || echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
 	@sed -i 's\hms_docker_plex_ssl_subdomain:\hms_docker_plex_ssl_public_hostname:\g' $(CUSTOM_CONF_DIR)/plex.yml
 
-	@REMOTE_CONFIG_URL="https://hmsdocker.dev/configs"; \
+	@REMOTE_CONFIG_URL=$$(grep -oP '^REMOTE_CONFIG_URL\s*=\s*\K.*' Makefile | tr -d ' '); \
 	echo "Fetching container map updates from $$REMOTE_CONFIG_URL/container_map.yml..."; \
 	tmpfile=$$(mktemp); \
 	curl -s "$$REMOTE_CONFIG_URL/container_map.yml" > "$$tmpfile"; \
