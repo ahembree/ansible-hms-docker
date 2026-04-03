@@ -69,15 +69,17 @@ services:
       - POSTGRES_USER=librariarr
       - POSTGRES_PASSWORD=${LIBRARIARR_DB_PASS:-librariarr}
       - POSTGRES_DB=librariarr
-      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ${HMSD_APPS_PATH}/librariarr/config/db:/var/lib/postgresql/data
+      - librariarr-db:/var/lib/postgresql
     healthcheck:
       test: pg_isready -U librariarr -d librariarr
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
+
+volumes:
+  librariarr-db:
 
 networks:
   librariarr_net:
