@@ -30,7 +30,7 @@ services:
       - homepage.name=Dockhand
       - homepage.icon=dockhand.png
       - homepage.href=http://{{ hms_docker_container_map['dockhand']['proxy_host_rule'] | default('dockhand') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Server
+      - homepage.description=Container Management
       - homepage.widget.type=dockhand
       - homepage.widget.url=http://dockhand:3000
       - homepage.widget.username=${DOCKHAND_USER:-dockhanduserisblank}
