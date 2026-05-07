@@ -1,0 +1,48 @@
+services:
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:latest-omnibus
+    container_name: scrutiny
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN #required for NVMe drives
+    volumes:
+      - ${HMSD_APPS_PATH}/scrutiny/config/config:/opt/scrutiny/config
+      - ${HMSD_APPS_PATH}/scrutiny/config/influxdb:/opt/scrutiny/influxdb
+      - /run/udev:/run/udev:ro
+    {% if 'scrutiny' in expose_ports_enabled_containers %}
+    ports:
+      - 8087:8080
+    {% endif %}
+    devices:
+    {% for device in hmsdocker_scrutiny_devices %}
+      - {{ device }}
+    {% endfor %}
+    restart: ${RESTART_POLICY}
+    {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
+    labels:
+      {% if 'scrutiny' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.scrutiny-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
+      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['scrutiny']['proxy_host_rule'] | default('scrutiny') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'scrutiny' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-scrutiny-midware@docker' if 'scrutiny' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'scrutiny' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=Scrutiny
+      - homepage.icon=scrutiny.png
+      - homepage.href=http://{{ hms_docker_container_map['scrutiny']['proxy_host_rule'] | default('scrutiny') }}.${HMSD_DOMAIN}
+      - homepage.description=Disk Health
+      - homepage.widget.type=scrutiny
+      - homepage.widget.url=http://scrutiny:8080
+        {% if 'scrutiny' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}

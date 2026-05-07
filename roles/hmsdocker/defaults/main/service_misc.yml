@@ -82,3 +82,9 @@ hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
 
 # Temp path used by Tdarr, Fileflows, Unmanic
 hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"
+
+# Update to your disk devices
+hmsdocker_scrutiny_devices: [
+  "/dev/sda",
+  "/dev/nvme0"
+]
