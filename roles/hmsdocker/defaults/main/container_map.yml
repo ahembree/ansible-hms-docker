@@ -52,6 +52,16 @@ hms_docker_container_map:
     homepage_stats: false
     proxy_host_rule: bazarr
     traefik: true
+  beszel:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: beszel
+    traefik: true
+    expose_ports: false
   calibre:
     authentik: false
     directory: true

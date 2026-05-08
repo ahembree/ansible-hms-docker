@@ -21,7 +21,7 @@ services:
       - 8087:8080
     {% endif %}
     devices:
-    {% for device in hmsdocker_scrutiny_devices %}
+    {% for device in hmsdocker_monitor_disk_devices %}
       - {{ device }}
     {% endfor %}
     restart: ${RESTART_POLICY}

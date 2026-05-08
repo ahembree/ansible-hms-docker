@@ -84,7 +84,13 @@ hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
 hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"
 
 # Update to your disk devices
-hmsdocker_scrutiny_devices: [
+hmsdocker_monitor_disk_devices: [
   "/dev/sda",
   "/dev/nvme0"
 ]
+
+hmsdocker_beszel_key: 
+hmsdocker_beszel_token: 
+hmsdocker_beszel_email: 
+hmsdocker_beszel_password: 
+hmsdocker_beszel_heartbeat_url: 
