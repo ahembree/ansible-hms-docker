@@ -6,8 +6,19 @@ plex_claim_token: ""
 # This will grab the default interface IPv4 address of the host // default: "{{ ansible_facts.default_ipv4.address }}"
 plex_advertise_ip: "{{ ansible_facts.default_ipv4.address }}"
 
-# Transcode folder location for Plex.
-# If you have enough RAM, you can change this to "/dev/shm/plex_transcode" to use RAM for transcoding
+# When enabled, mounts the transcode/cache directory as an in-memory tmpfs inside the container instead of bind-mounting plex_transcode_folder from the host.
+# Affects plex (/transcode), emby (/cache), and jellyfin (/cache).
+# default: no // valid: yes, no
+hmsdocker_transcode_tmpfs_enabled: no
+
+# Size cap for the tmpfs mount. Accepts docker-compose tmpfs shorthand (e.g. "2g", "4g", "8g").
+# Budget ~1-2GB per concurrent 1080p transcode, more for 4K. Only consumed when transcoding.
+# default: "4g"
+hmsdocker_transcode_tmpfs_size: "4g"
+
+# Transcode folder location for Plex/Emby/Jellyfin (host bind mount) if the system does not have the resources available for a tmpfs (above)
+# Only used when hmsdocker_transcode_tmpfs_enabled is "no".
+# For RAM-backed transcoding, enable hmsdocker_transcode_tmpfs_enabled above instead.
 plex_transcode_folder: "/tmp/{{ project_name }}/plex_transcode" # default: "/tmp/{{ project_name }}/plex_transcode"
 
 # Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex
