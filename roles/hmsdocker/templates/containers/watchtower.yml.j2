@@ -3,6 +3,8 @@ services:
     image: nickfedor/watchtower:latest
     container_name: watchtower
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

@@ -3,6 +3,8 @@ services:
     image: ghcr.io/wizarrrr/wizarr:latest
     container_name: wizarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -27,3 +29,9 @@ services:
       - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['wizarr']['proxy_host_rule'] | default('wizarr') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'wizarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-wizarr-midware@docker' if 'wizarr' in authentik_enabled_containers }}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:5690/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

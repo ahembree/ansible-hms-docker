@@ -3,6 +3,8 @@ services:
     image: ahembree/librariarr:latest
     container_name: librariarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - proxy_net
       - librariarr_net
@@ -46,7 +48,7 @@ services:
       {% endif %}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:3000/ || exit 1
+      test: curl -f http://127.0.0.1:3000/ || exit 1
       interval: 10s
       timeout: 5s
       retries: 3
@@ -56,6 +58,8 @@ services:
     image: postgres:18-alpine
     container_name: librariarr-db
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     user: ${PUID}:${PGID}
     networks:
       - proxy_net

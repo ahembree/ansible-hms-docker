@@ -1,2 +1,2 @@
 gpu_prereq_packages_state: present
-gpu_family_override: "{{ 'redhat' if ansible_os_family | lower == 'almalinux' else ansible_os_family | lower }}"
+gpu_family_override: "{{ 'redhat' if ansible_facts['os_family'] | lower == 'almalinux' else ansible_facts['os_family'] | lower }}"

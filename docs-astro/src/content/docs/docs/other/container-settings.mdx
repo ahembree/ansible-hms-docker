@@ -102,6 +102,14 @@ hms_docker_data_path: "/opt/{{ project_name }}"
 
 Where all container data, configs, compose files, and secrets are stored. See the [File/Folder Layout](/docs/other/paths) docs for the full directory structure.
 
+### Apps Path
+
+```yaml
+hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
+```
+
+The directory where each container's per-app data and configuration is stored (one subdirectory per container, e.g. `apps/sonarr/config`). Defaults to a subdirectory of `hms_docker_data_path` and rarely needs to be changed.
+
 ### Docker Network Subnet
 
 ```yaml

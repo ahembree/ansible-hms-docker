@@ -80,7 +80,7 @@ def main():
                             if status_code == 200:
                                 success_codes += 1
                                 logging.info(f'{name}:{host_port} OK')
-                            elif name == 'transmission-proxy' and status_code == '502':
+                            elif name == 'transmission-proxy' and status_code == 502:
                                 success_codes += 1
                             else:
                                 failure_codes += 1

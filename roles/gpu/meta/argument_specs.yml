@@ -1,0 +1,18 @@
+---
+# Ansible role argument validation for the gpu role.
+# Type validation only. Runtime checks (nvidia-container-runtime-hook present in $PATH) live in tasks/main.yml.
+
+argument_specs:
+  main:
+    short_description: Installs and validates Nvidia container runtime support.
+    options:
+      enable_nvidia_gpu:
+        type: bool
+        description: Master toggle - the role is only imported when true.
+      gpu_prereq_packages_state:
+        type: str
+        choices: [present, latest, absent]
+        description: Install state for the GPU prerequisite system packages.
+      gpu_family_override:
+        type: str
+        description: Overrides ansible_facts['os_family'] lookup for AlmaLinux compatibility.

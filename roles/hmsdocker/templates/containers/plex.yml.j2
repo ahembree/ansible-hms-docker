@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
@@ -38,10 +40,16 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/plex/config:/config
+      {% if not hmsdocker_transcode_tmpfs_enabled | default(false) %}
       # temp folder for Plex transcoding
       - {{ plex_transcode_folder }}:/transcode
+      {% endif %}
       # media folder where all movies and series are stored
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
+    tmpfs:
+      - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
+    {% endif %}
     {% if 'plex' in traefik_enabled_containers or 'plex' in homepage_enabled_containers %}
     labels:
       {% if 'plex' in traefik_enabled_containers %}
@@ -66,7 +74,7 @@ services:
       {% endif %}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:32400/web || exit 1
+      test: curl -f http://127.0.0.1:32400/web || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

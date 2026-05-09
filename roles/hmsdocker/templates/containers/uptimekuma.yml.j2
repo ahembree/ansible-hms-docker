@@ -3,6 +3,8 @@ services:
     image: louislam/uptime-kuma:latest
     container_name: uptime-kuma
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -43,3 +45,10 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    # Image ships an upstream-recommended healthcheck binary at /app/extra/healthcheck.
+    healthcheck:
+      test: ["CMD", "/app/extra/healthcheck"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

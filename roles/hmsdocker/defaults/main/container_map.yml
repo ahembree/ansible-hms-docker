@@ -52,6 +52,16 @@ hms_docker_container_map:
     homepage_stats: false
     proxy_host_rule: bazarr
     traefik: true
+  beszel:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: beszel
+    traefik: true
+    expose_ports: false
   calibre:
     authentik: false
     directory: true
@@ -155,16 +165,6 @@ hms_docker_container_map:
     expose_ports: false
     expose_to_public: false
     proxy_host_rule: homepage
-    traefik: true
-  huntarr:
-    authentik: false
-    directory: true
-    enabled: false
-    expose_ports: false
-    expose_to_public: false
-    homepage: true
-    homepage_stats: true
-    proxy_host_rule: huntarr
     traefik: true
   jellyfin:
     authentik: false
@@ -352,6 +352,16 @@ hms_docker_container_map:
     homepage: true
     homepage_stats: true
     proxy_host_rule: sabnzbd
+    traefik: true
+  scrutiny:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: scrutiny
     traefik: true
   seerr:
     authentik: false

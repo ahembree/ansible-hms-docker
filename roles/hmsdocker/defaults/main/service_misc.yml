@@ -61,11 +61,6 @@ hmsdocker_unpackerr_additional_env_vars:
     "UN_DIR_MODE": "0755",
   }
 
-# If the Recyclarr config should be forcefully updated
-# If the config already exists, it will not be changed. If this is set to yes and the config already exists, the config will be changed and any manual changes will be lost
-# Any additional Recyclarr configuration outside of creating the base config file with the correct URL and API keys will need to be done manually by following the docs: https://recyclarr.dev/wiki/yaml/config-reference/
-hmsdocker_recyclarr_force_config_update: no
-
 # VNC password for TinyMediaManager
 hmsdocker_tinymediamanager_vnc_password:
 
@@ -82,3 +77,15 @@ hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
 
 # Temp path used by Tdarr, Fileflows, Unmanic
 hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"
+
+# Update to your disk devices
+hmsdocker_monitor_disk_devices: [
+  "/dev/sda",
+  "/dev/nvme0"
+]
+
+hmsdocker_beszel_key: 
+hmsdocker_beszel_token: 
+hmsdocker_beszel_email: 
+hmsdocker_beszel_password: 
+hmsdocker_beszel_heartbeat_url: 

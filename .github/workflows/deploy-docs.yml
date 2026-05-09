@@ -26,7 +26,7 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout your repository using git
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Copy container_map config to site
         run: |
@@ -34,7 +34,7 @@ jobs:
           cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
 
       - name: Install, build, and upload your site
-        uses: withastro/action@v5
+        uses: withastro/action@v6
         with:
           path: docs-astro # The root location of your Astro project inside the repository. (optional)
         # env:
@@ -52,4 +52,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

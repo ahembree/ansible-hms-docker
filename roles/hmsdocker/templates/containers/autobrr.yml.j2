@@ -3,6 +3,8 @@ services:
     container_name: autobrr
     image: ghcr.io/autobrr/autobrr:latest
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - proxy_net
       - download_net
@@ -42,3 +44,9 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:7474/api/healthz || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

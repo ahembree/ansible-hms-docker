@@ -3,6 +3,8 @@ services:
     image: tautulli/tautulli:latest
     container_name: tautulli
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -44,3 +46,9 @@ services:
       - ${HMSD_APPS_PATH}/tautulli/config:/config
       # Plex logs location
       - ${HMSD_APPS_PATH}/plex/config/Library/Application Support/Plex Media Server/Logs:/plex_logs:ro
+    healthcheck:
+      test: curl -f http://127.0.0.1:8181/status || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

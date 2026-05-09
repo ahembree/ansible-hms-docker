@@ -5,7 +5,7 @@
   gather_facts: true
   vars:
     # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
-    hmsd_current_version: 1.17.1
+    hmsd_current_version: 1.18.0
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false
     regex: '[^A-Za-z0-9._-]'
@@ -35,9 +35,14 @@
         | combine(docker_daemon_options_gpu if enable_nvidia_gpu | default(false) else {}, recursive=True)
       }}
 
-  # Run GPU role first to ensure requirements are met
-  # 
+  # Preflight runs first so misconfigurations fail before any host mutation
+  # (gpu drivers, dockerd reconfig, etc.).
   pre_tasks:
+    - name: Run hmsdocker preflight validation
+      ansible.builtin.import_role:
+        name: hmsdocker
+        tasks_from: preflight
+
     - name: Ensure Nvidia GPU role if enabled
       ansible.builtin.import_role:
         name: gpu

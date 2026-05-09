@@ -1,0 +1,46 @@
+---
+# Ansible role argument validation for the unifi_dns role.
+# Type/choice/range validation only. The role's own tasks/main.yml retains
+# its non-empty assert block (defense in depth).
+
+argument_specs:
+  main:
+    short_description: Reconciles UniFi DNS CNAME records for HMS-Docker subdomains.
+    description:
+      - Validates the variable interface for the unifi_dns role.
+      - Non-empty checks for required-when-enabled vars are also enforced
+        at runtime by tasks/main.yml.
+    options:
+      unifi_dns_enabled:
+        type: bool
+        description: Master toggle - the role short-circuits when false.
+      unifi_dns_controller_url:
+        type: str
+        description: Base URL of the UniFi controller (no trailing slash).
+      unifi_dns_api_key:
+        type: str
+        description: API key generated in the controller's Integrations section.
+      unifi_dns_site_name:
+        type: str
+        description: UniFi site internalReference name to manage records under (default 'default').
+      unifi_dns_cname_target:
+        type: str
+        description: Target A record FQDN that all managed CNAMEs point to.
+      unifi_dns_ttl_seconds:
+        type: int
+        description: TTL in seconds (0-86400, where 0 means Auto).
+      unifi_dns_validate_certs:
+        type: bool
+        description: Verify TLS certificates when calling the UniFi controller (set false for self-signed).
+      unifi_dns_include_external_hosts:
+        type: bool
+        description: Manage CNAMEs for traefik_ext_hosts_list entries in addition to container subdomains.
+      unifi_dns_include_4k_instances:
+        type: bool
+        description: Manage sonarr-4k and radarr-4k subdomains when separate_4k_instances_enable is true.
+      unifi_dns_api_page_limit:
+        type: int
+        description: Records per API page (max 200).
+      unifi_dns_api_timeout:
+        type: int
+        description: Per-request timeout in seconds for UniFi controller API calls.

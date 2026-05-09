@@ -3,6 +3,8 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -49,7 +51,7 @@ services:
       - 7878:7878
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:7878/health || exit 1
+      test: curl -f http://127.0.0.1:7878/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3
@@ -60,6 +62,8 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr-4k
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -106,7 +110,7 @@ services:
       - 7879:7878
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:7878/health || exit 1
+      test: curl -f http://127.0.0.1:7878/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

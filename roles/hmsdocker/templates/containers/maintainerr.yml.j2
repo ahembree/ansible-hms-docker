@@ -3,6 +3,8 @@ services:
     image: ghcr.io/maintainerr/maintainerr:latest
     container_name: maintainerr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - proxy_net
     logging:
@@ -26,3 +28,9 @@ services:
       - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['maintainerr']['proxy_host_rule'] | default('maintainerr') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.maintainerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'maintainerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-maintainerr-midware@docker' if 'maintainerr' in authentik_enabled_containers }}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:6246/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

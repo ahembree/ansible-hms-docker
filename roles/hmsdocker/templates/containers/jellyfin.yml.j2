@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -22,9 +24,15 @@ services:
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/jellyfin/config:/config
+      {% if not hmsdocker_transcode_tmpfs_enabled | default(false) %}
       - {{ plex_transcode_folder }}/cache:/cache
+      {% endif %}
       # media folder where all movies and series are stored
       - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
+    tmpfs:
+      - /cache:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
+    {% endif %}
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
@@ -55,3 +63,9 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:8096/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 60s

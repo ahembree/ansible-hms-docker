@@ -4,6 +4,8 @@ services:
     init: true
     container_name: seerr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -23,7 +25,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/seerr/config:/app/config
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1
       start_period: 20s
       timeout: 3s
       interval: 15s

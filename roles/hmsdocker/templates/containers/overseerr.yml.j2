@@ -3,6 +3,8 @@ services:
     image: linuxserver/overseerr:latest
     container_name: overseerr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -43,7 +45,7 @@ services:
       - 5055:5055
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:5055 || exit 1
+      test: curl -f http://127.0.0.1:5055 || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

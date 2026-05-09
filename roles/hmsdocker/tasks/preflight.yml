@@ -1,0 +1,255 @@
+---
+# Preflight validation for the hmsdocker role.
+#
+# Runs from hms-docker.yml's pre_tasks BEFORE the gpu role, the geerlingguy.docker
+# role, or any task in this role. Failing here means failing before any host
+# mutation.
+#
+# Layout:
+#   1. Initialize the warnings list.
+#   2. Hard-fail asserts (always-required vars).
+#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
+#   4. Soft-warning appends (non-fatal; surfaced at the end).
+#   5. Print warnings if any.
+
+- name: (preflight) Initialize warnings list
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: []
+
+# ---------------------------------------------------------------------------
+# Always-required: foundational vars used unguarded by the role
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate foundational variables are defined and non-empty
+  ansible.builtin.assert:
+    that:
+      - project_name is defined
+      - (project_name | default('', true)) | length > 0
+      - hms_docker_domain is defined
+      - (hms_docker_domain | default('', true)) | length > 0
+      - hms_docker_data_path is defined
+      - (hms_docker_data_path | default('', true)) | length > 0
+      - hms_docker_apps_path is defined
+      - (hms_docker_apps_path | default('', true)) | length > 0
+      - hms_docker_mount_path is defined
+      - (hms_docker_mount_path | default('', true)) | length > 0
+      - hmsdocker_docker_network_base_subnet is defined
+      - (hmsdocker_docker_network_base_subnet | default('', true)) | length > 0
+      - container_uid is defined
+      - container_gid is defined
+      - hms_docker_container_map is defined
+      - hms_docker_container_map | length > 0
+    fail_msg: >-
+      Missing required foundational variables. The following must all be defined
+      and non-empty: project_name, hms_docker_domain, hms_docker_data_path,
+      hms_docker_apps_path, hms_docker_mount_path, hmsdocker_docker_network_base_subnet,
+      container_uid, container_gid, hms_docker_container_map.
+    quiet: true
+
+# ---------------------------------------------------------------------------
+# NAS — CIFS
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate CIFS share configuration
+  ansible.builtin.assert:
+    that:
+      - (nas_client_remote_cifs_path | default('', true)) | length > 0
+      - "'nas.example.com' not in (nas_client_remote_cifs_path | default(''))"
+      - (nas_client_cifs_username | default('', true)) | length > 0
+      - (nas_client_cifs_password | default('', true)) | length > 0
+    fail_msg: >-
+      hms_docker_media_share_type is set to 'cifs' but CIFS configuration is
+      incomplete. Set nas_client_remote_cifs_path (must not be the placeholder
+      '//nas.example.com/share'), nas_client_cifs_username, and
+      nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - hms_docker_media_share_type | default('local') == 'cifs'
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# NAS — NFS
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate NFS share configuration
+  ansible.builtin.assert:
+    that:
+      - (nas_client_remote_nfs_path | default('', true)) | length > 0
+      - "'nas.example.com' not in (nas_client_remote_nfs_path | default(''))"
+    fail_msg: >-
+      hms_docker_media_share_type is set to 'nfs' but nas_client_remote_nfs_path
+      is empty or still set to the placeholder 'nas.example.com:/share'.
+      Set it in inventory/group_vars/all/nas_nfs.yml.
+    quiet: true
+  when:
+    - hms_docker_media_share_type | default('local') == 'nfs'
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# Plex
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Plex claim token when Plex is enabled
+  ansible.builtin.assert:
+    that:
+      - (plex_claim_token | default('', true)) | length > 0
+    fail_msg: >-
+      Plex is enabled in the container map but plex_claim_token is empty.
+      Visit https://plex.tv/claim to obtain a token, then set plex_claim_token
+      in inventory/group_vars/all/plex.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when: 
+    - hms_docker_container_map['plex']['enabled'] | default(false)
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# Traefik / SSL
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Traefik SSL configuration
+  ansible.builtin.assert:
+    that:
+      - (traefik_ssl_letsencrypt_email | default('', true)) | length > 0
+      - (traefik_ssl_dns_provider_code | default('', true)) | length > 0
+    fail_msg: >-
+      traefik_ssl_enabled is true but Let's Encrypt configuration is incomplete.
+      Set traefik_ssl_letsencrypt_email and traefik_ssl_dns_provider_code
+      in inventory/group_vars/all/traefik.yml.
+    quiet: true
+  when:
+    - traefik_ssl_enabled | default(false) | bool
+    - not is_github_runner
+
+- name: (preflight) Validate Cloudflare API token when used as Traefik DNS provider
+  ansible.builtin.assert:
+    that:
+      - (cloudflare_api_token | default('', true)) | length > 0
+    fail_msg: >-
+      Traefik SSL is using Cloudflare as the DNS provider but cloudflare_api_token
+      is empty. Set it in inventory/group_vars/all/cloudflare.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - traefik_ssl_enabled | default(false) | bool
+    - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# Cloudflare DDNS / Tunnel
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Cloudflare API token when cloudflare-ddns container is enabled
+  ansible.builtin.assert:
+    that:
+      - (cloudflare_api_token | default('', true)) | length > 0
+    fail_msg: >-
+      The cloudflare-ddns container is enabled but cloudflare_api_token is empty.
+      Set it in inventory/group_vars/all/cloudflare.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - >-
+      (cloudflare_ddns_enabled | default(false))
+      or (hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false))
+    - not is_github_runner
+
+- name: (preflight) Validate Cloudflare tunnel token when cloudflare-tunnel container is enabled
+  ansible.builtin.assert:
+    that:
+      - (cloudflare_tunnel_token | default('', true)) | length > 0
+    fail_msg: >-
+      The cloudflare-tunnel container is enabled but cloudflare_tunnel_token is empty.
+      See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
+      and set cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - >-
+      (cloudflare_tunnel_enabled | default(false))
+      or (hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false))
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# Tailscale
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Tailscale auth key when tailscale is enabled
+  ansible.builtin.assert:
+    that:
+      - (tailscale_auth_key | default('', true)) | length > 0
+    fail_msg: >-
+      The tailscale container is enabled but tailscale_auth_key is empty.
+      Generate one at https://login.tailscale.com/admin/settings/keys and
+      set it in inventory/group_vars/all/tailscale.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - >-
+      (tailscale_enabled | default(false))
+      or (hms_docker_container_map['tailscale']['enabled'] | default(false))
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# VPN-using download clients
+#
+# Only transmission consumes hmsdocker_vpn_provider (templates/env.j2 exports
+# it as VPN_PROVIDER, which transmission.yml.j2 maps to OPENVPN_PROVIDER).
+# qbittorrent and deluge hardcode VPN_PROV=custom in their compose templates
+# and read configs from config/<hmsdocker_vpn_type>/ - the provider name is
+# irrelevant to them.
+#
+# Transmission's `custom` vpn_type is exempt because the config comes from
+# a local file rather than the provider list.
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate VPN provider for Transmission
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_vpn_provider | default('', true)) | length > 0
+    fail_msg: >-
+      The transmission container is enabled with hmsdocker_vpn_type='{{ hmsdocker_vpn_type | default('openvpn', true) }}'
+      but hmsdocker_vpn_provider is empty. Set it in inventory/group_vars/all/vpn.yml,
+      or use hmsdocker_vpn_type='custom' if you are providing your own .ovpn config
+      via transmission_ovpn_config_* variables.
+    quiet: true
+  when:
+    - hms_docker_container_map['transmission']['enabled'] | default(false)
+    - (hmsdocker_vpn_type | default('openvpn', true)) != 'custom'
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
+# printed at the end of preflight if non-empty.
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Warn if debug_mode is enabled
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['debug_mode is enabled - secrets (passwords, API keys) may appear in playbook output.'] }}"
+  when: debug_mode | default(false) | bool
+
+- name: (preflight) Warn if hms_docker_domain is the default placeholder
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hms_docker_domain is still set to the default \"home.local\". Set it to your real local domain in inventory/group_vars/all/main.yml.'] }}"
+  when: (hms_docker_domain | default('')) == 'home.local'
+
+- name: (preflight) Warn if VPN-using download client has empty user/pass
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_vpn_user and/or hmsdocker_vpn_pass are empty. If your VPN config does not embed credentials, the connection will fail.'] }}"
+  when:
+    - >-
+      (hms_docker_container_map['transmission']['enabled'] | default(false))
+      or (hms_docker_container_map['qbittorrent']['enabled'] | default(false))
+      or (hms_docker_container_map['deluge']['enabled'] | default(false))
+    - ((hmsdocker_vpn_user | default('', true)) | length == 0)
+      or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
+
+# ---------------------------------------------------------------------------
+# Print collected warnings
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Display warnings
+  ansible.builtin.debug:
+    msg: "{{ ['--- Preflight warnings ---'] + hmsdocker_preflight_warnings }}"
+  when: hmsdocker_preflight_warnings | length > 0

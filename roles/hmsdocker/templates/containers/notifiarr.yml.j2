@@ -4,6 +4,8 @@ services:
     container_name: notifiarr
     hostname: notifiarr-hmsd
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -70,3 +72,9 @@ services:
       - traefik.http.routers.notifiarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'notifiarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-notifiarr-midware@docker' if 'notifiarr' in authentik_enabled_containers }}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: wget --spider -q http://127.0.0.1:5454/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

@@ -15,6 +15,7 @@ Settings mentioned below should already exist in your `inventory/group_vars/all/
 
 Requires the following variables:
 
+* `hmsdocker_vpn_type`: `openvpn` (or `custom` if supplying your own `.ovpn` file — see [Custom Provider](#custom-provider) below)
 * `hmsdocker_vpn_provider`: see [the official docs page](https://haugene.github.io/docker-transmission-openvpn/supported-providers/)
 * `hmsdocker_vpn_user`: Your VPN account/service account username
 * `hmsdocker_vpn_pass`: Your VPN account/service account password
@@ -57,6 +58,16 @@ For example, if you had a custom file named `test-vpn.ovpn` located in `/opt/hms
 transmission_ovpn_config_file: test-vpn
 transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 ```
+
+##### Using a fork of the upstream config repo
+
+If you are using a published provider but want to source the `.ovpn` files from a fork of [haugene/vpn-configs-contrib](https://github.com/haugene/vpn-configs-contrib) instead of the upstream repo, set:
+
+```yml
+transmission_ovpn_config_source_repo: https://github.com/<your-fork>/vpn-configs-contrib
+```
+
+Leave blank to use the configs bundled with the container.
 
 
 ## SABnzbd

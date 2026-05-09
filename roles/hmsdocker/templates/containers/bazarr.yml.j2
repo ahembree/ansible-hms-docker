@@ -3,6 +3,8 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -11,7 +13,7 @@ services:
     networks:
       - proxy_net
     healthcheck:
-      test: curl -f http://localhost:6767/health || exit 1
+      test: curl -f http://127.0.0.1:6767/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

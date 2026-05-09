@@ -3,6 +3,8 @@ services:
     image: bbilly1/tubearchivist
     container_name: tubearchivist
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -30,7 +32,7 @@ services:
       - TA_PORT=8001
       - TZ=${TIMEZONE}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8001/api/health"]
       interval: 2m
       timeout: 10s
       retries: 3
@@ -65,6 +67,8 @@ services:
     image: redis
     container_name: tubearchivist-redis
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -81,6 +85,8 @@ services:
     image: {{ 'bbilly1/tubearchivist-es' if ansible_architecture == 'x86_64' else 'elasticsearch:8.17.2' }}         # only for amd64, or use official es 8.17.2
     container_name: tubearchivist-es
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

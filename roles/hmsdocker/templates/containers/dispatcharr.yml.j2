@@ -3,6 +3,8 @@ services:
     image: ghcr.io/dispatcharr/dispatcharr:latest
     container_name: dispatcharr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -27,7 +29,7 @@ services:
       - PGID=${PGID}
       - DISPATCHARR_ENV=aio
       - REDIS_HOST=localhost
-      - CELERY_BROKER_URL=redis://localhost:6379/0
+      - CELERY_BROKER_URL=redis://127.0.0.1:6379/0
       - DISPATCHARR_LOG_LEVEL=info
     {% if enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
@@ -42,7 +44,7 @@ services:
       - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dispatcharr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dispatcharr-midware@docker' if 'dispatcharr' in authentik_enabled_containers }}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:9191 || exit 1
+      test: curl -f http://127.0.0.1:9191 || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

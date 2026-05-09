@@ -3,6 +3,8 @@ services:
     image: tailscale/tailscale:latest
     container_name: tailscale
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

@@ -24,7 +24,7 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout your repository using git
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Copy container_map config to site
         run: |
@@ -38,7 +38,7 @@ jobs:
           npm run astro check
 
       - name: Install and build
-        uses: withastro/action@v5
+        uses: withastro/action@v6
         with:
           path: docs-astro # The root location of your Astro project inside the repository. (optional)
         # env:

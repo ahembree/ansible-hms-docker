@@ -4,6 +4,8 @@ services:
     container_name: portainer
     command: -H unix:///var/run/docker.sock
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

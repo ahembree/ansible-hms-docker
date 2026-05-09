@@ -1,0 +1,161 @@
+---
+# Ansible role argument validation for the hmsdocker role.
+# Validates types and choices that argument_specs handles natively.
+# Conditional / non-empty / cross-variable checks live in tasks/preflight.yml,
+# which runs from the playbook's pre_tasks before any host mutation.
+
+argument_specs:
+  main:
+    short_description: Deploys the HMS-Docker media server stack.
+    description:
+      - Validates the variable interface for the hmsdocker role.
+      - Type and choices validation only; non-empty and conditional
+        validation is performed in tasks/preflight.yml.
+    options:
+
+      # ---- Core paths and identity ----
+      project_name:
+        type: str
+        description: Base name used for default data, mount, and apps paths.
+      hms_docker_domain:
+        type: str
+        description: Domain used for Traefik host rules, SSL, and DDNS.
+      hms_docker_data_path:
+        type: str
+        description: Path where container data, configs, and compose files live.
+      hms_docker_apps_path:
+        type: str
+        description: Path where individual app config directories are created.
+      hms_docker_mount_path:
+        type: str
+        description: Mount root for media and downloads folders.
+
+      # ---- NAS ----
+      hms_docker_media_share_type:
+        type: str
+        choices: [local, cifs, nfs]
+        description: Storage backend for media and downloads.
+      nas_client_package_state:
+        type: str
+        choices: [present, latest, absent]
+        description: Install state for NAS client packages (cifs-utils / nfs-common).
+      nas_client_mount_state:
+        type: str
+        choices: [present, absent, mounted, unmounted, remounted]
+        description: Desired mount state for the remote share.
+      nas_client_mount_on_boot:
+        type: bool
+        description: Whether the share is mounted automatically at boot.
+      nas_client_use_additional_paths:
+        type: bool
+        description: Enables mounting extra shares from nas_client_remote_additional_paths.
+
+      # ---- Container runtime ----
+      hms_docker_compose_container_state:
+        type: str
+        choices: [present, absent]
+        description: Desired state for managed compose services.
+      container_restart_policy:
+        type: str
+        choices: [always, unless-stopped, on-failure, "no"]
+        description: Docker restart policy applied to all managed containers.
+      container_uid:
+        type: int
+        description: UID processes inside containers run as; also owns config dirs.
+      container_gid:
+        type: int
+        description: GID processes inside containers run as; also owns config dirs.
+      container_remove_orphans:
+        type: bool
+        description: Stop and remove containers disabled in the container map.
+      container_expose_ports:
+        type: bool
+        description: Publish individual container ports on the host (forced on if traefik is disabled).
+      container_timezone:
+        type: str
+        description: TZ database timezone applied to all containers (e.g. America/New_York).
+
+      # ---- Container map ----
+      hms_docker_container_map:
+        type: dict
+        description: Per-container enable/expose/traefik settings.
+
+      # ---- Networking ----
+      hmsdocker_docker_network_base_subnet:
+        type: str
+        description: CIDR block dockerd carves /24 networks from.
+      hms_docker_subnet_mask:
+        type: str
+        description: The subnet mask the host/server is in, used for IP allowlists
+      hms_docker_network_subnet:
+        type: str
+        description: The subnet the host/server is in, used for IP allowlists
+
+      # ---- VPN ----
+      hmsdocker_vpn_type:
+        type: str
+        choices: [openvpn, wireguard, custom]
+        description: VPN protocol used by transmission/qbittorrent/deluge ('custom' uses a user-supplied config).
+
+      # ---- Traefik / SSL ----
+      traefik_ssl_enabled:
+        type: bool
+        description: Enable wildcard SSL certificate generation via Let's Encrypt DNS-01.
+      traefik_security_hardening:
+        type: bool
+        description: Apply additional Traefik security defaults (minimum TLS 1.2, etc.).
+      traefik_ssl_use_letsencrypt_staging_url:
+        type: bool
+        description: Use the Let's Encrypt staging CA (recommended until certs are confirmed working).
+      traefik_ssl_sans:
+        type: list
+        elements: str
+        description: Subject Alternative Names included in the generated certificate.
+      traefik_ext_hosts_enabled:
+        type: bool
+        description: Watch a directory for external Traefik file-provider configs.
+      traefik_ext_hosts_list:
+        type: list
+        elements: dict
+        description: External upstream hosts to proxy through Traefik.
+      traefik_log_level:
+        type: str
+        choices: [DEBUG, INFO, WARN, ERROR, FATAL, PANIC]
+        description: Traefik log verbosity.
+      traefik_verify_endpoints:
+        type: bool
+        description: Probe each Traefik route post-deploy (requires valid DNS for all FQDNs).
+      traefik_enable_access_logs:
+        type: bool
+        description: Enable full request access logging.
+
+      # ---- Plex ----
+      hmsdocker_transcode_tmpfs_enabled:
+        type: bool
+        description: Mount the transcode/cache directory as in-memory tmpfs (Plex/Emby/Jellyfin).
+      hmsdocker_transcode_tmpfs_size:
+        type: str
+        description: Size cap for the transcode tmpfs mount (docker-compose shorthand, e.g. '4g').
+      hms_docker_plex_ssl_enabled:
+        type: bool
+        description: Install the script that converts the Traefik cert for use as Plex's custom certificate.
+      hms_docker_plex_ssl_update_config:
+        type: bool
+        description: Allow the Plex SSL script to update the Plex server config to point at the converted cert.
+      hms_docker_plex_ssl_restart_plex:
+        type: bool
+        description: Restart the Plex container after the SSL script updates the config.
+
+      # ---- Library folders ----
+      hms_docker_library_folders:
+        type: list
+        elements: dict
+        description: Library subfolders to create under hmsdocker_library_path (each entry has 'type' and 'folder_name').
+
+      # ---- Misc ----
+      enable_nvidia_gpu:
+        type: bool
+        description: Run the gpu role to install Nvidia container toolkit and configure dockerd runtime.
+      hmsdocker_app_bootstrap:
+        type: bool
+        description: After containers start, initialize supported apps via their HTTP APIs.

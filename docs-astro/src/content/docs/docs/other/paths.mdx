@@ -12,10 +12,11 @@ By default, the content is in the following directory structure, if you wish to 
 <FileTree>
 - /
   - mnt/
-    - media_data/ # The 'mount_path' in these docs, mounted to '/data' within containers
-      - _library/ # The 'media_path' in these docs
-        - Movies
-        - TV_Shows
+    - hms-docker/ # The 'mount_path' in these docs (default is /mnt/ + project_name), mounted to '/data' within containers
+      - media_data/ # The 'primary mount name' in these docs
+        - _library/ # The 'media_path' in these docs
+          - Movies
+          - TV_Shows
   - opt/
     - hms-docker/
       - .env # Secret key material and other configs

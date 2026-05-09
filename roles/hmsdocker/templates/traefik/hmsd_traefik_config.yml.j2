@@ -14,7 +14,12 @@ api:
   disabledashboardad: true
   insecure: {{ "false" if traefik_security_hardening else "true" }}
 
+ping:
+  entryPoint: traefik-ping
+
 entryPoints:
+  traefik-ping:
+    address: :8082
   web:
     address: :80
 {% if traefik_ssl_enabled %}
@@ -27,6 +32,7 @@ entryPoints:
 
   websecure:
     address: :443
+    asDefault: true
     http:
       tls:
         certResolver: letsencrypt

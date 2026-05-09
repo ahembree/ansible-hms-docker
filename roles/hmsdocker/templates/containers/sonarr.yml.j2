@@ -3,6 +3,8 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -49,7 +51,7 @@ services:
       - 8989:8989
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:8989/health || exit 1
+      test: curl -f http://127.0.0.1:8989/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3
@@ -61,6 +63,8 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr-4k
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -107,7 +111,7 @@ services:
       - 8990:8989
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:8989/health || exit 1
+      test: curl -f http://127.0.0.1:8989/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

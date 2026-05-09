@@ -111,6 +111,31 @@ hmsdocker_notifiarr_api_key:
 
 API key from [Notifiarr](https://notifiarr.com/) for unified notification management.
 
+### Scrutiny / Beszel Disks
+
+```yaml
+hmsdocker_monitor_disk_devices:
+  - "/dev/sda"
+  - "/dev/nvme0"
+```
+
+The list of disk devices to monitor with Scrutiny and/or Beszel. Update this to match the disk devices on your host (e.g. `/dev/sdb`, `/dev/nvme1`). Devices not present on the host will be ignored.
+
+### Beszel
+
+```yaml
+hmsdocker_beszel_key:
+hmsdocker_beszel_token:
+hmsdocker_beszel_email:
+hmsdocker_beszel_password:
+hmsdocker_beszel_heartbeat_url:
+```
+
+- `hmsdocker_beszel_key` — The Beszel hub public key, used by the Beszel agent to authenticate with the hub.
+- `hmsdocker_beszel_token` — The Beszel agent registration token from the hub.
+- `hmsdocker_beszel_email` / `hmsdocker_beszel_password` — Initial admin credentials for the Beszel hub UI.
+- `hmsdocker_beszel_heartbeat_url` — Optional URL to ping when the Beszel agent reports in (for external uptime monitors).
+
 ### Tautulli
 
 ```yaml
