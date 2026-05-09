@@ -30,7 +30,7 @@ services:
       - TA_PORT=8001
       - TZ=${TIMEZONE}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8001/api/health"]
       interval: 2m
       timeout: 10s
       retries: 3

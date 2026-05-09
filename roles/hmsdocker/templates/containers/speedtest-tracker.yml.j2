@@ -47,3 +47,9 @@ services:
       - homepage.widget.bitratePrecision=1
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:80/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

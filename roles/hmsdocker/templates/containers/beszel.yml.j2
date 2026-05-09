@@ -44,6 +44,14 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    # Image is distroless — no shell, curl, or wget. The beszel binary ships
+    # a built-in `health` subcommand that hits the hub's /api/health endpoint.
+    healthcheck:
+      test: ["CMD", "/beszel", "health", "--url", "http://127.0.0.1:8090"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
 
   beszel-agent:
     image: henrygd/beszel-agent:alpine

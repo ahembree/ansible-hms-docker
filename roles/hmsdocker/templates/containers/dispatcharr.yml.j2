@@ -42,7 +42,7 @@ services:
       - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dispatcharr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dispatcharr-midware@docker' if 'dispatcharr' in authentik_enabled_containers }}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:9191 || exit 1
+      test: curl -f http://127.0.0.1:9191 || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

@@ -43,3 +43,10 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    # Image ships an upstream-recommended healthcheck binary at /app/extra/healthcheck.
+    healthcheck:
+      test: ["CMD", "/app/extra/healthcheck"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

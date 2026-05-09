@@ -79,7 +79,7 @@ services:
       - ${HMSD_APPS_PATH}/n8n/db:/var/lib/postgresql/data
       - ${HMSD_APPS_PATH}/n8n/db-init/init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${N8N_POSTGRES_USER:-n8nroot} -d ${N8N_POSTGRES_DB:-n8n}']
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U ${N8N_POSTGRES_USER:-n8nroot} -d ${N8N_POSTGRES_DB:-n8n}']
       interval: 5s
       timeout: 5s
       retries: 10

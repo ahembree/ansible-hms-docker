@@ -27,3 +27,9 @@ services:
       - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}
     {% endif %}
+    healthcheck:
+      test: wget --spider -q http://127.0.0.1:3000/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

@@ -72,7 +72,7 @@ services:
       {% endif %}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:32400/web || exit 1
+      test: curl -f http://127.0.0.1:32400/web || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

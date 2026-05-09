@@ -67,7 +67,7 @@ services:
       - {{ hmsdocker_transcode_temp_path }}/tdarr:/temp_transcode
       - ${HMSD_MOUNT_PATH}:/data
     healthcheck:
-      test: curl -f http://localhost:8265 || exit 1
+      test: curl -f http://127.0.0.1:8265 || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

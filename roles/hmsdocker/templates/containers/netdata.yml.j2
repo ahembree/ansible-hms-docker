@@ -45,6 +45,12 @@ services:
       - homepage.showStats=true
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:19999/api/v1/info || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
 
 volumes:
   netdataconfig:

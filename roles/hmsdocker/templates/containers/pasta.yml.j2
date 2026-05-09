@@ -21,4 +21,11 @@ services:
       - traefik.http.routers.pasta-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pasta']['proxy_host_rule'] | default('pasta') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pasta' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker' if 'pasta' in authentik_enabled_containers }}
     {% endif %}
-    
+    # Image has bash but no curl/wget/nc; /dev/tcp is a bash builtin and the
+    # default healthcheck shell is dash, so bash must be invoked explicitly.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/80"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

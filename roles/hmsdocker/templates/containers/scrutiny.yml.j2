@@ -46,3 +46,9 @@ services:
         {% endif %}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:8080/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 60s

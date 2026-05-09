@@ -28,7 +28,7 @@ services:
     {% endif %}
     # Health check configuration
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:11011/health"]
       interval: 30s        # Check every 30 seconds
       timeout: 10s         # Allow up to 10 seconds for response
       start_period: 30s    # Wait 30 seconds before first check

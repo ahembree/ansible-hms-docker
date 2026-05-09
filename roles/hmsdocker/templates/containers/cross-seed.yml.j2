@@ -20,3 +20,9 @@ services:
     command: daemon
     environment:
       - TZ=${TIMEZONE}
+    healthcheck:
+      test: curl -f http://127.0.0.1:2468/api/ping || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

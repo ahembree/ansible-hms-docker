@@ -28,3 +28,9 @@ services:
       - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'kavita' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker' if 'kavita' in authentik_enabled_containers }}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:5000/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s

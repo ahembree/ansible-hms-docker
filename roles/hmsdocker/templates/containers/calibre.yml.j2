@@ -31,3 +31,9 @@ services:
       - traefik.http.routers.calibre-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['calibre']['proxy_host_rule'] | default('calibre') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'calibre' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-calibre-midware@docker' if 'calibre' in authentik_enabled_containers }}
     {% endif %}
+    healthcheck:
+      test: curl -fk https://127.0.0.1:8181/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 60s

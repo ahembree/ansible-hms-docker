@@ -44,7 +44,7 @@ services:
       {% endif %}
     {% endif %}
     healthcheck:
-      test: curl -f http://localhost:9696/health || exit 1
+      test: curl -f http://127.0.0.1:9696/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3
