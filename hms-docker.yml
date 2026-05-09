@@ -35,9 +35,14 @@
         | combine(docker_daemon_options_gpu if enable_nvidia_gpu | default(false) else {}, recursive=True)
       }}
 
-  # Run GPU role first to ensure requirements are met
-  # 
+  # Preflight runs first so misconfigurations fail before any host mutation
+  # (gpu drivers, dockerd reconfig, etc.).
   pre_tasks:
+    - name: Run hmsdocker preflight validation
+      ansible.builtin.import_role:
+        name: hmsdocker
+        tasks_from: preflight
+
     - name: Ensure Nvidia GPU role if enabled
       ansible.builtin.import_role:
         name: gpu
