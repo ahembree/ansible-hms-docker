@@ -70,31 +70,31 @@ export default defineConfig({
 				},
 				{
 					label: 'Getting Started',
-					autogenerate: { directory: '/docs/getting-started' },
+					items: [{ autogenerate: { directory: '/docs/getting-started' } }],
 				},
 				{
 					label: 'Examples',
-					autogenerate: { directory: '/docs/examples' },
+					items: [{ autogenerate: { directory: '/docs/examples' } }],
 					collapsed: true
 				},
 				{
 					label: 'Services and Integrations',
-					autogenerate: { directory: '/docs/services' },
+					items: [{ autogenerate: { directory: '/docs/services' } }],
 					collapsed: true
 				},
 				{
 					label: 'Other',
-					autogenerate: { directory: '/docs/other' },
+					items: [{ autogenerate: { directory: '/docs/other' } }],
 					collapsed: true
 				},
 				{
 					label: 'Troubleshooting',
-					autogenerate: { directory: '/docs/troubleshooting' },
+					items: [{ autogenerate: { directory: '/docs/troubleshooting' } }],
 					collapsed: true
 				},
 				{
 					label: 'Release Notes',
-					autogenerate: { directory: '/docs/release-notes' },
+					items: [{ autogenerate: { directory: '/docs/release-notes' } }],
 					collapsed: true
 				},
       ],
