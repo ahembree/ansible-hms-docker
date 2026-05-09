@@ -64,7 +64,9 @@
       nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
     quiet: true
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
-  when: hms_docker_media_share_type | default('local') == 'cifs'
+  when:
+    - hms_docker_media_share_type | default('local') == 'cifs'
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # NAS — NFS
@@ -80,7 +82,9 @@
       is empty or still set to the placeholder 'nas.example.com:/share'.
       Set it in inventory/group_vars/all/nas_nfs.yml.
     quiet: true
-  when: hms_docker_media_share_type | default('local') == 'nfs'
+  when:
+    - hms_docker_media_share_type | default('local') == 'nfs'
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # Plex
@@ -96,7 +100,9 @@
       in inventory/group_vars/all/plex.yml.
     quiet: true
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
-  when: hms_docker_container_map['plex']['enabled'] | default(false)
+  when: 
+    - hms_docker_container_map['plex']['enabled'] | default(false)
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # Traefik / SSL
@@ -112,7 +118,9 @@
       Set traefik_ssl_letsencrypt_email and traefik_ssl_dns_provider_code
       in inventory/group_vars/all/traefik.yml.
     quiet: true
-  when: traefik_ssl_enabled | default(false) | bool
+  when:
+    - traefik_ssl_enabled | default(false) | bool
+    - not is_github_runner
 
 - name: (preflight) Validate Cloudflare API token when used as Traefik DNS provider
   ansible.builtin.assert:
@@ -126,6 +134,7 @@
   when:
     - traefik_ssl_enabled | default(false) | bool
     - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # Cloudflare DDNS / Tunnel
@@ -140,9 +149,11 @@
       Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
-  when: >-
-    (cloudflare_ddns_enabled | default(false))
-    or (hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false))
+  when:
+    - >-
+      (cloudflare_ddns_enabled | default(false))
+      or (hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false))
+    - not is_github_runner
 
 - name: (preflight) Validate Cloudflare tunnel token when cloudflare-tunnel container is enabled
   ansible.builtin.assert:
@@ -154,9 +165,11 @@
       and set cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
-  when: >-
-    (cloudflare_tunnel_enabled | default(false))
-    or (hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false))
+  when:
+    - >-
+      (cloudflare_tunnel_enabled | default(false))
+      or (hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false))
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # Tailscale
@@ -172,9 +185,11 @@
       set it in inventory/group_vars/all/tailscale.yml.
     quiet: true
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
-  when: >-
-    (tailscale_enabled | default(false))
-    or (hms_docker_container_map['tailscale']['enabled'] | default(false))
+  when:
+    - >-
+      (tailscale_enabled | default(false))
+      or (hms_docker_container_map['tailscale']['enabled'] | default(false))
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # VPN-using download clients
@@ -202,6 +217,7 @@
   when:
     - hms_docker_container_map['transmission']['enabled'] | default(false)
     - (hmsdocker_vpn_type | default('openvpn', true)) != 'custom'
+    - not is_github_runner
 
 # ---------------------------------------------------------------------------
 # Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
