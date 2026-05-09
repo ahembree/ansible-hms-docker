@@ -33,6 +33,13 @@ jobs:
           mkdir -p docs-astro/public/configs
           cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: docs-astro/package-lock.json
+
       - name: Install, build, and upload your site
         uses: withastro/action@v6
         with:
