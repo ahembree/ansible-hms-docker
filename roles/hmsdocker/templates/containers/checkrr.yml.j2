@@ -3,6 +3,8 @@ services:
     image: aetaric/checkrr:latest
     container_name: checkrr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

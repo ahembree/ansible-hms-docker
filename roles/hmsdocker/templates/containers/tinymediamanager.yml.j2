@@ -3,6 +3,8 @@ services:
     image: tinymediamanager/tinymediamanager:latest
     container_name: tinymediamanager
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     {% if 'tinymediamanager' in expose_ports_enabled_containers %}
     ports:
       - 5900:5900 # VNC port

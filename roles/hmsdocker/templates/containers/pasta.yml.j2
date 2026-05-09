@@ -3,6 +3,8 @@ services:
     image: cglatot/pasta:latest
     container_name: pasta
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

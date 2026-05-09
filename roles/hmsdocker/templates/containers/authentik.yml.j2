@@ -3,6 +3,8 @@ services:
     container_name: authentik-postgresql
     image: docker.io/library/postgres:16-alpine
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - authentik_net
     logging:
@@ -29,6 +31,8 @@ services:
     container_name: authentik-server
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - authentik_net
       - proxy_net
@@ -87,6 +91,8 @@ services:
     container_name: authentik-worker
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

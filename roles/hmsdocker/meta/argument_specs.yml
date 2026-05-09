@@ -145,9 +145,6 @@ argument_specs:
       hms_docker_plex_ssl_restart_plex:
         type: bool
         description: Restart the Plex container after the SSL script updates the config.
-      hmsdocker_plex_thru_traefik_enabled:
-        type: bool
-        description: Route Plex traffic through Traefik instead of directly to the Plex container.
 
       # ---- Library folders ----
       hms_docker_library_folders:

@@ -3,6 +3,8 @@ services:
     image: ghcr.io/maintainerr/maintainerr:latest
     container_name: maintainerr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - proxy_net
     logging:

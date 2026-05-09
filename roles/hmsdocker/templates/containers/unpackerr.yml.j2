@@ -8,6 +8,8 @@ services:
         max-file: "5"
       driver: json-file
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     user: ${PUID}:${PGID}
     networks:
       - proxy_net

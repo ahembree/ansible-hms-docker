@@ -2,6 +2,8 @@ services:
   n8n:
     image: docker.n8n.io/n8nio/n8n
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     user: ${PUID}:${PGID}
     container_name: n8n
     logging:
@@ -61,6 +63,8 @@ services:
     image: postgres:16
     container_name: n8n-postgres
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     user: ${PUID}:${PGID}
     networks:
       - n8n_net

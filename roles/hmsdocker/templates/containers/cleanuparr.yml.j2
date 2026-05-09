@@ -3,6 +3,8 @@ services:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     container_name: cleanuparr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     {% if 'cleanuparr' in expose_ports_enabled_containers %}
     ports:
       - "11011:11011"

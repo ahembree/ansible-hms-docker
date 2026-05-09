@@ -3,6 +3,8 @@ services:
     image: thomst08/requestrr:latest
     container_name: requestrr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

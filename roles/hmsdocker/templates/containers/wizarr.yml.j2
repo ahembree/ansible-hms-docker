@@ -3,6 +3,8 @@ services:
     image: ghcr.io/wizarrrr/wizarr:latest
     container_name: wizarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

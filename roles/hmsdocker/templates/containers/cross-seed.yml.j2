@@ -3,6 +3,8 @@ services:
     image: ghcr.io/cross-seed/cross-seed:6
     container_name: cross-seed
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

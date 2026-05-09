@@ -25,6 +25,8 @@ services:
       - {{ device }}
     {% endfor %}
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
     labels:
       {% if 'scrutiny' in traefik_enabled_containers %}

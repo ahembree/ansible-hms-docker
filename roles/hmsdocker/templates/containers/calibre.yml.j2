@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/calibre:latest
     container_name: calibre
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - proxy_net
       - download_net

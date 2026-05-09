@@ -3,6 +3,8 @@ services:
     image: fnsys/dockhand:latest
     container_name: dockhand
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

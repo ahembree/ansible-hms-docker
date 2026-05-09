@@ -3,6 +3,8 @@ services:
     image: henrygd/beszel:latest
     container_name: beszel
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -57,6 +59,8 @@ services:
     image: henrygd/beszel-agent:alpine
     container_name: beszel-agent
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

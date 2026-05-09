@@ -3,6 +3,8 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -61,6 +63,8 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr-4k
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

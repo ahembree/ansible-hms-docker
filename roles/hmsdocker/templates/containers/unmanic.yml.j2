@@ -3,6 +3,8 @@ services:
     image: josh5/unmanic:latest
     container_name: unmanic
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

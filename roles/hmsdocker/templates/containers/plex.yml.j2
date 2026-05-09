@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri

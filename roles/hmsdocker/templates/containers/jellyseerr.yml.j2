@@ -3,6 +3,8 @@ services:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

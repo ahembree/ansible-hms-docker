@@ -3,6 +3,8 @@ services:
     image: louislam/uptime-kuma:latest
     container_name: uptime-kuma
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

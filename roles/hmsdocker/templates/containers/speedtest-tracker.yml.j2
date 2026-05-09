@@ -3,6 +3,8 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:latest
     container_name: speedtest-tracker
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

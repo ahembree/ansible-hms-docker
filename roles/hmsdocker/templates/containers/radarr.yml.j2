@@ -3,6 +3,8 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -60,6 +62,8 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr-4k
     restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
