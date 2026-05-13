@@ -1,0 +1,25 @@
+---
+# Single source of truth for deprecated -> new inventory variable renames.
+#
+# Consumed by:
+#   - roles/hmsdocker/tasks/compat_shim.yml
+#       Aliases old -> new in-memory during a playbook run so users who
+#       have not yet rewritten their inventory still get a working apply.
+#   - Makefile `update` target
+#       Rewrites the on-disk inventory files under inventory/group_vars/all
+#       using yq, so the rename is persisted at upgrade time.
+#
+# To register a new rename, append an entry to `variable_renames` below.
+# Both consumers pick it up automatically — no other file edits required.
+#
+# Entries should describe top-level YAML keys. Nested-key renames need
+# bespoke handling and are not covered by this file.
+
+variable_renames:
+  - { old: traefik_ext_hosts_configs_path,      new: hmsdocker_traefik_static_config_location }
+  - { old: hms_docker_library_path,             new: hmsdocker_library_path }
+  - { old: transmission_vpn_provider,           new: hmsdocker_vpn_provider }
+  - { old: transmission_vpn_user,               new: hmsdocker_vpn_user }
+  - { old: transmission_vpn_pass,               new: hmsdocker_vpn_pass }
+  - { old: transmission_ovpn_config_local_path, new: transmission_ovpn_config_local_dir }
+  - { old: hms_docker_plex_ssl_subdomain,       new: hms_docker_plex_ssl_public_hostname }

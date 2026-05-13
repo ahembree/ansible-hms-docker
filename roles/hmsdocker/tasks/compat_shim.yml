@@ -7,28 +7,18 @@
 # a notice to hmsdocker_preflight_warnings so the user knows to update their
 # inventory at their leisure.
 #
-# To register a new rename, append an entry to hmsdocker_variable_migrations:
-#   - { old: "old_var_name", new: "new_var_name" }
-# Re-runs are safe: entries whose `old` is unset in the resolved vars are
-# silently skipped. If the user sets `old` only, `new` is aliased to it.
-# If they set both, `new` wins because set_fact runs after they're both
-# already resolved and we only assign when `old` is defined — meaning the
-# user explicitly carried over the old name; we still prefer that explicit
-# intent and warn them to remove it.
-#
-# This shim mirrors the sed-based renames in the Makefile `update` target.
-# Keep the two lists in sync when adding new migrations.
+# The rename map lives in migrations/variable_renames.yml at the repo root
+# and is shared with the Makefile `update` target — register new renames
+# there, not here. Re-runs are safe: entries whose `old` is unset in the
+# resolved vars are silently skipped.
 
-- name: (compat) Define deprecated -> new variable migration map
+- name: (compat) Load variable migration map from single source
   ansible.builtin.set_fact:
-    hmsdocker_variable_migrations:
-      - { old: "traefik_ext_hosts_configs_path",      new: "hmsdocker_traefik_static_config_location" }
-      - { old: "hms_docker_library_path",             new: "hmsdocker_library_path" }
-      - { old: "transmission_vpn_provider",           new: "hmsdocker_vpn_provider" }
-      - { old: "transmission_vpn_user",               new: "hmsdocker_vpn_user" }
-      - { old: "transmission_vpn_pass",               new: "hmsdocker_vpn_pass" }
-      - { old: "transmission_ovpn_config_local_path", new: "transmission_ovpn_config_local_dir" }
-      - { old: "hms_docker_plex_ssl_subdomain",       new: "hms_docker_plex_ssl_public_hostname" }
+    hmsdocker_variable_migrations: >-
+      {{
+        (lookup('file', playbook_dir ~ '/migrations/variable_renames.yml')
+         | from_yaml).variable_renames
+      }}
 
 # `vars` is the magic dict of all currently-resolved variables. Membership
 # (`in vars`) tells us whether the deprecated name was set by inventory or a
