@@ -102,8 +102,6 @@ update: $(YQ_LOCAL)
 				fi; \
 			done; \
 		done
-	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml 2>/dev/null \
-		|| echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
 
 	@REMOTE_CONFIG_URL=$$(grep -oP '^REMOTE_CONFIG_URL\s*=\s*\K.*' Makefile | tr -d ' '); \
 	echo "Fetching container map updates from $$REMOTE_CONFIG_URL/container_map.yml..."; \
