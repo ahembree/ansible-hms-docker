@@ -74,6 +74,7 @@ apply: install-reqs
 
 install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
+	@ansible-galaxy collection install community.docker community.general
 
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
