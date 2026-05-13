@@ -39,6 +39,12 @@
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:
     label: "{{ item.old }} -> {{ item.new }}"
+  # Skip null / empty old values: Jinja stringifies None as the literal
+  # "None", which would silently bypass downstream length-based asserts.
+  when: (lookup('vars', item.old) | default('', true) | string) | length > 0
+  # Old values may include credentials (e.g. transmission_vpn_pass).
+  # Match the rest of preflight's no_log pattern.
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
 
 - name: (compat) Record deprecation warnings for renamed variables
   ansible.builtin.set_fact:
