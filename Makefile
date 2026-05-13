@@ -91,8 +91,8 @@ manager:
 update: $(YQ_LOCAL)
 	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 	@echo "Updating from Git repo..." && git pull origin master -q
-	@echo "Applying variable renames from migrations/variable_renames.yml..."
-	@$(YQ_LOCAL) -r '.variable_renames[] | .old + ":" + .new' migrations/variable_renames.yml \
+	@echo "Applying top-level variable renames from migrations/variable_renames.yml..."
+	@$(YQ_LOCAL) -r '.variable_renames[] | select(.parent == null) | .old + ":" + .new' migrations/variable_renames.yml \
 		| while IFS=: read old new; do \
 			for f in $(CUSTOM_CONF_DIR)/*.yml; do \
 				[ -f "$$f" ] || continue; \
@@ -100,6 +100,21 @@ update: $(YQ_LOCAL)
 					sed -i -E "s/^([[:space:]]*)$$old:/\1$$new:/" "$$f"; \
 					echo "  renamed $$old -> $$new in $$(basename $$f)"; \
 				fi; \
+			done; \
+		done
+	@echo "Applying nested-key renames from migrations/variable_renames.yml..."
+	@$(YQ_LOCAL) -r '.variable_renames[] | select(.parent != null) | .parent + "|" + .old + "|" + .new' migrations/variable_renames.yml \
+		| while IFS='|' read parent old new; do \
+			for f in $(CUSTOM_CONF_DIR)/*.yml; do \
+				[ -f "$$f" ] || continue; \
+				ptype=$$($(YQ_LOCAL) eval ".$$parent | tag" "$$f" 2>/dev/null); \
+				[ "$$ptype" = "!!map" ] || continue; \
+				$(YQ_LOCAL) -r ".$$parent | keys | .[]" "$$f" | while read child; do \
+					has_old=$$($(YQ_LOCAL) eval ".$$parent.\"$$child\" | has(\"$$old\")" "$$f" 2>/dev/null); \
+					[ "$$has_old" = "true" ] || continue; \
+					$(YQ_LOCAL) eval -i ".$$parent.\"$$child\".\"$$new\" = .$$parent.\"$$child\".\"$$old\" | del(.$$parent.\"$$child\".\"$$old\")" "$$f"; \
+					echo "  renamed $$parent.$$child.$$old -> $$parent.$$child.$$new in $$(basename $$f)"; \
+				done; \
 			done; \
 		done
 

@@ -14,8 +14,19 @@
 # To register a new rename, append an entry to `variable_renames` below.
 # Both consumers pick it up automatically — no other file edits required.
 #
-# Entries should describe top-level YAML keys. Nested-key renames need
-# bespoke handling and are not covered by this file.
+# Two entry shapes are supported:
+#
+#   Top-level rename:
+#     - { old: foo, new: bar }
+#     Renames the inventory variable `foo` to `bar`.
+#
+#   Nested rename:
+#     - { old: foo, new: bar, parent: parent_var }
+#     Renames the key `foo` to `bar` inside every child mapping of
+#     `parent_var`. Use this for keys that recur under each entry of a
+#     dict, e.g. the per-service flags in `hms_docker_container_map`.
+#     `parent` must name a single top-level variable that resolves to a
+#     mapping of mappings.
 
 variable_renames:
   - { old: traefik_ext_hosts_configs_path,      new: hmsdocker_traefik_static_config_location }
@@ -25,3 +36,7 @@ variable_renames:
   - { old: transmission_vpn_pass,               new: hmsdocker_vpn_pass }
   - { old: transmission_ovpn_config_local_path, new: transmission_ovpn_config_local_dir }
   - { old: hms_docker_plex_ssl_subdomain,       new: hms_docker_plex_ssl_public_hostname }
+
+  # Example nested rename — uncomment & adapt when retiring a per-service
+  # container_map key:
+  #   - { old: traefik, new: traefik_enabled, parent: hms_docker_container_map }
