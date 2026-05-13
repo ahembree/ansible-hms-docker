@@ -95,8 +95,8 @@ update: $(YQ_LOCAL)
 		| while IFS=: read old new; do \
 			for f in $(CUSTOM_CONF_DIR)/*.yml; do \
 				[ -f "$$f" ] || continue; \
-				if [ "$$($(YQ_LOCAL) "has(\"$$old\")" "$$f" 2>/dev/null)" = "true" ]; then \
-					$(YQ_LOCAL) -i "with_entries(.key |= sub(\"^$$old\$$\", \"$$new\"))" "$$f"; \
+				if grep -qE "^[[:space:]]*$$old:" "$$f"; then \
+					sed -i -E "s/^([[:space:]]*)$$old:/\1$$new:/" "$$f"; \
 					echo "  renamed $$old -> $$new in $$(basename $$f)"; \
 				fi; \
 			done; \

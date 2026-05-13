@@ -7,7 +7,9 @@
 #       have not yet rewritten their inventory still get a working apply.
 #   - Makefile `update` target
 #       Rewrites the on-disk inventory files under inventory/group_vars/all
-#       using yq, so the rename is persisted at upgrade time.
+#       so the rename is persisted at upgrade time. Renames are anchored to
+#       the start of a line so they only match YAML keys, not occurrences
+#       of the same string inside values or comments.
 #
 # To register a new rename, append an entry to `variable_renames` below.
 # Both consumers pick it up automatically — no other file edits required.
