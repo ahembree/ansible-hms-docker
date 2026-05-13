@@ -20,16 +20,16 @@
          | from_yaml).variable_renames
       }}
 
-# `vars` is the magic dict of all currently-resolved variables. Membership
-# (`in vars`) tells us whether the deprecated name was set by inventory or a
-# previously-running task. We snapshot it once so all later steps agree on
-# which migrations are active.
+# `q('varnames', '.*')` returns the names of all currently-resolved
+# variables. We snapshot it once so all later steps agree on which
+# migrations are active, and intersect it with the migration map to find
+# deprecated names the user actually set.
 - name: (compat) Determine which deprecated variables are in use
   ansible.builtin.set_fact:
     hmsdocker_active_migrations: >-
       {{
         hmsdocker_variable_migrations
-        | selectattr('old', 'in', vars)
+        | selectattr('old', 'in', q('varnames', '.*'))
         | list
       }}
 
