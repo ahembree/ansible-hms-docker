@@ -74,6 +74,7 @@ apply: install-reqs
 
 install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
+	@ansible-galaxy collection install community.docker community.general
 
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
@@ -90,15 +91,17 @@ manager:
 update: $(YQ_LOCAL)
 	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
 	@echo "Updating from Git repo..." && git pull origin master -q
-	@echo "Updating variables..."
-	@sed -i 's\traefik_ext_hosts_configs_path:\hmsdocker_traefik_static_config_location:\g' $(CUSTOM_CONF_DIR)/traefik.yml
-	@sed -i 's\hms_docker_library_path\hmsdocker_library_path\g' $(CUSTOM_CONF_DIR)/hmsd_advanced.yml
-	@sed -i 's\transmission_vpn_provider:\hmsdocker_vpn_provider:\g' $(CUSTOM_CONF_DIR)/transmission.yml
-	@sed -i 's\transmission_vpn_user:\hmsdocker_vpn_user:\g' $(CUSTOM_CONF_DIR)/transmission.yml
-	@sed -i 's\transmission_vpn_pass:\hmsdocker_vpn_pass:\g' $(CUSTOM_CONF_DIR)/transmission.yml
-	@sed -i 's\transmission_ovpn_config_local_path:\transmission_ovpn_config_local_dir:\g' $(CUSTOM_CONF_DIR)/transmission.yml
-	@grep -q '^hmsdocker_vpn_type:' $(CUSTOM_CONF_DIR)/vpn.yml || echo "hmsdocker_vpn_type: ''" >> $(CUSTOM_CONF_DIR)/vpn.yml
-	@sed -i 's\hms_docker_plex_ssl_subdomain:\hms_docker_plex_ssl_public_hostname:\g' $(CUSTOM_CONF_DIR)/plex.yml
+	@echo "Applying variable renames from migrations/variable_renames.yml..."
+	@$(YQ_LOCAL) -r '.variable_renames[] | .old + ":" + .new' migrations/variable_renames.yml \
+		| while IFS=: read old new; do \
+			for f in $(CUSTOM_CONF_DIR)/*.yml; do \
+				[ -f "$$f" ] || continue; \
+				if grep -qE "^[[:space:]]*$$old:" "$$f"; then \
+					sed -i -E "s/^([[:space:]]*)$$old:/\1$$new:/" "$$f"; \
+					echo "  renamed $$old -> $$new in $$(basename $$f)"; \
+				fi; \
+			done; \
+		done
 
 	@REMOTE_CONFIG_URL=$$(grep -oP '^REMOTE_CONFIG_URL\s*=\s*\K.*' Makefile | tr -d ' '); \
 	echo "Fetching container map updates from $$REMOTE_CONFIG_URL/container_map.yml..."; \
