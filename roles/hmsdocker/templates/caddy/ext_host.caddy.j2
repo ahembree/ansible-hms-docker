@@ -1,0 +1,14 @@
+{# Per-ext-host Caddy fragment. Rendered for each enabled entry in
+   caddy_ext_hosts_list. Loaded by the main Caddyfile's
+   `import /etc/caddy/conf.d/*.caddy`. #}
+{% set slug = item.friendly_name | map('regex_replace', regex, replace) | list | join %}
+{{ item.subdomain_name }}.{{ hms_docker_domain }} {
+{% if item.authentik | default(false) and item.authentik_provider_type | default('proxy') == 'proxy' and 'authentik' in enabled_containers and hmsdocker_proxy_ssl_enabled %}
+    import authentik_proxy authentik-proxy-{{ project_name }}-{{ slug }}
+{% endif %}
+{% if item.expose_publicly | default(false) %}
+    import external {{ item.backend_url }}
+{% else %}
+    import internal_only {{ item.backend_url }}
+{% endif %}
+}

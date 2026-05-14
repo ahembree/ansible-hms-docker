@@ -62,6 +62,16 @@ hms_docker_container_map:
     proxy_host_rule: beszel
     traefik: true
     expose_ports: false
+  caddy:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: caddy
+    traefik: true
   calibre:
     authentik: false
     directory: true

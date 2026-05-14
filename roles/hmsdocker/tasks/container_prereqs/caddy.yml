@@ -1,0 +1,73 @@
+---
+- name: Caddy Prereq - Extend Caddy subdomain hosts list
+  ansible.builtin.set_fact:
+    caddy_enabled_subdomains: "{{ (caddy_enabled_subdomains | default([])) + [item.subdomain_name] }}"
+  when:
+    - item.enabled
+    - item.subdomain_name not in (caddy_enabled_subdomains | default([]))
+  loop: '{{ caddy_ext_hosts_list }}'
+
+- name: Caddy Prereq - Ensure Caddy directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    group: docker
+  loop:
+    - "{{ hms_docker_apps_path }}/caddy/build"
+    - "{{ hms_docker_apps_path }}/caddy/config"
+    - "{{ hms_docker_apps_path }}/caddy/config/conf.d"
+    - "{{ hms_docker_apps_path }}/caddy/data"
+    - "{{ hms_docker_apps_path }}/caddy/config-runtime"
+
+- name: Caddy Prereq - Render Dockerfile for custom Caddy build
+  ansible.builtin.template:
+    src: caddy/Dockerfile.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/build/Dockerfile"
+    mode: '0644'
+    group: docker
+  register: caddy_dockerfile_rendered
+
+- name: Caddy Prereq - Build custom Caddy image
+  community.docker.docker_image_build:
+    name: "hms-docker-caddy:{{ project_name }}"
+    path: "{{ hms_docker_apps_path }}/caddy/build"
+    rebuild: "{{ 'always' if caddy_dockerfile_rendered.changed else 'never' }}"
+  when: not ansible_check_mode
+
+- name: Caddy Prereq - Ensure Caddyfile (global snippets)
+  ansible.builtin.template:
+    src: caddy/Caddyfile.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/config/Caddyfile"
+    mode: '0644'
+    group: docker
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
+  notify: Restart caddy
+
+- name: Caddy Prereq - Ensure Caddy external host fragments
+  ansible.builtin.template:
+    src: caddy/ext_host.caddy.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.caddy"
+    mode: '0644'
+    group: docker
+    lstrip_blocks: true
+    trim_blocks: true
+  with_items: "{{ caddy_ext_hosts_list }}"
+  when:
+    - caddy_ext_hosts_enabled
+    - item.friendly_name is defined and item.friendly_name != ''
+    - item.subdomain_name is defined and item.subdomain_name != ''
+    - item.backend_url is defined and item.backend_url != ''
+    - item.enabled is defined and item.enabled
+  notify: Restart caddy
+
+- name: Caddy Prereq - Ensure disabled Caddy external host fragments are removed
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.caddy"
+    state: absent
+  with_items: "{{ caddy_ext_hosts_list }}"
+  when:
+    - not item.enabled or not caddy_ext_hosts_enabled
+  notify: Restart caddy

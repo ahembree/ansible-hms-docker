@@ -11,6 +11,16 @@
     - not traefik_certs_dir.changed
     - not ansible_check_mode
 
+- name: Restart caddy
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - caddy
+  when: not ansible_check_mode
+
 - name: Restart sabnzbd
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"

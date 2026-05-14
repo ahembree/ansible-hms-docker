@@ -1,0 +1,89 @@
+{
+    {% if caddy_ssl_letsencrypt_email | length > 0 %}
+    email {{ caddy_ssl_letsencrypt_email }}
+    {% endif %}
+    {% if caddy_ssl_enabled and caddy_ssl_use_letsencrypt_staging_url %}
+    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+    {% endif %}
+    {% if not caddy_ssl_enabled %}
+    # SSL disabled — issue self-signed certs locally so HTTPS still works
+    # on the LAN without depending on an external CA.
+    local_certs
+    {% endif %}
+    {% if caddy_ssl_dns_provider_directive | length > 0 %}
+    acme_dns {{ caddy_ssl_dns_provider_directive }}
+    {% endif %}
+    log {
+        level {{ caddy_log_level }}
+    }
+    {% if caddy_enable_access_logs %}
+    log access {
+        output stdout
+        format json
+    }
+    {% endif %}
+}
+
+# Snippet: deny access to anyone outside the allowlist. The protected
+# upstream URL is passed as args[0] by the importer.
+#
+# Example label on a service container:
+#   caddy.import=internal_only {{upstreams 8989}}
+(internal_only) {
+    @internal remote_ip {% for cidr in caddy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
+    handle @internal {
+        reverse_proxy {args[0]}
+    }
+    respond 403
+}
+
+# Same as internal_only but reverse-proxies over HTTPS to an upstream
+# with a self-signed cert (Plex, Heimdall, Authentik, Calibre, etc.).
+# Mirrors Traefik's serversTransport.insecureSkipVerify default.
+(internal_only_https) {
+    @internal remote_ip {% for cidr in caddy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
+    handle @internal {
+        reverse_proxy {args[0]} {
+            transport http {
+                tls
+                tls_insecure_skip_verify
+            }
+        }
+    }
+    respond 403
+}
+
+# Snippet: expose to the public internet (no allowlist).
+(external) {
+    reverse_proxy {args[0]}
+}
+
+(external_https) {
+    reverse_proxy {args[0]} {
+        transport http {
+            tls
+            tls_insecure_skip_verify
+        }
+    }
+}
+
+# Snippet: gate the site behind an Authentik proxy outpost. The outpost
+# container name (without the :9000 suffix) is passed as args[0].
+#
+# Example labels:
+#   caddy.import_0=authentik_proxy authentik-proxy-${COMPOSE_PROJECT}-sonarr
+#   caddy.import_1=internal_only {{upstreams 8989}}
+(authentik_proxy) {
+    forward_auth {args[0]}:9000 {
+        uri /outpost.goauthentik.io/auth/caddy
+        copy_headers X-authentik-username X-authentik-groups X-authentik-email X-authentik-name X-authentik-uid X-authentik-jwt X-authentik-meta-jwks X-authentik-meta-outpost X-authentik-meta-provider X-authentik-meta-app X-authentik-meta-version
+        trusted_proxies private_ranges
+    }
+    handle_path /outpost.goauthentik.io/* {
+        reverse_proxy {args[0]}:9000
+    }
+}
+
+# Pull in per-ext-host fragments rendered for caddy_ext_hosts_list.
+# Glob fails open if no fragments are present.
+import /etc/caddy/conf.d/*.caddy

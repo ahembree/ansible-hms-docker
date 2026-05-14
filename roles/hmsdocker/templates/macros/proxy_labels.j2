@@ -1,0 +1,77 @@
+{#
+  proxy_labels: emits the reverse-proxy container labels for one service
+  in the format required by whichever backend is active
+  (hmsdocker_reverse_proxy: traefik | caddy).
+
+  The macro is the single source of truth for the label shape. Service
+  templates pass their port (and a few flags) and stay agnostic to the
+  backend.
+
+  Parameters
+  ----------
+  name           Service key in hms_docker_container_map. Drives every
+                 boolean lookup (authentik gating, public-exposure gating,
+                 hostname default). Required.
+
+  port           Upstream port on the container. Required unless
+                 traefik_service is set (the Traefik dashboard case, which
+                 routes to api@internal rather than a real upstream).
+
+  scheme         Upstream scheme — 'http' or 'https'. Default 'http'.
+                 'https' picks the Caddy snippet variant that wraps
+                 reverse_proxy in a transport that skips upstream cert
+                 verification (matching Traefik's
+                 serversTransport.insecureSkipVerify default).
+
+  label_name     The string used inside the label keys themselves
+                 (traefik.http.routers.<label_name>...,
+                 caddy_<label_name>...). Defaults to `name`. Override
+                 for parallel instances like sonarr-4k.
+
+  host           Hostname (without the domain) used in the route's
+                 Host(...) / caddy=... value. Defaults to
+                 container_map[name].proxy_host_rule | default(name).
+                 Override for 4k variants and similar.
+
+  traefik_service  Optional — when set, Traefik emits
+                 routers.<x>.service=<value> instead of declaring a
+                 loadbalancer service with a port. Used only by the
+                 Traefik dashboard itself (api@internal). Ignored by
+                 Caddy because Caddy has no dashboard.
+#}
+
+{% macro proxy_labels(name, port=none, scheme='http', label_name=none, host=none, traefik_service=none) -%}
+{% set label_name = label_name | default(name, true) %}
+{% set host = host | default(hms_docker_container_map[name]['proxy_host_rule'] | default(name), true) %}
+{# ----- Traefik branch (existing behaviour, byte-identical to pre-macro labels) ----- #}
+{% if hmsdocker_reverse_proxy == 'traefik' and name in traefik_enabled_containers %}
+      - traefik.enable=true
+{%   if traefik_service %}
+      - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.service={{ traefik_service }}
+{%   else %}
+      - traefik.http.services.{{ label_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port }}
+{%     if scheme == 'https' %}
+      - traefik.http.services.{{ label_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
+{%     endif %}
+{%   endif %}
+      - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ host }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-' ~ label_name ~ '-midware@docker' if name in authentik_enabled_containers }}
+{# ----- Caddy branch (caddy-docker-proxy plugin labels) ----- #}
+{% elif hmsdocker_reverse_proxy == 'caddy' and name in caddy_enabled_containers %}
+{%   set is_public = name in expose_public_enabled_containers %}
+{%   set is_authentik = name in authentik_enabled_containers %}
+{%   set snippet = 'external' if is_public else 'internal_only' %}
+{%   if scheme == 'https' %}{% set snippet = snippet ~ '_https' %}{% endif %}
+{%   if traefik_service %}
+      - caddy={{ host }}.${HMSD_DOMAIN}
+{%   else %}
+      - caddy={{ host }}.${HMSD_DOMAIN}
+{%     if is_authentik %}
+      - caddy.import_0=authentik_proxy authentik-proxy-${COMPOSE_PROJECT}-{{ label_name }}
+      - caddy.import_1={{ snippet }} {% raw %}{{upstreams {% endraw %}{{ port }}{% raw %}}}{% endraw +%}
+{%     else %}
+      - caddy.import={{ snippet }} {% raw %}{{upstreams {% endraw %}{{ port }}{% raw %}}}{% endraw +%}
+{%     endif %}
+{%   endif %}
+{% endif %}
+{%- endmacro %}

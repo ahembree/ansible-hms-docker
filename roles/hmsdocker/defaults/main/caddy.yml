@@ -1,0 +1,81 @@
+---
+### Caddy settings
+#
+# Only consumed when `hmsdocker_reverse_proxy: caddy` is set.
+# Mirrors the surface of defaults/main/traefik.yml so users familiar
+# with the Traefik config find equivalent knobs here.
+
+# The version/tag of caddy-docker-proxy to base the build on.
+# A custom image is built locally so the chosen DNS provider module
+# (see caddy_ssl_dns_provider_module below) is compiled in.
+hmsdocker_caddy_version: "2.10-alpine"
+
+# Enables or disables SSL wildcard certificate generation via the
+# Let's Encrypt DNS-01 challenge. Caddy provisions and renews the
+# certificate automatically. // default: "no"
+caddy_ssl_enabled: no
+
+# Whether to use Let's Encrypt's staging endpoint (recommended for
+# initial setup to avoid rate limits) or production. // default: "yes"
+# Once you have confirmed a STAGING certificate is issued, set to "no"
+# to obtain a trusted cert.
+caddy_ssl_use_letsencrypt_staging_url: yes
+
+# Required for Let's Encrypt: the email address used during ACME
+# registration.
+caddy_ssl_letsencrypt_email: ""
+
+# The Caddy DNS provider module to compile in. This is the suffix of the
+# github.com/caddy-dns/<name> repo. See https://github.com/caddy-dns for
+# the full list of supported providers.
+# Common values: "cloudflare", "route53", "digitalocean", "duckdns",
+# "gandi", "googleclouddns", "hetzner", "namecheap", "porkbun".
+caddy_ssl_dns_provider_module: ""
+
+# The Caddyfile directive name used to invoke the provider. For most
+# providers this matches the module suffix above (e.g. "cloudflare").
+# A few providers use a different directive name — check the module's
+# README. Leave at default to inherit from caddy_ssl_dns_provider_module.
+caddy_ssl_dns_provider_directive: "{{ caddy_ssl_dns_provider_module }}"
+
+# Environment variables passed to the Caddy container for the DNS
+# provider's API credentials. Keys are looked up in the rendered .env
+# file at deploy time, the same pattern Traefik uses.
+# Example (Cloudflare):
+#   caddy_ssl_dns_provider_environment_vars:
+#     CF_API_TOKEN: "{{ cloudflare_api_token }}"
+caddy_ssl_dns_provider_environment_vars: {}
+
+# The DNS resolvers Caddy uses when performing the DNS-01 challenge.
+# Recommended to set to your DNS provider's nameservers.
+caddy_ssl_dns_resolver_1: "1.1.1.1"
+caddy_ssl_dns_resolver_2: "1.0.0.1"
+
+# Subnets allowed to access internal services. Mirrors
+# traefik_subnet_allow_list. Any request originating from outside these
+# ranges is answered with 403, unless the service has
+# `expose_to_public: true` in the container map.
+caddy_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
+
+# The Caddy log level. // default: "INFO" // valid: DEBUG, INFO, WARN, ERROR
+caddy_log_level: "INFO"
+
+# Enables or disables full request access logging.
+caddy_enable_access_logs: no
+
+# Verify the rendered routes are reachable after the playbook completes
+# (requires all FQDN DNS records to resolve). // default: "no"
+caddy_verify_endpoints: no
+
+# External hosts (non-Docker backends) to proxy through Caddy.
+# Schema is identical to traefik_ext_hosts_list so users can switch
+# backends without rewriting this list.
+#    friendly_name: host1,              # internal label, also used as the on-disk fragment filename
+#    subdomain_name: sub-example,       # the subdomain that will be used to access the service
+#    backend_url: http://example.com,   # the upstream URL Caddy proxies to
+#    enabled: yes,                      # enables or disables the route
+#    expose_publicly: no,               # if yes, the IP allowlist is bypassed
+#    authentik: no,                     # apply Authentik forward auth (requires authentik enabled)
+#    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
+caddy_ext_hosts_enabled: no
+caddy_ext_hosts_list: []

@@ -1,0 +1,20 @@
+---
+### Reverse proxy backend selection
+#
+# Selects which reverse proxy engine fronts the enabled containers.
+# Both backends are driven by the same per-service flags in
+# hms_docker_container_map (the `traefik: true` flag enables a service
+# for whichever backend is selected — it is read as "enable
+# reverse-proxy access", regardless of engine).
+#
+# Options:
+#   `traefik`: Use Traefik (default - existing behaviour).
+#              Config lives in defaults/main/traefik.yml.
+#   `caddy`:   Use Caddy via the caddy-docker-proxy plugin.
+#              Config lives in defaults/main/caddy.yml.
+#
+# The container map entry whose key matches this value is automatically
+# enabled by the role; the other proxy's container is automatically
+# skipped, so users do not need to flip `enabled` on either.
+
+hmsdocker_reverse_proxy: traefik

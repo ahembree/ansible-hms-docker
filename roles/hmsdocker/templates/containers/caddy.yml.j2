@@ -1,0 +1,64 @@
+services:
+  caddy:
+    # A custom image is built from caddy/Dockerfile so the chosen DNS
+    # provider module (see caddy_ssl_dns_provider_module) and the
+    # caddy-docker-proxy plugin are compiled into the binary.
+    image: hms-docker-caddy:${COMPOSE_PROJECT}
+    build:
+      context: ${HMSD_APPS_PATH}/caddy/build
+      dockerfile: Dockerfile
+    container_name: caddy
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      # caddy-docker-proxy only inspects containers attached to networks
+      # listed here, mirroring Traefik's providers.docker.network.
+      - CADDY_INGRESS_NETWORKS=${COMPOSE_PROJECT}_proxy_net
+      # Mounted Caddyfile holds snippets (internal_only, external,
+      # authentik_proxy) imported by labels on each service container.
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/Caddyfile
+    {% if caddy_ssl_dns_provider_environment_vars %}
+      {% for key, value in caddy_ssl_dns_provider_environment_vars.items() %}
+        {# Render ${VAR} so docker compose substitutes from .env at deploy time #}
+      - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
+      {% endfor %}
+    {% endif %}
+    networks:
+      - proxy_net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HMSD_APPS_PATH}/caddy/config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${HMSD_APPS_PATH}/caddy/config/conf.d:/etc/caddy/conf.d:ro
+      - ${HMSD_APPS_PATH}/caddy/data:/data
+      - ${HMSD_APPS_PATH}/caddy/config-runtime:/config
+    {% if 'caddy' in caddy_enabled_containers or 'caddy' in homepage_enabled_containers %}
+    labels:
+      {% if 'caddy' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=Caddy
+      - homepage.icon=caddy.png
+      - homepage.description=Reverse Proxy
+        {% if 'caddy' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
