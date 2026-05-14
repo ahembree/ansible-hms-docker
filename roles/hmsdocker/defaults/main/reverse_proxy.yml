@@ -23,7 +23,10 @@
 # Options:
 #   `traefik`: Use Traefik (default - existing behaviour).
 #              Backend-specific config in defaults/main/traefik.yml.
-#   `caddy`:   Use Caddy via the caddy-docker-proxy plugin.
+#   `caddy`:   Use Caddy. Routes are rendered into per-service
+#              Caddyfile fragments by the role at apply time; a single
+#              wildcard cert covers every site (matches Traefik's SAN
+#              behaviour).
 #              Backend-specific config in defaults/main/caddy.yml.
 #
 # The container map entry whose key matches this value is automatically
@@ -63,6 +66,18 @@ hmsdocker_proxy_ssl_dns_provider_environment_vars: {}
 # to set to your DNS provider's nameservers.
 hmsdocker_proxy_ssl_dns_resolver_1: "1.1.1.1"
 hmsdocker_proxy_ssl_dns_resolver_2: "1.0.0.1"
+
+# Subject Alternative Names to put on the wildcard certificate. By
+# default a single wildcard for the configured domain — this is one
+# cert that covers every service.
+#
+# Both backends honour this list:
+#   Traefik: passed to the `domains[].sans` list under entryPoints.web.http.tls.
+#   Caddy:   passed to a single multi-hostname wildcard site block that
+#            triggers issuance of one cert with every name as a SAN. All
+#            per-service site blocks then serve that cert.
+hmsdocker_proxy_ssl_sans:
+  - '*.{{ hms_docker_domain }}'
 
 
 #######################################################################

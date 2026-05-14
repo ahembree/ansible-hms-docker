@@ -55,3 +55,4 @@ variable_renames:
   - { old: caddy_ext_hosts_enabled,                   new: hmsdocker_proxy_ext_hosts_enabled }
   - { old: traefik_ext_hosts_list,                    new: hmsdocker_proxy_ext_hosts_list }
   - { old: caddy_ext_hosts_list,                      new: hmsdocker_proxy_ext_hosts_list }
+  - { old: traefik_ssl_sans,                          new: hmsdocker_proxy_ssl_sans }

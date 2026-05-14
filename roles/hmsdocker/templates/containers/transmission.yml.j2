@@ -90,7 +90,7 @@ services:
     ports:
       - 8081:8080
     {% endif %}
-    {% if 'transmission' in proxy_enabled_containers or 'transmission' in homepage_enabled_containers %}
+    {% if 'transmission' in traefik_enabled_containers or 'transmission' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='transmission', port=8080) -}}
       {% if 'transmission' in homepage_enabled_containers %}

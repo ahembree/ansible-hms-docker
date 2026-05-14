@@ -42,7 +42,7 @@ services:
       - 8086:8086
       - 8118:8118 # privoxy
     {% endif %}
-    {% if 'qbittorrent' in proxy_enabled_containers or 'qbittorrent' in homepage_enabled_containers %}
+    {% if 'qbittorrent' in traefik_enabled_containers or 'qbittorrent' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='qbittorrent', port=8086) -}}
       {% if 'qbittorrent' in homepage_enabled_containers %}

@@ -29,7 +29,7 @@ services:
     depends_on:
       librariarr-db:
         condition: service_healthy
-    {% if 'librariarr' in proxy_enabled_containers or 'librariarr' in homepage_enabled_containers %}
+    {% if 'librariarr' in traefik_enabled_containers or 'librariarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='librariarr', port=3000) -}}
       {% if 'librariarr' in homepage_enabled_containers %}

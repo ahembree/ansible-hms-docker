@@ -20,7 +20,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/checkrr/config:/etc/checkrr
       - ${HMSD_MOUNT_PATH}:/data:ro
-    {% if 'checkrr' in proxy_enabled_containers or 'checkrr' in homepage_enabled_containers %}
+    {% if 'checkrr' in traefik_enabled_containers or 'checkrr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='checkrr', port=8585) -}}
       {% if 'checkrr' in homepage_enabled_containers %}

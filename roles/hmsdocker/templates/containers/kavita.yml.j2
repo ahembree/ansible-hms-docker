@@ -24,7 +24,7 @@ services:
     ports:
       - 5000:5000
     {% endif %}
-    {% if 'kavita' in proxy_enabled_containers %}
+    {% if 'kavita' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='kavita', port=5000) -}}
     {% endif %}

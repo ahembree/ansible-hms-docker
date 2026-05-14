@@ -1,17 +1,23 @@
+#######################################################################
+# Global options
+#######################################################################
 {
     {% if hmsdocker_proxy_ssl_letsencrypt_email | length > 0 %}
     email {{ hmsdocker_proxy_ssl_letsencrypt_email }}
     {% endif %}
-    {% if hmsdocker_proxy_ssl_enabled and hmsdocker_proxy_ssl_use_staging %}
+    {% if hmsdocker_proxy_ssl_enabled %}
+    {# Suppress automatic cert issuance for individual hostnames in
+       per-service site blocks. The wildcard site block below issues
+       one cert (with every entry of hmsdocker_proxy_ssl_sans on it)
+       and per-service sites serve that cert from Caddy's cert pool. #}
+    auto_https disable_certs
+
+    {% if hmsdocker_proxy_ssl_use_staging %}
     acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
     {% endif %}
-    {% if not hmsdocker_proxy_ssl_enabled %}
-    # SSL disabled — issue self-signed certs locally so HTTPS still works
-    # on the LAN without depending on an external CA.
+    {% else %}
+    {# SSL disabled — local self-signed certs so HTTPS still works on the LAN. #}
     local_certs
-    {% endif %}
-    {% if caddy_ssl_dns_provider_directive | length > 0 %}
-    acme_dns {{ caddy_ssl_dns_provider_directive }}
     {% endif %}
     log {
         level {{ hmsdocker_proxy_log_level }}
@@ -24,9 +30,35 @@
     {% endif %}
 }
 
+
+#######################################################################
+# Wildcard certificate
+#######################################################################
+{% if hmsdocker_proxy_ssl_enabled %}
+{# A single site block with every SAN as a hostname. Caddy issues one
+   cert with all of those as Subject Alternative Names. Per-service
+   site blocks (loaded from conf.d below) match more-specific
+   hostnames and Caddy serves them this same cert from its pool. #}
+{% for san in hmsdocker_proxy_ssl_sans %}{{ san }}{% if not loop.last %}, {% endif %}{% endfor %} {
+    tls {
+        dns {{ caddy_ssl_dns_provider_directive }}
+        resolvers {{ hmsdocker_proxy_ssl_dns_resolver_1 }} {{ hmsdocker_proxy_ssl_dns_resolver_2 }}
+    }
+    {# No routing: an unmatched subdomain returns 404 here instead of
+       leaking the upstream. Per-service blocks below take priority for
+       known hostnames. #}
+    respond 404
+}
+{% endif %}
+
+
+#######################################################################
+# Snippets imported by per-service fragments
+#######################################################################
+
 # Snippet: deny access to anyone outside the allowlist. The protected
-# upstream URL is passed as args[0] by the importer. Service templates
-# emit "caddy.import=internal_only <upstream>" as a Docker label.
+# upstream URL is passed as args[0] by the importer. Service fragments
+# emit "import internal_only <upstream>".
 
 (internal_only) {
     @internal remote_ip {% for cidr in hmsdocker_proxy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
@@ -82,6 +114,9 @@
     }
 }
 
-# Pull in per-ext-host fragments rendered for hmsdocker_proxy_ext_hosts_list.
-# Glob fails open if no fragments are present.
+
+#######################################################################
+# Per-service site blocks
+#######################################################################
+
 import /etc/caddy/conf.d/*.caddy

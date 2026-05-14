@@ -24,7 +24,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/heimdall/config:/config
-    {% if 'heimdall' in proxy_enabled_containers %}
+    {% if 'heimdall' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='heimdall', port=443, scheme='https') -}}
     {% endif %}

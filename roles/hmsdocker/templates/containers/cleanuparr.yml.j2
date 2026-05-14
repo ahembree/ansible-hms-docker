@@ -22,7 +22,7 @@ services:
       - PGID=${PGID}
       - UMASK=022
       - TZ=${TIMEZONE}
-    {% if 'cleanuparr' in proxy_enabled_containers %}
+    {% if 'cleanuparr' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='cleanuparr', port=11011) -}}
     {% endif %}

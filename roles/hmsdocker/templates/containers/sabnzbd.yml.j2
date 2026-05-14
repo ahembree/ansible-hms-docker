@@ -28,7 +28,7 @@ services:
     ports:
       - 8082:8080
   {% endif %}
-  {% if 'sabnzbd' in proxy_enabled_containers or 'sabnzbd' in homepage_enabled_containers %}
+  {% if 'sabnzbd' in traefik_enabled_containers or 'sabnzbd' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='sabnzbd', port=8080) -}}
     {% if 'sabnzbd' in homepage_enabled_containers %}

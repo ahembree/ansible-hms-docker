@@ -18,12 +18,13 @@ services:
     ports:
       - "5678:5678"
     {% endif %}
+    {% if 'n8n' in traefik_enabled_containers %}
     labels:
-      {# n8n uses a bespoke middleware (HSTS + secure headers) rather than
-         the standard internal-secured chain, so it is not routed through
-         the proxy_labels macro. The Caddy branch below adds the same
-         security headers as direct Caddy header directives. #}
-      {% if hmsdocker_reverse_proxy == 'traefik' and 'n8n' in traefik_enabled_containers %}
+      {# n8n uses a bespoke Traefik middleware (HSTS + secure headers)
+         instead of the standard internal-secured chain, so it is not
+         routed through the proxy_labels macro. Caddy adds HSTS
+         automatically for HTTPS sites; the standard internal_only
+         snippet (via the per-service fragment) covers the rest. #}
       - traefik.enable=true
       - traefik.http.routers.n8n-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.n8n-${COMPOSE_PROJECT}.loadbalancer.server.port=5678
@@ -36,13 +37,7 @@ services:
       - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSIncludeSubdomains=true
       - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSPreload=true
       - traefik.http.routers.n8n-${COMPOSE_PROJECT}.middlewares=n8n-${COMPOSE_PROJECT}@docker
-      {% elif hmsdocker_reverse_proxy == 'caddy' and 'n8n' in caddy_enabled_containers %}
-      - caddy={{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}
-      - caddy.header.Strict-Transport-Security=max-age=315360000; includeSubDomains; preload
-      - caddy.header.X-Content-Type-Options=nosniff
-      - caddy.header.X-XSS-Protection=1; mode=block
-      - caddy.import={{ 'external' if 'n8n' in expose_public_enabled_containers else 'internal_only' }} {% raw %}{{upstreams {% endraw %}5678{% raw %}}}{% endraw +%}
-      {% endif %}
+    {% endif %}
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_HOST={{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}

@@ -63,7 +63,7 @@ services:
       - 9001:9000
       - 9443:9443
     {% endif %}
-    {% if 'authentik' in proxy_enabled_containers or 'authentik' in homepage_enabled_containers %}
+    {% if 'authentik' in traefik_enabled_containers or 'authentik' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='authentik', port=9443, scheme='https', label_name='authentik-server') -}}
       {% if 'authentik' in homepage_enabled_containers %}

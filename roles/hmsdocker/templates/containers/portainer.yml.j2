@@ -21,7 +21,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/portainer/config:/data
-    {% if 'portainer' in proxy_enabled_containers or 'portainer' in homepage_enabled_containers %}
+    {% if 'portainer' in traefik_enabled_containers or 'portainer' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='portainer', port=9000) -}}
       {% if 'portainer' in homepage_enabled_containers %}

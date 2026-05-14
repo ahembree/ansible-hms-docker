@@ -46,7 +46,7 @@ services:
       - 8920:8920 #optional
       {% endif %}
     {% endif %}
-    {% if 'emby' in proxy_enabled_containers or 'emby' in homepage_enabled_containers %}
+    {% if 'emby' in traefik_enabled_containers or 'emby' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='emby', port=8096) -}}
       {% if 'emby' in homepage_enabled_containers %}

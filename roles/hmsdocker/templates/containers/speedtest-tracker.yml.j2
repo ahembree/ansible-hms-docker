@@ -29,7 +29,7 @@ services:
       - DISPLAY_TIMEZONE=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/speedtest-tracker/config:/config
-    {% if 'speedtest-tracker' in proxy_enabled_containers or 'speedtest-tracker' in homepage_enabled_containers %}
+    {% if 'speedtest-tracker' in traefik_enabled_containers or 'speedtest-tracker' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='speedtest-tracker', port=80, label_name='speedtest') -}}
       {% if 'speedtest-tracker' in homepage_enabled_containers %}

@@ -1,0 +1,66 @@
+---
+# Role-internal port / scheme map per service. Drives the per-service
+# Caddyfile fragments rendered into ${HMSD_APPS_PATH}/caddy/config/conf.d/
+# when hmsdocker_reverse_proxy: caddy.
+#
+# Not user-facing — users should not edit this. To add a new service to
+# the role, add the matching `proxy_labels(name=..., port=...)` call in
+# the service's compose template AND a matching entry here. The
+# preflight will hard-fail if a service is reverse-proxy-enabled but
+# missing a port here.
+#
+# Keys:
+#   name:    service key (matches hms_docker_container_map and the
+#            container name on proxy_net)
+#   port:    upstream port the container listens on
+#   scheme:  optional; 'https' for upstreams with their own TLS
+#            (self-signed). Defaults to 'http'.
+
+hmsdocker_proxy_service_data:
+  - { name: authentik,         port: 9443,  scheme: https, label_name: authentik-server }
+  - { name: autobrr,           port: 7474 }
+  - { name: backrest,          port: 9898 }
+  - { name: bazarr,            port: 6767 }
+  - { name: beszel,            port: 8090 }
+  - { name: calibre,           port: 8181, scheme: https }
+  - { name: checkrr,           port: 8585 }
+  - { name: cleanuparr,        port: 11011 }
+  - { name: deluge,            port: 8112 }
+  - { name: dispatcharr,       port: 9191 }
+  - { name: dockhand,          port: 3000 }
+  - { name: emby,              port: 8096 }
+  - { name: fileflows,         port: 5000 }
+  - { name: heimdall,          port: 443,   scheme: https }
+  - { name: homepage,          port: 3000 }
+  - { name: jellyfin,          port: 8096 }
+  - { name: jellyseerr,        port: 5055 }
+  - { name: kavita,            port: 5000 }
+  - { name: librariarr,        port: 3000 }
+  - { name: lidarr,            port: 8686 }
+  - { name: maintainerr,       port: 6246 }
+  - { name: n8n,               port: 5678 }
+  - { name: notifiarr,         port: 5454 }
+  - { name: nzbget,            port: 6789 }
+  - { name: overseerr,         port: 5055 }
+  - { name: pasta,             port: 80 }
+  - { name: pinchflat,         port: 8945 }
+  - { name: plex,              port: 32400, scheme: https }
+  - { name: portainer,         port: 9000 }
+  - { name: prowlarr,          port: 9696 }
+  - { name: qbittorrent,       port: 8086 }
+  - { name: radarr,            port: 7878 }
+  - { name: requestrr,         port: 4545 }
+  - { name: sabnzbd,           port: 8080 }
+  - { name: scrutiny,          port: 8080 }
+  - { name: seerr,             port: 5055 }
+  - { name: sonarr,            port: 8989 }
+  - { name: speedtest-tracker, port: 80,    host: speedtest }
+  - { name: tautulli,          port: 8181 }
+  - { name: tdarr,             port: 8265 }
+  - { name: tinymediamanager,  port: 4000 }
+  - { name: tracearr,          port: 3000 }
+  - { name: transmission,      port: 8080 }
+  - { name: tubearchivist,     port: 8001 }
+  - { name: unmanic,           port: 8888 }
+  - { name: uptimekuma,        port: 3001 }
+  - { name: wizarr,            port: 5690 }

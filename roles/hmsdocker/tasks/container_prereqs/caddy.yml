@@ -1,4 +1,15 @@
 ---
+- name: Caddy Prereq - Validate every reverse-proxy-enabled service has port data
+  ansible.builtin.assert:
+    that:
+      - item in (hmsdocker_proxy_service_data | map(attribute='name') | list)
+    fail_msg: >-
+      Service '{{ item }}' is enabled with traefik:true in the container map but has
+      no entry in vars/caddy_service_proxy_data.yml. Add a {name, port[, scheme]}
+      record there so Caddy knows how to reach it.
+    quiet: true
+  loop: "{{ caddy_enabled_containers }}"
+
 - name: Caddy Prereq - Extend Caddy subdomain hosts list
   ansible.builtin.set_fact:
     caddy_enabled_subdomains: "{{ (caddy_enabled_subdomains | default([])) + [item.subdomain_name] }}"
@@ -28,7 +39,7 @@
     group: docker
   register: caddy_dockerfile_rendered
 
-- name: Caddy Prereq - Build custom Caddy image
+- name: Caddy Prereq - Build custom Caddy image (xcaddy adds the DNS provider module)
   community.docker.docker_image:
     name: "hms-docker-caddy:{{ project_name }}"
     source: build
@@ -39,7 +50,7 @@
       pull: false
   when: not ansible_check_mode
 
-- name: Caddy Prereq - Ensure Caddyfile (global snippets)
+- name: Caddy Prereq - Ensure global Caddyfile (snippets + wildcard cert)
   ansible.builtin.template:
     src: caddy/Caddyfile.j2
     dest: "{{ hms_docker_apps_path }}/caddy/config/Caddyfile"
@@ -50,7 +61,30 @@
     trim_blocks: true
   notify: Restart caddy
 
-- name: Caddy Prereq - Ensure Caddy external host fragments
+# Per-service site fragments. One file per enabled service in
+# caddy_enabled_containers. Disabled services have their fragments
+# cleaned up by the next task so stale routes don't linger.
+- name: Caddy Prereq - Render per-service Caddyfile fragments
+  ansible.builtin.template:
+    src: caddy/site.caddy.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.name }}.caddy"
+    mode: '0644'
+    group: docker
+    lstrip_blocks: true
+    trim_blocks: true
+  loop: "{{ hmsdocker_proxy_service_data }}"
+  when: item.name in caddy_enabled_containers
+  notify: Restart caddy
+
+- name: Caddy Prereq - Remove fragments for services that are no longer enabled
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.name }}.caddy"
+    state: absent
+  loop: "{{ hmsdocker_proxy_service_data }}"
+  when: item.name not in caddy_enabled_containers
+  notify: Restart caddy
+
+- name: Caddy Prereq - Render external host fragments
   ansible.builtin.template:
     src: caddy/ext_host.caddy.j2
     dest: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.caddy"
@@ -67,7 +101,7 @@
     - item.enabled is defined and item.enabled
   notify: Restart caddy
 
-- name: Caddy Prereq - Ensure disabled Caddy external host fragments are removed
+- name: Caddy Prereq - Remove disabled external host fragments
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.caddy"
     state: absent

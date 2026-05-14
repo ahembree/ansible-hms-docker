@@ -23,7 +23,7 @@ services:
     ports:
       - 5690:5690
     {% endif %}
-    {% if 'wizarr' in proxy_enabled_containers %}
+    {% if 'wizarr' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='wizarr', port=5690) -}}
     {% endif %}

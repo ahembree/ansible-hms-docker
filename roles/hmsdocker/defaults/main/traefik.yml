@@ -13,14 +13,6 @@ hmsdocker_traefik_version: latest
 #   + frameDeny headers) instead of bare `ipallowlist`
 traefik_security_hardening: no   # default: no
 
-# SANs (Subject Alternative Names) to also provision certificates for.
-# Defaults to a wildcard for the configured domain. Add extra entries
-# like '*.public' to cover other subdomains.
-# Caddy doesn't use this — it auto-provisions a cert per site name.
-traefik_ssl_sans: [
-  '*.{{ hms_docker_domain }}',
-]
-
 # Traefik's lego DNS provider code (https://go-acme.github.io/lego/dns/).
 # Common values: cloudflare, route53, digitalocean, gandi, googlecloud.
 # Caddy uses a separate variable (caddy_ssl_dns_provider_module) because

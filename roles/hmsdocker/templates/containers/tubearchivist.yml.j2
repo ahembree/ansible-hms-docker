@@ -41,7 +41,7 @@ services:
     depends_on:
       - tubearchivist-es
       - tubearchivist-redis
-    {% if 'tubearchivist' in proxy_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
+    {% if 'tubearchivist' in traefik_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='tubearchivist', port=8001) -}}
       {% if 'tubearchivist' in homepage_enabled_containers %}

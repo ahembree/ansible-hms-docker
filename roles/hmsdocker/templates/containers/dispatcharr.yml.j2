@@ -37,7 +37,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'dispatcharr' in proxy_enabled_containers %}
+    {% if 'dispatcharr' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='dispatcharr', port=9191) -}}
     {% endif %}

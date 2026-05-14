@@ -17,7 +17,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'tautulli' in proxy_enabled_containers or 'tautulli' in homepage_enabled_containers %}
+    {% if 'tautulli' in traefik_enabled_containers or 'tautulli' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='tautulli', port=8181) -}}
       {% if 'tautulli' in homepage_enabled_containers %}

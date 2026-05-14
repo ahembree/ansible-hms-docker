@@ -51,7 +51,7 @@ services:
     tmpfs:
       - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
     {% endif %}
-    {% if 'plex' in proxy_enabled_containers or 'plex' in homepage_enabled_containers %}
+    {% if 'plex' in traefik_enabled_containers or 'plex' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='plex', port=32400, scheme='https') -}}
       {% if 'plex' in homepage_enabled_containers %}

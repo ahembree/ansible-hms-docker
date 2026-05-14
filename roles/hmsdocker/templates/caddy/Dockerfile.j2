@@ -1,18 +1,15 @@
-# Custom Caddy image rendered by ansible. Adds the caddy-docker-proxy
-# plugin (which gives Caddy its Docker-label discovery story) plus the
-# DNS provider module needed for the ACME DNS-01 challenge.
+# Custom Caddy image rendered by ansible. Vanilla Caddy plus the DNS
+# provider module needed for the ACME DNS-01 challenge (compiled in via
+# xcaddy). No third-party plugins.
 #
 # Rebuilt automatically by `docker compose build` when this Dockerfile
 # changes (e.g. user switches DNS provider).
 
 FROM caddy:{{ hmsdocker_caddy_version }}-builder AS builder
 
-RUN xcaddy build \
-    --with github.com/lucaslorentz/caddy-docker-proxy/v2{% if caddy_ssl_dns_provider_module | length > 0 %} \
+RUN xcaddy build{% if caddy_ssl_dns_provider_module | length > 0 %} \
     --with github.com/caddy-dns/{{ caddy_ssl_dns_provider_module }}{% endif %}
 
 FROM caddy:{{ hmsdocker_caddy_version }}
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
-
-CMD ["caddy", "docker-proxy"]

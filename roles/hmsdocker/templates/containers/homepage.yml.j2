@@ -23,7 +23,7 @@ services:
     ports:
       - 3000:3000
     {% endif %}
-    {% if 'homepage' in proxy_enabled_containers %}
+    {% if 'homepage' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='homepage', port=3000) -}}
     {% endif %}

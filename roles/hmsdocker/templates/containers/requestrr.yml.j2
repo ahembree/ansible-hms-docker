@@ -23,7 +23,7 @@ services:
     ports:
       - 4545:4545
     {% endif %}
-    {% if 'requestrr' in proxy_enabled_containers %}
+    {% if 'requestrr' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='requestrr', port=4545) -}}
     {% endif %}

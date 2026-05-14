@@ -24,7 +24,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'uptimekuma' in proxy_enabled_containers or 'uptimekuma' in homepage_enabled_containers %}
+    {% if 'uptimekuma' in traefik_enabled_containers or 'uptimekuma' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='uptimekuma', port=3001) -}}
       {% if 'uptimekuma' in homepage_enabled_containers %}

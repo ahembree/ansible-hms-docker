@@ -29,7 +29,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/tinymediamanager/config:/data
       - ${HMSD_MOUNT_PATH}:/media
-    {% if 'tinymediamanager' in proxy_enabled_containers %}
+    {% if 'tinymediamanager' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='tinymediamanager', port=4000) -}}
     {% endif %}

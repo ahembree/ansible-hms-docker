@@ -34,7 +34,7 @@ services:
       - ${HMSD_APPS_PATH}/unmanic/config:/config
       - ${HMSD_MOUNT_PATH}:/library
       - {{ hmsdocker_transcode_temp_path }}/unmanic:/tmp/unmanic
-    {% if 'unmanic' in proxy_enabled_containers or 'unmanic' in homepage_enabled_containers %}
+    {% if 'unmanic' in traefik_enabled_containers or 'unmanic' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='unmanic', port=8888) -}}
       {% if 'unmanic' in homepage_enabled_containers %}

@@ -23,7 +23,7 @@ services:
     ports:
       - 7474:7474
     {% endif %}
-    {% if 'autobrr' in proxy_enabled_containers or 'autobrr' in homepage_enabled_containers %}
+    {% if 'autobrr' in traefik_enabled_containers or 'autobrr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='autobrr', port=7474) -}}
       {% if 'autobrr' in homepage_enabled_containers %}

@@ -28,7 +28,7 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'scrutiny' in proxy_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
+    {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='scrutiny', port=8080) -}}
       {% if 'scrutiny' in homepage_enabled_containers %}

@@ -30,7 +30,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'bazarr' in proxy_enabled_containers or 'bazarr' in homepage_enabled_containers %}
+    {% if 'bazarr' in traefik_enabled_containers or 'bazarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='bazarr', port=6767) -}}
       {% if 'bazarr' in homepage_enabled_containers %}

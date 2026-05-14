@@ -26,7 +26,7 @@ services:
       - 8182:8181 # remote desktop https
       - 8084:8081 # webserver (must be enabled in settings using remote desktop)
     {% endif %}
-    {% if 'calibre' in proxy_enabled_containers %}
+    {% if 'calibre' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='calibre', port=8181, scheme='https') -}}
     {% endif %}

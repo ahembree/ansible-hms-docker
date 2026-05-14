@@ -17,7 +17,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'overseerr' in proxy_enabled_containers or 'overseerr' in homepage_enabled_containers %}
+    {% if 'overseerr' in traefik_enabled_containers or 'overseerr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='overseerr', port=5055) -}}
       {% if 'overseerr' in homepage_enabled_containers %}

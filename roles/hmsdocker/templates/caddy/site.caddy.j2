@@ -1,0 +1,22 @@
+{# Per-service Caddyfile fragment. Rendered once per entry in
+   hmsdocker_proxy_service_data whose `name` is also in
+   caddy_enabled_containers. Loaded by the main Caddyfile's
+   `import /etc/caddy/conf.d/*.caddy`.
+
+   Loop variable: item — a dict with keys {name, port, scheme?, host?,
+   label_name?}. host defaults to container_map[name].proxy_host_rule,
+   then to name. scheme defaults to 'http'. label_name (only meaningful
+   for the Traefik backend) is ignored here. #}
+{% set svc = item.name %}
+{% set host = item.host | default(hms_docker_container_map[svc]['proxy_host_rule'] | default(svc, true), true) %}
+{% set scheme = item.scheme | default('http', true) %}
+{% set upstream = scheme ~ '://' ~ svc ~ ':' ~ (item.port | string) %}
+{% set is_public = svc in expose_public_enabled_containers %}
+{% set is_authentik = svc in authentik_enabled_containers %}
+{% set snippet = ('external' if is_public else 'internal_only') ~ ('_https' if scheme == 'https' else '') %}
+{{ host }}.{{ hms_docker_domain }} {
+{% if is_authentik %}
+    import authentik_proxy authentik-proxy-{{ project_name }}-{{ svc }}
+{% endif %}
+    import {{ snippet }} {{ upstream }}
+}

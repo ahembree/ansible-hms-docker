@@ -42,7 +42,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'jellyfin' in proxy_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
+    {% if 'jellyfin' in traefik_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='jellyfin', port=8096) -}}
       {% if 'jellyfin' in homepage_enabled_containers %}

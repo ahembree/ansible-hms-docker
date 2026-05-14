@@ -20,7 +20,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/dockhand/config:/app/data
-    {% if 'dockhand' in proxy_enabled_containers or 'dockhand' in homepage_enabled_containers %}
+    {% if 'dockhand' in traefik_enabled_containers or 'dockhand' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='dockhand', port=3000) -}}
       {% if 'dockhand' in homepage_enabled_containers %}

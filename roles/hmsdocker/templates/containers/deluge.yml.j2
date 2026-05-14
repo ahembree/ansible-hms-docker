@@ -41,7 +41,7 @@ services:
       - 8112:8112
       - 8119:8118 # privoxy
     {% endif %}
-    {% if 'deluge' in proxy_enabled_containers or 'deluge' in homepage_enabled_containers %}
+    {% if 'deluge' in traefik_enabled_containers or 'deluge' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='deluge', port=8112) -}}
       {% if 'deluge' in homepage_enabled_containers %}

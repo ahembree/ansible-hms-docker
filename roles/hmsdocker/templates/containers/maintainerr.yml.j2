@@ -22,7 +22,7 @@ services:
     ports:
       - 6246:6246
     {% endif %}
-    {% if 'maintainerr' in proxy_enabled_containers %}
+    {% if 'maintainerr' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='maintainerr', port=6246) -}}
     {% endif %}

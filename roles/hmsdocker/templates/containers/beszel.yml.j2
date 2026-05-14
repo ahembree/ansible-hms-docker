@@ -23,7 +23,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/beszel/config/beszel_data:/beszel_data
       - ${HMSD_APPS_PATH}/beszel/config/beszel_socket:/beszel_socket
-    {% if 'beszel' in proxy_enabled_containers or 'beszel' in homepage_enabled_containers %}
+    {% if 'beszel' in traefik_enabled_containers or 'beszel' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='beszel', port=8090) -}}
       {% if 'beszel' in homepage_enabled_containers %}

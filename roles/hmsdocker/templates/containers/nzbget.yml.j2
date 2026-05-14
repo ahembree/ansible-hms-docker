@@ -25,7 +25,7 @@ services:
     ports:
       - 6789:6789
     {% endif %}
-    {% if 'nzbget' in proxy_enabled_containers or 'nzbget' in homepage_enabled_containers %}
+    {% if 'nzbget' in traefik_enabled_containers or 'nzbget' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='nzbget', port=6789) -}}
       {% if 'nzbget' in homepage_enabled_containers %}

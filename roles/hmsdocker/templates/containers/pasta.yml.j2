@@ -17,7 +17,7 @@ services:
     ports:
       - 8085:80
     {% endif %}
-    {% if 'pasta' in proxy_enabled_containers %}
+    {% if 'pasta' in traefik_enabled_containers %}
     labels:
 {{ proxy_labels(name='pasta', port=80) -}}
     {% endif %}

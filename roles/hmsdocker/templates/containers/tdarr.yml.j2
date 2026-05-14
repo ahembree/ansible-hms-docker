@@ -42,7 +42,7 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
     runtime: nvidia
     {% endif %}
-    {% if 'tdarr' in proxy_enabled_containers or 'tdarr' in homepage_enabled_containers %}
+    {% if 'tdarr' in traefik_enabled_containers or 'tdarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='tdarr', port=8265) -}}
       {% if 'tdarr' in homepage_enabled_containers %}

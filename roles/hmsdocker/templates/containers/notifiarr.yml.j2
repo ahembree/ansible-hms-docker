@@ -64,7 +64,7 @@ services:
       - DN_PLEX_URL=http://plex:32400
       - DN_PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if 'notifiarr' in proxy_enabled_containers or hmsdocker_homepage_enabled_notifiarr %}
+    {% if 'notifiarr' in traefik_enabled_containers or hmsdocker_homepage_enabled_notifiarr %}
     labels:
 {{ proxy_labels(name='notifiarr', port=5454) -}}
     {% endif %}

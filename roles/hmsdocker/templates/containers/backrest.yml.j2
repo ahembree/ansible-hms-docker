@@ -33,7 +33,7 @@ services:
     ports:
       - 9898:9898
     {% endif %}
-    {% if 'backrest' in proxy_enabled_containers or 'backrest' in homepage_enabled_containers %}
+    {% if 'backrest' in traefik_enabled_containers or 'backrest' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='backrest', port=9898) -}}
       {% if 'backrest' in homepage_enabled_containers %}

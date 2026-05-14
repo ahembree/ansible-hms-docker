@@ -31,7 +31,7 @@ services:
       timeout: 3s
       interval: 15s
       retries: 3
-    {% if 'seerr' in proxy_enabled_containers or 'seerr' in homepage_enabled_containers %}
+    {% if 'seerr' in traefik_enabled_containers or 'seerr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='seerr', port=5055) -}}
       {% if 'seerr' in homepage_enabled_containers %}

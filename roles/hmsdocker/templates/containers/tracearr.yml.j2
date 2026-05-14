@@ -38,7 +38,7 @@ services:
     networks:
       - tracearr_net
       - proxy_net
-    {% if 'tracearr' in proxy_enabled_containers or 'tracearr' in homepage_enabled_containers %}
+    {% if 'tracearr' in traefik_enabled_containers or 'tracearr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='tracearr', port=3000) -}}
       {% if 'tracearr' in homepage_enabled_containers %}

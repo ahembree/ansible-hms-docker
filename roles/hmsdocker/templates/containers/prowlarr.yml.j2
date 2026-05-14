@@ -24,7 +24,7 @@ services:
     ports:
       - 9696:9696
     {% endif %}
-    {% if 'prowlarr' in proxy_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
+    {% if 'prowlarr' in traefik_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='prowlarr', port=9696) -}}
       {% if 'prowlarr' in homepage_enabled_containers %}

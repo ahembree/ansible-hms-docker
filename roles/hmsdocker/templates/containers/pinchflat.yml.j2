@@ -22,7 +22,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/pinchflat/config:/config
       - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/pinchflat:/downloads
-    {% if 'pinchflat' in proxy_enabled_containers or 'pinchflat' in homepage_enabled_containers %}
+    {% if 'pinchflat' in traefik_enabled_containers or 'pinchflat' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='pinchflat', port=8945) -}}
       {% if 'pinchflat' in homepage_enabled_containers %}

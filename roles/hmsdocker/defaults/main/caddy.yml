@@ -5,9 +5,9 @@
 # level, external hosts list, etc.) live in defaults/main/reverse_proxy.yml.
 # Only Caddy-specific knobs remain in this file.
 
-# Base caddy image used by the local xcaddy build (the
-# caddy-docker-proxy plugin and the chosen DNS provider module are
-# compiled in on top of this base).
+# Base caddy image used by the local xcaddy build (the chosen DNS
+# provider module is compiled in on top of this base for the ACME
+# DNS-01 challenge).
 hmsdocker_caddy_version: "2.10-alpine"
 
 # The Caddy DNS provider module name to compile in. This is the suffix

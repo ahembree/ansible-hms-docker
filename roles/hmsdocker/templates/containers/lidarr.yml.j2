@@ -29,7 +29,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'lidarr' in proxy_enabled_containers or 'lidarr' in homepage_enabled_containers %}
+    {% if 'lidarr' in traefik_enabled_containers or 'lidarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='lidarr', port=8686) -}}
       {% if 'lidarr' in homepage_enabled_containers %}

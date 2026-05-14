@@ -18,7 +18,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'jellyseerr' in proxy_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
+    {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='jellyseerr', port=5055) -}}
       {% if 'jellyseerr' in homepage_enabled_containers %}

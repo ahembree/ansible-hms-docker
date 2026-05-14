@@ -18,7 +18,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'radarr' in proxy_enabled_containers or 'radarr' in homepage_enabled_containers %}
+    {% if 'radarr' in traefik_enabled_containers or 'radarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='radarr', port=7878) -}}
       {% if 'radarr' in homepage_enabled_containers %}
@@ -72,7 +72,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'radarr' in proxy_enabled_containers or 'radarr' in homepage_enabled_containers %}
+    {% if 'radarr' in traefik_enabled_containers or 'radarr' in homepage_enabled_containers %}
     labels:
 {{ proxy_labels(name='radarr', port=7878, label_name='radarr-4k', host=(hms_docker_container_map['radarr']['proxy_host_rule'] | default('radarr')) ~ '-4k') -}}
       {% if 'radarr' in homepage_enabled_containers %}
