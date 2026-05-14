@@ -98,34 +98,34 @@ argument_specs:
         description: VPN protocol used by transmission/qbittorrent/deluge ('custom' uses a user-supplied config).
 
       # ---- Traefik / SSL ----
-      traefik_ssl_enabled:
+      hmsdocker_proxy_ssl_enabled:
         type: bool
         description: Enable wildcard SSL certificate generation via Let's Encrypt DNS-01.
       traefik_security_hardening:
         type: bool
         description: Apply additional Traefik security defaults (minimum TLS 1.2, etc.).
-      traefik_ssl_use_letsencrypt_staging_url:
+      hmsdocker_proxy_ssl_use_staging:
         type: bool
         description: Use the Let's Encrypt staging CA (recommended until certs are confirmed working).
       traefik_ssl_sans:
         type: list
         elements: str
         description: Subject Alternative Names included in the generated certificate.
-      traefik_ext_hosts_enabled:
+      hmsdocker_proxy_ext_hosts_enabled:
         type: bool
         description: Watch a directory for external Traefik file-provider configs.
-      traefik_ext_hosts_list:
+      hmsdocker_proxy_ext_hosts_list:
         type: list
         elements: dict
         description: External upstream hosts to proxy through Traefik.
-      traefik_log_level:
+      hmsdocker_proxy_log_level:
         type: str
         choices: [DEBUG, INFO, WARN, ERROR, FATAL, PANIC]
         description: Traefik log verbosity.
-      traefik_verify_endpoints:
+      hmsdocker_proxy_verify_endpoints:
         type: bool
         description: Probe each Traefik route post-deploy (requires valid DNS for all FQDNs).
-      traefik_enable_access_logs:
+      hmsdocker_proxy_enable_access_logs:
         type: bool
         description: Enable full request access logging.
 

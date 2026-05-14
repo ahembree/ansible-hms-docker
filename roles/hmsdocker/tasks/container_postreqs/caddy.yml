@@ -10,6 +10,6 @@
   loop: "{{ (traefik_enabled_subdomains | default([])) + (caddy_enabled_subdomains | default([])) }}"
   when:
     - "'caddy' in enabled_containers"
-    - caddy_verify_endpoints | default(false)
+    - hmsdocker_proxy_verify_endpoints | default(false)
   ignore_errors: true
   register: caddy_successful_endpoints

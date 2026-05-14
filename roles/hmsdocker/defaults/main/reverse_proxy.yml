@@ -1,6 +1,19 @@
 ---
-### Reverse proxy backend selection
+### Reverse proxy backend selection + shared settings
 #
+# Both reverse-proxy backends (Traefik and Caddy) share a common set of
+# user-facing settings — Let's Encrypt email, IP allowlist, log level,
+# external host list, etc. Those live here so they only have to be set
+# once and stay the same when switching backends.
+#
+# Backend-specific knobs (image tag, Traefik-only hardening flags,
+# DNS provider naming differences) stay in defaults/main/traefik.yml
+# and defaults/main/caddy.yml.
+
+#######################################################################
+# Backend selection
+#######################################################################
+
 # Selects which reverse proxy engine fronts the enabled containers.
 # Both backends are driven by the same per-service flags in
 # hms_docker_container_map (the `traefik: true` flag enables a service
@@ -9,12 +22,100 @@
 #
 # Options:
 #   `traefik`: Use Traefik (default - existing behaviour).
-#              Config lives in defaults/main/traefik.yml.
+#              Backend-specific config in defaults/main/traefik.yml.
 #   `caddy`:   Use Caddy via the caddy-docker-proxy plugin.
-#              Config lives in defaults/main/caddy.yml.
+#              Backend-specific config in defaults/main/caddy.yml.
 #
 # The container map entry whose key matches this value is automatically
 # enabled by the role; the other proxy's container is automatically
 # skipped, so users do not need to flip `enabled` on either.
 
 hmsdocker_reverse_proxy: traefik
+
+
+#######################################################################
+# Shared SSL / Let's Encrypt
+#######################################################################
+
+# Enables or disables SSL wildcard certificate generation via the
+# Let's Encrypt DNS-01 challenge. // default: "no"
+hmsdocker_proxy_ssl_enabled: no
+
+# Use Let's Encrypt's staging endpoint (recommended for initial setup
+# to avoid rate limits) or production. // default: "yes"
+# Confirm a STAGING certificate is issued, then set to "no" to obtain
+# a trusted cert.
+hmsdocker_proxy_ssl_use_staging: yes
+
+# Required for Let's Encrypt: the email address used during ACME
+# registration.
+hmsdocker_proxy_ssl_letsencrypt_email: ""
+
+# Environment variables passed to the reverse-proxy container for the
+# DNS provider's API credentials. Same env-var keys work for both
+# Traefik (lego) and Caddy (caddy-dns/<provider>); only the variable
+# names differ by provider. Common cases:
+#   Cloudflare (Traefik lego):   CF_DNS_API_TOKEN, CF_ZONE_API_TOKEN
+#   Cloudflare (Caddy module):   CF_API_TOKEN
+hmsdocker_proxy_ssl_dns_provider_environment_vars: {}
+
+# DNS resolvers used when performing the DNS-01 challenge. Recommended
+# to set to your DNS provider's nameservers.
+hmsdocker_proxy_ssl_dns_resolver_1: "1.1.1.1"
+hmsdocker_proxy_ssl_dns_resolver_2: "1.0.0.1"
+
+
+#######################################################################
+# Shared access / routing
+#######################################################################
+
+# Subnets allowed to access internal services. Any request originating
+# from outside these ranges is answered with 403, unless the service
+# has `expose_to_public: true` in the container map.
+hmsdocker_proxy_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
+
+
+#######################################################################
+# Shared logging / verification
+#######################################################################
+
+# Log level for the reverse-proxy container.
+# Traefik valid values: DEBUG, INFO, WARN, ERROR
+# Caddy valid values:   DEBUG, INFO, WARN, ERROR
+hmsdocker_proxy_log_level: "INFO"
+
+# Enable full per-request access logging on the reverse proxy.
+hmsdocker_proxy_enable_access_logs: no
+
+# After the playbook completes, hit every routed subdomain to confirm
+# DNS + cert + upstream all work. Requires every FQDN to resolve.
+hmsdocker_proxy_verify_endpoints: no
+
+
+#######################################################################
+# Shared external hosts (non-Docker backends to proxy through)
+#######################################################################
+
+# Enables watching the external-host fragment list below. See per-item
+# schema in the list comment.
+hmsdocker_proxy_ext_hosts_enabled: no
+
+# Settings for each external host:
+#    friendly_name: host1,              # internal label; also the on-disk fragment filename
+#    subdomain_name: sub-example,       # the subdomain users hit (sub-example.<hms_docker_domain>)
+#    backend_url: http://example.com,   # the upstream URL the proxy forwards to
+#    enabled: yes,                      # turn the route on/off
+#    expose_publicly: no,               # if yes, the IP allowlist is bypassed
+#    authentik: no,                     # apply Authentik forward auth (requires authentik enabled)
+#    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
+hmsdocker_proxy_ext_hosts_list: [
+  {
+    friendly_name: host1,
+    subdomain_name: example-sub,
+    backend_url: "http://example.com",
+    enabled: yes,
+    expose_publicly: no,
+    authentik: no,
+    authentik_provider_type: proxy
+  },
+]

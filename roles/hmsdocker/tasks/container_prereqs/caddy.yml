@@ -5,7 +5,7 @@
   when:
     - item.enabled
     - item.subdomain_name not in (caddy_enabled_subdomains | default([]))
-  loop: '{{ caddy_ext_hosts_list }}'
+  loop: '{{ hmsdocker_proxy_ext_hosts_list }}'
 
 - name: Caddy Prereq - Ensure Caddy directories exist
   ansible.builtin.file:
@@ -58,9 +58,9 @@
     group: docker
     lstrip_blocks: true
     trim_blocks: true
-  with_items: "{{ caddy_ext_hosts_list }}"
+  with_items: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - caddy_ext_hosts_enabled
+    - hmsdocker_proxy_ext_hosts_enabled
     - item.friendly_name is defined and item.friendly_name != ''
     - item.subdomain_name is defined and item.subdomain_name != ''
     - item.backend_url is defined and item.backend_url != ''
@@ -71,7 +71,7 @@
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/caddy/config/conf.d/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.caddy"
     state: absent
-  with_items: "{{ caddy_ext_hosts_list }}"
+  with_items: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - not item.enabled or not caddy_ext_hosts_enabled
+    - not item.enabled or not hmsdocker_proxy_ext_hosts_enabled
   notify: Restart caddy

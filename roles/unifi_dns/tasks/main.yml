@@ -75,11 +75,11 @@
     unifi_dns_desired_subdomains: "{{ unifi_dns_desired_subdomains + [item.subdomain_name] }}"
   when:
     - unifi_dns_include_external_hosts
-    - traefik_ext_hosts_enabled | default(false)
+    - hmsdocker_proxy_ext_hosts_enabled | default(false)
     - item.enabled | default(false)
     - item.subdomain_name is defined
     - item.subdomain_name not in unifi_dns_desired_subdomains
-  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+  loop: "{{ hmsdocker_proxy_ext_hosts_list | default([]) }}"
 
 - name: Build desired FQDN list
   ansible.builtin.set_fact:
@@ -106,10 +106,10 @@
     unifi_dns_all_manageable_subdomains: "{{ unifi_dns_all_manageable_subdomains + [item.subdomain_name] }}"
   when:
     - unifi_dns_include_external_hosts
-    - traefik_ext_hosts_enabled | default(false)
+    - hmsdocker_proxy_ext_hosts_enabled | default(false)
     - item.subdomain_name is defined
     - item.subdomain_name not in unifi_dns_all_manageable_subdomains
-  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+  loop: "{{ hmsdocker_proxy_ext_hosts_list | default([]) }}"
 
 - name: Build all manageable FQDN list
   ansible.builtin.set_fact:

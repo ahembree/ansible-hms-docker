@@ -32,7 +32,7 @@ http:
       ipAllowList:
         sourceRange:
           - "127.0.0.1/32"
-        {% for address in traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
+        {% for address in hmsdocker_proxy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
           - "{{ address }}"
         {% endfor %}
 

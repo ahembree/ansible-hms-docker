@@ -21,8 +21,8 @@ services:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    {% if traefik_ssl_dns_provider_environment_vars %}
-        {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+    {% if hmsdocker_proxy_ssl_dns_provider_environment_vars %}
+        {% for key, value in hmsdocker_proxy_ssl_dns_provider_environment_vars.items() %}
         {# Due to how Ansible interprets curly brackets, I had to use 'raw' statements in order to render the ${} around the ansible 'key' variable to reference the .env file variable #}
       - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
         {% endfor %}

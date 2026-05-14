@@ -5,7 +5,7 @@
       block:
         - name: Radarr bootstrap - Set Radarr facts
           ansible.builtin.set_fact:
-            radarr_url: "http{{ 's' if traefik_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if 'radarr' in expose_ports_enabled_containers }}/api"
+            radarr_url: "http{{ 's' if hmsdocker_proxy_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':7878' if 'radarr' in expose_ports_enabled_containers }}/api"
 
         - name: Radarr bootstrap - Precheck Radarr API Key
           ansible.builtin.uri:
@@ -333,7 +333,7 @@
       block:
         - name: Radarr 4K bootstrap - Set Radarr 4K facts
           ansible.builtin.set_fact:
-            radarr_4k_url: "http{{ 's' if traefik_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if 'radarr' in expose_ports_enabled_containers }}/api"
+            radarr_4k_url: "http{{ 's' if hmsdocker_proxy_ssl_enabled and not 'radarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['radarr']['proxy_host_rule'] }}-4k.{{ hms_docker_domain }}{{ ':7879' if 'radarr' in expose_ports_enabled_containers }}/api"
 
         - name: Radarr 4K bootstrap - Precheck Radarr 4K API Key
           ansible.builtin.uri:

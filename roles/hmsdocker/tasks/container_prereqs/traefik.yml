@@ -5,7 +5,7 @@
   when:
     - item.enabled
     - item.subdomain_name not in traefik_enabled_subdomains
-  loop: '{{ traefik_ext_hosts_list }}'
+  loop: '{{ hmsdocker_proxy_ext_hosts_list }}'
 
 - name: Traefik Prereq - Extend Traefik subdomain hosts list if 4K instances are enabled
   ansible.builtin.set_fact:
@@ -60,9 +60,9 @@
     group: docker
     lstrip_blocks: true
     trim_blocks: true
-  with_items: "{{ traefik_ext_hosts_list }}"
+  with_items: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - traefik_ext_hosts_enabled
+    - hmsdocker_proxy_ext_hosts_enabled
     - item.friendly_name is defined and item.friendly_name != ''
     - item.subdomain_name is defined and item.subdomain_name != ''
     - item.backend_url is defined and item.backend_url != ''
@@ -72,6 +72,6 @@
   ansible.builtin.file:
     path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     state: absent
-  with_items: "{{ traefik_ext_hosts_list }}"
+  with_items: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - not item.enabled or not traefik_ext_hosts_enabled
+    - not item.enabled or not hmsdocker_proxy_ext_hosts_enabled

@@ -42,7 +42,7 @@
     force: "{{ ansible_check_mode }}"
 
 - name: Custom Scripts - Plex SSL - Ensure Plex SSL script and resources
-  when: hms_docker_plex_ssl_enabled and traefik_ssl_enabled
+  when: hms_docker_plex_ssl_enabled and hmsdocker_proxy_ssl_enabled
   block:
     - name: Custom Scripts - Plex SSL - Ensure pkcs12 script
       ansible.builtin.copy:

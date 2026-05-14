@@ -34,7 +34,7 @@ argument_specs:
         description: Verify TLS certificates when calling the UniFi controller (set false for self-signed).
       unifi_dns_include_external_hosts:
         type: bool
-        description: Manage CNAMEs for traefik_ext_hosts_list entries in addition to container subdomains.
+        description: Manage CNAMEs for hmsdocker_proxy_ext_hosts_list entries in addition to container subdomains.
       unifi_dns_include_4k_instances:
         type: bool
         description: Manage sonarr-4k and radarr-4k subdomains when separate_4k_instances_enable is true.

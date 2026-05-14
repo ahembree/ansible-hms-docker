@@ -44,30 +44,10 @@
         + ([hmsdocker_reverse_proxy] if hmsdocker_reverse_proxy in ['traefik', 'caddy'] else [])
       }}
 
-# Resolves to the SSL flag of whichever proxy is active. Used by
-# authentik_enabled_containers below and by anything else that gates
-# on HTTPS being available.
-- name: Resolve active proxy SSL flag
-  ansible.builtin.set_fact:
-    hmsdocker_proxy_ssl_enabled: >-
-      {{
-        (traefik_ssl_enabled | default(false))
-        if hmsdocker_reverse_proxy == 'traefik'
-        else (caddy_ssl_enabled | default(false))
-        if hmsdocker_reverse_proxy == 'caddy'
-        else false
-      }}
-    # The active backend's external-hosts list. Used by the Authentik
-    # outpost prereq (cross-backend) so users only configure the list
-    # for the backend they actually run.
-    hmsdocker_proxy_ext_hosts_list: >-
-      {{
-        traefik_ext_hosts_list | default([])
-        if hmsdocker_reverse_proxy == 'traefik'
-        else (caddy_ext_hosts_list | default([]))
-        if hmsdocker_reverse_proxy == 'caddy'
-        else []
-      }}
+# hmsdocker_proxy_ssl_enabled and hmsdocker_proxy_ext_hosts_list are
+# now backend-neutral user-facing variables (see
+# defaults/main/reverse_proxy.yml), so no resolution step is needed —
+# they apply to whichever backend is active.
 
 # Run these after the task above so that they are aware of the previous facts being set
 - name: Build additional facts of enabled containers to slim play output
@@ -128,13 +108,9 @@
             map(attribute='value.proxy_host_rule') |
             list
           }}
-    traefik_enabled_external_hosts: >-
+    proxy_enabled_external_hosts: >-
           {{
-            traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
-          }}
-    caddy_enabled_external_hosts: >-
-          {{
-            (caddy_ext_hosts_list | default([])) | json_query('[?enabled==true].subdomain_name')
+            (hmsdocker_proxy_ext_hosts_list | default([])) | json_query('[?enabled==true].subdomain_name')
           }}
     authentik_enabled_containers: >-
           {{

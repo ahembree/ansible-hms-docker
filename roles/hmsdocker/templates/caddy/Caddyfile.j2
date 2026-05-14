@@ -1,11 +1,11 @@
 {
-    {% if caddy_ssl_letsencrypt_email | length > 0 %}
-    email {{ caddy_ssl_letsencrypt_email }}
+    {% if hmsdocker_proxy_ssl_letsencrypt_email | length > 0 %}
+    email {{ hmsdocker_proxy_ssl_letsencrypt_email }}
     {% endif %}
-    {% if caddy_ssl_enabled and caddy_ssl_use_letsencrypt_staging_url %}
+    {% if hmsdocker_proxy_ssl_enabled and hmsdocker_proxy_ssl_use_staging %}
     acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
     {% endif %}
-    {% if not caddy_ssl_enabled %}
+    {% if not hmsdocker_proxy_ssl_enabled %}
     # SSL disabled — issue self-signed certs locally so HTTPS still works
     # on the LAN without depending on an external CA.
     local_certs
@@ -14,9 +14,9 @@
     acme_dns {{ caddy_ssl_dns_provider_directive }}
     {% endif %}
     log {
-        level {{ caddy_log_level }}
+        level {{ hmsdocker_proxy_log_level }}
     }
-    {% if caddy_enable_access_logs %}
+    {% if hmsdocker_proxy_enable_access_logs %}
     log access {
         output stdout
         format json
@@ -29,7 +29,7 @@
 # emit "caddy.import=internal_only <upstream>" as a Docker label.
 
 (internal_only) {
-    @internal remote_ip {% for cidr in caddy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
+    @internal remote_ip {% for cidr in hmsdocker_proxy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
     handle @internal {
         reverse_proxy {args[0]}
     }
@@ -40,7 +40,7 @@
 # with a self-signed cert (Plex, Heimdall, Authentik, Calibre, etc.).
 # Mirrors Traefik's serversTransport.insecureSkipVerify default.
 (internal_only_https) {
-    @internal remote_ip {% for cidr in caddy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
+    @internal remote_ip {% for cidr in hmsdocker_proxy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
     handle @internal {
         reverse_proxy {args[0]} {
             transport http {
@@ -82,6 +82,6 @@
     }
 }
 
-# Pull in per-ext-host fragments rendered for caddy_ext_hosts_list.
+# Pull in per-ext-host fragments rendered for hmsdocker_proxy_ext_hosts_list.
 # Glob fails open if no fragments are present.
 import /etc/caddy/conf.d/*.caddy

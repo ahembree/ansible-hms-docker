@@ -3,9 +3,9 @@ global:
   sendAnonymousUsage: false
 
 log:
-  level: "{{ traefik_log_level }}"
+  level: "{{ hmsdocker_proxy_log_level }}"
 
-{% if traefik_enable_access_logs %}
+{% if hmsdocker_proxy_enable_access_logs %}
 accessLog: {}
 {% endif %}
 
@@ -22,7 +22,7 @@ entryPoints:
     address: :8082
   web:
     address: :80
-{% if traefik_ssl_enabled %}
+{% if hmsdocker_proxy_ssl_enabled %}
     http:
       redirections:
         entryPoint:
@@ -46,8 +46,8 @@ entryPoints:
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: "{{ traefik_ssl_letsencrypt_email }}"
-    {% if traefik_ssl_use_letsencrypt_staging_url %}
+      email: "{{ hmsdocker_proxy_ssl_letsencrypt_email }}"
+    {% if hmsdocker_proxy_ssl_use_staging %}
       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       storage: /certs/acme_staging.json
     {% else %}
@@ -56,11 +56,11 @@ certificatesResolvers:
       dnsChallenge:
         provider: "{{ traefik_ssl_dns_provider_code }}"
         resolvers:
-          - "{{ traefik_ssl_dns_resolver_1 }}"
-          - "{{ traefik_ssl_dns_resolver_2 }}"
+          - "{{ hmsdocker_proxy_ssl_dns_resolver_1 }}"
+          - "{{ hmsdocker_proxy_ssl_dns_resolver_2 }}"
 {% endif %}
 
-{% if traefik_security_hardening and traefik_ssl_enabled %}
+{% if traefik_security_hardening and hmsdocker_proxy_ssl_enabled %}
 tls:
   options:
     default:

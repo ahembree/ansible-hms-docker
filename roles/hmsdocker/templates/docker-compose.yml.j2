@@ -5,7 +5,7 @@ include:
   - {{ file.dest | default(compose_dir.path + '/' + file.item + '.yml') }}
   {% endif %}
 {% endfor %}
-{% if 'authentik' in enabled_containers and traefik_ssl_enabled | default(False) and authentik_compose_file_path is defined | default(False) %}
+{% if 'authentik' in enabled_containers and hmsdocker_proxy_ssl_enabled | default(False) and authentik_compose_file_path is defined | default(False) %}
   - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
 {% endif %}
 

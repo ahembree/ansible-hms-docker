@@ -6,6 +6,6 @@
   loop: "{{ traefik_enabled_subdomains }}"
   when:
     - "'traefik' in enabled_containers"
-    - traefik_verify_endpoints | default(false)
+    - hmsdocker_proxy_verify_endpoints | default(false)
   ignore_errors: true
   register: traefik_successful_endpoints

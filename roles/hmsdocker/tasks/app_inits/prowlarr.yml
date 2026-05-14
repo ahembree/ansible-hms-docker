@@ -4,7 +4,7 @@
     - name: Prowlarr bootstrap - Set Prowlarr facts
       ansible.builtin.set_fact:
         ansible_fact_cachable: false
-        prowlarr_url: "http{{ 's' if traefik_ssl_enabled and not 'prowlarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if 'prowlarr' in expose_ports_enabled_containers }}/api"
+        prowlarr_url: "http{{ 's' if hmsdocker_proxy_ssl_enabled and not 'prowlarr' in expose_ports_enabled_containers }}://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] }}.{{ hms_docker_domain }}{{ ':9696' if 'prowlarr' in expose_ports_enabled_containers }}/api"
         prowlarr_api_key: "{{ api_keys.prowlarr_key | default('') }}"
 
     - name: Prowlarr bootstrap - Precheck Prowlarr API Key

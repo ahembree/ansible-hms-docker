@@ -1,5 +1,5 @@
 {# Per-ext-host Caddy fragment. Rendered for each enabled entry in
-   caddy_ext_hosts_list. Loaded by the main Caddyfile's
+   hmsdocker_proxy_ext_hosts_list. Loaded by the main Caddyfile's
    `import /etc/caddy/conf.d/*.caddy`. #}
 {% set slug = item.friendly_name | map('regex_replace', regex, replace) | list | join %}
 {{ item.subdomain_name }}.{{ hms_docker_domain }} {
