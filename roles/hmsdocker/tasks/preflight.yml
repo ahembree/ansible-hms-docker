@@ -16,6 +16,12 @@
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: []
 
+# Alias deprecated inventory variable names to their new names before any
+# assert below checks the new names. See tasks/compat_shim.yml for the
+# migration map and instructions for adding new entries.
+- name: (preflight) Apply deprecated variable compatibility shim
+  ansible.builtin.import_tasks: "compat_shim.yml"
+
 # ---------------------------------------------------------------------------
 # Always-required: foundational vars used unguarded by the role
 # ---------------------------------------------------------------------------

@@ -1,0 +1,59 @@
+---
+# Compatibility shim for deprecated/renamed inventory variables.
+#
+# When a user upgrades, their inventory may still define old variable names.
+# Rather than failing (or requiring them to run `make update` first), this
+# task aliases each deprecated variable to its new name in-memory and appends
+# a notice to hmsdocker_preflight_warnings so the user knows to update their
+# inventory at their leisure.
+#
+# The rename map lives in migrations/variable_renames.yml at the repo root
+# and is shared with the Makefile `update` target — register new renames
+# there, not here. Re-runs are safe: entries whose `old` is unset in the
+# resolved vars are silently skipped.
+
+- name: (compat) Load variable migration map from single source
+  ansible.builtin.set_fact:
+    hmsdocker_variable_migrations: >-
+      {{
+        (lookup('file', playbook_dir ~ '/migrations/variable_renames.yml')
+         | from_yaml).variable_renames
+      }}
+
+# `q('varnames', '.*')` returns the names of all currently-resolved
+# variables. We snapshot it once so all later steps agree on which
+# migrations are active, and intersect it with the migration map to find
+# deprecated names the user actually set.
+- name: (compat) Determine which deprecated variables are in use
+  ansible.builtin.set_fact:
+    hmsdocker_active_migrations: >-
+      {{
+        hmsdocker_variable_migrations
+        | selectattr('old', 'in', q('varnames', '.*'))
+        | list
+      }}
+
+- name: (compat) Alias deprecated variables to their new names
+  ansible.builtin.set_fact:
+    "{{ item.new }}": "{{ lookup('vars', item.old) }}"
+  loop: "{{ hmsdocker_active_migrations }}"
+  loop_control:
+    label: "{{ item.old }} -> {{ item.new }}"
+  # Skip null / empty old values: Jinja stringifies None as the literal
+  # "None", which would silently bypass downstream length-based asserts.
+  when: (lookup('vars', item.old) | default('', true) | string) | length > 0
+  # Old values may include credentials (e.g. transmission_vpn_pass).
+  # Match the rest of preflight's no_log pattern.
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+
+- name: (compat) Record deprecation warnings for renamed variables
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{
+        hmsdocker_preflight_warnings
+        + ["DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
+           ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release."]
+      }}
+  loop: "{{ hmsdocker_active_migrations }}"
+  loop_control:
+    label: "{{ item.old }} -> {{ item.new }}"

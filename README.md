@@ -47,3 +47,7 @@ Please see the docs page at: https://hmsdocker.dev
 Pull requests are always welcome!
 
 If you have suggestions for containers to add or any other improvements, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions)
+
+## AI Disclaimer
+
+AI is starting to make contributions to this codebase. With that said, 95%+ of it was still written by hand. I have used AI to develop the Unifi DNS integration, refine the update process for new playbook versions, and update/align documentation. The first offical 1.0 release was in [January of 2022](https://github.com/ahembree/ansible-hms-docker/releases/tag/1.0.0), long before AI was actually useful.
