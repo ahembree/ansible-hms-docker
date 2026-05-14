@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   kavita:
     image: lscr.io/linuxserver/kavita:latest
@@ -23,12 +24,9 @@ services:
     ports:
       - 5000:5000
     {% endif %}
-    {% if 'kavita' in traefik_enabled_containers %}
+    {% if 'kavita' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'kavita' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker' if 'kavita' in authentik_enabled_containers }}
+{{ proxy_labels(name='kavita', port=5000) -}}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:5000/ || exit 1

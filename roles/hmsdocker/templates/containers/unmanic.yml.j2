@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   unmanic:
     image: josh5/unmanic:latest
@@ -33,14 +34,9 @@ services:
       - ${HMSD_APPS_PATH}/unmanic/config:/config
       - ${HMSD_MOUNT_PATH}:/library
       - {{ hmsdocker_transcode_temp_path }}/unmanic:/tmp/unmanic
-    {% if 'unmanic' in traefik_enabled_containers or 'unmanic' in homepage_enabled_containers %}
+    {% if 'unmanic' in proxy_enabled_containers or 'unmanic' in homepage_enabled_containers %}
     labels:
-      {% if 'unmanic' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.unmanic-${COMPOSE_PROJECT}.loadbalancer.server.port=8888
-      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['unmanic']['proxy_host_rule'] | default('unmanic') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'unmanic' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-unmanic-midware@docker' if 'unmanic' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='unmanic', port=8888) -}}
       {% if 'unmanic' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=unmanic

@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   wizarr:
     image: ghcr.io/wizarrrr/wizarr:latest
@@ -22,12 +23,9 @@ services:
     ports:
       - 5690:5690
     {% endif %}
-    {% if 'wizarr' in traefik_enabled_containers %}
+    {% if 'wizarr' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.wizarr-${COMPOSE_PROJECT}.loadbalancer.server.port=5690
-      - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['wizarr']['proxy_host_rule'] | default('wizarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.wizarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'wizarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-wizarr-midware@docker' if 'wizarr' in authentik_enabled_containers }}
+{{ proxy_labels(name='wizarr', port=5690) -}}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:5690/ || exit 1

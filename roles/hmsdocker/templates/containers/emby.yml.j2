@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   emby:
     image: lscr.io/linuxserver/emby:latest
@@ -45,14 +46,9 @@ services:
       - 8920:8920 #optional
       {% endif %}
     {% endif %}
-    {% if 'emby' in traefik_enabled_containers or 'emby' in homepage_enabled_containers %}
+    {% if 'emby' in proxy_enabled_containers or 'emby' in homepage_enabled_containers %}
     labels:
-      {% if 'emby' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'emby' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if 'emby' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='emby', port=8096) -}}
       {% if 'emby' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Emby

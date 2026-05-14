@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
@@ -41,14 +42,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'jellyfin' in traefik_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
+    {% if 'jellyfin' in proxy_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
     labels:
-      {% if 'jellyfin' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyfin' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker' if 'jellyfin' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='jellyfin', port=8096) -}}
       {% if 'jellyfin' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Jellyfin

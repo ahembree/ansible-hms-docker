@@ -57,6 +57,17 @@
         if hmsdocker_reverse_proxy == 'caddy'
         else false
       }}
+    # The active backend's external-hosts list. Used by the Authentik
+    # outpost prereq (cross-backend) so users only configure the list
+    # for the backend they actually run.
+    hmsdocker_proxy_ext_hosts_list: >-
+      {{
+        traefik_ext_hosts_list | default([])
+        if hmsdocker_reverse_proxy == 'traefik'
+        else (caddy_ext_hosts_list | default([]))
+        if hmsdocker_reverse_proxy == 'caddy'
+        else []
+      }}
 
 # Run these after the task above so that they are aware of the previous facts being set
 - name: Build additional facts of enabled containers to slim play output

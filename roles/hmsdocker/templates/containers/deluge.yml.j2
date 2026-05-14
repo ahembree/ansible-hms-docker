@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   deluge:
     image: binhex/arch-delugevpn
@@ -40,14 +41,9 @@ services:
       - 8112:8112
       - 8119:8118 # privoxy
     {% endif %}
-    {% if 'deluge' in traefik_enabled_containers or 'deluge' in homepage_enabled_containers %}
+    {% if 'deluge' in proxy_enabled_containers or 'deluge' in homepage_enabled_containers %}
     labels:
-      {% if 'deluge' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.deluge-${COMPOSE_PROJECT}.loadbalancer.server.port=8112
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'deluge' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-deluge-midware@docker' if 'deluge' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='deluge', port=8112) -}}
       {% if 'deluge' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=deluge

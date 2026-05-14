@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   tinymediamanager:
     image: tinymediamanager/tinymediamanager:latest
@@ -28,12 +29,9 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/tinymediamanager/config:/data
       - ${HMSD_MOUNT_PATH}:/media
-    {% if 'tinymediamanager' in traefik_enabled_containers %}
+    {% if 'tinymediamanager' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.tinymediamanager-${COMPOSE_PROJECT}.loadbalancer.server.port=4000
-      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tinymediamanager']['proxy_host_rule'] | default('tmm') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tinymediamanager-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tinymediamanager' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tinymediamanager-midware@docker' if 'tinymediamanager' in authentik_enabled_containers }}
+{{ proxy_labels(name='tinymediamanager', port=4000) -}}
     {% endif %}
     healthcheck:
       test: wget --spider -q http://127.0.0.1:4000/ || exit 1

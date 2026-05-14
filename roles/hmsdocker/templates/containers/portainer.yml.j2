@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   portainer:
     image: portainer/portainer-ce:latest
@@ -20,14 +21,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/portainer/config:/data
-    {% if 'portainer' in traefik_enabled_containers or 'portainer' in homepage_enabled_containers %}
+    {% if 'portainer' in proxy_enabled_containers or 'portainer' in homepage_enabled_containers %}
     labels:
-      {% if 'portainer' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'portainer' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker' if 'portainer' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='portainer', port=9000) -}}
       {% if 'portainer' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Portainer

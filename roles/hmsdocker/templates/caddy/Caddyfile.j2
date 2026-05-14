@@ -25,10 +25,9 @@
 }
 
 # Snippet: deny access to anyone outside the allowlist. The protected
-# upstream URL is passed as args[0] by the importer.
-#
-# Example label on a service container:
-#   caddy.import=internal_only {{upstreams 8989}}
+# upstream URL is passed as args[0] by the importer. Service templates
+# emit "caddy.import=internal_only <upstream>" as a Docker label.
+
 (internal_only) {
     @internal remote_ip {% for cidr in caddy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
     handle @internal {
@@ -68,11 +67,10 @@
 }
 
 # Snippet: gate the site behind an Authentik proxy outpost. The outpost
-# container name (without the :9000 suffix) is passed as args[0].
-#
-# Example labels:
-#   caddy.import_0=authentik_proxy authentik-proxy-${COMPOSE_PROJECT}-sonarr
-#   caddy.import_1=internal_only {{upstreams 8989}}
+# container name (without the :9000 suffix) is passed as args[0]. Used
+# by services whose container_map entry has `authentik: true` once
+# authentik is enabled and SSL is on.
+
 (authentik_proxy) {
     forward_auth {args[0]}:9000 {
         uri /outpost.goauthentik.io/auth/caddy

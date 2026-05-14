@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
@@ -17,14 +18,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
+    {% if 'jellyseerr' in proxy_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
     labels:
-      {% if 'jellyseerr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.jellyseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyseerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyseerr-midware@docker' if 'jellyseerr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='jellyseerr', port=5055) -}}
       {% if 'jellyseerr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Jellyseerr

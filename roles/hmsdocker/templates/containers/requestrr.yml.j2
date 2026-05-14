@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   requestrr:
     image: thomst08/requestrr:latest
@@ -22,12 +23,9 @@ services:
     ports:
       - 4545:4545
     {% endif %}
-    {% if 'requestrr' in traefik_enabled_containers %}
+    {% if 'requestrr' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.requestrr-${COMPOSE_PROJECT}.loadbalancer.server.port=4545
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['requestrr']['proxy_host_rule'] | default('requestrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.requestrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'requestrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-requestrr-midware@docker' if 'requestrr' in authentik_enabled_containers }}
+{{ proxy_labels(name='requestrr', port=4545) -}}
     {% endif %}
     # Image has bash but no curl/wget/nc; /dev/tcp is a bash builtin and the
     # default healthcheck shell is dash, so bash must be invoked explicitly.

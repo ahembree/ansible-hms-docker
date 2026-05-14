@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -22,12 +23,9 @@ services:
     ports:
       - 3000:3000
     {% endif %}
-    {% if 'homepage' in traefik_enabled_containers %}
+    {% if 'homepage' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}
+{{ proxy_labels(name='homepage', port=3000) -}}
     {% endif %}
     healthcheck:
       test: wget --spider -q http://127.0.0.1:3000/ || exit 1

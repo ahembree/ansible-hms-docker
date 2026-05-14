@@ -3,7 +3,11 @@
     url: http://{{ item }}.{{ hms_docker_domain }}
     status_code: 200,302,401,403
     validate_certs: false
-  loop: "{{ traefik_enabled_subdomains | default([]) + (caddy_enabled_subdomains | default([])) }}"
+  # traefik_enabled_subdomains carries the canonical per-service host
+  # list (derived from container_map regardless of backend); ext-host
+  # subdomains are appended by the caddy prereq into
+  # caddy_enabled_subdomains.
+  loop: "{{ (traefik_enabled_subdomains | default([])) + (caddy_enabled_subdomains | default([])) }}"
   when:
     - "'caddy' in enabled_containers"
     - caddy_verify_endpoints | default(false)

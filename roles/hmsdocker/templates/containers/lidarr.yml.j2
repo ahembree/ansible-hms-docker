@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
@@ -28,14 +29,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'lidarr' in traefik_enabled_containers or 'lidarr' in homepage_enabled_containers %}
+    {% if 'lidarr' in proxy_enabled_containers or 'lidarr' in homepage_enabled_containers %}
     labels:
-      {% if 'lidarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.lidarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8686
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'lidarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker' if 'lidarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='lidarr', port=8686) -}}
       {% if 'lidarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Lidarr

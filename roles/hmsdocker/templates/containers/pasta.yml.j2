@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   pasta:
     image: cglatot/pasta:latest
@@ -16,12 +17,9 @@ services:
     ports:
       - 8085:80
     {% endif %}
-    {% if 'pasta' in traefik_enabled_containers %}
+    {% if 'pasta' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.pasta-${COMPOSE_PROJECT}.loadbalancer.server.port=80
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pasta']['proxy_host_rule'] | default('pasta') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pasta' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker' if 'pasta' in authentik_enabled_containers }}
+{{ proxy_labels(name='pasta', port=80) -}}
     {% endif %}
     # Image has bash but no curl/wget/nc; /dev/tcp is a bash builtin and the
     # default healthcheck shell is dash, so bash must be invoked explicitly.

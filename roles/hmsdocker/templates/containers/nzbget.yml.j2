@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   nzbget:
     image: lscr.io/linuxserver/nzbget:latest
@@ -24,14 +25,9 @@ services:
     ports:
       - 6789:6789
     {% endif %}
-    {% if 'nzbget' in traefik_enabled_containers or 'nzbget' in homepage_enabled_containers %}
+    {% if 'nzbget' in proxy_enabled_containers or 'nzbget' in homepage_enabled_containers %}
     labels:
-      {% if 'nzbget' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.nzbget-${COMPOSE_PROJECT}.loadbalancer.server.port=6789
-      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nzbget']['proxy_host_rule'] | default('nzbget') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.nzbget-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nzbget' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nzbget-midware@docker' if 'nzbget' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='nzbget', port=6789) -}}
       {% if 'nzbget' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=NZBget

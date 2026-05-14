@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   speedtest-tracker:
     image: lscr.io/linuxserver/speedtest-tracker:latest
@@ -28,14 +29,9 @@ services:
       - DISPLAY_TIMEZONE=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/speedtest-tracker/config:/config
-    {% if 'speedtest-tracker' in traefik_enabled_containers or 'speedtest-tracker' in homepage_enabled_containers %}
+    {% if 'speedtest-tracker' in proxy_enabled_containers or 'speedtest-tracker' in homepage_enabled_containers %}
     labels:
-      {% if 'speedtest-tracker' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.speedtest-${COMPOSE_PROJECT}.loadbalancer.server.port=80
-      - traefik.http.routers.speedtest-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['speedtest-tracker']['proxy_host_rule'] | default('speedtest') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.speedtest-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'speedtest-tracker' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-speedtest-midware@docker' if 'speedtest-tracker' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='speedtest-tracker', port=80, label_name='speedtest') -}}
       {% if 'speedtest-tracker' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Speedtest Tracker

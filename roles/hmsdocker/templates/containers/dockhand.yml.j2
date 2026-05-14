@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   dockhand:
     image: fnsys/dockhand:latest
@@ -19,14 +20,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/dockhand/config:/app/data
-    {% if 'dockhand' in traefik_enabled_containers or 'dockhand' in homepage_enabled_containers %}
+    {% if 'dockhand' in proxy_enabled_containers or 'dockhand' in homepage_enabled_containers %}
     labels:
-      {% if 'dockhand' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.dockhand-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['dockhand']['proxy_host_rule'] | default('dockhand') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dockhand' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dockhand-midware@docker' if 'dockhand' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='dockhand', port=3000) -}}
       {% if 'dockhand' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Dockhand

@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   librariarr:
     image: ahembree/librariarr:latest
@@ -28,14 +29,9 @@ services:
     depends_on:
       librariarr-db:
         condition: service_healthy
-    {% if 'librariarr' in traefik_enabled_containers or 'librariarr' in homepage_enabled_containers %}
+    {% if 'librariarr' in proxy_enabled_containers or 'librariarr' in homepage_enabled_containers %}
     labels:
-      {% if 'librariarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.librariarr-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['librariarr']['proxy_host_rule'] | default('librariarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'librariarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-librariarr-midware@docker' if 'librariarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='librariarr', port=3000) -}}
       {% if 'librariarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Librariarr

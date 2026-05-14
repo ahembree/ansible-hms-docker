@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -50,15 +51,9 @@ services:
     tmpfs:
       - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
     {% endif %}
-    {% if 'plex' in traefik_enabled_containers or 'plex' in homepage_enabled_containers %}
+    {% if 'plex' in proxy_enabled_containers or 'plex' in homepage_enabled_containers %}
     labels:
-      {% if 'plex' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
-      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'plex' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker' if 'plex' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='plex', port=32400, scheme='https') -}}
       {% if 'plex' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Plex

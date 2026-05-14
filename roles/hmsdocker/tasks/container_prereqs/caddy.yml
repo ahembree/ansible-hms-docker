@@ -29,10 +29,14 @@
   register: caddy_dockerfile_rendered
 
 - name: Caddy Prereq - Build custom Caddy image
-  community.docker.docker_image_build:
+  community.docker.docker_image:
     name: "hms-docker-caddy:{{ project_name }}"
-    path: "{{ hms_docker_apps_path }}/caddy/build"
-    rebuild: "{{ 'always' if caddy_dockerfile_rendered.changed else 'never' }}"
+    source: build
+    state: present
+    force_source: "{{ caddy_dockerfile_rendered.changed | default(false) }}"
+    build:
+      path: "{{ hms_docker_apps_path }}/caddy/build"
+      pull: false
   when: not ansible_check_mode
 
 - name: Caddy Prereq - Ensure Caddyfile (global snippets)

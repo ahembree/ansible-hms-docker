@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   autobrr:
     container_name: autobrr
@@ -22,14 +23,9 @@ services:
     ports:
       - 7474:7474
     {% endif %}
-    {% if 'autobrr' in traefik_enabled_containers or 'autobrr' in homepage_enabled_containers %}
+    {% if 'autobrr' in proxy_enabled_containers or 'autobrr' in homepage_enabled_containers %}
     labels:
-      {% if 'autobrr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.autobrr-${COMPOSE_PROJECT}.loadbalancer.server.port=7474
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'autobrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker' if 'autobrr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='autobrr', port=7474) -}}
       {% if 'autobrr' in homepage_enabled_containers %}
       - homepage.group=Downloads
       - homepage.name=Autobrr

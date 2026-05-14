@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   calibre:
     image: lscr.io/linuxserver/calibre:latest
@@ -25,13 +26,9 @@ services:
       - 8182:8181 # remote desktop https
       - 8084:8081 # webserver (must be enabled in settings using remote desktop)
     {% endif %}
-    {% if 'calibre' in traefik_enabled_containers %}
+    {% if 'calibre' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
-      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
-      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['calibre']['proxy_host_rule'] | default('calibre') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'calibre' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-calibre-midware@docker' if 'calibre' in authentik_enabled_containers }}
+{{ proxy_labels(name='calibre', port=8181, scheme='https') -}}
     {% endif %}
     healthcheck:
       test: curl -fk https://127.0.0.1:8181/ || exit 1

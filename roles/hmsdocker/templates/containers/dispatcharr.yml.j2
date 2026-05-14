@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   dispatcharr:
     image: ghcr.io/dispatcharr/dispatcharr:latest
@@ -36,12 +37,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'dispatcharr' in traefik_enabled_containers %}
+    {% if 'dispatcharr' in proxy_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.dispatcharr-${COMPOSE_PROJECT}.loadbalancer.server.port=9191
-      - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['dispatcharr']['proxy_host_rule'] | default('dispatcharr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.dispatcharr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dispatcharr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dispatcharr-midware@docker' if 'dispatcharr' in authentik_enabled_containers }}
+{{ proxy_labels(name='dispatcharr', port=9191) -}}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:9191 || exit 1

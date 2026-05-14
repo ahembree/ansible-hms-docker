@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   beszel:
     image: henrygd/beszel:latest
@@ -22,14 +23,9 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/beszel/config/beszel_data:/beszel_data
       - ${HMSD_APPS_PATH}/beszel/config/beszel_socket:/beszel_socket
-    {% if 'beszel' in traefik_enabled_containers or 'beszel' in homepage_enabled_containers %}
+    {% if 'beszel' in proxy_enabled_containers or 'beszel' in homepage_enabled_containers %}
     labels:
-      {% if 'beszel' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.beszel-${COMPOSE_PROJECT}.loadbalancer.server.port=8090
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='beszel', port=8090) -}}
       {% if 'beszel' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=beszel

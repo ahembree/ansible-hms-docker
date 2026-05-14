@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   scrutiny:
     image: ghcr.io/analogj/scrutiny:latest-omnibus
@@ -27,14 +28,9 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
+    {% if 'scrutiny' in proxy_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
     labels:
-      {% if 'scrutiny' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.scrutiny-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['scrutiny']['proxy_host_rule'] | default('scrutiny') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'scrutiny' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-scrutiny-midware@docker' if 'scrutiny' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='scrutiny', port=8080) -}}
       {% if 'scrutiny' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=Scrutiny

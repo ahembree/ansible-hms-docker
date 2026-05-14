@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   prowlarr:
     image: linuxserver/prowlarr:latest
@@ -23,14 +24,9 @@ services:
     ports:
       - 9696:9696
     {% endif %}
-    {% if 'prowlarr' in traefik_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
+    {% if 'prowlarr' in proxy_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
     labels:
-      {% if 'prowlarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.prowlarr-${COMPOSE_PROJECT}.loadbalancer.server.port=9696
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.prowlarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'prowlarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-prowlarr-midware@docker' if 'prowlarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='prowlarr', port=9696) -}}
       {% if 'prowlarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Prowlarr

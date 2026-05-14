@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   bazarr:
     image: linuxserver/bazarr:latest
@@ -29,14 +30,9 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'bazarr' in traefik_enabled_containers or 'bazarr' in homepage_enabled_containers %}
+    {% if 'bazarr' in proxy_enabled_containers or 'bazarr' in homepage_enabled_containers %}
     labels:
-      {% if 'bazarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'bazarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker' if 'bazarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='bazarr', port=6767) -}}
       {% if 'bazarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Bazarr

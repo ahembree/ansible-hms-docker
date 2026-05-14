@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   backrest:
     image: garethgeorge/backrest
@@ -32,14 +33,9 @@ services:
     ports:
       - 9898:9898
     {% endif %}
-    {% if 'backrest' in traefik_enabled_containers or 'backrest' in homepage_enabled_containers %}
+    {% if 'backrest' in proxy_enabled_containers or 'backrest' in homepage_enabled_containers %}
     labels:
-      {% if 'backrest' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.backrest-${COMPOSE_PROJECT}.loadbalancer.server.port=9898
-      - traefik.http.routers.backrest-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['backrest']['proxy_host_rule'] | default('backrest') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.backrest-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'backrest' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-backrest-midware@docker' if 'backrest' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='backrest', port=9898) -}}
       {% if 'backrest' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
       - homepage.name=backrest

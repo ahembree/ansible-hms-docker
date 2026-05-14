@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 # Tracearr - Standard Deployment (Separate Services)
 
 services:
@@ -37,14 +38,9 @@ services:
     networks:
       - tracearr_net
       - proxy_net
-    {% if 'tracearr' in traefik_enabled_containers or 'tracearr' in homepage_enabled_containers %}
+    {% if 'tracearr' in proxy_enabled_containers or 'tracearr' in homepage_enabled_containers %}
     labels:
-      {% if 'tracearr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.tracearr-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.tracearr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tracearr']['proxy_host_rule'] | default('tracearr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tracearr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tracearr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tracearr-midware@docker' if 'tracearr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='tracearr', port=3000) -}}
       {% if 'tracearr' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Tracearr

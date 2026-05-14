@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   tubearchivist:
     image: bbilly1/tubearchivist
@@ -40,14 +41,9 @@ services:
     depends_on:
       - tubearchivist-es
       - tubearchivist-redis
-    {% if 'tubearchivist' in traefik_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
+    {% if 'tubearchivist' in proxy_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
     labels:
-      {% if 'tubearchivist' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tubearchivist' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if 'tubearchivist' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='tubearchivist', port=8001) -}}
       {% if 'tubearchivist' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Tubearchivist

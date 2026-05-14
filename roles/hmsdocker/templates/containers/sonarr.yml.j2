@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   sonarr:
     image: linuxserver/sonarr:latest
@@ -17,14 +18,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'sonarr' in traefik_enabled_containers or 'sonarr' in homepage_enabled_containers %}
+    {% if 'sonarr' in proxy_enabled_containers or 'sonarr' in homepage_enabled_containers %}
     labels:
-      {% if 'sonarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if 'sonarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='sonarr', port=8989) -}}
       {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Sonarr
@@ -77,14 +73,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'sonarr' in traefik_enabled_containers or 'sonarr' in homepage_enabled_containers %}
+    {% if 'sonarr' in proxy_enabled_containers or 'sonarr' in homepage_enabled_containers %}
     labels:
-      {% if 'sonarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.sonarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if 'sonarr' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='sonarr', port=8989, label_name='sonarr-4k', host=(hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr')) ~ '-4k') -}}
       {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers - 4K
       - homepage.name=Sonarr - 4K

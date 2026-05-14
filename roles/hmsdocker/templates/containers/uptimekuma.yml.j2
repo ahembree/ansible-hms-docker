@@ -1,3 +1,4 @@
+{% from 'macros/proxy_labels.j2' import proxy_labels with context %}
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:2
@@ -23,14 +24,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'uptimekuma' in traefik_enabled_containers or 'uptimekuma' in homepage_enabled_containers %}
+    {% if 'uptimekuma' in proxy_enabled_containers or 'uptimekuma' in homepage_enabled_containers %}
     labels:
-      {% if 'uptimekuma' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptime-kuma') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'uptimekuma' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if 'uptimekuma' in authentik_enabled_containers }}
-      {% endif %}
+{{ proxy_labels(name='uptimekuma', port=3001) -}}
       {% if 'uptimekuma' in homepage_enabled_containers %}
       - homepage.group=Media
       - homepage.name=Uptime Kuma
