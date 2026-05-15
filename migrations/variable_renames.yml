@@ -18,41 +18,26 @@
 # bespoke handling and are not covered by this file.
 
 variable_renames:
-  - { old: traefik_ext_hosts_configs_path,      new: hmsdocker_traefik_static_config_location }
-  - { old: hms_docker_library_path,             new: hmsdocker_library_path }
-  - { old: transmission_vpn_provider,           new: hmsdocker_vpn_provider }
-  - { old: transmission_vpn_user,               new: hmsdocker_vpn_user }
-  - { old: transmission_vpn_pass,               new: hmsdocker_vpn_pass }
-  - { old: transmission_ovpn_config_local_path, new: transmission_ovpn_config_local_dir }
-  - { old: hms_docker_plex_ssl_subdomain,       new: hms_docker_plex_ssl_public_hostname }
+  - { old: traefik_ext_hosts_configs_path,            new: hmsdocker_traefik_static_config_location }
+  - { old: hms_docker_library_path,                   new: hmsdocker_library_path }
+  - { old: transmission_vpn_provider,                 new: hmsdocker_vpn_provider }
+  - { old: transmission_vpn_user,                     new: hmsdocker_vpn_user }
+  - { old: transmission_vpn_pass,                     new: hmsdocker_vpn_pass }
+  - { old: transmission_ovpn_config_local_path,       new: transmission_ovpn_config_local_dir }
+  - { old: hms_docker_plex_ssl_subdomain,             new: hms_docker_plex_ssl_public_hostname }
   # Reverse-proxy settings shared between Traefik and Caddy backends
   # moved from defaults/main/traefik.yml to defaults/main/reverse_proxy.yml
-  # and renamed to a backend-neutral hmsdocker_proxy_* namespace. The
-  # parallel caddy_* aliases are included for users who experimented
-  # with the Caddy backend during pre-release; they map to the same
-  # target so only one ever wins.
+  # and renamed to a backend-neutral hmsdocker_proxy_* namespace.
   - { old: traefik_ssl_enabled,                       new: hmsdocker_proxy_ssl_enabled }
-  - { old: caddy_ssl_enabled,                         new: hmsdocker_proxy_ssl_enabled }
   - { old: traefik_ssl_use_letsencrypt_staging_url,   new: hmsdocker_proxy_ssl_use_staging }
-  - { old: caddy_ssl_use_letsencrypt_staging_url,     new: hmsdocker_proxy_ssl_use_staging }
   - { old: traefik_ssl_letsencrypt_email,             new: hmsdocker_proxy_ssl_letsencrypt_email }
-  - { old: caddy_ssl_letsencrypt_email,               new: hmsdocker_proxy_ssl_letsencrypt_email }
   - { old: traefik_ssl_dns_provider_environment_vars, new: hmsdocker_proxy_ssl_dns_provider_environment_vars }
-  - { old: caddy_ssl_dns_provider_environment_vars,   new: hmsdocker_proxy_ssl_dns_provider_environment_vars }
   - { old: traefik_ssl_dns_resolver_1,                new: hmsdocker_proxy_ssl_dns_resolver_1 }
-  - { old: caddy_ssl_dns_resolver_1,                  new: hmsdocker_proxy_ssl_dns_resolver_1 }
   - { old: traefik_ssl_dns_resolver_2,                new: hmsdocker_proxy_ssl_dns_resolver_2 }
-  - { old: caddy_ssl_dns_resolver_2,                  new: hmsdocker_proxy_ssl_dns_resolver_2 }
   - { old: traefik_subnet_allow_list,                 new: hmsdocker_proxy_subnet_allow_list }
-  - { old: caddy_subnet_allow_list,                   new: hmsdocker_proxy_subnet_allow_list }
   - { old: traefik_log_level,                         new: hmsdocker_proxy_log_level }
-  - { old: caddy_log_level,                           new: hmsdocker_proxy_log_level }
   - { old: traefik_enable_access_logs,                new: hmsdocker_proxy_enable_access_logs }
-  - { old: caddy_enable_access_logs,                  new: hmsdocker_proxy_enable_access_logs }
   - { old: traefik_verify_endpoints,                  new: hmsdocker_proxy_verify_endpoints }
-  - { old: caddy_verify_endpoints,                    new: hmsdocker_proxy_verify_endpoints }
   - { old: traefik_ext_hosts_enabled,                 new: hmsdocker_proxy_ext_hosts_enabled }
-  - { old: caddy_ext_hosts_enabled,                   new: hmsdocker_proxy_ext_hosts_enabled }
   - { old: traefik_ext_hosts_list,                    new: hmsdocker_proxy_ext_hosts_list }
-  - { old: caddy_ext_hosts_list,                      new: hmsdocker_proxy_ext_hosts_list }
   - { old: traefik_ssl_sans,                          new: hmsdocker_proxy_ssl_sans }
