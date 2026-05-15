@@ -40,7 +40,7 @@
 {%   if traefik_service %}
       - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.service={{ traefik_service }}
 {%   else %}
-      - traefik.http.services.{{ label_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port }}
+      - traefik.http.services.{{ label_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port | string }}
 {%     if scheme == 'https' %}
       - traefik.http.services.{{ label_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
 {%     endif %}
