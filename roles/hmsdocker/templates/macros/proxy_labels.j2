@@ -46,6 +46,6 @@
 {%     endif %}
 {%   endif %}
       - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ host }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-' ~ label_name ~ '-midware@docker' if name in authentik_enabled_containers }}
+      - traefik.http.routers.{{ label_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ label_name ~ '-midware@docker') if name in authentik_enabled_containers else '' }}
 {% endif %}
 {%- endmacro %}
