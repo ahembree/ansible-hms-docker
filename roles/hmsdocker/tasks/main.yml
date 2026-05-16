@@ -56,6 +56,11 @@
     # should be exposed through whatever reverse proxy is active. The
     # per-service `traefik: true` flag in the container map is read as
     # "enable reverse-proxy access" regardless of which backend runs.
+    # | intersect(enabled_containers) drops the *inactive* proxy from the
+    # list — the reverse-proxy selector already removed it from
+    # enabled_containers above, but the container map still has it as
+    # enabled:true with traefik:true, so without the intersect step
+    # caddy_enabled_containers would include 'traefik' (and vice versa).
     proxy_enabled_containers: >-
           {{
             (
@@ -66,7 +71,7 @@
               selectattr('value.traefik', 'equalto', true) |
               map(attribute='key') |
               list
-            )
+            ) | intersect(enabled_containers)
             if (hmsdocker_reverse_proxy in enabled_containers)
             else []
           }}
@@ -80,7 +85,7 @@
               selectattr('value.traefik', 'equalto', true) |
               map(attribute='key') |
               list
-            )
+            ) | intersect(enabled_containers)
             if ('traefik' in enabled_containers)
             else []
           }}
@@ -94,7 +99,7 @@
               selectattr('value.traefik', 'equalto', true) |
               map(attribute='key') |
               list
-            )
+            ) | intersect(enabled_containers)
             if ('caddy' in enabled_containers)
             else []
           }}

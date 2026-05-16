@@ -1,4 +1,12 @@
 ---
+# vars/caddy_service_proxy_data.yml is role-internal data, but Ansible
+# only auto-loads vars/main.yml — sibling files have to be pulled in
+# explicitly. Doing it here (rather than in vars/main.yml) keeps the
+# port table colocated with the only task that consumes it.
+- name: Caddy Prereq - Load per-service proxy data
+  ansible.builtin.include_vars:
+    file: "{{ role_path }}/vars/caddy_service_proxy_data.yml"
+
 - name: Caddy Prereq - Validate every reverse-proxy-enabled service has port data
   ansible.builtin.assert:
     that:
