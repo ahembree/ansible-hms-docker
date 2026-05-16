@@ -192,7 +192,7 @@
     expose_ports_enabled_containers: >-
           {{
             enabled_containers
-            if ('traefik' not in enabled_containers or container_expose_ports)
+            if (('traefik' not in enabled_containers and 'caddy' not in enabled_containers) or container_expose_ports)
             else (
               hms_docker_container_map | dict2items |
               selectattr('value.enabled', 'defined') |
