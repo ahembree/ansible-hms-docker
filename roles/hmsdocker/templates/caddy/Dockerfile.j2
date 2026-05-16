@@ -9,7 +9,7 @@
 # Rebuilt automatically by `docker compose build` when this Dockerfile
 # changes (e.g. user switches DNS provider or bumps the version).
 
-FROM caddy:{{ hmsdocker_caddy_version }}-builder-alpine AS builder
+FROM caddy:{{ hmsdocker_caddy_version }}-builder AS builder
 
 RUN xcaddy build{% if caddy_ssl_dns_provider_module | length > 0 %} \
     --with github.com/caddy-dns/{{ caddy_ssl_dns_provider_module }}{% endif %}
