@@ -39,9 +39,13 @@
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:
     label: "{{ item.old }} -> {{ item.new }}"
-  # Skip null / empty old values: Jinja stringifies None as the literal
-  # "None", which would silently bypass downstream length-based asserts.
-  when: (lookup('vars', item.old) | default('', true) | string) | length > 0
+  # Skip only null old values (Jinja stringifies None as the literal
+  # "None", which would silently bypass downstream length-based asserts).
+  # Booleans, zero, and empty strings are legitimate values and must be
+  # forwarded as-is — `traefik_ssl_use_letsencrypt_staging_url: no`
+  # would otherwise be dropped and the new var would fall back to its
+  # default of `yes`.
+  when: lookup('vars', item.old) is not none
   # Old values may include credentials (e.g. transmission_vpn_pass).
   # Match the rest of preflight's no_log pattern.
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
