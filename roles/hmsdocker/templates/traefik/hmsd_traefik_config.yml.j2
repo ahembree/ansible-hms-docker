@@ -33,6 +33,9 @@ entryPoints:
   websecure:
     address: :443
     asDefault: true
+    # HTTP/3 over QUIC on UDP/443. Stable since Traefik 3.0; the
+    # container publishes UDP/443 alongside TCP/443.
+    http3: {}
     http:
       tls:
         certResolver: letsencrypt
