@@ -1,8 +1,10 @@
-{# Per-ext-host Caddy fragment. Rendered for each enabled entry in
-   hmsdocker_proxy_ext_hosts_list. Loaded by the main Caddyfile's
-   `import /etc/caddy/conf.d/*.caddy`. #}
+{# Per-ext-host host matcher + handle block. Rendered for each
+   enabled entry in hmsdocker_proxy_ext_hosts_list. Imported INSIDE
+   the wildcard site block in the main Caddyfile, so the route
+   shares the wildcard cert. #}
 {% set slug = item.friendly_name | map('regex_replace', regex, replace) | list | join %}
-{{ item.subdomain_name }}.{{ hms_docker_domain }} {
+@{{ slug }} host {{ item.subdomain_name }}.{{ hms_docker_domain }}
+handle @{{ slug }} {
 {% if item.authentik | default(false) and item.authentik_provider_type | default('proxy') == 'proxy' and 'authentik' in enabled_containers and hmsdocker_proxy_ssl_enabled %}
     import authentik_proxy authentik-proxy-{{ project_name }}-{{ slug }}
 {% endif %}

@@ -1,7 +1,7 @@
-{# Per-service Caddyfile fragment. Rendered once per entry in
-   hmsdocker_proxy_service_data whose `name` is also in
-   caddy_enabled_containers. Loaded by the main Caddyfile's
-   `import /etc/caddy/conf.d/*.caddy`.
+{# Per-service host matcher + handle block. Rendered once per entry
+   in hmsdocker_proxy_service_data whose `name` is also in
+   caddy_enabled_containers. Imported INSIDE the wildcard site block
+   in the main Caddyfile, so all routes share the wildcard cert.
 
    Loop variable: item — a dict with keys {name, port, scheme?, host?,
    label_name?}. host defaults to container_map[name].proxy_host_rule,
@@ -14,7 +14,8 @@
 {% set is_public = svc in expose_public_enabled_containers %}
 {% set is_authentik = svc in authentik_enabled_containers %}
 {% set snippet = ('external' if is_public else 'internal_only') ~ ('_https' if scheme == 'https' else '') %}
-{{ host }}.{{ hms_docker_domain }} {
+@{{ svc }} host {{ host }}.{{ hms_docker_domain }}
+handle @{{ svc }} {
 {% if is_authentik %}
     import authentik_proxy authentik-proxy-{{ project_name }}-{{ svc }}
 {% endif %}

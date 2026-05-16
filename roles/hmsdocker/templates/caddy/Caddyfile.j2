@@ -5,17 +5,10 @@
     {% if hmsdocker_proxy_ssl_letsencrypt_email | length > 0 %}
     email {{ hmsdocker_proxy_ssl_letsencrypt_email }}
     {% endif %}
-    {% if hmsdocker_proxy_ssl_enabled %}
-    {# Suppress automatic cert issuance for individual hostnames in
-       per-service site blocks. The wildcard site block below issues
-       one cert (with every entry of hmsdocker_proxy_ssl_sans on it)
-       and per-service sites serve that cert from Caddy's cert pool. #}
-    auto_https disable_certs
-
-    {% if hmsdocker_proxy_ssl_use_staging %}
+    {% if hmsdocker_proxy_ssl_enabled and hmsdocker_proxy_ssl_use_staging %}
     acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
     {% endif %}
-    {% else %}
+    {% if not hmsdocker_proxy_ssl_enabled %}
     {# SSL disabled — local self-signed certs so HTTPS still works on the LAN. #}
     local_certs
     {% endif %}
@@ -32,34 +25,12 @@
 
 
 #######################################################################
-# Wildcard certificate
-#######################################################################
-{% if hmsdocker_proxy_ssl_enabled %}
-{# A single site block with every SAN as a hostname. Caddy issues one
-   cert with all of those as Subject Alternative Names. Per-service
-   site blocks (loaded from conf.d below) match more-specific
-   hostnames and Caddy serves them this same cert from its pool. #}
-{% for san in hmsdocker_proxy_ssl_sans %}{{ san }}{% if not loop.last %}, {% endif %}{% endfor %} {
-    tls {
-        dns {{ caddy_ssl_dns_provider_directive }}{% if caddy_ssl_dns_provider_args | length > 0 %} {{ caddy_ssl_dns_provider_args }}{% endif +%}
-        resolvers {{ hmsdocker_proxy_ssl_dns_resolver_1 }} {{ hmsdocker_proxy_ssl_dns_resolver_2 }}
-    }
-    {# No routing: an unmatched subdomain returns 404 here instead of
-       leaking the upstream. Per-service blocks below take priority for
-       known hostnames. #}
-    respond 404
-}
-{% endif %}
-
-
-#######################################################################
-# Snippets imported by per-service fragments
+# Snippets imported by per-service handle blocks
 #######################################################################
 
-# Snippet: deny access to anyone outside the allowlist. The protected
-# upstream URL is passed as args[0] by the importer. Service fragments
-# emit "import internal_only <upstream>".
-
+# Deny access to anyone outside the allowlist. The protected upstream
+# URL is passed as args[0] by the importer; service fragments emit
+# `import internal_only <upstream>`.
 (internal_only) {
     @internal remote_ip {% for cidr in hmsdocker_proxy_subnet_allow_list | regex_replace(', ', ',') | split(',') %}{{ cidr.strip() }} {% endfor %}127.0.0.1/32
     handle @internal {
@@ -84,7 +55,7 @@
     respond 403
 }
 
-# Snippet: expose to the public internet (no allowlist).
+# Expose to the public internet (no allowlist).
 (external) {
     reverse_proxy {args[0]}
 }
@@ -98,11 +69,8 @@
     }
 }
 
-# Snippet: gate the site behind an Authentik proxy outpost. The outpost
-# container name (without the :9000 suffix) is passed as args[0]. Used
-# by services whose container_map entry has `authentik: true` once
-# authentik is enabled and SSL is on.
-
+# Gate the site behind an Authentik proxy outpost. The outpost
+# container name (without the :9000 suffix) is passed as args[0].
 (authentik_proxy) {
     forward_auth {args[0]}:9000 {
         uri /outpost.goauthentik.io/auth/caddy
@@ -116,7 +84,25 @@
 
 
 #######################################################################
-# Per-service site blocks
+# Wildcard site — one cert covers everything, per-service routes are
+# host-matchers imported from conf.d.
 #######################################################################
+{% for san in hmsdocker_proxy_ssl_sans %}{{ san }}{% if not loop.last %}, {% endif %}{% endfor %} {
+{% if hmsdocker_proxy_ssl_enabled %}
+    tls {
+        dns {{ caddy_ssl_dns_provider_directive }}{% if caddy_ssl_dns_provider_args | length > 0 %} {{ caddy_ssl_dns_provider_args }}{% endif +%}
+        resolvers {{ hmsdocker_proxy_ssl_dns_resolver_1 }} {{ hmsdocker_proxy_ssl_dns_resolver_2 }}
+    }
+{% endif %}
 
-import /etc/caddy/conf.d/*.caddy
+    # Per-service host matchers + handle blocks. Each fragment in
+    # conf.d/ declares a `@<svc> host <fqdn>` matcher and a matching
+    # `handle @<svc> { ... }` block. They live inside this wildcard
+    # site so they all share its single cert.
+    import /etc/caddy/conf.d/*.caddy
+
+    # Fall-through for any subdomain that wasn't matched above.
+    handle {
+        respond 404
+    }
+}
