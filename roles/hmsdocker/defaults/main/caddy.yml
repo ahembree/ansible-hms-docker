@@ -25,20 +25,20 @@ caddy_ssl_dns_provider_module: ""
 # README. Leave at default to inherit from caddy_ssl_dns_provider_module.
 caddy_ssl_dns_provider_directive: "{{ caddy_ssl_dns_provider_module }}"
 
-# Arguments appended after the `dns <directive>` line in the Caddyfile.
-# Each caddy-dns/<provider> module has its own arg syntax — check the
-# module's README. Use Caddy's {env.NAME} placeholder to reference
-# credentials that hmsdocker_proxy_ssl_dns_provider_environment_vars
-# above injected into the container's environment.
+# Arguments appended after `dns <directive>` in the Caddyfile.
 #
-# Examples:
-#   cloudflare:    "{env.CF_API_TOKEN}"
-#   digitalocean:  "{env.DO_AUTH_TOKEN}"
-#   duckdns:       "{env.DUCKDNS_TOKEN}"
-#   route53:       ""      # the route53 module reads AWS_ACCESS_KEY_ID /
-#                          # AWS_SECRET_ACCESS_KEY from the environment on
-#                          # its own; no inline args needed.
-#   gandi:         "{env.GANDI_BEARER_TOKEN}"
-#   hetzner:       "{env.HETZNER_API_TOKEN}"
-#   porkbun:       "api_key {env.PORKBUN_API_KEY} api_secret_key {env.PORKBUN_SECRET_KEY}"
-caddy_ssl_dns_provider_args: ""
+# By default this auto-derives one `{env.NAME}` placeholder per key
+# defined in hmsdocker_proxy_ssl_dns_provider_environment_vars (in
+# reverse_proxy.yml) — so for the common single-token providers you
+# only have to set the env-vars dict and these args fall out:
+#
+#   env_vars = { CF_API_TOKEN: ... }  ->  dns cloudflare {env.CF_API_TOKEN}
+#   env_vars = { DO_AUTH_TOKEN: ... } ->  dns digitalocean {env.DO_AUTH_TOKEN}
+#
+# Override this variable for providers whose Caddyfile arg syntax
+# doesn't match "space-separated positional {env.X}" — typically
+# providers that take labeled args or no inline args at all:
+#
+#   route53: ""                 # module reads AWS_* env vars on its own
+#   porkbun: "api_key {env.PORKBUN_API_KEY} api_secret_key {env.PORKBUN_SECRET_KEY}"
+caddy_ssl_dns_provider_args: "{% for k in (hmsdocker_proxy_ssl_dns_provider_environment_vars | default({})).keys() %}{env.{{ k }}}{% if not loop.last %} {% endif %}{% endfor %}"
