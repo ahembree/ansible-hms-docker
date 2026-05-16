@@ -1,15 +1,20 @@
-# Custom Caddy image rendered by ansible. Vanilla Caddy plus the DNS
-# provider module needed for the ACME DNS-01 challenge (compiled in via
-# xcaddy). No third-party plugins.
+# Multi-stage Caddy build rendered by ansible. Vanilla Caddy plus the
+# DNS provider module needed for the ACME DNS-01 challenge (compiled
+# in via xcaddy in the builder stage, then the resulting binary is
+# copied into the slim runtime image). This is the canonical pattern
+# documented in caddyserver/caddy-docker and the caddy-dns/<provider>
+# README — Caddy's plugin system is compile-time only, so building is
+# the official path when DNS-01 is needed.
 #
 # Rebuilt automatically by `docker compose build` when this Dockerfile
-# changes (e.g. user switches DNS provider).
+# changes (e.g. user switches DNS provider or bumps the version).
 
-FROM caddy:{{ hmsdocker_caddy_version }}-builder AS builder
+FROM caddy:{{ hmsdocker_caddy_version }}-builder-alpine AS builder
 
 RUN xcaddy build{% if caddy_ssl_dns_provider_module | length > 0 %} \
     --with github.com/caddy-dns/{{ caddy_ssl_dns_provider_module }}{% endif %}
 
-FROM caddy:{{ hmsdocker_caddy_version }}
+
+FROM caddy:{{ hmsdocker_caddy_version }}-alpine
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

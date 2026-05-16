@@ -5,10 +5,11 @@
 # level, external hosts list, etc.) live in defaults/main/reverse_proxy.yml.
 # Only Caddy-specific knobs remain in this file.
 
-# Base caddy image used by the local xcaddy build (the chosen DNS
-# provider module is compiled in on top of this base for the ACME
-# DNS-01 challenge).
-hmsdocker_caddy_version: "2.10-alpine"
+# Caddy version to build against. Plain version string — the Dockerfile
+# combines it with the variant suffix (-builder-alpine for the build
+# stage, -alpine for the runtime stage). Track caddyserver/caddy
+# releases; latest stable as of writing is 2.11.
+hmsdocker_caddy_version: "2.11"
 
 # The Caddy DNS provider module name to compile in. This is the suffix
 # of the github.com/caddy-dns/<name> module — Caddy's xcaddy ecosystem
