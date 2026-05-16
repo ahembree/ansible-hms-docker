@@ -150,13 +150,26 @@
     that:
       - (hmsdocker_proxy_ssl_letsencrypt_email | default('', true)) | length > 0
       - (caddy_ssl_dns_provider_module | default('', true)) | length > 0
+      # caddy_ssl_dns_provider_args may legitimately be empty (some
+      # modules, e.g. route53, read AWS_* env vars on their own), so
+      # this is a soft check: warn that a likely-misconfigured module
+      # (cloudflare, digitalocean, etc.) usually needs explicit
+      # {env.NAME} args even though the cloudflare module happens to
+      # fall back to CF_API_TOKEN implicitly. We only HARD-fail when
+      # the env vars dict is also empty — that combination produces a
+      # cert request with no credentials and an unhelpful Caddy error.
+      - (hmsdocker_proxy_ssl_dns_provider_environment_vars | default({})) | length > 0
     fail_msg: >-
-      hmsdocker_proxy_ssl_enabled is true but Let's Encrypt configuration is incomplete.
-      Set hmsdocker_proxy_ssl_letsencrypt_email in
-      inventory/group_vars/all/reverse_proxy.yml and caddy_ssl_dns_provider_module
-      in inventory/group_vars/all/caddy.yml.
-      (The module name is the suffix of github.com/caddy-dns/<name>, e.g.
-      'cloudflare', 'route53'. The build pulls it in via xcaddy.)
+      hmsdocker_proxy_ssl_enabled is true but Caddy's DNS-01 configuration is incomplete.
+      Required:
+        hmsdocker_proxy_ssl_letsencrypt_email             (in reverse_proxy.yml)
+        caddy_ssl_dns_provider_module                     (in caddy.yml — module suffix
+                                                           of github.com/caddy-dns/<name>)
+        hmsdocker_proxy_ssl_dns_provider_environment_vars (in reverse_proxy.yml — the
+                                                           credentials to pass into the
+                                                           caddy container's environment)
+      Most providers also need caddy_ssl_dns_provider_args set to reference those env
+      vars via Caddy's {env.NAME} placeholder (see caddy.yml for examples).
     quiet: true
   when:
     - hmsdocker_reverse_proxy | default('traefik') == 'caddy'

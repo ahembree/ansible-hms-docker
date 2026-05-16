@@ -6,9 +6,9 @@
 # Only Caddy-specific knobs remain in this file.
 
 # Caddy version to build against. Plain version string — the Dockerfile
-# combines it with the variant suffix (-builder-alpine for the build
-# stage, -alpine for the runtime stage). Track caddyserver/caddy
-# releases; latest stable as of writing is 2.11.
+# combines it with the variant suffix (-builder for the build stage,
+# -alpine for the runtime stage). Track caddyserver/caddy releases;
+# latest stable as of writing is 2.11.
 hmsdocker_caddy_version: "2.11"
 
 # The Caddy DNS provider module name to compile in. This is the suffix
@@ -24,3 +24,21 @@ caddy_ssl_dns_provider_module: ""
 # A few providers use a different directive name — check the module's
 # README. Leave at default to inherit from caddy_ssl_dns_provider_module.
 caddy_ssl_dns_provider_directive: "{{ caddy_ssl_dns_provider_module }}"
+
+# Arguments appended after the `dns <directive>` line in the Caddyfile.
+# Each caddy-dns/<provider> module has its own arg syntax — check the
+# module's README. Use Caddy's {env.NAME} placeholder to reference
+# credentials that hmsdocker_proxy_ssl_dns_provider_environment_vars
+# above injected into the container's environment.
+#
+# Examples:
+#   cloudflare:    "{env.CF_API_TOKEN}"
+#   digitalocean:  "{env.DO_AUTH_TOKEN}"
+#   duckdns:       "{env.DUCKDNS_TOKEN}"
+#   route53:       ""      # the route53 module reads AWS_ACCESS_KEY_ID /
+#                          # AWS_SECRET_ACCESS_KEY from the environment on
+#                          # its own; no inline args needed.
+#   gandi:         "{env.GANDI_BEARER_TOKEN}"
+#   hetzner:       "{env.HETZNER_API_TOKEN}"
+#   porkbun:       "api_key {env.PORKBUN_API_KEY} api_secret_key {env.PORKBUN_SECRET_KEY}"
+caddy_ssl_dns_provider_args: ""

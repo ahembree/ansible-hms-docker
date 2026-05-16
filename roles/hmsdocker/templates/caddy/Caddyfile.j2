@@ -41,7 +41,7 @@
    hostnames and Caddy serves them this same cert from its pool. #}
 {% for san in hmsdocker_proxy_ssl_sans %}{{ san }}{% if not loop.last %}, {% endif %}{% endfor %} {
     tls {
-        dns {{ caddy_ssl_dns_provider_directive }}
+        dns {{ caddy_ssl_dns_provider_directive }}{% if caddy_ssl_dns_provider_args | length > 0 %} {{ caddy_ssl_dns_provider_args }}{% endif +%}
         resolvers {{ hmsdocker_proxy_ssl_dns_resolver_1 }} {{ hmsdocker_proxy_ssl_dns_resolver_2 }}
     }
     {# No routing: an unmatched subdomain returns 404 here instead of
