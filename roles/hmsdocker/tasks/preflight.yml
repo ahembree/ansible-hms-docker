@@ -240,6 +240,13 @@
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hms_docker_domain is still set to the default \"home.local\". Set it to your real local domain in inventory/group_vars/all/main.yml.'] }}"
   when: (hms_docker_domain | default('')) == 'home.local'
 
+- name: (preflight) Warn if HTTP/3 is enabled without SSL
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['traefik_http3_enabled is true but traefik_ssl_enabled is false. HTTP/3 requires HTTPS and will not be activated.'] }}"
+  when:
+    - traefik_http3_enabled | default(false) | bool
+    - not (traefik_ssl_enabled | default(false) | bool)
+
 - name: (preflight) Warn if VPN-using download client has empty user/pass
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_vpn_user and/or hmsdocker_vpn_pass are empty. If your VPN config does not embed credentials, the connection will fail.'] }}"

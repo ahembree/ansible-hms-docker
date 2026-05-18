@@ -68,7 +68,7 @@ When renaming a variable, **always** add an entry to `migrations/variable_rename
 
 ### Versioning
 
-`hmsd_current_version` in `hms-docker.yml` (currently `1.18.1`, 3-part semver — Ansible's version comparison needs it that way) is compared at runtime against the on-disk version file at `{{ hms_docker_data_path }}/.hmsd-version`. Mismatches trigger migration logic in `tasks/versioning.yml`. Bump this when shipping a breaking change that needs a migration.
+`hmsd_current_version` in `hms-docker.yml` (currently `1.18.2`, 3-part semver — Ansible's version comparison needs it that way) is compared at runtime against the on-disk version file at `{{ hms_docker_data_path }}/.hmsd-version`. Mismatches trigger migration logic in `tasks/versioning.yml`. Bump this when shipping a breaking change that needs a migration.
 
 ### Supporting roles
 

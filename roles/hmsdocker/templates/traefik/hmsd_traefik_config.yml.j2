@@ -33,6 +33,9 @@ entryPoints:
   websecure:
     address: :443
     asDefault: true
+    {% if traefik_http3_enabled %}
+    http3: {}
+    {% endif %}
     http:
       tls:
         certResolver: letsencrypt

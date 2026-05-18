@@ -104,6 +104,9 @@ argument_specs:
       traefik_security_hardening:
         type: bool
         description: Apply additional Traefik security defaults (minimum TLS 1.2, etc.).
+      traefik_http3_enabled:
+        type: bool
+        description: Enable HTTP/3 (QUIC over UDP) on the websecure entrypoint. Requires traefik_ssl_enabled.
       traefik_ssl_use_letsencrypt_staging_url:
         type: bool
         description: Use the Let's Encrypt staging CA (recommended until certs are confirmed working).
