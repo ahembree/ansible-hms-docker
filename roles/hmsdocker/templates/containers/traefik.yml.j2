@@ -13,9 +13,7 @@ services:
     ports:
       - 80:80
       - 443:443
-    {% if traefik_ssl_enabled %}
       - 443:443/udp
-    {% endif %}
     {% if not traefik_security_hardening and 'traefik' in expose_ports_enabled_containers %}
       - 8080:8080
     {% endif %}
