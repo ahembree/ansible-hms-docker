@@ -9,12 +9,13 @@ traefik_ssl_enabled: no
 # * Minimum TLS1.2
 traefik_security_hardening: no # default: no
 
-# Enables HTTP/3 (QUIC over UDP) on the websecure entrypoint // default: "no"
-# Requires traefik_ssl_enabled to be true (HTTP/3 requires HTTPS).
-# When enabled, Traefik will expose UDP port 443 in addition to TCP 443, and advertise
+# Enables HTTP/3 (QUIC over UDP) on the websecure entrypoint // default: "yes"
+# Only takes effect if traefik_ssl_enabled is also true (HTTP/3 requires HTTPS).
+# When active, Traefik will expose UDP port 443 in addition to TCP 443, and advertise
 # HTTP/3 support via the `Alt-Svc` header so compatible browsers can upgrade.
-# Note: if you have a firewall in front of the host, ensure UDP/443 is allowed.
-traefik_http3_enabled: no
+# Browsers fall back to HTTP/2 over TCP if UDP/443 is blocked, so this is safe to leave on.
+# Set to `no` if you need to keep UDP/443 closed on the host.
+traefik_http3_enabled: yes
 
 # Whether to use the staging/testing URL or production URL // default: "yes"
 # If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
