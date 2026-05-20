@@ -5,23 +5,14 @@
   gather_facts: true
   vars:
     # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
-    hmsd_current_version: 1.18.2
+    hmsd_current_version: 1.18.3
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false
     regex: '[^A-Za-z0-9._-]'
     replace: '_'
     debug_mode: false
-    # Base Docker daemon settings
-    docker_daemon_options_base:
-      default-address-pools:
-        - base: '{{ hmsdocker_docker_network_base_subnet }}'
-          size: 24
-      log-driver: "json-file"
-      log-opts:
-        max-size: "10m"
-        max-file: "3"
 
-    # GPU-specific Docker daemon settings
+    # GPU-specific Docker daemon settings (not user-overridable — required for the GPU integration)
     docker_daemon_options_gpu:
       runtimes:
         nvidia:
