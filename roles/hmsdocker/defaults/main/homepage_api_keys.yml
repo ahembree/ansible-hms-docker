@@ -1,10 +1,6 @@
 # Other keys not listed here may be retrieved during a playbook run from the apps config file
 
 # NZBGet
-# The Homepage NZBGet widget authenticates with NZBGet's ControlUsername and
-# ControlPassword (not an API key). See: https://gethomepage.dev/widgets/services/nzbget/
-# These default to the linuxserver image defaults; set them to your own values if changed,
-# or to empty strings if you disabled NZBGet's authentication.
 homepage_nzbget_username: nzbget
 homepage_nzbget_password: tegbzn6789
 
