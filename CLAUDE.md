@@ -68,7 +68,13 @@ When renaming a variable, **always** add an entry to `migrations/variable_rename
 
 ### Versioning
 
-`hmsd_current_version` in `hms-docker.yml` (currently `1.18.2`, 3-part semver — Ansible's version comparison needs it that way) is compared at runtime against the on-disk version file at `{{ hms_docker_data_path }}/.hmsd-version`. Mismatches trigger migration logic in `tasks/versioning.yml`. Bump this when shipping a breaking change that needs a migration.
+`hmsd_current_version` in `hms-docker.yml` (3-part semver — Ansible's version comparison needs it that way) is compared at runtime against the on-disk version file at `{{ hms_docker_data_path }}/.hmsd-version`. Mismatches trigger migration logic in `tasks/versioning.yml`. Bump this when shipping a breaking change that needs a migration.
+
+**Cutting a release:**
+
+1. Bump `hmsd_current_version` in [hms-docker.yml](hms-docker.yml).
+2. Add a matching `## v<version>` section to the release-notes file for that minor series, e.g. `docs-astro/src/content/docs/docs/release-notes/v1.18.md`. The header must be exactly `## v<version>` (matching the new version) — the release workflow extracts everything between it and the next `## ` heading as the GitHub Release body.
+3. Merge to `master`. [.github/workflows/release.yml](.github/workflows/release.yml) triggers on pushes to `master` that touch `hms-docker.yml`: it reads the version, tags it, and creates the GitHub Release from the extracted notes. Releases are not cut from feature branches.
 
 ### Supporting roles
 
