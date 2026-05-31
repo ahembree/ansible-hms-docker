@@ -39,8 +39,9 @@ services:
       - homepage.href=http://{{ hms_docker_container_map['nzbget']['proxy_host_rule'] | default('nzbget') }}.${HMSD_DOMAIN}
       - homepage.description=NZB Manager
       - homepage.widget.type=nzbget
-      - homepage.widget.url=http://nzbget:8080
-      - homepage.widget.key=${NZBGET_KEY:-apikeyapikeyapikey}
+      - homepage.widget.url=http://nzbget:6789
+      - homepage.widget.username=${NZBGET_USERNAME:-nzbget}
+      - homepage.widget.password=${NZBGET_PASSWORD:-tegbzn6789}
         {% if 'nzbget' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
