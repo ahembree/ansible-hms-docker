@@ -1,6 +1,7 @@
 name: Ubuntu Deployment Tests
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'roles/**'
