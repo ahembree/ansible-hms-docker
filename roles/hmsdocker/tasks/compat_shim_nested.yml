@@ -1,0 +1,66 @@
+---
+# Apply one nested-key rename from migrations/variable_renames.yml.
+#
+# Included once per entry in `hmsdocker_active_nested_migrations`. The
+# migration entry is passed in as `hmsdocker_nested_migration` and has
+# keys `parent`, `old`, `new` (see compat_shim.yml).
+#
+# For every child mapping of `parent` that defines the deprecated key,
+# we set the new key to the same value and remove the old. The parent
+# variable is rewritten one child at a time so each set_fact iteration
+# sees the previous iteration's update via `lookup('vars', ...)`.
+
+- name: (compat) Find children of {{ hmsdocker_nested_migration.parent }} carrying '{{ hmsdocker_nested_migration.old }}'
+  ansible.builtin.set_fact:
+    # If the user has redefined `parent` to a non-mapping value (string,
+    # list, etc.) we'd crash here at dict2items. Treat that as "no
+    # children to rename" so the user's downstream role can surface a
+    # clearer error than a stack trace from inside the shim.
+    hmsdocker_nested_rename_children: >-
+      {{
+        (
+          (lookup('vars', hmsdocker_nested_migration.parent) | dict2items
+           | selectattr('value', 'mapping')
+           | selectattr('value.' ~ hmsdocker_nested_migration.old, 'defined')
+           | map(attribute='key') | list)
+          if (lookup('vars', hmsdocker_nested_migration.parent) is mapping)
+          else []
+        )
+      }}
+
+- name: (compat) Rename '{{ hmsdocker_nested_migration.old }}' to '{{ hmsdocker_nested_migration.new }}' under each child
+  ansible.builtin.set_fact:
+    "{{ hmsdocker_nested_migration.parent }}": >-
+      {{
+        lookup('vars', hmsdocker_nested_migration.parent)
+        | combine({
+            hmsdocker_nested_child_key: (
+              lookup('vars', hmsdocker_nested_migration.parent)[hmsdocker_nested_child_key]
+              | combine({
+                  hmsdocker_nested_migration.new:
+                    lookup('vars', hmsdocker_nested_migration.parent)[hmsdocker_nested_child_key][hmsdocker_nested_migration.old]
+                })
+              | dict2items
+              | rejectattr('key', 'equalto', hmsdocker_nested_migration.old)
+              | items2dict
+            )
+          })
+      }}
+  loop: "{{ hmsdocker_nested_rename_children }}"
+  loop_control:
+    loop_var: hmsdocker_nested_child_key
+    label: "{{ hmsdocker_nested_migration.parent ~ '.' ~ hmsdocker_nested_child_key ~ '.' ~ hmsdocker_nested_migration.old }} -> {{ hmsdocker_nested_migration.parent ~ '.' ~ hmsdocker_nested_child_key ~ '.' ~ hmsdocker_nested_migration.new }}"
+  # Nested values are typically flags rather than secrets, but keep parity
+  # with the top-level shim so child values can't leak into logs.
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+
+- name: (compat) Record deprecation warning for {{ hmsdocker_nested_migration.parent }}.<*>.{{ hmsdocker_nested_migration.old }}
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{
+        hmsdocker_preflight_warnings
+        + ["DEPRECATED: '" ~ hmsdocker_nested_migration.parent ~ ".<*>." ~ hmsdocker_nested_migration.old
+           ~ "' has been renamed to '" ~ hmsdocker_nested_migration.parent ~ ".<*>." ~ hmsdocker_nested_migration.new
+           ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release."]
+      }}
+  when: hmsdocker_nested_rename_children | length > 0

@@ -11,6 +11,17 @@
 # and is shared with the Makefile `update` target — register new renames
 # there, not here. Re-runs are safe: entries whose `old` is unset in the
 # resolved vars are silently skipped.
+#
+# Two rename shapes are handled here, mirroring the two shapes documented
+# in migrations/variable_renames.yml:
+#   * Top-level: { old, new }
+#       Aliases the variable `old` to `new`.
+#   * Nested:    { old, new, parent }
+#       For every child mapping under `parent`, renames the key `old` to
+#       `new`. Used for keys that recur under each entry of a dict (e.g.
+#       per-service flags in hms_docker_container_map). The per-child
+#       rename loop lives in `compat_shim_nested.yml` so we can iterate
+#       affected children without relying on Jinja2 comprehensions.
 
 - name: (compat) Load variable migration map from single source
   ansible.builtin.set_fact:
@@ -20,15 +31,21 @@
          | from_yaml).variable_renames
       }}
 
+# ---------------------------------------------------------------------------
+# Top-level renames
+# ---------------------------------------------------------------------------
+
 # `q('varnames', '.*')` returns the names of all currently-resolved
 # variables. We snapshot it once so all later steps agree on which
 # migrations are active, and intersect it with the migration map to find
-# deprecated names the user actually set.
+# deprecated names the user actually set. Entries carrying a `parent` are
+# nested renames and handled in the section below.
 - name: (compat) Determine which deprecated variables are in use
   ansible.builtin.set_fact:
     hmsdocker_active_migrations: >-
       {{
         hmsdocker_variable_migrations
+        | rejectattr('parent', 'defined')
         | selectattr('old', 'in', q('varnames', '.*'))
         | list
       }}
@@ -57,3 +74,29 @@
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:
     label: "{{ item.old }} -> {{ item.new }}"
+
+# ---------------------------------------------------------------------------
+# Nested renames (parent.<child>.old -> parent.<child>.new)
+# ---------------------------------------------------------------------------
+
+# Filter to entries that carry a `parent` and whose `parent` is currently
+# defined. The per-child rename and the "any child actually used the old
+# name?" check live in compat_shim_nested.yml.
+- name: (compat) Determine which nested-key renames are in use
+  ansible.builtin.set_fact:
+    hmsdocker_active_nested_migrations: >-
+      {{
+        hmsdocker_variable_migrations
+        | selectattr('parent', 'defined')
+        | selectattr('parent', 'in', q('varnames', '.*'))
+        | list
+      }}
+
+- name: (compat) Apply nested-key renames
+  ansible.builtin.include_tasks: compat_shim_nested.yml
+  loop: "{{ hmsdocker_active_nested_migrations }}"
+  loop_control:
+    loop_var: hmsdocker_nested_migration
+    label: >-
+      {{ hmsdocker_nested_migration.parent ~ '.<*>.' ~ hmsdocker_nested_migration.old
+         ~ ' -> ' ~ hmsdocker_nested_migration.parent ~ '.<*>.' ~ hmsdocker_nested_migration.new }}
