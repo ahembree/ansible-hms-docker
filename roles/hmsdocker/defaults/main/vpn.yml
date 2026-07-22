@@ -5,11 +5,10 @@
 #     `custom` requires variables to be configured in `inventory/group_vars/all/transmission.yml`
 hmsdocker_vpn_type: openvpn
 
-# If using `transmission`, find your provider here: https://haugene.github.io/docker-transmission-openvpn/supported-providers/
-# If using `qbittorrent` or `deluge`, you must copy your VPN config file
-#   to the container config directory (default: /opt/hms-docker/apps/<container>/config/<vpn_type>)
-# NOTE: these directories will be automatically generated after first playbook run
-# Restart the container using `docker restart <container>` after modifying the files
+# transmission: https://haugene.github.io/docker-transmission-openvpn/supported-providers/
+# qbittorrent/deluge: passed through as VPN_PROV if pia/airvpn/protonvpn/custom, else custom.
+#   `pia` self-configures; the others need your config file in the container config
+#   directory (default: /opt/hms-docker/apps/<container>/config/<vpn_type>, auto-created).
 hmsdocker_vpn_provider:
 
 # Your VPN credentials if authentication is not embedded in the config file
