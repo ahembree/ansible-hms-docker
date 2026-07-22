@@ -11,6 +11,7 @@
     - deluge
   when: item in enabled_containers and item != 'transmission' or (item == 'transmission' and hmsdocker_vpn_provider == 'custom' and hmsdocker_vpn_type == 'openvpn')
 
+# Skip the stub for PIA, which generates its own wg0.conf (an empty one aborts it).
 - name: (VPN Setup) Ensure WireGuard config exists with restricted permissions
   ansible.builtin.file:
     path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
@@ -21,7 +22,33 @@
   when:
     - item in enabled_containers
     - hmsdocker_vpn_type == 'wireguard'
+    - (hmsdocker_vpn_provider | default('', true)) | lower != 'pia'
   loop:
     - qbittorrent
     - deluge
   changed_when: false
+
+# Remove a leftover empty stub so PIA can generate its own wg0.conf.
+- name: (VPN Setup) Stat wg0.conf for PIA
+  ansible.builtin.stat:
+    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+  when:
+    - item in enabled_containers
+    - hmsdocker_vpn_type == 'wireguard'
+    - (hmsdocker_vpn_provider | default('', true)) | lower == 'pia'
+  loop:
+    - qbittorrent
+    - deluge
+  register: hmsdocker_wg_conf_stat
+
+- name: (VPN Setup) Remove empty wg0.conf so PIA can generate its own
+  ansible.builtin.file:
+    path: '{{ hms_docker_apps_path }}/{{ item.item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+    state: absent
+  loop: '{{ hmsdocker_wg_conf_stat.results | default([]) }}'
+  loop_control:
+    label: '{{ item.item | default("") }}'
+  when:
+    - item.stat is defined
+    - item.stat.exists
+    - item.stat.size == 0

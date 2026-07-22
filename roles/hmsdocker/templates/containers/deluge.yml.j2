@@ -28,7 +28,7 @@ services:
       - VPN_ENABLED=yes
       - VPN_USER=${VPN_USER}
       - VPN_PASS=${VPN_PASS}
-      - VPN_PROV=custom
+      - VPN_PROV={{ (hmsdocker_vpn_provider | default('', true) | lower) if (hmsdocker_vpn_provider | default('', true) | lower) in ['pia', 'airvpn', 'protonvpn', 'custom'] else 'custom' }}
       - VPN_CLIENT={{ hmsdocker_vpn_type }}
       - ENABLE_PRIVOXY=yes
       - LAN_NETWORK={{ hms_docker_network_subnet }}
