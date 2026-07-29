@@ -216,6 +216,11 @@ services:
     image: <container image>
     container_name: <container name>
     restart: ${RESTART_POLICY}
+    # Some containers do not work with this (e.g. anything that needs to escalate privileges
+    # at runtime). If so, leave it commented out with a note explaining why, as done in
+    # `tdarr.yml.j2` and `fileflows.yml.j2`
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -253,15 +258,21 @@ services:
       - homepage.group=<Homepage group name>
       - homepage.name=<container name>
       - homepage.icon=<container name>.png
-      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN} }}
+      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}
       - homepage.description=<homepage description>
       # If the container supports a widget, there is an additional task that runs to "slurp" the API key from a file automatically (if supported) in `tasks/app_api_key_reader.yml` that is then inserted into the `.env` file template
       - homepage.widget.type=<container name>
       - homepage.widget.url=http://<container name>:<container UI port>
       - homepage.widget.key=${<CONTAINER NAME>_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_<container name> %}
+        {% if '<container name>' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:<container UI port>/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
 ```
