@@ -1,10 +1,11 @@
 ---
-const { head, entry, slug, siteTitle } = Astro.locals.starlightRoute;
+const { head, entry, id } = Astro.locals.starlightRoute;
 const siteUrl = Astro.site?.href ?? 'https://hmsdocker.dev';
 const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
 const title = entry.data.title;
 const description = entry.data.description ?? '';
-const isHome = slug === '' || slug === 'index';
+// Matches Starlight's own root detection in utils/slugs.ts `slugToParam()`.
+const isHome = id === '' || id === 'index' || id === '/';
 
 const breadcrumbSegments = Astro.url.pathname
   .replace(/^\/|\/$/g, '')
