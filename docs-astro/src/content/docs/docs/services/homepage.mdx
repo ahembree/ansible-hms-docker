@@ -17,7 +17,7 @@ For services that don't support automatic key retrieval, you will need to manual
 
 | Service | Variable | Notes |
 |---------|----------|-------|
-| NZBGet | `homepage_nzbget_key` | |
+| NZBGet | `homepage_nzbget_username` + `homepage_nzbget_password` | Uses NZBGet's ControlUsername/ControlPassword (defaults to the linuxserver image defaults). Set to empty strings if you disabled NZBGet authentication. |
 | Authentik | `homepage_authentik_key` | See [Authentik widget docs](https://gethomepage.dev/widgets/services/authentik/) |
 | Portainer | `homepage_portainer_key` | |
 | Jellyfin | `homepage_jellyfin_key` | |

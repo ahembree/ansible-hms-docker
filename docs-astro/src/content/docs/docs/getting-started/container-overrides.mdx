@@ -40,23 +40,28 @@ sudo docker compose config
 
 ## Private Internet Access (PIA)
 
-The Deluge and qBittorrent containers have native support for the VPN provider Private Internet Access (PIA).
+The Deluge and qBittorrent containers natively support PIA. Set the following in `inventory/group_vars/all/vpn.yml`:
 
-These containers also support port forwarding through PIA, but this means you will only be able to connect to endpoints that support port forwarding.
+```yaml
+hmsdocker_vpn_type: wireguard
+hmsdocker_vpn_provider: pia
+hmsdocker_vpn_user: <your PIA username>
+hmsdocker_vpn_pass: <your PIA password>
+```
 
-For more information on this port forwarding feature, see Question 15 (Q15) here: [Binhex Documentation](https://github.com/binhex/documentation/blob/master/docker/faq/vpn.md)
+`hmsdocker_vpn_provider` is passed through to the container's `VPN_PROV`; with `pia` the container generates its own WireGuard config, so you don't supply a `wg0.conf`.
 
-In order to enable this port forwarding, you will need to add the following to the "override" file specified above (`/opt/hms-docker/docker-compose.override.yml`):
+### Port forwarding
+
+PIA port forwarding only connects to endpoints that support it (see Q15 of the [Binhex docs](https://github.com/binhex/documentation/blob/master/docker/faq/vpn.md)). It isn't a playbook variable, so enable it by adding `STRICT_PORT_FORWARD=yes` to the override file (`/opt/hms-docker/docker-compose.override.yml`):
 
 ```yaml
 #/opt/hms-docker/docker-compose.override.yml
 services:
   qbittorrent:
     environment:
-      - VPN_PROV=pia
-      - STRICT_PORT_FORWARDING=yes
+      - STRICT_PORT_FORWARD=yes
   deluge:
     environment:
-      - VPN_PROV=pia
-      - STRICT_PORT_FORWARDING=yes
+      - STRICT_PORT_FORWARD=yes
 ```

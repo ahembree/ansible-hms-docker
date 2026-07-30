@@ -1,7 +1,8 @@
 # Other keys not listed here may be retrieved during a playbook run from the apps config file
 
-# NZB
-homepage_nzbget_key: 
+# NZBGet
+homepage_nzbget_username: nzbget
+homepage_nzbget_password: tegbzn6789
 
 # Authentik
 # See: https://gethomepage.dev/widgets/services/authentik/

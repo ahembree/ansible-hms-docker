@@ -1,0 +1,108 @@
+---
+title: Adding Containers with Claude Code
+description: "How to use the add-container Claude Code skill included in the repository to scaffold a new container/service, and what it does and does not do."
+---
+
+import { Steps, FileTree } from '@astrojs/starlight/components';
+
+The repository ships a [Claude Code](https://claude.com/claude-code) *skill* that walks through adding a new container to the stack. It encodes the same steps as [Adding New Containers](/docs/container-list#adding-new-containers), plus the conventions and the mistakes that are easy to make.
+
+This is a **contributor tool**. You do not need it to run HMS-Docker, and it is not involved in the playbook at runtime — it only helps you write the files for a pull request.
+
+:::note[Note]
+
+The skill is not a substitute for review. It writes files; you still need to read them, and you should still open a Discussion or Pull Request before doing significant work on a new service.
+
+:::
+
+## What it is
+
+A skill is a folder of instructions that Claude Code loads when the task matches. This one lives in the repository, so anyone who clones the repo gets it automatically — there is nothing to install or enable.
+
+<FileTree>
+- .claude/
+  - skills/
+    - add-container/
+      - SKILL.md # The workflow and the decision rules
+      - reference/
+        - template-anatomy.md # Annotated Compose template, block by block
+        - variants.md # Non-standard shapes (GPU, VPN, host networking, sidecars)
+</FileTree>
+
+Claude Code reads the `description` in `SKILL.md` to decide when the skill applies, and only loads the reference files when it needs them.
+
+## Requirements
+
+- [Claude Code](https://docs.claude.com/en/docs/claude-code) installed and authenticated
+- A clone of this repository, with Claude Code started from the repository root
+
+## Using it
+
+<Steps>
+
+1. Start Claude Code in the repository:
+
+    ```bash
+    cd ansible-hms-docker
+    claude
+    ```
+
+2. Ask for the container. The skill triggers on its own for requests like these — you do not have to name it:
+
+    ```
+    add byparr to the stack
+    ```
+
+    You can also invoke it explicitly:
+
+    ```
+    /add-container
+    ```
+
+3. Answer the questions it asks. It needs the container image, the port the app listens on *inside* the container, whether the service needs access to your media (`/data`), and whether it should be behind Traefik and shown on Homepage. If you do not know the image or port, say so rather than guessing — a wrong port produces a 502 through Traefik with no other symptom.
+
+4. Review the diff. At minimum, read the generated `roles/hmsdocker/templates/containers/<name>.yml.j2` and the new `container_map.yml` entry, and confirm the entry landed between its alphabetical neighbours without disturbing them.
+
+5. Test it. Enable the service in `inventory/group_vars/all/container_map.yml`, then run `make check` and `make apply` against a throwaway host.
+
+</Steps>
+
+## What it produces
+
+Two files are always written:
+
+| File | Purpose |
+|-|-|
+| `roles/hmsdocker/defaults/main/container_map.yml` | the map entry, inserted alphabetically, with `enabled: false` |
+| `roles/hmsdocker/templates/containers/<name>.yml.j2` | the Compose fragment |
+
+Anything else is added only when the service actually needs it — a `container_prereqs`/`container_postreqs` task file, an `env.j2` variable, a `service_misc.yml` tunable, a Homepage credential, or a restart handler.
+
+It also updates the user-facing pieces: the category bullet and the Map table row on the [Container List](/docs/container-list) page, a release-notes entry, the `hmsd_current_version` bump in `hms-docker.yml`, and the CI container map in `.github/extra-vars.yml`.
+
+:::caution[Warning]
+
+Bumping `hmsd_current_version` is what triggers a GitHub Release when the change merges to `master`. If you are opening a pull request rather than releasing, leave the version alone and say so.
+
+:::
+
+## What it will not do
+
+- **Enable the service by default.** New containers ship `enabled: false`.
+- **Edit `docker-compose.yml.j2`.** The top-level Compose file builds its `include:` list automatically from the rendered fragments.
+- **Add a Traefik dynamic-config entry.** Routers come from container labels.
+- **Register the task files.** Files dropped into `container_prereqs/`, `container_postreqs/` and `app_inits/` are discovered by filename.
+- **Run `make apply`.** It will offer `make check`, but it does not mutate the host on its own.
+
+## Checks it runs
+
+Before finishing, the skill runs a handful of read-only checks against the working tree:
+
+- Every container map key has a matching template file, and vice versa
+- No two containers publish the same host port
+- The new template only references derived facts that actually exist (`traefik_enabled_containers`, `homepage_enabled_containers`, and so on)
+- The map entry parses, and its alphabetical neighbours are intact
+
+## Editing the skill
+
+The skill is a plain Markdown file — edit `.claude/skills/add-container/SKILL.md` like any other file in the repository. If you change how containers are structured (a new required block in the Compose template, a new map key, a renamed derived fact), update the skill in the same pull request so it does not drift from the code.

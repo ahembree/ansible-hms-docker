@@ -7,8 +7,9 @@ services:
       - /dev/dri:/dev/dri
     {% endif %}
     restart: ${RESTART_POLICY}
-    security_opt:
-      - no-new-privileges:true
+    # Cannot enable security_opt:no-new-privileges, if enabled then you cannot create a library
+    #security_opt:
+    #  - no-new-privileges:true
     logging:
       options:
         max-size: "12m"

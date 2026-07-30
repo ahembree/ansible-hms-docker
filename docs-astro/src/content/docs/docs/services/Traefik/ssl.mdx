@@ -61,6 +61,16 @@ To view debug logs, set `traefik_log_level` to `DEBUG` and then re-run the playb
 
 :::
 
+## HTTP/3 (QUIC)
+
+HTTP/3 is automatically active whenever SSL is enabled — no configuration required. Traefik exposes UDP port `443` (in addition to TCP `443`) and advertises HTTP/3 to compatible browsers via the `Alt-Svc` response header. Browsers that negotiate HTTP/3 connect over QUIC, and silently fall back to HTTP/2 over TCP if UDP/`443` is unreachable.
+
+:::tip
+
+For HTTP/3 to actually be reachable from the public internet, forward UDP/`443` on your router (in addition to TCP/`443`) and ensure your host firewall allows it. If UDP/`443` is blocked, the browser will keep working — it just won't use HTTP/3.
+
+:::
+
 ## Changing SSL Certificate SANs
 
 To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/traefik.yml` modify the `traefik_ssl_sans` variable.

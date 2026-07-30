@@ -1,6 +1,7 @@
 name: Ubuntu Deployment Tests
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'roles/**'
@@ -28,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os-version }}
     strategy:
       matrix:
-        os-version: ["ubuntu-22.04", "ubuntu-24.04"]
+        os-version: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04"]
 
     steps:
       - name: Check out repo code

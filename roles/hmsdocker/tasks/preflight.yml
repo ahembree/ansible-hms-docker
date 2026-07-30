@@ -200,14 +200,10 @@
 # ---------------------------------------------------------------------------
 # VPN-using download clients
 #
-# Only transmission consumes hmsdocker_vpn_provider (templates/env.j2 exports
-# it as VPN_PROVIDER, which transmission.yml.j2 maps to OPENVPN_PROVIDER).
-# qbittorrent and deluge hardcode VPN_PROV=custom in their compose templates
-# and read configs from config/<hmsdocker_vpn_type>/ - the provider name is
-# irrelevant to them.
-#
-# Transmission's `custom` vpn_type is exempt because the config comes from
-# a local file rather than the provider list.
+# Only transmission requires a provider from a fixed list, so it is the only one
+# asserted here. qbittorrent/deluge map the provider to VPN_PROV in their
+# templates and fall back to 'custom'. Transmission's 'custom' vpn_type is exempt
+# because the config comes from a local file rather than the provider list.
 # ---------------------------------------------------------------------------
 
 - name: (preflight) Validate VPN provider for Transmission
