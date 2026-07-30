@@ -463,5 +463,8 @@
       "homepage": true,
       "homepage_stats": false,
     },
+    "byparr": {
+      "enabled": true
+    },
   }
 }

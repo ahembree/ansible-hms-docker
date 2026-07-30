@@ -1,0 +1,26 @@
+services:
+  byparr:
+    image: ghcr.io/thephaseless/byparr:latest
+    container_name: byparr
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - "download_net"
+    environment:
+      - TZ=${TIMEZONE}
+    {% if 'byparr' in expose_ports_enabled_containers %}
+    ports:
+      - 8192:8191
+    {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:8191/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s

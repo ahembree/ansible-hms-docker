@@ -53,6 +53,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [cross-seed](https://github.com/cross-seed/cross-seed): cross-seeding
 - [Unpackerr](https://github.com/Unpackerr/unpackerr): download decompression
 - [Flaresolverr](https://github.com/FlareSolverr/FlareSolverr): CAPTCHA solving
+- [Byparr](https://github.com/ThePhaseless/Byparr): CAPTCHA solving (FlareSolverr alternative) <Badge text="New" variant="success"/>
 
 ## Analytics / Dashboards
 
@@ -82,8 +83,8 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Checkrr](https://github.com/aetaric/checkrr): checks for corrupt media
 - [Backrest](https://github.com/garethgeorge/backrest): backup system with rclone support
 - [n8n](https://n8n.io/): workflow automations
-- [Scrutiny](https://github.com/analogj/scrutiny): drive health monitoring <Badge text="New" variant="success"/>
-- [Beszel](https://github.com/henrygd/beszel): observability <Badge text="New" variant="success"/>
+- [Scrutiny](https://github.com/analogj/scrutiny): drive health monitoring
+- [Beszel](https://github.com/henrygd/beszel): observability
 
 ## Container Map
 
@@ -164,6 +165,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Dockhand                                 | &#9744;            | `dockhand`           | `3003`                         | `3000`                         | &#9745;                | &#9745;              |
 | Scrutiny                                 | &#9744;            | `scrutiny`           | `8087`                         | `8080`                         | &#9745;                | &#9745;              |
 | Beszel                                   | &#9744;            | `beszel`             | `8091`                         | `8090`                         | &#9745;                | &#9745;              |
+| Byparr                                   | &#9744;            | `byparr`             | `8192`                         | `8191`                         | &#9744;                | &#9744;              |
 
 ### Container Map Entry Example
 
@@ -191,6 +193,12 @@ If you'd like to have a container added, please submit a Discussion post or a Pu
 
 If wanting to submit a pull request, the following Compose file settings are typically used across all containers. The below is an example Jinja2 template, which is how all of the container `.yml` files are generated
 
+:::tip[Tip]
+
+The repository includes a Claude Code skill that walks through all of the steps below and the conventions that go with them. See [Adding Containers with Claude Code](/docs/other/claude-skill).
+
+:::
+
 A list of the locations where items will need to be updated:
 
 <Steps>
@@ -216,6 +224,11 @@ services:
     image: <container image>
     container_name: <container name>
     restart: ${RESTART_POLICY}
+    # Some containers do not work with this (e.g. anything that needs to escalate privileges
+    # at runtime). If so, leave it commented out with a note explaining why, as done in
+    # `tdarr.yml.j2` and `fileflows.yml.j2`
+    security_opt:
+      - no-new-privileges:true
     logging:
       options:
         max-size: "12m"
@@ -253,15 +266,21 @@ services:
       - homepage.group=<Homepage group name>
       - homepage.name=<container name>
       - homepage.icon=<container name>.png
-      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN} }}
+      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}
       - homepage.description=<homepage description>
       # If the container supports a widget, there is an additional task that runs to "slurp" the API key from a file automatically (if supported) in `tasks/app_api_key_reader.yml` that is then inserted into the `.env` file template
       - homepage.widget.type=<container name>
       - homepage.widget.url=http://<container name>:<container UI port>
       - homepage.widget.key=${<CONTAINER NAME>_KEY:-apikeyapikeyapikey}
-        {% if hmsdocker_homepage_stats_enabled_<container name> %}
+        {% if '<container name>' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
       {% endif %}
     {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:<container UI port>/ || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
 ```

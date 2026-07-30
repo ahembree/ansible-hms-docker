@@ -52,6 +52,7 @@
               X-Api-Key: '{{ prowlarr_api_key }}'
           loop:
             - flaresolverr
+            - byparr
             - transmission
             - qbittorrent
             - deluge
@@ -152,6 +153,34 @@
               X-Api-Key: '{{ prowlarr_api_key }}'
           register: prowlarr_req_add_flaresolverr
           changed_when: prowlarr_req_add_flaresolverr.status == 201
+
+        # Byparr is FlareSolverr API-compatible, so it uses the same Prowlarr implementation
+        - name: Prowlarr bootstrap - Configure Byparr indexer proxy in Prowlarr
+          when:
+            - hmsd_app_init_config_prefix + 'Byparr' not in prowlarr_idx_proxies_flaresolverr.keys()
+            - "'byparr' in enabled_containers"
+          ansible.builtin.uri:
+            url: "{{ prowlarr_url }}/v1/indexerProxy"
+            method: POST
+            body: {
+              name: "HMSD - Byparr",
+              implementation: "FlareSolverr",
+              configContract: "FlareSolverrSettings",
+              fields: [
+                {
+                  name: "host",
+                  value: "http://byparr:8191/"
+                }
+              ],
+              tags: ["{{ prowlarr_tag_list[prowlarr_proxy_tag_prefix + 'byparr'] }}"]
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: '{{ prowlarr_api_key }}'
+          register: prowlarr_req_add_byparr
+          changed_when: prowlarr_req_add_byparr.status == 201
 
         - name: Prowlarr bootstrap - Get Prowlarr configured apps
           ansible.builtin.uri:
@@ -439,6 +468,7 @@
                 - qbittorrent
                 - deluge
                 - FlareSolverr
+                - Byparr
 
             - name: Prowlarr bootstrap - Remove Tags if not enabled
               when:
@@ -457,3 +487,4 @@
                 - qbittorrent
                 - deluge
                 - flaresolverr
+                - byparr

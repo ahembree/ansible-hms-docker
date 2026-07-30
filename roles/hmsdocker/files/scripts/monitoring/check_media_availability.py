@@ -116,8 +116,16 @@ def main():
 
     # Checking the metadata to see if it's available
     data = xmltodict.parse(plex_response.content)
-    accessible = data['MediaContainer']['Video']['Media']['Part']['@accessible']
-    exists = data['MediaContainer']['Video']['Media']['Part']['@exists']
+    media_data = data.get('MediaContainer').get('Video').get('Media')
+    if isinstance(media_data, list):
+        logging.info(f'Item has multiple Parts, will consider accessible if any part is accessible')
+        for md in media_data:
+            accessible = md.get('Part').get('@accessible')
+            if accessible == '1':
+                break
+    else:
+        accessible = media_data.get('Part').get('@accessible')
+    exists = media_data.get('Part').get('@exists')
     title = data['MediaContainer']['Video']['@title']
 
     logging.debug(f'checking: {title}')
