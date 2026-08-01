@@ -33,6 +33,19 @@
         | list
       }}
 
+# hostvars holds inventory-sourced vars but not role defaults, so membership
+# means the user explicitly set the new name. Must be snapshotted before
+# aliasing — the aliasing set_fact adds the new names to hostvars.
+- name: (compat) Snapshot which new names the user set explicitly
+  ansible.builtin.set_fact:
+    hmsdocker_user_set_new_names: >-
+      {{
+        hmsdocker_active_migrations
+        | map(attribute='new')
+        | select('in', hostvars[inventory_hostname])
+        | list
+      }}
+
 - name: (compat) Alias deprecated variables to their new names
   ansible.builtin.set_fact:
     "{{ item.new }}": "{{ lookup('vars', item.old) }}"
@@ -41,7 +54,11 @@
     label: "{{ item.old }} -> {{ item.new }}"
   # Skip null / empty old values: Jinja stringifies None as the literal
   # "None", which would silently bypass downstream length-based asserts.
-  when: (lookup('vars', item.old) | default('', true) | string) | length > 0
+  # Skip names the user already set: set_fact outranks group_vars and would
+  # clobber their value with the stale old one.
+  when:
+    - (lookup('vars', item.old) | default('', true) | string) | length > 0
+    - item.new not in hmsdocker_user_set_new_names
   # Old values may include credentials (e.g. transmission_vpn_pass).
   # Match the rest of preflight's no_log pattern.
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
@@ -51,8 +68,15 @@
     hmsdocker_preflight_warnings: >-
       {{
         hmsdocker_preflight_warnings
-        + ["DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
-           ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release."]
+        + [
+            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
+             ~ "'. Both are set in your inventory; the value of '" ~ item.new
+             ~ "' is used and the old name is ignored. Remove '" ~ item.old ~ "'.")
+            if item.new in hmsdocker_user_set_new_names
+            else
+            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
+             ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release.")
+          ]
       }}
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:

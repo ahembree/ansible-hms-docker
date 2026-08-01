@@ -25,8 +25,22 @@ jobs:
       with:
         cmd: yq '.[0].vars.hmsd_current_version' 'hms-docker.yml'
 
+    # The workflow fires on any push touching hms-docker.yml, not just version
+    # bumps — skip releasing when this version is already tagged.
+    - name: Check if version is already tagged
+      id: tag_check
+      run: |
+        VERSION="${{ steps.version.outputs.result }}"
+        if git ls-remote --exit-code origin "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+          echo "This version is already tagged as v${VERSION}; skipping release."
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Bump version and push tag
       id: tag_version
+      if: steps.tag_check.outputs.exists == 'false'
       uses: mathieudutour/github-tag-action@v6.2
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,6 +48,7 @@ jobs:
 
     - name: Extract changelog body
       id: changelog_body
+      if: steps.tag_check.outputs.exists == 'false'
       run: |
         VERSION="${{ steps.version.outputs.result }}"
 
@@ -46,6 +61,11 @@ jobs:
           flag
         ' "$FILE")
 
+        if [ -z "$CONTENT" ]; then
+          echo "::error::No release notes found under a '## ${HEADER}' heading in ${FILE}"
+          exit 1
+        fi
+
         {
           echo "content<<EOF"
           echo "$CONTENT"
@@ -53,6 +73,7 @@ jobs:
         } >> $GITHUB_OUTPUT
 
     - name: Create Release
+      if: steps.tag_check.outputs.exists == 'false'
       uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
@@ -64,8 +85,9 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
+    # Only clean up a tag this run actually created — never a pre-existing one.
     - name: Delete tag on failure
-      if: failure() && steps.tag_version.outputs.new_tag != ''
+      if: failure() && steps.tag_version.outcome == 'success' && steps.tag_version.outputs.new_tag != ''
       run: |
         git push --delete origin ${{ steps.tag_version.outputs.new_tag }}

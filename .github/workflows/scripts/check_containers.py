@@ -26,7 +26,9 @@ docker_client = docker.from_env()
 def main():
     container_list = docker_client.containers.list()
 
-    project = 'hms-docker'
+    # Must match the playbook's `project_name`; override with HMSD_PROJECT_NAME
+    # when using a custom project name.
+    project = os.getenv('HMSD_PROJECT_NAME', 'hms-docker')
 
     requests_made = 0
     success_codes = 0

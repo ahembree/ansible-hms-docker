@@ -7,6 +7,9 @@ hms_docker_data_path: "/opt/{{ project_name }}"
 # Where the container data is stored // default: "{{ hms_docker_data_path }}/apps"
 hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
 
+# Where the media library folders are created, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+
 # Ownership of the secrets (.env) file
 secrets_env_user: root
 secrets_env_group: root

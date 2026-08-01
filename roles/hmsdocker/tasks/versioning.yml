@@ -38,10 +38,29 @@
   register: last_version_content
   when: version_file_check.stat.exists
 
-- name: Decode last version
+# Releases 1.4-1.9 wrote 2-part versions (e.g. "1.9") and an interrupted write
+# can leave the file empty; strict semver rejects both. Pad to X.Y.Z and fall
+# back to 0.0.0 for anything semver would reject (including leading zeros).
+- name: Decode and normalize last version
   ansible.builtin.set_fact:
-    last_version: "{{ last_version_content.content | b64decode | trim }}"
+    last_version: >-
+      {{
+        (((raw_last_version if raw_last_version is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){0,2}$') else '0.0.0')
+          .split('.')) + ['0', '0'])[:3] | join('.')
+      }}
+  vars:
+    raw_last_version: "{{ last_version_content.content | b64decode | trim }}"
   when: version_file_check.stat.exists
+
+- name: Validate current playbook version is 3-part semver
+  ansible.builtin.assert:
+    that:
+      - hmsd_current_version | string is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$')
+    fail_msg: >-
+      hmsd_current_version ('{{ hmsd_current_version }}') must be a quoted 3-part
+      version (X.Y.Z) in hms-docker.yml. Unquoted 2-part values like 1.20 are
+      parsed by YAML as the float 1.2 and break semver comparison.
+    quiet: true
 
 - name: Compare versions and prompt if newer
   when: hmsd_current_version is version(last_version, '>', version_type='semver') and hmsd_data_dir.stat.exists and not (is_github_runner | default(false))
@@ -64,6 +83,11 @@
           Do you want to continue? (yes/no)
       register: continue_playbook
 
+    - name: Fail if user does not want to continue
+      ansible.builtin.fail:
+        msg: "Playbook execution aborted."
+      when: continue_playbook.user_input | lower != "yes"
+
     - name: Hardlink path migration version prompt
       when: last_version is version('0.2.0', '<', version_type='semver')
       block:
@@ -74,7 +98,7 @@
               Version 0.2 (you are on version {{ last_version }}) changed the paths that media and downloads are mounted to within containers.
               You will need to update the apps config to point to the new location in the container after the playbook run.
 
-              Do you want to continue? (yes/no)"
+              Do you want to continue? (yes/no)
           register: continue_playbook_hardlink_update
 
         - name: Fail if user does not want to continue
@@ -102,7 +126,7 @@
               - Remove Authentik protection from Authentik
               - Additional Traefik hardening
 
-              Do you want to continue? (yes/no)"
+              Do you want to continue? (yes/no)
           register: continue_playbook_v1_12_update
 
         - name: Fail if user does not want to continue
@@ -110,15 +134,5 @@
             msg: "Playbook execution aborted."
           when: continue_playbook_v1_12_update.user_input | lower != "yes"
 
-    - name: Fail if user does not want to continue
-      ansible.builtin.fail:
-        msg: "Playbook execution aborted."
-      when: continue_playbook.user_input | lower != "yes"
-
-- name: Save current version to file
-  ansible.builtin.copy:
-    content: "{{ hmsd_current_version }}"
-    dest: "{{ hmsd_version_file }}"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
-    mode: '0644'
+# The version file itself is saved at the end of tasks/main.yml so a failed
+# run re-prompts on retry.

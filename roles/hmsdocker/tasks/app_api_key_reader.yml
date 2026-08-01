@@ -187,7 +187,7 @@
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
     ansible_fact_cachable: false
-    service_configs: "{{ result | trim | from_yaml }}"
+    service_configs: "{{ result | trim | from_json }}"
   vars:
     configs:
       # Sabnzbd is not here because it does not have valid INI file syntax by default and adding support for it was too much of a pain
@@ -227,7 +227,8 @@
         {% endif %}
         {% set _ = res.update({item.name: parsed}) %}
       {% endfor %}
-      {{ res }}
+      {# Serialize as JSON so values containing quotes survive the render round trip. #}
+      {{ res | to_json }}
 
 - name: (API Key Reader) Initialize empty API keys dict
   no_log: "{{ not debug_mode }}"
