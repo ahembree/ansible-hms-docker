@@ -32,9 +32,9 @@
   loop: "{{ vpn_public_ip.results }}"
   no_log: "{{ not debug_mode }}"
 
-# Fail closed: a container is only left running if we positively verified its
-# VPN IP differs from the host public IP. A failed ipify lookup or an empty
-# in-container result counts as unverified, not as protected.
+# Fail closed: a container stays running only if its VPN IP was positively
+# verified to differ from the host public IP; failed or empty lookups count
+# as unverified.
 - name: Ensure public IP and VPN public IP are different
   ansible.builtin.debug:
     msg:

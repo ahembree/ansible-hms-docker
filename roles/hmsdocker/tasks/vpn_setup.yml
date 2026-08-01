@@ -10,8 +10,7 @@
     - qbittorrent
     - deluge
   # Transmission only needs the config dir when the user supplies their own
-  # openvpn config; the other clients always get one. The enabled check applies
-  # to every client — the old and/or grouping skipped it for transmission.
+  # openvpn config; the other clients always get one.
   when: >-
     item in enabled_containers
     and (item != 'transmission'

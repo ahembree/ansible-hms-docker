@@ -3,9 +3,8 @@
 #######################################################################
 ### Misc
 hmsdocker_primary_mount_path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}"
-# hmsdocker_library_path lives in defaults/main/hmsd_advanced.yml (role
-# defaults) rather than here: role vars outrank inventory group_vars, which
-# would make the documented override in user inventory silently ineffective.
+# hmsdocker_library_path is in defaults/main/hmsd_advanced.yml — as a role
+# var here it would shadow inventory overrides.
 #######################################################################
 
 

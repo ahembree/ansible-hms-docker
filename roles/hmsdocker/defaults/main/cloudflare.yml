@@ -10,9 +10,7 @@ cloudflare_api_token: ""
 cloudflare_ddns_domain: "{{ hms_docker_domain }}"
 
 # The DNS zone (registered domain) the DDNS record lives in // default: last two labels of cloudflare_ddns_domain
-# The default is derived from the last two labels of the domain, which is wrong for
-# multi-label public suffixes (e.g. "example.co.uk" would become "co.uk") — set the
-# zone explicitly if your domain uses one.
+# Set explicitly for multi-label public suffixes (e.g. "example.co.uk" would otherwise become "co.uk")
 cloudflare_ddns_zone: "{{ cloudflare_ddns_domain.split('.')[-2:] | join('.') }}"
 
 # The A (or AAAA) record to be created // default: "hmsdpublic"

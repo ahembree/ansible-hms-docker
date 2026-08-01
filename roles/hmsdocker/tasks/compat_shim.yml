@@ -33,10 +33,9 @@
         | list
       }}
 
-# hostvars contains inventory-sourced vars but not role defaults, so it
-# distinguishes "the user set this new name" from "this only has a role
-# default". Snapshot it BEFORE aliasing: the aliasing set_fact itself adds
-# new names to hostvars, which would poison the check afterwards.
+# hostvars holds inventory-sourced vars but not role defaults, so membership
+# means the user explicitly set the new name. Must be snapshotted before
+# aliasing — the aliasing set_fact adds the new names to hostvars.
 - name: (compat) Snapshot which new names the user set explicitly
   ansible.builtin.set_fact:
     hmsdocker_user_set_new_names: >-
@@ -55,10 +54,8 @@
     label: "{{ item.old }} -> {{ item.new }}"
   # Skip null / empty old values: Jinja stringifies None as the literal
   # "None", which would silently bypass downstream length-based asserts.
-  #
-  # Also skip when the user explicitly set the NEW name in their inventory:
-  # set_fact outranks group_vars, so aliasing here would silently clobber
-  # their value with the stale old one.
+  # Skip names the user already set: set_fact outranks group_vars and would
+  # clobber their value with the stale old one.
   when:
     - (lookup('vars', item.old) | default('', true) | string) | length > 0
     - item.new not in hmsdocker_user_set_new_names

@@ -25,10 +25,8 @@ jobs:
       with:
         cmd: yq '.[0].vars.hmsd_current_version' 'hms-docker.yml'
 
-    # The workflow triggers on ANY push touching hms-docker.yml, not just
-    # version bumps. Skip releasing (instead of failing and running the tag
-    # cleanup below against an already-published tag) when this version is
-    # already tagged.
+    # The workflow fires on any push touching hms-docker.yml, not just version
+    # bumps — skip releasing when this version is already tagged.
     - name: Check if version is already tagged
       id: tag_check
       run: |

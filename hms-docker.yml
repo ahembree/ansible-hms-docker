@@ -4,9 +4,8 @@
   become: true
   gather_facts: true
   vars:
-    # Must be a QUOTED 3-part semantic version (X.Y.Z) so Ansible can correctly
-    # compare versions. Unquoted values like 1.20 are parsed by YAML as the
-    # float 1.2, which breaks the semver comparison for every user.
+    # Must be a QUOTED 3-part semver (X.Y.Z) — unquoted values like 1.20 parse
+    # as the YAML float 1.2 and break the version comparison.
     hmsd_current_version: "1.19.0"
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false

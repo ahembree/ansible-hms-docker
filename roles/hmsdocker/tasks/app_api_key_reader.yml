@@ -227,8 +227,7 @@
         {% endif %}
         {% set _ = res.update({item.name: parsed}) %}
       {% endfor %}
-      {# to_json survives the render-to-string round trip even when config
-         values contain quotes; the dict's Python repr does not. #}
+      {# Serialize as JSON so values containing quotes survive the render round trip. #}
       {{ res | to_json }}
 
 - name: (API Key Reader) Initialize empty API keys dict

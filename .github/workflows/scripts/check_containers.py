@@ -26,9 +26,8 @@ docker_client = docker.from_env()
 def main():
     container_list = docker_client.containers.list()
 
-    # Compose project to check; must match the playbook's `project_name`.
-    # Override with HMSD_PROJECT_NAME when using a custom project_name,
-    # otherwise no containers match and the run fails with "Did not make any requests".
+    # Must match the playbook's `project_name`; override with HMSD_PROJECT_NAME
+    # when using a custom project name.
     project = os.getenv('HMSD_PROJECT_NAME', 'hms-docker')
 
     requests_made = 0

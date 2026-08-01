@@ -38,15 +38,14 @@
   register: last_version_content
   when: version_file_check.stat.exists
 
-# Releases 1.4 through 1.9 wrote 2-part versions (e.g. "1.9") to the version
-# file, and an interrupted write can leave it empty. The strict semver
-# comparisons below reject both, so pad the on-disk value to a full X.Y.Z and
-# fall back to 0.0.0 for anything unparseable.
+# Releases 1.4-1.9 wrote 2-part versions (e.g. "1.9") and an interrupted write
+# can leave the file empty; strict semver rejects both. Pad to X.Y.Z and fall
+# back to 0.0.0 for anything semver would reject (including leading zeros).
 - name: Decode and normalize last version
   ansible.builtin.set_fact:
     last_version: >-
       {{
-        (((raw_last_version if raw_last_version is match('^\d+(\.\d+){0,2}$') else '0.0.0')
+        (((raw_last_version if raw_last_version is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){0,2}$') else '0.0.0')
           .split('.')) + ['0', '0'])[:3] | join('.')
       }}
   vars:
@@ -56,7 +55,7 @@
 - name: Validate current playbook version is 3-part semver
   ansible.builtin.assert:
     that:
-      - hmsd_current_version | string is match('^\d+\.\d+\.\d+$')
+      - hmsd_current_version | string is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$')
     fail_msg: >-
       hmsd_current_version ('{{ hmsd_current_version }}') must be a quoted 3-part
       version (X.Y.Z) in hms-docker.yml. Unquoted 2-part values like 1.20 are
@@ -135,6 +134,5 @@
             msg: "Playbook execution aborted."
           when: continue_playbook_v1_12_update.user_input | lower != "yes"
 
-# The version file is saved at the END of the role (see tasks/main.yml) so a
-# failed run doesn't record the new version and suppress migration prompts on
-# the retry.
+# The version file itself is saved at the end of tasks/main.yml so a failed
+# run re-prompts on retry.
