@@ -35,47 +35,45 @@
 # Fail closed: a container stays running only if its VPN IP was positively
 # verified to differ from the host public IP; failed or empty lookups count
 # as unverified.
-- name: Ensure public IP and VPN public IP are different
-  ansible.builtin.debug:
-    msg:
-      - Your public IP is protected in {{ item.item }}!
-      - "Current public IP: {{ hmsd_host_public_ip }}"
-      - "Current {{ item.item }} VPN IP: {{ item.vpn_ip }}"
+- name: Validate VPN protection per download client
   vars:
     hmsd_host_public_ip: "{{ ansible_facts['ipify_public_ip'] | default('') }}"
-  when:
-    - not ansible_check_mode
-    - not item.skipped
-    - hmsd_host_public_ip | length > 0
-    - item.vpn_ip | length > 0
-    - hmsd_host_public_ip != item.vpn_ip
-  loop: "{{ slimmed_vpn_public_ip_results }}"
+  block:
+    - name: Ensure public IP and VPN public IP are different
+      ansible.builtin.debug:
+        msg:
+          - Your public IP is protected in {{ item.item }}!
+          - "Current public IP: {{ hmsd_host_public_ip }}"
+          - "Current {{ item.item }} VPN IP: {{ item.vpn_ip }}"
+      when:
+        - not ansible_check_mode
+        - not item.skipped
+        - hmsd_host_public_ip | length > 0
+        - item.vpn_ip | length > 0
+        - hmsd_host_public_ip != item.vpn_ip
+      loop: "{{ slimmed_vpn_public_ip_results }}"
 
-- name: Stop VPN container if protection could not be verified
-  community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
-    state: stopped
-    remove_orphans: "{{ container_remove_orphans }}"
-    services:
-      - "{{ item.item }}"
-  vars:
-    hmsd_host_public_ip: "{{ ansible_facts['ipify_public_ip'] | default('') }}"
-  loop: "{{ slimmed_vpn_public_ip_results }}"
-  when:
-    - not item.skipped
-    - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
+    - name: Stop VPN container if protection could not be verified
+      community.docker.docker_compose_v2:
+        project_src: "{{ hms_docker_data_path }}"
+        project_name: "{{ project_name }}"
+        state: stopped
+        remove_orphans: "{{ container_remove_orphans }}"
+        services:
+          - "{{ item.item }}"
+      loop: "{{ slimmed_vpn_public_ip_results }}"
+      when:
+        - not item.skipped
+        - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
 
-- name: Print error message if VPN protection could not be verified
-  ansible.builtin.debug:
-    msg:
-      - 🔴 Your public IP is NOT verified as protected in {{ item.item }}! 🔴
-      - "Current public IP: {{ hmsd_host_public_ip if hmsd_host_public_ip else '(lookup failed)' }}"
-      - "Current {{ item.item }} VPN IP: {{ item.vpn_ip if item.vpn_ip else '(lookup failed)' }}"
-      - 🔴 The {{ item.item }} container has been stopped 🔴
-  vars:
-    hmsd_host_public_ip: "{{ ansible_facts['ipify_public_ip'] | default('') }}"
-  loop: "{{ slimmed_vpn_public_ip_results }}"
-  when:
-    - not item.skipped
-    - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
+    - name: Print error message if VPN protection could not be verified
+      ansible.builtin.debug:
+        msg:
+          - 🔴 Your public IP is NOT verified as protected in {{ item.item }}! 🔴
+          - "Current public IP: {{ hmsd_host_public_ip if hmsd_host_public_ip else '(lookup failed)' }}"
+          - "Current {{ item.item }} VPN IP: {{ item.vpn_ip if item.vpn_ip else '(lookup failed)' }}"
+          - 🔴 The {{ item.item }} container has been stopped 🔴
+      loop: "{{ slimmed_vpn_public_ip_results }}"
+      when:
+        - not item.skipped
+        - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
