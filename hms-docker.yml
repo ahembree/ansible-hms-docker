@@ -6,7 +6,7 @@
   vars:
     # Must be a QUOTED 3-part semver (X.Y.Z) — unquoted values like 1.20 parse
     # as the YAML float 1.2 and break the version comparison.
-    hmsd_current_version: "1.19.0"
+    hmsd_current_version: "1.19.1"
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false
     regex: '[^A-Za-z0-9._-]'
