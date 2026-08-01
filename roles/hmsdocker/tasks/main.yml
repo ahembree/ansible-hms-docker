@@ -363,3 +363,13 @@
 
     - name: Import App Init task
       ansible.builtin.import_tasks: "app_inits/app_init.yml"
+
+# Saved last so a failed run doesn't record the new version and suppress the
+# upgrade/migration prompts in versioning.yml on the retry.
+- name: Save current version to file
+  ansible.builtin.copy:
+    content: "{{ hmsd_current_version }}"
+    dest: "{{ hmsd_version_file }}"
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    mode: '0644'

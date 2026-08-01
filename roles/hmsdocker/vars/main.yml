@@ -3,8 +3,9 @@
 #######################################################################
 ### Misc
 hmsdocker_primary_mount_path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}"
-# This just combines the mount path and media folder name, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
-hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+# hmsdocker_library_path lives in defaults/main/hmsd_advanced.yml (role
+# defaults) rather than here: role vars outrank inventory group_vars, which
+# would make the documented override in user inventory silently ineffective.
 #######################################################################
 
 

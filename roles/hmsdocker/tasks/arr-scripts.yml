@@ -32,7 +32,7 @@
   when:
     - item in enabled_containers
     - separate_4k_instances_enable | default(false)
-    - arr_script_app_config_dirs.results | selectattr('item', 'equalto', item) | selectattr('stat.exists', 'equalto', true) | list | length > 0
+    - arr_script_app_config_dirs.results | selectattr('item', 'equalto', item + '-4k') | selectattr('stat.exists', 'equalto', true) | list | length > 0
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/RandomNinjaAtk/arr-scripts/main/{{ item }}/scripts_init.bash
     dest: "{{ hms_docker_apps_path }}/{{ item }}-4k/custom-cont-init.d"

@@ -4,8 +4,10 @@
   become: true
   gather_facts: true
   vars:
-    # Must be 3-part semantic format so Ansible can correctly compare versions (version X.Y.Z)
-    hmsd_current_version: 1.19.0
+    # Must be a QUOTED 3-part semantic version (X.Y.Z) so Ansible can correctly
+    # compare versions. Unquoted values like 1.20 are parsed by YAML as the
+    # float 1.2, which breaks the semver comparison for every user.
+    hmsd_current_version: "1.19.0"
     hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
     is_github_runner: false
     regex: '[^A-Za-z0-9._-]'

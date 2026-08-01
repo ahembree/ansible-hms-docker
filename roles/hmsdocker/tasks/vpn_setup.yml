@@ -9,7 +9,13 @@
     - transmission
     - qbittorrent
     - deluge
-  when: item in enabled_containers and item != 'transmission' or (item == 'transmission' and hmsdocker_vpn_provider == 'custom' and hmsdocker_vpn_type == 'openvpn')
+  # Transmission only needs the config dir when the user supplies their own
+  # openvpn config; the other clients always get one. The enabled check applies
+  # to every client — the old and/or grouping skipped it for transmission.
+  when: >-
+    item in enabled_containers
+    and (item != 'transmission'
+         or (hmsdocker_vpn_provider == 'custom' and hmsdocker_vpn_type == 'openvpn'))
 
 # Skip the stub for PIA, which generates its own wg0.conf (an empty one aborts it).
 - name: (VPN Setup) Ensure WireGuard config exists with restricted permissions
