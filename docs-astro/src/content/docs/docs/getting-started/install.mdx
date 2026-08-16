@@ -34,8 +34,14 @@ This playbook configures Docker to use the `172.27.0.0/16` IP range for all Dock
 2. Install requirements:
 
     ```bash
-    sudo apt install git make python3-pip -y
+    sudo apt install git make python3-pip python3-venv -y
     ```
+
+    :::note
+
+    `python3-venv` is required by `make manager`.
+
+    :::
 
 3. Clone the repository:
 
@@ -75,6 +81,10 @@ There is a script that will allow you to easily edit all variable files mentione
 ```bash
 make manager
 ```
+
+This creates a Python virtual environment in `.venv/` on first run and installs the requirements
+into it. If the environment is missing or incomplete (for example, it was created before
+`python3-venv` was installed), it is rebuilt automatically.
 
 :::
 

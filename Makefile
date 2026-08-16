@@ -11,6 +11,11 @@ CUSTOM_CONF_DIR = inventory/group_vars/all
 
 REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
 
+VENV_DIR = .venv
+VENV_PY = $(VENV_DIR)/bin/python3
+# Marker file used to detect when requirements.txt changed since the last install
+VENV_STAMP = $(VENV_DIR)/.requirements-installed
+
 ARCH = $(shell uname -m)
 BIN_DIR = ./bin
 YQ_LOCAL = $(BIN_DIR)/yq
@@ -80,13 +85,48 @@ verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py
 
 manager:
-	@if [ ! -d ".venv" ]; then \
+	@set -e; \
+	if [ -d "$(VENV_DIR)" ] && ! "$(VENV_PY)" -m pip --version > /dev/null 2>&1; then \
+		if [ ! -w "$(VENV_DIR)" ]; then \
+			printf $(_ERROR) "FAIL" "'$(VENV_DIR)' is incomplete and not writable by $$(id -un), remove it and re-run 'make manager':"; \
+			printf $(_ERROR) "FAIL" "  sudo rm -rf $(VENV_DIR)"; \
+			exit 1; \
+		fi; \
+		printf $(_WARN) "WARN" "Found an incomplete virtual environment in '$(VENV_DIR)', recreating it"; \
+		rm -rf "$(VENV_DIR)"; \
+	fi; \
+	if [ ! -d "$(VENV_DIR)" ]; then \
 		echo "Creating Python virtual environment"; \
-		python3 -m venv .venv; \
+		if ! python3 -m venv "$(VENV_DIR)"; then \
+			rm -rf "$(VENV_DIR)"; \
+			pyver=$$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null) || pyver=""; \
+			printf $(_ERROR) "FAIL" "Could not create the Python virtual environment in '$(VENV_DIR)'"; \
+			printf $(_ERROR) "FAIL" "On Debian/Ubuntu, install the venv module and re-run 'make manager':"; \
+			if [ -n "$$pyver" ]; then \
+				printf $(_ERROR) "FAIL" "  sudo apt install -y python3-venv python$$pyver-venv"; \
+			else \
+				printf $(_ERROR) "FAIL" "  sudo apt install -y python3 python3-venv"; \
+			fi; \
+			exit 1; \
+		fi; \
+	fi; \
+	if [ ! -w "$(VENV_DIR)" ]; then \
+		printf $(_WARN) "WARN" "'$(VENV_DIR)' is not writable by $$(id -un), skipping the requirements check"; \
+		printf $(_WARN) "WARN" "If the settings manager fails to start, run 'sudo rm -rf $(VENV_DIR)' and try again"; \
+	elif [ ! -f "$(VENV_STAMP)" ] || [ requirements.txt -nt "$(VENV_STAMP)" ]; then \
 		echo "Installing Python requirements"; \
-		.venv/bin/pip3 install -r requirements.txt > /dev/null; \
-	fi;
-	@.venv/bin/python3 settings_manager.py
+		piplog=$$(mktemp); \
+		if ! "$(VENV_PY)" -m pip install -r requirements.txt > "$$piplog" 2>&1; then \
+			cat "$$piplog"; \
+			rm -f "$$piplog"; \
+			printf $(_ERROR) "FAIL" "Failed to install Python requirements from requirements.txt"; \
+			exit 1; \
+		fi; \
+		rm -f "$$piplog"; \
+		touch "$(VENV_STAMP)" 2>/dev/null || \
+			printf $(_WARN) "WARN" "Could not write to '$(VENV_DIR)', requirements will be re-checked on every run"; \
+	fi
+	@$(VENV_PY) settings_manager.py
 
 update: $(YQ_LOCAL)
 	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
