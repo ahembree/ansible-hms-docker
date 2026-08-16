@@ -87,6 +87,11 @@ verify-containers:
 manager:
 	@set -e; \
 	if [ -d "$(VENV_DIR)" ] && ! "$(VENV_PY)" -m pip --version > /dev/null 2>&1; then \
+		if [ ! -w "$(VENV_DIR)" ]; then \
+			printf $(_ERROR) "FAIL" "'$(VENV_DIR)' is incomplete and not writable by $$(id -un), remove it and re-run 'make manager':"; \
+			printf $(_ERROR) "FAIL" "  sudo rm -rf $(VENV_DIR)"; \
+			exit 1; \
+		fi; \
 		printf $(_WARN) "WARN" "Found an incomplete virtual environment in '$(VENV_DIR)', recreating it"; \
 		rm -rf "$(VENV_DIR)"; \
 	fi; \
@@ -94,21 +99,32 @@ manager:
 		echo "Creating Python virtual environment"; \
 		if ! python3 -m venv "$(VENV_DIR)"; then \
 			rm -rf "$(VENV_DIR)"; \
-			pyver=$$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null); \
+			pyver=$$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null) || pyver=""; \
 			printf $(_ERROR) "FAIL" "Could not create the Python virtual environment in '$(VENV_DIR)'"; \
 			printf $(_ERROR) "FAIL" "On Debian/Ubuntu, install the venv module and re-run 'make manager':"; \
-			printf $(_ERROR) "FAIL" "  sudo apt install -y python3-venv python$$pyver-venv"; \
+			if [ -n "$$pyver" ]; then \
+				printf $(_ERROR) "FAIL" "  sudo apt install -y python3-venv python$$pyver-venv"; \
+			else \
+				printf $(_ERROR) "FAIL" "  sudo apt install -y python3 python3-venv"; \
+			fi; \
 			exit 1; \
 		fi; \
 	fi; \
-	if [ ! -f "$(VENV_STAMP)" ] || [ requirements.txt -nt "$(VENV_STAMP)" ]; then \
+	if [ ! -w "$(VENV_DIR)" ]; then \
+		printf $(_WARN) "WARN" "'$(VENV_DIR)' is not writable by $$(id -un), skipping the requirements check"; \
+		printf $(_WARN) "WARN" "If the settings manager fails to start, run 'sudo rm -rf $(VENV_DIR)' and try again"; \
+	elif [ ! -f "$(VENV_STAMP)" ] || [ requirements.txt -nt "$(VENV_STAMP)" ]; then \
 		echo "Installing Python requirements"; \
-		if ! "$(VENV_DIR)/bin/pip3" install -r requirements.txt > "$(VENV_DIR)/pip-install.log" 2>&1; then \
-			cat "$(VENV_DIR)/pip-install.log"; \
+		piplog=$$(mktemp); \
+		if ! "$(VENV_PY)" -m pip install -r requirements.txt > "$$piplog" 2>&1; then \
+			cat "$$piplog"; \
+			rm -f "$$piplog"; \
 			printf $(_ERROR) "FAIL" "Failed to install Python requirements from requirements.txt"; \
 			exit 1; \
 		fi; \
-		touch "$(VENV_STAMP)"; \
+		rm -f "$$piplog"; \
+		touch "$(VENV_STAMP)" 2>/dev/null || \
+			printf $(_WARN) "WARN" "Could not write to '$(VENV_DIR)', requirements will be re-checked on every run"; \
 	fi
 	@$(VENV_PY) settings_manager.py
 
