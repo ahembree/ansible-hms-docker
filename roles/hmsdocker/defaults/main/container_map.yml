@@ -396,6 +396,16 @@ hms_docker_container_map:
     homepage_stats: false
     proxy_host_rule: speedtest
     traefik: true
+  spottarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: spottarr
+    traefik: true
   tailscale:
     enabled: false
     homepage: false

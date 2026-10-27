@@ -1,0 +1,60 @@
+services:
+  spottarr:
+    image: ghcr.io/spottarr/spottarr:latest
+    container_name: spottarr
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    user: ${PUID}:${PGID}
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+      - download_net
+    environment:
+      - USENET__HOSTNAME=${SPOTTARR_USENET_HOSTNAME}
+      - USENET__USERNAME=${SPOTTARR_USENET_USERNAME}
+      - USENET__PASSWORD=${SPOTTARR_USENET_PASSWORD}
+      - USENET__PORT=${SPOTTARR_USENET_PORT}
+      - USENET__USETLS=${SPOTTARR_USENET_USE_TLS}
+      - USENET__MAXCONNECTIONS=${SPOTTARR_USENET_MAX_CONNECTIONS}
+      - SPOTNET__RETRIEVEAFTER=${SPOTTARR_RETRIEVE_AFTER}
+      - SPOTNET__IMPORTBATCHSIZE=${SPOTTARR_IMPORT_BATCH_SIZE}
+      - SPOTNET__RETENTIONDAYS=${SPOTTARR_RETENTION_DAYS}
+      - SPOTNET__IMPORTADULTCONTENT=${SPOTTARR_IMPORT_ADULT_CONTENT}
+      - NEWZNAB__APIKEY=${SPOTTARR_NEWZNAB_API_KEY}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HMSD_APPS_PATH}/spottarr/config:/data
+    {% if 'spottarr' in expose_ports_enabled_containers %}
+    ports:
+      - 8383:8383
+    {% endif %}
+    {% if 'spottarr' in traefik_enabled_containers or 'spottarr' in homepage_enabled_containers %}
+    labels:
+      {% if 'spottarr' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.spottarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8383
+      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['spottarr']['proxy_host_rule'] | default('spottarr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'spottarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-spottarr-midware@docker' if 'spottarr' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'spottarr' in homepage_enabled_containers %}
+      - homepage.group=Managers
+      - homepage.name=Spottarr
+      - homepage.icon=mdi-radar
+      - homepage.href=http://{{ hms_docker_container_map['spottarr']['proxy_host_rule'] | default('spottarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Spotnet Indexer
+        {% if 'spottarr' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8383/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 2h

@@ -89,3 +89,15 @@ hmsdocker_beszel_token:
 hmsdocker_beszel_email: 
 hmsdocker_beszel_password: 
 hmsdocker_beszel_heartbeat_url: 
+
+hmsdocker_spottarr_usenet_hostname: ""
+hmsdocker_spottarr_usenet_username: ""
+hmsdocker_spottarr_usenet_password: ""
+hmsdocker_spottarr_usenet_port: 563
+hmsdocker_spottarr_usenet_use_tls: true
+hmsdocker_spottarr_usenet_max_connections: 10
+hmsdocker_spottarr_retrieve_after: "2024-10-01T00:00:00Z"
+hmsdocker_spottarr_import_batch_size: 10000
+hmsdocker_spottarr_retention_days: 365
+hmsdocker_spottarr_import_adult_content: false
+hmsdocker_spottarr_newznab_api_key: ""
