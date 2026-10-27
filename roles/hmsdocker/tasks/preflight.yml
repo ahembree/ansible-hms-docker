@@ -52,6 +52,21 @@
       container_uid, container_gid, hms_docker_container_map.
     quiet: true
 
+- name: (preflight) Validate Spottarr Usenet configuration when enabled
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_spottarr_usenet_hostname | default('', true) | trim | length) > 0
+      - (hmsdocker_spottarr_usenet_username | default('', true) | trim | length) > 0
+      - (hmsdocker_spottarr_usenet_password | default('', true) | length) > 0
+    fail_msg: >-
+      Spottarr is enabled but its Usenet connection is incomplete. Set
+      hmsdocker_spottarr_usenet_hostname, hmsdocker_spottarr_usenet_username,
+      and hmsdocker_spottarr_usenet_password in
+      inventory/group_vars/all/service_misc.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when: hms_docker_container_map['spottarr']['enabled'] | default(false) | bool
+
 # ---------------------------------------------------------------------------
 # NAS — CIFS
 # ---------------------------------------------------------------------------
