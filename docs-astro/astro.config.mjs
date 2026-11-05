@@ -28,6 +28,7 @@ export default defineConfig({
         Head: './src/components/Head.astro',
       },
       title: 'HMS-Docker',
+			description: 'Ansible playbook that deploys and configures a Docker-based home media server stack: Plex, Jellyfin, Sonarr, Radarr, Prowlarr, VPN, Traefik, and SSO.',
 			logo: {
 				src: './src/content/docs/static/img/logo.svg'
 			},
@@ -49,8 +50,36 @@ export default defineConfig({
 				{
 					tag: 'meta',
 					attrs: {
-						property: 'og:type',
-						content: 'website'
+						property: 'og:image:width',
+						content: '1200'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:height',
+						content: '600'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:alt',
+						content: 'HMS-Docker: an orchestrated Home Media Server deployment tool using Ansible and Docker'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image',
+						content: 'https://hmsdocker.dev/opengraph/hmsd_opengraph.png'
+					}
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image:alt',
+						content: 'HMS-Docker: an orchestrated Home Media Server deployment tool using Ansible and Docker'
 					}
 				},
 			],

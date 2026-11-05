@@ -27,6 +27,10 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v6
+        with:
+          # Full history so Starlight's git-based "last updated" dates (also used for
+          # the dateModified/article:modified_time SEO metadata) are accurate per page
+          fetch-depth: 0
 
       - name: Copy container_map config to site
         run: |
