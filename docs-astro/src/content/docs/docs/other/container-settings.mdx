@@ -74,7 +74,7 @@ container_expose_ports: no
 
 When set to `yes`, all container ports will be exposed on the host. If Traefik is disabled in the container map, this is automatically overridden to `yes`.
 
-For per-container port exposure, use the `expose_ports` setting in the [Container Map](/docs/container-list#container-map).
+For per-container port exposure, use the `expose_ports` setting in the [Container Map](/docs/container-list/#container-map).
 
 ---
 
@@ -100,7 +100,7 @@ Controls the base folder name used for the project. This affects:
 hms_docker_data_path: "/opt/{{ project_name }}"
 ```
 
-Where all container data, configs, compose files, and secrets are stored. See the [File/Folder Layout](/docs/other/paths) docs for the full directory structure.
+Where all container data, configs, compose files, and secrets are stored. See the [File/Folder Layout](/docs/other/paths/) docs for the full directory structure.
 
 ### Apps Path
 
@@ -134,4 +134,4 @@ secrets_env_group: root
 secrets_env_mode: "0600"
 ```
 
-Controls the ownership and permissions of the `.env` file containing API keys and secrets. See the [Secrets files](/docs/other/paths#secrets-files) section in the File/Folder Layout docs for more details on adjusting these.
+Controls the ownership and permissions of the `.env` file containing API keys and secrets. See the [Secrets files](/docs/other/paths/#secrets-files) section in the File/Folder Layout docs for more details on adjusting these.

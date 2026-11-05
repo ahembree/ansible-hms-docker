@@ -3,7 +3,11 @@ import { getCollection } from 'astro:content';
 
 const { head, entry, id, lastUpdated } = Astro.locals.starlightRoute;
 const siteUrl = Astro.site?.href ?? 'https://hmsdocker.dev/';
-const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
+// Reuse Starlight's canonical URL so structured data always matches <link rel="canonical">.
+const canonicalHref = head.find(({ tag, attrs }) => tag === 'link' && attrs?.rel === 'canonical')
+  ?.attrs?.href;
+const pageUrl =
+  typeof canonicalHref === 'string' ? canonicalHref : new URL(Astro.url.pathname, siteUrl).href;
 const title = entry.data.title;
 const description = entry.data.description ?? '';
 // Matches Starlight's own root detection in utils/slugs.ts `slugToParam()`.
@@ -31,6 +35,10 @@ const headEntries = head
   .map((item) => {
     if (item.tag === 'meta' && item.attrs?.property === 'og:type') {
       return { ...item, attrs: { ...item.attrs, content: isHome ? 'website' : 'article' } };
+    }
+    // Open Graph expects language_TERRITORY (e.g. en_US); Starlight emits the bare `lang`.
+    if (item.tag === 'meta' && item.attrs?.property === 'og:locale' && item.attrs.content === 'en') {
+      return { ...item, attrs: { ...item.attrs, content: 'en_US' } };
     }
     return item;
   });

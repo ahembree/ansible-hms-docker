@@ -10,10 +10,10 @@ If a container fails to start with a "port already in use" error, another servic
 **Solutions:**
 
 - Identify the conflicting service: `sudo ss -tlnp | grep <port>`
-- Change the containers host port using a [Container Override](/docs/getting-started/container-overrides)
+- Change the containers host port using a [Container Override](/docs/getting-started/container-overrides/)
 - Stop the conflicting service
 
-See the [Container Map](/docs/container-list#container-map) for the default port mappings. Some containers have modified host ports to avoid overlap (e.g., SABnzbd uses host port `8082` instead of `8080`).
+See the [Container Map](/docs/container-list/#container-map) for the default port mappings. Some containers have modified host ports to avoid overlap (e.g., SABnzbd uses host port `8082` instead of `8080`).
 
 ## Permission Issues
 
@@ -42,12 +42,12 @@ sudo chown -R <uid>:<gid> /opt/hms-docker/apps/
 
 If you get `404` errors or cannot access containers via their subdomain:
 
-1. **Verify DNS resolution:** `nslookup <container>.<domain>` — should resolve to your server's IP. If it doesn't resolve, check your DNS server configuration or create the required DNS record (see [DNS docs](/docs/getting-started/dns))
+1. **Verify DNS resolution:** `nslookup <container>.<domain>` — should resolve to your server's IP. If it doesn't resolve, check your DNS server configuration or create the required DNS record (see [DNS docs](/docs/getting-started/dns/))
 2. **Check Traefik logs:** `docker logs -f traefik` — look for routing errors
 3. **Verify the container is running:** `docker ps | grep <container>`
 4. **Check the container is healthy:** Some containers take time to start. Wait a few minutes and try again.
 
-If using the [UniFi DNS role](/docs/getting-started/dns#unifi-dns-role), verify the DNS records were created in your UniFi console.
+If using the [UniFi DNS role](/docs/getting-started/dns/#unifi-dns-role), verify the DNS records were created in your UniFi console.
 
 ## VPN Connectivity
 
@@ -55,7 +55,7 @@ If VPN-enabled containers (Transmission, qBittorrent, Deluge) fail to start or c
 
 1. **Check container logs:** `docker logs -f <container>` — look for VPN connection errors
 2. **Verify VPN credentials** in `inventory/group_vars/all/vpn.yml`
-3. **Verify the VPN config file** is placed in the correct directory (see [Download Clients and VPNs](/docs/getting-started/vpn-and-dl-clients))
+3. **Verify the VPN config file** is placed in the correct directory (see [Download Clients and VPNs](/docs/getting-started/vpn-and-dl-clients/))
 4. **Check if your VPN provider is supported** by the container image
 
 ## Traefik Certificate Issues
@@ -77,4 +77,4 @@ If you see a validation error about containers not being defined:
 service "container_name" is not defined in the compose file
 ```
 
-This means a container listed in your `docker-compose.override.yml` is not enabled. Only enabled containers should be specified in the override file. See [Container Overrides](/docs/getting-started/container-overrides) for details.
+This means a container listed in your `docker-compose.override.yml` is not enabled. Only enabled containers should be specified in the override file. See [Container Overrides](/docs/getting-started/container-overrides/) for details.
