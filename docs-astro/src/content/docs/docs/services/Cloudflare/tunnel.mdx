@@ -20,7 +20,7 @@ It is your responsibility to understand and accept the risks and implement secur
 
 <Steps>
 
-1. You will need to first generate a token by following the steps [here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#1-create-a-tunnel)
+1. You will need to first generate a token by following the [Cloudflare guide to create a remote tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#1-create-a-tunnel)
 
     a. You can find the token here:
 
@@ -43,7 +43,7 @@ It is your responsibility to understand and accept the risks and implement secur
 
 4. After the container has been started, you should now see an active Connector in your Cloudflare dashboard
 
-5. Follow [the steps here](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#2a-publish-an-application) to link containers to the tunnel, following the [container map](/docs/container-list#container-map) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
+5. Follow the [Cloudflare steps to publish an application](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/#2a-publish-an-application) to link containers to the tunnel, following the [container map](/docs/container-list/#container-map) for the available container names and ports (use the container name as the "Service" name in the Cloudflare webgui, and append the port, e.g. `overseerr:5055`)
 
 </Steps>
 
@@ -73,4 +73,4 @@ To use Authentik with Tunnel, you need to either forward ports 80/443 to your ho
 
 ## Using Authentik through Cloudflare Tunnel
 
-See the [Authentik docs for this project](/docs/services/authentik#authentik-protection-through-cloudflare-tunnel)
+See the [Authentik docs for this project](/docs/services/authentik/#authentik-protection-through-cloudflare-tunnel)

@@ -197,7 +197,7 @@ If wanting to submit a pull request, the following Compose file settings are typ
 
 :::tip[Tip]
 
-The repository includes a Claude Code skill that walks through all of the steps below and the conventions that go with them. See [Adding Containers with Claude Code](/docs/other/claude-skill).
+The repository includes a Claude Code skill that walks through all of the steps below and the conventions that go with them. See [Adding Containers with Claude Code](/docs/other/claude-skill/).
 
 :::
 
@@ -213,7 +213,7 @@ A list of the locations where items will need to be updated:
 
     a. If API keys need to be read from a file to auto-populate the `.env`, there is a task file in `roles/hmsdocker/tasks/app_api_key_reader.yml` that retrieves the keys from the file
 
-6. If any tasks/prerequisits need to be ran _before_ the container starts, create a `<container name>.yml` Ansible task file in `roles/hmsdocker/tasks/container_prereqs/`
+6. If any tasks/prerequisites need to be ran _before_ the container starts, create a `<container name>.yml` Ansible task file in `roles/hmsdocker/tasks/container_prereqs/`
 7. If any tasks need to be ran _after_ the container starts, create a `<container name>.yml` Ansible task file in `roles/hmsdocker/tasks/container_postreqs/`
 8. If the container needs to be restarted after any config changes, create a new handler task in `roles/hmsdocker/handlers/main.yml`
 

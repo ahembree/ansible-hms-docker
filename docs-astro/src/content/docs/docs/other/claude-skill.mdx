@@ -5,7 +5,7 @@ description: "How to use the add-container Claude Code skill included in the rep
 
 import { Steps, FileTree } from '@astrojs/starlight/components';
 
-The repository ships a [Claude Code](https://claude.com/claude-code) *skill* that walks through adding a new container to the stack. It encodes the same steps as [Adding New Containers](/docs/container-list#adding-new-containers), plus the conventions and the mistakes that are easy to make.
+The repository ships a [Claude Code](https://claude.com/claude-code) *skill* that walks through adding a new container to the stack. It encodes the same steps as [Adding New Containers](/docs/container-list/#adding-new-containers), plus the conventions and the mistakes that are easy to make.
 
 This is a **contributor tool**. You do not need it to run HMS-Docker, and it is not involved in the playbook at runtime — it only helps you write the files for a pull request.
 
@@ -78,7 +78,7 @@ Two files are always written:
 
 Anything else is added only when the service actually needs it — a `container_prereqs`/`container_postreqs` task file, an `env.j2` variable, a `service_misc.yml` tunable, a Homepage credential, or a restart handler.
 
-It also updates the user-facing pieces: the category bullet and the Map table row on the [Container List](/docs/container-list) page, a release-notes entry, the `hmsd_current_version` bump in `hms-docker.yml`, and the CI container map in `.github/extra-vars.yml`.
+It also updates the user-facing pieces: the category bullet and the Map table row on the [Container List](/docs/container-list/) page, a release-notes entry, the `hmsd_current_version` bump in `hms-docker.yml`, and the CI container map in `.github/extra-vars.yml`.
 
 :::caution[Warning]
 

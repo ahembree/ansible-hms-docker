@@ -1,19 +1,21 @@
 ---
-title: Security
+title: Traefik Security Hardening
 description: "Configure Traefik security controls in HMS-Docker including IP allowlists, SSO via Authentik, TLS hardening, and security headers."
+sidebar:
+  label: Security
 ---
 
 ## How the containers are protected
 
 By default, Traefik is configured with an allowlist that only permits private IPs (RFC1918) to access containers.
 
-**Exception:** If you route a container through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel), the traffic goes directly to the container and bypasses Traefik entirely. Traefik allowlists and middlewares do not apply to Tunnel traffic.
+**Exception:** If you route a container through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/), the traffic goes directly to the container and bypasses Traefik entirely. Traefik allowlists and middlewares do not apply to Tunnel traffic.
 
 This is controlled on a per-container basis in the `inventory/group_vars/all/container_map.yml` file as the `expose_to_public` variable for each container. If you set this to `true`, it will allow all IPs (`0.0.0.0/0`) to access them.
 
 ## SSO
 
-To configure SSO (Single Sign-On) for certain containers, see the [Authentik docs](/docs/services/authentik)
+To configure SSO (Single Sign-On) for certain containers, see the [Authentik docs](/docs/services/authentik/)
 
 ## Security Hardening
 

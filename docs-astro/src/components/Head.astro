@@ -1,62 +1,154 @@
 ---
-const { head, entry, id } = Astro.locals.starlightRoute;
-const siteUrl = Astro.site?.href ?? 'https://hmsdocker.dev';
-const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
+import { getCollection } from 'astro:content';
+
+const { head, entry, id, lastUpdated } = Astro.locals.starlightRoute;
+const siteUrl = Astro.site?.href ?? 'https://hmsdocker.dev/';
+// Reuse Starlight's canonical URL so structured data always matches <link rel="canonical">.
+const canonicalHref = head.find(({ tag, attrs }) => tag === 'link' && attrs?.rel === 'canonical')
+  ?.attrs?.href;
+const pageUrl =
+  typeof canonicalHref === 'string' ? canonicalHref : new URL(Astro.url.pathname, siteUrl).href;
 const title = entry.data.title;
 const description = entry.data.description ?? '';
 // Matches Starlight's own root detection in utils/slugs.ts `slugToParam()`.
 const isHome = id === '' || id === 'index' || id === '/';
+const is404 = id === '404';
 
-const breadcrumbSegments = Astro.url.pathname
+const siteName = 'HMS-Docker';
+const siteDescription =
+  'An orchestrated Home Media Server deployment tool using Ansible and Docker';
+const repoUrl = 'https://github.com/ahembree/ansible-hms-docker';
+const ogImage = new URL('/opengraph/hmsd_opengraph.png', siteUrl).href;
+const logoImage = new URL('/opengraph/hmsd_logo.png', siteUrl).href;
+const websiteId = new URL('/#website', siteUrl).href;
+const organizationId = new URL('/#organization', siteUrl).href;
+
+// Starlight emits `og:type: article` for every page; the landing page is a website.
+// The 404 page must not advertise a canonical URL, since it is served at arbitrary paths.
+const headEntries = head
+  .filter(({ tag, attrs }) => {
+    if (!is404) return true;
+    if (tag === 'link' && attrs?.rel === 'canonical') return false;
+    if (tag === 'meta' && attrs?.property === 'og:url') return false;
+    return true;
+  })
+  .map((item) => {
+    if (item.tag === 'meta' && item.attrs?.property === 'og:type') {
+      return { ...item, attrs: { ...item.attrs, content: isHome ? 'website' : 'article' } };
+    }
+    // Open Graph expects language_TERRITORY (e.g. en_US); Starlight emits the bare `lang`.
+    if (item.tag === 'meta' && item.attrs?.property === 'og:locale' && item.attrs.content === 'en') {
+      return { ...item, attrs: { ...item.attrs, content: 'en_US' } };
+    }
+    return item;
+  });
+
+// Map of real page paths ("/docs/services/") to their titles, so breadcrumbs
+// only link to pages that exist and use the human-written page titles.
+const docs = await getCollection('docs');
+const pageTitles = new Map<string, string>(
+  docs.map((doc) => {
+    const path = doc.id === 'index' ? '/' : `/${doc.id.toLowerCase()}/`;
+    return [path, doc.data.title];
+  })
+);
+
+const pathSegments = Astro.url.pathname
   .replace(/^\/|\/$/g, '')
   .split('/')
   .filter(Boolean);
 
-const breadcrumbItems = breadcrumbSegments.map((segment, i) => ({
-  '@type': 'ListItem',
-  position: i + 1,
-  name: segment.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-  item: new URL(breadcrumbSegments.slice(0, i + 1).join('/') + '/', siteUrl).href,
-}));
+const trail: { name: string; url: string }[] = [{ name: 'Home', url: siteUrl }];
+pathSegments.forEach((_, i) => {
+  const path = `/${pathSegments.slice(0, i + 1).join('/')}/`.toLowerCase();
+  const isCurrent = i === pathSegments.length - 1;
+  const name = isCurrent ? title : pageTitles.get(path);
+  if (name) trail.push({ name, url: isCurrent ? pageUrl : new URL(path, siteUrl).href });
+});
 
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'HMS-Docker',
+const organizationSchema = {
+  '@type': 'Organization',
+  '@id': organizationId,
+  name: siteName,
   url: siteUrl,
-  description: 'An orchestrated Home Media Server deployment tool using Ansible and Docker',
+  logo: { '@type': 'ImageObject', url: logoImage, width: 240, height: 116 },
+  sameAs: [repoUrl, 'https://discord.gg/MqXTXvWSkZ'],
 };
 
-const breadcrumbSchema = breadcrumbItems.length > 0
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: breadcrumbItems,
-    }
-  : null;
+const websiteSchema = {
+  '@type': 'WebSite',
+  '@id': websiteId,
+  name: siteName,
+  url: siteUrl,
+  description: siteDescription,
+  inLanguage: 'en',
+  publisher: { '@id': organizationId },
+};
 
-const articleSchema = !isHome && description
-  ? {
+const softwareSchema = {
+  '@type': 'SoftwareSourceCode',
+  name: siteName,
+  alternateName: 'ansible-hms-docker',
+  description: description || siteDescription,
+  url: siteUrl,
+  codeRepository: repoUrl,
+  programmingLanguage: ['Ansible', 'YAML', 'Jinja'],
+  runtimePlatform: ['Docker', 'Linux'],
+  license: 'https://www.gnu.org/licenses/gpl-3.0.html',
+  image: ogImage,
+  author: { '@id': organizationId },
+};
+
+const breadcrumbSchema =
+  !isHome && !is404 && trail.length > 1
+    ? {
+        '@type': 'BreadcrumbList',
+        itemListElement: trail.map((crumb, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: crumb.name,
+          item: crumb.url,
+        })),
+      }
+    : null;
+
+const articleSchema =
+  !isHome && !is404
+    ? {
+        '@type': 'TechArticle',
+        headline: title,
+        ...(description ? { description } : {}),
+        url: pageUrl,
+        image: ogImage,
+        inLanguage: 'en',
+        ...(lastUpdated ? { dateModified: lastUpdated.toISOString() } : {}),
+        mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+        isPartOf: { '@id': websiteId },
+        author: { '@id': organizationId },
+        publisher: { '@id': organizationId },
+      }
+    : null;
+
+const graph = is404
+  ? null
+  : {
       '@context': 'https://schema.org',
-      '@type': 'TechArticle',
-      headline: title,
-      description,
-      url: pageUrl,
-      mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
-    }
-  : null;
+      '@graph': [
+        organizationSchema,
+        websiteSchema,
+        ...(isHome ? [softwareSchema] : []),
+        ...(breadcrumbSchema ? [breadcrumbSchema] : []),
+        ...(articleSchema ? [articleSchema] : []),
+      ],
+    };
 ---
 
-{head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+{headEntries.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
 
-{isHome && (
-  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+{is404 && <meta name="robots" content="noindex, follow" />}
+
+{!isHome && !is404 && lastUpdated && (
+  <meta property="article:modified_time" content={lastUpdated.toISOString()} />
 )}
 
-{breadcrumbSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
-)}
-
-{articleSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
-)}
+{graph && <script is:inline type="application/ld+json" set:html={JSON.stringify(graph)} />}

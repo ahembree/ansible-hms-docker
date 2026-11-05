@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.41.5",
     "@astrojs/starlight-tailwind": "^5.0.0",
     "@iconify-json/mdi": "^1.2.3",
@@ -18,6 +19,7 @@
     "astro": "^7.1.6",
     "astro-expressive-code": "^0.44.1",
     "astro-icon": "^1.1.5",
+    "github-slugger": "^2.0.0",
     "sharp": "^0.35.3",
     "starlight-theme-next": "^0.4.0",
     "tailwindcss": "^4.1.18"

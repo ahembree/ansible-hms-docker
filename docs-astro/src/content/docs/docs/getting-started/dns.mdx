@@ -1,7 +1,8 @@
 ---
-title: DNS
+title: DNS Configuration
 description: "Configure DNS for HMS-Docker services using internal DNS servers, Pi-hole, AdGuard Home, or the UniFi DNS Ansible role."
 sidebar:
+  label: DNS
   order: 3
 ---
 
@@ -66,7 +67,7 @@ There are several approaches for setting up internal DNS records. Choose whichev
 
 1. **Wildcard `A` record** (simplest) — Create a `*.<domain>` record on your local DNS server pointing to the private IP address of the server. This covers all subdomains automatically.
 
-2. **Individual `A` records** — Create a separate `A` record for each container listed in the [Container Map](/docs/container-list#container-map).
+2. **Individual `A` records** — Create a separate `A` record for each container listed in the [Container Map](/docs/container-list/#container-map).
 
 3. **Single `A` record + `CNAME` records** (recommended) — Create one `A` record (e.g., `server.<domain>`) and then `CNAME` records for each container pointing to it. This way, if the server IP changes, you only need to update one record.
 
@@ -94,7 +95,7 @@ To grant public access to containers, you will need to:
 
 <Steps>
 
-1. <Badge text="Preferred" variant="tip"/> Use a [Cloudflare Tunnel](/docs/services/cloudflare/tunnel)
+1. <Badge text="Preferred" variant="tip"/> Use a [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/)
 
 2. OR Create a public DNS record for it that is either:
 
@@ -102,6 +103,6 @@ To grant public access to containers, you will need to:
 
     * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `seerr.example.com`)
 
-3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/docs/container-list#container-map)
+3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/docs/container-list/#container-map)
 
 </Steps>

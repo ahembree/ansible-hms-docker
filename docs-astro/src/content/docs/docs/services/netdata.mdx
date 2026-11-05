@@ -1,6 +1,8 @@
 ---
-title: Netdata
+title: Netdata Monitoring
 description: "Set up Netdata monitoring in HMS-Docker, including instance claiming and configuring Traefik access for host-networked containers."
+sidebar:
+  label: Netdata
 ---
 
 ## Claiming Instance
@@ -15,7 +17,7 @@ docker exec -it netdata cat /var/lib/netdata/netdata_random_session_id
 
 Since Netdata uses the `host` network mode, it cannot be connected to Traefik via the Docker internal network which results in it not being "auto-discovered" by Traefik.
 
-Instead, you will have to treat it as an "external service" to Traefik. More documentation is available in the [External Services](/docs/services/traefik/other-svcs#adding-external-services-to-traefik) Traefik documentation for configuring external services, but the below should help.
+Instead, you will have to treat it as an "external service" to Traefik. More documentation is available in the [External Services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) Traefik documentation for configuring external services, but the below should help.
 
 :::note[Note]
 
