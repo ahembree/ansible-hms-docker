@@ -31,12 +31,14 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-      - UMASK_SET=002
+      - UMASK=002
       - serverIP=0.0.0.0
       - serverPort=8266
       - webUIPort=8265
       - internalNode=true
       - nodeName=MyInternalNode
+      - seededApiKey=${TDARR_API_KEY}
+      - apiKey=${TDARR_API_KEY}
     {% if enable_nvidia_gpu %}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
@@ -58,6 +60,7 @@ services:
       - homepage.description=Media Transcoder
       - homepage.widget.type=tdarr
       - homepage.widget.url=http://tdarr:8265
+      - homepage.widget.key=${TDARR_API_KEY}
       {% if 'tdarr' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}

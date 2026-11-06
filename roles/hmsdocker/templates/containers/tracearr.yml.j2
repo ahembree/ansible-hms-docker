@@ -27,8 +27,12 @@ services:
       - JWT_SECRET=${TRACEARR_JWT_SECRET}
       - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - TRUST_PROXY=true
       - LOG_LEVEL=${TRACEARR_LOG_LEVEL:-info} # Log level (debug, info, warn, error)
       # - DATABASE_POOL_MAX=50  # Database connection pool size (default: 50)
+    volumes:
+      - ${HMSD_APPS_PATH}/tracearr/config/backup:/data/backup
+      - ${HMSD_APPS_PATH}/tracearr/config/image-cache:/data/tracearr/image-cache
     depends_on:
       tracearr-db:
         condition: service_healthy
@@ -72,7 +76,7 @@ services:
     shm_size: 512mb  # Required for PostgreSQL shared memory (increase for large imports)
     # Allow unlimited tuple decompression for migrations on compressed hypertables
     # Increase lock table size for large imports (Tautulli imports with many TimescaleDB chunks)
-    command: postgres -c timescaledb.max_tuples_decompressed_per_dml_transaction=0 -c max_locks_per_transaction=4096
+    command: postgres -c timescaledb.license=timescale -c timescaledb.max_tuples_decompressed_per_dml_transaction=100000 -c max_locks_per_transaction=4096 -c timescaledb.telemetry_level=off -c max_connections=150
     environment:
       - POSTGRES_USER=tracearr
       - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}

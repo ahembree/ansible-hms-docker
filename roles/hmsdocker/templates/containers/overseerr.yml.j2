@@ -30,7 +30,7 @@ services:
       - homepage.icon=overseerr.png
       - homepage.href=http://{{ hms_docker_container_map['overseerr']['proxy_host_rule'] | default('overseerr') }}.${HMSD_DOMAIN}
       - homepage.description=Request Manager
-      - homepage.widget.type=overseerr
+      - homepage.widget.type=seerr
       - homepage.widget.url=http://overseerr:5055
       - homepage.widget.key=${OVERSEERR_KEY:-apikeyapikeyapikey}
         {% if 'overseerr' in homepage_stats_enabled_containers %}

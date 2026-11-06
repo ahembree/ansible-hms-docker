@@ -57,6 +57,8 @@ services:
       - homepage.description=Torrent Management
       - homepage.widget.type=qbittorrent
       - homepage.widget.url=http://qbittorrent:8086
+      - homepage.widget.username=${QBITTORRENT_USER:-admin}
+      - homepage.widget.password=${QBITTORRENT_PASS}
         {% if 'qbittorrent' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}

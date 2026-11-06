@@ -3,7 +3,8 @@
 # Visit https://plex.tv/claim to obtain this token specific to your account
 plex_claim_token: ""
 
-# This will grab the default interface IPv4 address of the host // default: "{{ ansible_facts.default_ipv4.address }}"
+# DEPRECATED: no longer used. ADVERTISE_IP is only read by the plexinc/pms-docker image, not the linuxserver/plex image this playbook uses.
+# Set custom server access URLs in Plex under Settings > Network instead.
 plex_advertise_ip: "{{ ansible_facts.default_ipv4.address }}"
 
 # When enabled, mounts the transcode/cache directory as an in-memory tmpfs inside the container instead of bind-mounting plex_transcode_folder from the host.

@@ -49,7 +49,7 @@ hmsdocker_unpackerr_additional_env_vars:
     "UN_ERROR_STDERR": "false",
     "UN_ACTIVITY": "false",
     "UN_LOG_QUEUES": "1m",
-    "UN_LOG_FILE": "/downloads/unpackerr.log",
+    "UN_LOG_FILE": "/data/unpackerr.log",
     "UN_LOG_FILES": "10",
     "UN_LOG_FILE_MB": "10",
     "UN_INTERVAL": "2m",

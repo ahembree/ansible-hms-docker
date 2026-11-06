@@ -82,7 +82,7 @@ services:
       - tubearchivist-es
 
   tubearchivist-es:
-    image: {{ 'bbilly1/tubearchivist-es' if ansible_architecture == 'x86_64' else 'elasticsearch:8.17.2' }}         # only for amd64, or use official es 8.17.2
+    image: {{ 'bbilly1/tubearchivist-es' if ansible_architecture == 'x86_64' else 'elasticsearch:8.19.23' }}         # only for amd64, or use official es
     container_name: tubearchivist-es
     restart: ${RESTART_POLICY}
     security_opt:

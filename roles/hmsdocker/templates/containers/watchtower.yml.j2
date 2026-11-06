@@ -18,7 +18,7 @@ services:
       - proxy_net
     environment:
       - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
-      - WATCHTOWER_HTTP_API_METRICS=true
+      - WATCHTOWER_HTTP_API_ENDPOINTS=metrics
     labels:
       - homepage.group=Infrastructure
       - homepage.name=Watchtower

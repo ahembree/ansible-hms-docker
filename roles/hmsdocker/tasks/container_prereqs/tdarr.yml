@@ -1,0 +1,23 @@
+---
+# Tdarr 3.x enables authentication on new installs and the internal node
+# needs an API key to connect. Seed a persistent key (must start with "tapi_")
+# that is used for the internal node and the Homepage widget.
+- name: (Prereq - Tdarr) - Generate seeded API key
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/tdarr/config/.tdarr_api_key' }}"
+    mode: 0600
+    backup: yes
+    force: no
+  no_log: "{{ not debug_mode }}"
+  register: prereq_tdarr_api_key
+  vars:
+    key: "tapi_{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=32) }}"
+
+- name: (Prereq - Tdarr) - Slurp seeded API key
+  ansible.builtin.slurp:
+    src: "{{ prereq_tdarr_api_key.dest }}"
+  register: prereq_tdarr_slurped_api_key
+  check_mode: false
+  when: prereq_tdarr_api_key.dest is defined
+  no_log: "{{ not debug_mode }}"
