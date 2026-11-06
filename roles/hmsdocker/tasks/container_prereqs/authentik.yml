@@ -1,4 +1,32 @@
 ---
+# Authentik 2026.8+ refuses to start when a release is skipped during an upgrade.
+# Stop before touching anything and tell the user which release to step through next.
+- name: Authentik Prereq - Get running Authentik server container
+  community.docker.docker_container_info:
+    name: authentik-server
+  register: authentik_server_info
+
+- name: Authentik Prereq - Ensure Authentik is not upgraded past a required release
+  vars:
+    authentik_upgrade_path: ['2025.2', '2025.4', '2025.6', '2025.8', '2025.10', '2025.12', '2026.2', '2026.5', '2026.8']
+    authentik_running_version: "{{ authentik_server_info.container.Config.Image.split(':')[-1] | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
+    authentik_target_version: "{{ hmsdocker_authentik_version | string | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
+    authentik_next_version: "{{ authentik_upgrade_path | select('version', authentik_running_version, '>') | first | default(authentik_target_version) }}"
+  ansible.builtin.assert:
+    that:
+      - authentik_target_version is version(authentik_next_version, '<=')
+    fail_msg: >-
+      Authentik {{ authentik_running_version }} is running, and upgrading straight to {{ authentik_target_version }} skips
+      at least one release, which Authentik does not allow. Set `hmsdocker_authentik_version: "{{ authentik_next_version }}"`
+      in inventory/group_vars/all/authentik.yml, run the playbook, and repeat with each next release
+      ({{ authentik_upgrade_path | select('version', authentik_running_version, '>') | select('version', authentik_target_version, '<=') | join(' -> ') }}) until you reach
+      {{ authentik_target_version }}, then set it back to the default (or remove it).
+    quiet: true
+  when:
+    - authentik_server_info.exists
+    - authentik_running_version | length > 0
+    - authentik_target_version | length > 0
+
 - name: Authentik Prereq - Ensure authentik secret key file
   ansible.builtin.template:
     src: secret_key_file.j2
@@ -83,3 +111,25 @@
   when: 
     - item.name in ['sonarr', 'radarr']
     - separate_4k_instances_enable | default(false)
+
+# Authentik 2025.12+ stores files under a /data mount instead of /media
+# (https://docs.goauthentik.io/releases/2025.12/#storage-mount-changes).
+# Move existing media into the new location so uploaded icons/branding survive.
+- name: Authentik Prereq - Check for legacy media directory
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/authentik/media"
+  register: authentik_legacy_media_dir
+
+- name: Authentik Prereq - Ensure data directory
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/authentik/data"
+    state: directory
+    mode: 0755
+
+- name: Authentik Prereq - Move legacy media directory into data directory
+  ansible.builtin.command:
+    cmd: mv "{{ hms_docker_apps_path }}/authentik/media" "{{ hms_docker_apps_path }}/authentik/data/media"
+    creates: "{{ hms_docker_apps_path }}/authentik/data/media"
+  when:
+    - authentik_legacy_media_dir.stat.exists
+    - authentik_legacy_media_dir.stat.isdir

@@ -1,10 +1,12 @@
 services:
   jellyseerr:
-    image: fallenbagel/jellyseerr:latest
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
     container_name: jellyseerr
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
+    user: ${PUID}:${PGID}
     logging:
       options:
         max-size: "12m"
@@ -14,8 +16,6 @@ services:
       - proxy_net
     environment:
       - LOG_LEVEL=info
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TIMEZONE}
     {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
     labels:
@@ -31,7 +31,7 @@ services:
       - homepage.icon=jellyseerr.png
       - homepage.href=http://{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}
       - homepage.description=Request Manager
-      - homepage.widget.type=jellyseerr
+      - homepage.widget.type=seerr
       - homepage.widget.url=http://jellyseerr:5055
       - homepage.widget.key=${JELLYSEERR_KEY:-apikeyapikeyapikey}
         {% if 'jellyseerr' in homepage_stats_enabled_containers %}
@@ -46,7 +46,7 @@ services:
       - 5056:5055
     {% endif %}
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/status || exit 1
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5055/api/v1/settings/public || exit 1
       start_period: 20s
       timeout: 3s
       interval: 15s

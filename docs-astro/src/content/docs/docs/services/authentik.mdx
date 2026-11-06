@@ -210,13 +210,25 @@ To ensure these key and pgpass files are not changed by Ansible, `force: no` is 
 
 ## Upgrading Authentik
 
+The Authentik release is set by `hmsdocker_authentik_version` in `inventory/group_vars/all/authentik.yml` (default: `"2026.8"`).
+
+Authentik must be upgraded one release at a time (for example `2025.12` -> `2026.2` -> `2026.5` -> `2026.8`) and refuses to start if a release is skipped. Before applying, the playbook compares the running Authentik version with the target. If the upgrade would skip a release, it stops and tells you which version to set next:
+
+1. Set `hmsdocker_authentik_version` to the version the playbook names (e.g. `"2026.2"`)
+2. Run `sudo make apply`
+3. Repeat with each next release until you reach the target, then set it back to the default
+
+See the [official upgrade docs](https://docs.goauthentik.io/install-config/upgrade/) for details.
+
+### Upgrading from before Version 1.12
+
 In **Version 1.12**, Authentik was upgraded from version `2025.2.4` to the current latest version, `2025.8.4`.
 
 If you're installing after Version 1.12, this does not apply.
 
 This Authentik upgrade introduced a Postgresql update from v12 to v16, which requires performing a manual database update and migration to the new version.
 
-### Wiping and Starting Fresh
+#### Wiping and Starting Fresh
 
 If you do not want to do this and do not care to wipe Authentik and start from scratch, you can do the following:
 
@@ -232,7 +244,7 @@ docker volume rm -f hms-docker_authentik_database hms-docker_authentik_database_
 
 Then re-run the playbook using `sudo make apply` and follow the steps above in [Enabling Authentik on Individual Containers](#enabling-authentik-on-individual-containers)
 
-### Performing Upgrade
+#### Performing Upgrade
 
 The steps below have been adapted from these official docs: https://docs.goauthentik.io/troubleshooting/postgres/upgrade_docker/
 

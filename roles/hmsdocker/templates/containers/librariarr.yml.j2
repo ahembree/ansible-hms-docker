@@ -21,7 +21,7 @@ services:
       - ${HMSD_APPS_PATH}/librariarr/config/app:/config
       - ${HMSD_MOUNT_PATH}:/data:ro
     environment:
-      - DATABASE_URL=postgresql://librariarr:librariarr@librariarr-db:5432/librariarr
+      - DATABASE_URL=postgresql://librariarr:${LIBRARIARR_DB_PASS:-librariarr}@librariarr-db:5432/librariarr
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}

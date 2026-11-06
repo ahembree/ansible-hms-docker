@@ -14,11 +14,12 @@ services:
       - NET_ADMIN
       - NET_RAW
     volumes:
-      - '/var/lib:/var/lib'
+      - ${HMSD_APPS_PATH}/tailscale/state:/var/lib/tailscale
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
       - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
+      - TS_STATE_DIR=/var/lib/tailscale
     {% if tailscale_enable_subnet_routes %}
       - TS_ROUTES={{ tailscale_subnet_routes }}
     {% endif %}

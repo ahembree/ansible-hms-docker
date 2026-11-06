@@ -1,0 +1,11 @@
+---
+# Jellyseerr was merged into Seerr, whose image runs as a non-root user
+# (set to PUID:PGID in the compose file) instead of root. Hand ownership of
+# existing config written by the old root-run image to that user.
+- name: Jellyseerr Prereq - Ensure config ownership for non-root Seerr image
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/jellyseerr/config"
+    state: directory
+    recurse: true
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"

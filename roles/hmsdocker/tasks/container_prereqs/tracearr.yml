@@ -53,3 +53,14 @@
   check_mode: false
   when: prereq_tracearr_cookie_secret.dest is defined
   no_log: "{{ not debug_mode }}"
+
+- name: (Prereq - Tracearr) - Ensure backup and image cache directories with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/tracearr/config/{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  loop:
+    - backup
+    - image-cache

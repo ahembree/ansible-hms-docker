@@ -1,4 +1,5 @@
-hmsdocker_traefik_version: latest
+# Traefik image tag to deploy (e.g. "v3.7.17", or "latest" to always pull the newest) // default: "v3.7.17"
+hmsdocker_traefik_version: v3.7.17
 
 ### SSL and Traefik settings
 
