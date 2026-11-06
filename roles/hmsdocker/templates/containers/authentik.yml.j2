@@ -29,8 +29,9 @@ services:
 
   authentik-server:
     container_name: authentik-server
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.12}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.8}
     restart: ${RESTART_POLICY}
+    shm_size: 512mb
     security_opt:
       - no-new-privileges:true
     networks:
@@ -89,8 +90,9 @@ services:
 
   authentik-worker:
     container_name: authentik-worker
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.12}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.8}
     restart: ${RESTART_POLICY}
+    shm_size: 512mb
     security_opt:
       - no-new-privileges:true
     logging:

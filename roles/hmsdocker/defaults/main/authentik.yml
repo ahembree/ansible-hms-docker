@@ -4,6 +4,12 @@
 # This requires a lot of configuring on your end to ensure that any services exposed through a Cloudflare Tunnel are secure
 hmsdocker_authentik_enabled_through_cftunnel: false
 
+# Authentik release to deploy // default: "2026.8"
+# Authentik must be upgraded one release at a time (e.g. 2025.12 -> 2026.2 -> 2026.5 -> 2026.8) and refuses to start
+# if a release is skipped. The playbook stops before applying a skip and tells you which version to set here next.
+# See: https://docs.goauthentik.io/install-config/upgrade/
+hmsdocker_authentik_version: "2026.8"
+
 # Advanced Authentik settings
 authentik_pg_user: authentik
 authentik_pg_db: authentik
