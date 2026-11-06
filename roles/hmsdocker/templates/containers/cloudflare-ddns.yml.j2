@@ -21,10 +21,10 @@ services:
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
       - DOMAINS={{ (cloudflare_ddns_subdomain ~ '.') if cloudflare_ddns_subdomain else '' }}${CLOUDFLARE_DOMAIN}
-      - DELETE_ON_STOP={{ cloudflare_ddns_delete_record_on_stop }}
+      - DELETE_ON_STOP={{ cloudflare_ddns_delete_record_on_stop | string | lower }}
     {% if cloudflare_ddns_create_ipv6_aaaa_record %}
       - IP4_PROVIDER=none
     {% else %}
       - IP6_PROVIDER=none
     {% endif %}
-      - PROXIED={{ cloudflare_ddns_proxied }}
+      - PROXIED={{ cloudflare_ddns_proxied | string | lower }}
