@@ -83,3 +83,25 @@
   when: 
     - item.name in ['sonarr', 'radarr']
     - separate_4k_instances_enable | default(false)
+
+# Authentik 2025.12+ stores files under a /data mount instead of /media
+# (https://docs.goauthentik.io/releases/2025.12/#storage-mount-changes).
+# Move existing media into the new location so uploaded icons/branding survive.
+- name: Authentik Prereq - Check for legacy media directory
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/authentik/media"
+  register: authentik_legacy_media_dir
+
+- name: Authentik Prereq - Ensure data directory
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/authentik/data"
+    state: directory
+    mode: 0755
+
+- name: Authentik Prereq - Move legacy media directory into data directory
+  ansible.builtin.command:
+    cmd: mv "{{ hms_docker_apps_path }}/authentik/media" "{{ hms_docker_apps_path }}/authentik/data/media"
+    creates: "{{ hms_docker_apps_path }}/authentik/data/media"
+  when:
+    - authentik_legacy_media_dir.stat.exists
+    - authentik_legacy_media_dir.stat.isdir

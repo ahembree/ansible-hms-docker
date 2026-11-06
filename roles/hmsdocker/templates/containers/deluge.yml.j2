@@ -56,6 +56,7 @@ services:
       - homepage.description=Torrent Management
       - homepage.widget.type=deluge
       - homepage.widget.url=http://deluge:8112
+      - homepage.widget.password=${DELUGE_PASS:-deluge}
         {% if 'deluge' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}

@@ -1,8 +1,12 @@
 services:
   cloudflare-ddns:
-    image: oznu/cloudflare-ddns:latest
+    image: favonia/cloudflare-ddns:1
     container_name: cloudflare-ddns
     restart: ${RESTART_POLICY}
+    user: ${PUID}:${PGID}
+    read_only: true
+    cap_drop:
+      - all
     security_opt:
       - no-new-privileges:true
     logging:
@@ -10,14 +14,17 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
+    {% if cloudflare_ddns_create_ipv6_aaaa_record %}
+    # Host networking lets the updater detect the host's public IPv6 address
+    network_mode: host
+    {% endif %}
     environment:
-      - API_KEY=${CLOUDFLARE_API_TOKEN}
-      - ZONE=${CLOUDFLARE_DOMAIN}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - DOMAINS={{ (cloudflare_ddns_subdomain ~ '.') if cloudflare_ddns_subdomain else '' }}${CLOUDFLARE_DOMAIN}
       - DELETE_ON_STOP={{ cloudflare_ddns_delete_record_on_stop }}
     {% if cloudflare_ddns_create_ipv6_aaaa_record %}
-      - RRTYPE=AAAA
-    {% endif %}
-    {% if cloudflare_ddns_subdomain %}
-      - SUBDOMAIN={{ cloudflare_ddns_subdomain }}
+      - IP4_PROVIDER=none
+    {% else %}
+      - IP6_PROVIDER=none
     {% endif %}
       - PROXIED={{ cloudflare_ddns_proxied }}

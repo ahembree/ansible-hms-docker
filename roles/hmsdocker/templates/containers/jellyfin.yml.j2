@@ -56,7 +56,8 @@ services:
       - homepage.href=http://{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}
       - homepage.description=Media Server
       - homepage.widget.type=jellyfin
-      - homepage.widget.url=https://jellyfin:8096
+      - homepage.widget.url=http://jellyfin:8096
+      - homepage.widget.version=2
       - homepage.widget.key=${JELLYFIN_KEY:-apikeyapikeyapikey}
         {% if 'jellyfin' in homepage_stats_enabled_containers %}
       - homepage.showStats=true

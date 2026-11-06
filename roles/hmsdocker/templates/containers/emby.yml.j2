@@ -60,7 +60,7 @@ services:
       - homepage.href=http://{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}
       - homepage.description=Media Server
       - homepage.widget.type=emby
-      - homepage.widget.url=https://emby:8096
+      - homepage.widget.url=http://emby:8096
       - homepage.widget.key=${EMBY_KEY:-apikeyapikeyapikey}
         {% if 'emby' in homepage_stats_enabled_containers %}
       - homepage.showStats=true

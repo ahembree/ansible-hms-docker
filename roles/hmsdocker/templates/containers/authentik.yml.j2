@@ -29,7 +29,7 @@ services:
 
   authentik-server:
     container_name: authentik-server
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.12}
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
@@ -54,7 +54,7 @@ services:
       # AUTHENTIK_ERROR_REPORTING__ENABLED: "true"
       # WORKERS: 2
     volumes:
-      - ${HMSD_APPS_PATH}/authentik/media:/media
+      - ${HMSD_APPS_PATH}/authentik/data:/data
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
     {% if 'authentik' in expose_ports_enabled_containers %}
@@ -89,7 +89,7 @@ services:
 
   authentik-worker:
     container_name: authentik-worker
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.12}
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
@@ -116,7 +116,7 @@ services:
     # - The docker socket cant be accessed anymore
     user: root
     volumes:
-      - ${HMSD_APPS_PATH}/authentik/media:/media
+      - ${HMSD_APPS_PATH}/authentik/data:/data
       - ${HMSD_APPS_PATH}/authentik/certs:/certs
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
@@ -136,7 +136,7 @@ services:
     volumes:
       - "authentik_geoip:/usr/share/GeoIP"
     environment:
-      GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
+      GEOIPUPDATE_EDITION_IDS: "GeoLite2-City GeoLite2-ASN"
       GEOIPUPDATE_FREQUENCY: "8"
       GEOIPUPDATE_ACCOUNT_ID: "${GEOIP_ACC_ID}"
       GEOIPUPDATE_LICENSE_KEY: "${GEOIP_LIC_KEY}"

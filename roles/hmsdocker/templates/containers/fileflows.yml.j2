@@ -53,6 +53,8 @@ services:
       - homepage.description=Media Transcoder
       - homepage.widget.type=fileflows
       - homepage.widget.url=http://fileflows:5000
+      - homepage.widget.version=2
+      - homepage.widget.key=${FILEFLOWS_KEY:-apikeyapikeyapikey}
         {% if 'fileflows' in homepage_stats_enabled_containers %}
       - homepage.showStats=true
         {% endif %}
