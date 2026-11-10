@@ -484,6 +484,8 @@ hms_docker_container_map:
     enabled: false
     expose_ports: false
     expose_to_public: false
+    homepage: true
+    homepage_stats: false
     proxy_host_rule: tunarr
     traefik: true
   unmanic:

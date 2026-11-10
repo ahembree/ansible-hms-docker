@@ -31,12 +31,24 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'tunarr' in traefik_enabled_containers %}
+    {% if 'tunarr' in traefik_enabled_containers or 'tunarr' in homepage_enabled_containers %}
     labels:
+      {% if 'tunarr' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.tunarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8000
       - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tunarr']['proxy_host_rule'] | default('tunarr') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tunarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tunarr-midware@docker' if 'tunarr' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'tunarr' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=Tunarr
+      - homepage.icon=tunarr.png
+      - homepage.href=http://{{ hms_docker_container_map['tunarr']['proxy_host_rule'] | default('tunarr') }}.${HMSD_DOMAIN}
+      - homepage.description=Live TV Channels
+        {% if 'tunarr' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:8000 || exit 1
