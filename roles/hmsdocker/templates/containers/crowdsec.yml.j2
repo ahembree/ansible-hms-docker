@@ -1,0 +1,36 @@
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    volumes:
+      - ${HMSD_APPS_PATH}/crowdsec/config:/etc/crowdsec
+      - ${HMSD_APPS_PATH}/crowdsec/data:/var/lib/crowdsec/data
+      # tells CrowdSec to read the traefik container's logs
+      - ${HMSD_APPS_PATH}/crowdsec/acquis.d/traefik.yaml:/etc/crowdsec/acquis.d/traefik.yaml:ro
+      # used to read the traefik container's logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=${TIMEZONE}
+      - COLLECTIONS=crowdsecurity/traefik
+      # registers the Traefik bouncer with the generated key
+      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY}
+    {% if hmsdocker_crowdsec_enroll_key | default('', true) | length > 0 %}
+      - ENROLL_KEY=${CROWDSEC_ENROLL_KEY}
+      - ENROLL_INSTANCE_NAME={{ project_name }}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "cscli", "lapi", "status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

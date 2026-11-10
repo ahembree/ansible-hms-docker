@@ -1,0 +1,16 @@
+http:
+  middlewares:
+    crowdsec:
+      plugin:
+        crowdsec-bouncer:
+          enabled: true
+          crowdsecMode: stream
+          crowdsecLapiScheme: http
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiKey: "{{ crowdsec_bouncer_key }}"
+        {% if hmsdocker_crowdsec_trusted_proxies | default([]) | length > 0 %}
+          forwardedHeadersTrustedIPs:
+          {% for ip in hmsdocker_crowdsec_trusted_proxies %}
+            - "{{ ip }}"
+          {% endfor %}
+        {% endif %}

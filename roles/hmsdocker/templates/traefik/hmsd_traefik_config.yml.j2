@@ -5,8 +5,16 @@ global:
 log:
   level: "{{ traefik_log_level }}"
 
-{% if traefik_enable_access_logs %}
+{% if traefik_enable_access_logs or 'crowdsec' in enabled_containers %}
 accessLog: {}
+{% endif %}
+
+{% if 'crowdsec' in enabled_containers %}
+experimental:
+  plugins:
+    crowdsec-bouncer:
+      moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      version: "{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
 {% endif %}
 
 api:
@@ -22,8 +30,14 @@ entryPoints:
     address: :8082
   web:
     address: :80
-{% if traefik_ssl_enabled %}
+{% if traefik_ssl_enabled or 'crowdsec' in enabled_containers %}
     http:
+{% endif %}
+{% if 'crowdsec' in enabled_containers %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
+{% if traefik_ssl_enabled %}
       redirections:
         entryPoint:
           to: websecure
@@ -35,6 +49,10 @@ entryPoints:
     asDefault: true
     http3: {}
     http:
+{% if 'crowdsec' in enabled_containers %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
       tls:
         certResolver: letsencrypt
         domains:

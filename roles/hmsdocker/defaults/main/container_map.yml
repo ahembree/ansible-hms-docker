@@ -97,6 +97,9 @@ hms_docker_container_map:
     enabled: false
     homepage: false
     homepage_stats: false
+  crowdsec:
+    directory: true
+    enabled: false
   cross-seed:
     directory: true
     enabled: false

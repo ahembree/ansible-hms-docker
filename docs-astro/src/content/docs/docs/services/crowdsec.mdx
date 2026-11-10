@@ -1,0 +1,63 @@
+---
+title: CrowdSec
+description: "Use CrowdSec with HMS-Docker to detect abusive traffic in Traefik's access logs and block those IPs at Traefik on every route."
+sidebar:
+  label: CrowdSec
+---
+
+[CrowdSec](https://www.crowdsec.net/) reads Traefik's access logs, detects abusive behavior (such as scans, brute-force attempts, and known exploit probes), and bans the offending IPs. It also uses CrowdSec's community blocklist. The bans are enforced inside Traefik by the [CrowdSec bouncer plugin](https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin), so a banned IP gets a `403 Forbidden` on every app.
+
+CrowdSec is most useful when some of your apps are reachable from the internet (`expose_to_public` in the [Container Map](/docs/container-list/#container-map)).
+
+## Setup
+
+Enable `crowdsec` in the [Container Map](/docs/container-list/#container-map) and run the playbook. Traefik must also be enabled. No other settings are required. The playbook will:
+
+1. Run the CrowdSec container with the Traefik collection, reading the `traefik` container's logs
+2. Generate a bouncer API key and register it with CrowdSec
+3. Install the bouncer plugin in Traefik and apply it to the `web` and `websecure` entrypoints, so every route is covered
+4. Turn on Traefik access logs, which CrowdSec needs
+
+Traefik downloads the plugin from the Traefik plugin catalog when it starts, so the server needs internet access at that time.
+
+### Settings
+
+These are in `inventory/group_vars/all/crowdsec.yml`:
+
+| Variable | Default | Description |
+|-|-|-|
+| `hmsdocker_crowdsec_enroll_key` | `""` | Optional. Enrollment key from the [CrowdSec Console](https://app.crowdsec.net) to see alerts and manage the instance there. |
+| `hmsdocker_crowdsec_trusted_proxies` | `[]` | IPs or subnets of proxies in front of Traefik. The bouncer then uses the client IP from the `X-Forwarded-For` header instead of the proxy's IP. |
+| `hmsdocker_crowdsec_bouncer_plugin_version` | `v1.8.1` | Version of the Traefik bouncer plugin. |
+
+## How it works
+
+- CrowdSec reads the `traefik` container's logs through the Docker socket, which is mounted read-only.
+- The bouncer runs in stream mode: Traefik pulls the list of banned IPs from CrowdSec every 60 seconds and checks requests locally, so it adds no delay to requests.
+- Private IP ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`) are whitelisted by CrowdSec's default `crowdsecurity/whitelists` parser, so devices on your LAN are never banned automatically. Bans you add by hand with `cscli` still apply to them.
+- If CrowdSec is not reachable yet when Traefik starts, Traefik logs a few `crowdsecQuery:unreachable` errors. The bouncer retries and connects once CrowdSec is up.
+- Disabling `crowdsec` removes the bouncer from Traefik on the next playbook run. Until Traefik restarts near the end of that run, routes return errors for a short time.
+- After re-enabling, `cscli bouncers list` may show an extra `traefik@<ip>` entry. This is the same bouncer reconnecting from a new container IP and can be ignored, or removed with `cscli bouncers delete`.
+
+## Useful commands
+
+```bash
+# Show active bans
+sudo docker exec crowdsec cscli decisions list
+
+# Ban an IP for 10 minutes (for testing), then remove the ban
+sudo docker exec crowdsec cscli decisions add --ip 203.0.113.10 -d 10m
+sudo docker exec crowdsec cscli decisions delete --ip 203.0.113.10
+
+# Check that the Traefik logs are being read and parsed
+sudo docker exec crowdsec cscli metrics show acquisition parsers
+
+# Check that the Traefik bouncer is registered and pulling decisions
+sudo docker exec crowdsec cscli bouncers list
+```
+
+:::caution[Warning]
+
+If you ban your own IP, every app (including this server's dashboards) returns `403` until the ban expires or you delete it with `cscli decisions delete`.
+
+:::

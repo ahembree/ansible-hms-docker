@@ -480,5 +480,9 @@
     "byparr": {
       "enabled": true
     },
+    "crowdsec": {
+      "enabled": true,
+      "directory": true
+    },
   }
 }

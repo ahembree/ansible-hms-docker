@@ -262,6 +262,13 @@
     - ((hmsdocker_vpn_user | default('', true)) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
 
+- name: (preflight) Warn if CrowdSec is enabled without Traefik
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['crowdsec is enabled but traefik is not. CrowdSec will run, but nothing will block traffic, because the bouncer runs inside Traefik.'] }}"
+  when:
+    - hms_docker_container_map['crowdsec']['enabled'] | default(false)
+    - not (hms_docker_container_map['traefik']['enabled'] | default(false))
+
 # ---------------------------------------------------------------------------
 # Print collected warnings
 # ---------------------------------------------------------------------------

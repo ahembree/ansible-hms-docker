@@ -1,0 +1,61 @@
+- name: (Prereq - CrowdSec) - Ensure data and acquisition directories
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/crowdsec/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - data
+    - acquis.d
+
+- name: (Prereq - CrowdSec) - Ensure Traefik log acquisition
+  ansible.builtin.copy:
+    dest: "{{ hms_docker_apps_path }}/crowdsec/acquis.d/traefik.yaml"
+    mode: '0644'
+    content: |
+      source: docker
+      container_name:
+        - traefik
+      labels:
+        type: traefik
+
+- name: (Prereq - CrowdSec) - Generate bouncer API key
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path }}/crowdsec/.bouncer_key"
+    mode: '0600'
+    force: no
+  no_log: "{{ not debug_mode }}"
+  register: prereq_crowdsec_bouncer_key
+  vars:
+    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=48) }}"
+
+- name: (Prereq - CrowdSec) - Slurp bouncer API key
+  ansible.builtin.slurp:
+    src: "{{ prereq_crowdsec_bouncer_key.dest }}"
+  register: prereq_crowdsec_slurped_bouncer_key
+  check_mode: false
+  # The key file does not exist yet during a first run in check mode
+  ignore_errors: "{{ ansible_check_mode }}"
+  when: prereq_crowdsec_bouncer_key.dest is defined
+  no_log: "{{ not debug_mode }}"
+
+- name: (Prereq - CrowdSec) - Ensure Traefik static file dir
+  ansible.builtin.file:
+    path: "{{ hmsdocker_traefik_static_config_location }}"
+    state: directory
+    mode: '0755'
+    group: docker
+  when: "'traefik' in enabled_containers"
+
+- name: (Prereq - CrowdSec) - Ensure CrowdSec bouncer middleware for Traefik
+  ansible.builtin.template:
+    src: traefik/hmsd_traefik_crowdsec.yml.j2
+    dest: "{{ hmsdocker_traefik_static_config_location }}/hmsd_crowdsec.yml"
+    mode: '0640'
+    group: docker
+    lstrip_blocks: yes
+    trim_blocks: yes
+  no_log: "{{ not debug_mode }}"
+  when: "'traefik' in enabled_containers"
+  vars:
+    crowdsec_bouncer_key: "{{ (prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"

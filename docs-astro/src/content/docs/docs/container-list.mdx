@@ -67,6 +67,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 
 - [Traefik](https://hub.docker.com/_/traefik): reverse proxy (with SSL support from Let's Encrypt if configured)
 - [Tailscale](https://hub.docker.com/r/tailscale/tailscale): mesh VPN
+- [CrowdSec](https://github.com/crowdsecurity/crowdsec): blocks abusive IPs at Traefik <Badge text="New" variant="success"/>
 - [Cloudflare-DDNS](https://github.com/favonia/cloudflare-ddns): dynamic dns (if enabled)
 - [Cloudflare Tunnel](https://hub.docker.com/r/cloudflare/cloudflared): Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 
@@ -168,6 +169,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Scrutiny                                 | &#9744;            | `scrutiny`           | `8087`                         | `8080`                         | &#9745;                | &#9745;              |
 | Beszel                                   | &#9744;            | `beszel`             | `8091`                         | `8090`                         | &#9745;                | &#9745;              |
 | Byparr                                   | &#9744;            | `byparr`             | `8192`                         | `8191`                         | &#9744;                | &#9744;              |
+| CrowdSec                                 | &#9744;            | `crowdsec`           |                                |                                | &#9744;                | &#9744;              |
 
 ### Container Map Entry Example
 

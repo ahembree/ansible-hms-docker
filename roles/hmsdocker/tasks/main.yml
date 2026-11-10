@@ -277,6 +277,7 @@
     tracearr_cookie_secret: "{{ (prereq_tracearr_slurped_cookie_secret['content'] | b64decode) if prereq_tracearr_slurped_cookie_secret['content'] is defined else '### Will be obtained during full run ###' }}"
     tdarr_api_key: "{{ (prereq_tdarr_slurped_api_key['content'] | b64decode | trim) if prereq_tdarr_slurped_api_key['content'] is defined else '' }}"
     n8n_encryption_key: "{{ (prereq_n8n_slurped_encryption_key['content'] | b64decode) if prereq_n8n_slurped_encryption_key['content'] is defined else '### Will be obtained during full run ###' }}"
+    crowdsec_bouncer_key: "{{ (prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:
