@@ -1,0 +1,46 @@
+services:
+  tunarr:
+    image: chrisbenincasa/tunarr:latest
+    container_name: tunarr
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if 'tunarr' in expose_ports_enabled_containers %}
+    ports:
+      - 8002:8000
+    {% endif %}
+    {% if enable_intel_gpu %}
+    devices:
+      - "/dev/dri:/dev/dri"
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/tunarr/config:/config/tunarr
+      # media folder, used by Tunarr "Local" media sources
+      - ${HMSD_MOUNT_PATH}:/data
+    environment:
+      - TZ=${TIMEZONE}
+    {% if enable_nvidia_gpu %}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    {% endif %}
+    {% if 'tunarr' in traefik_enabled_containers %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.tunarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8000
+      - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tunarr']['proxy_host_rule'] | default('tunarr') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tunarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tunarr-midware@docker' if 'tunarr' in authentik_enabled_containers }}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:8000 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 20s

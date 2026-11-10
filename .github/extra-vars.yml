@@ -480,5 +480,14 @@
     "byparr": {
       "enabled": true
     },
+    "tunarr": {
+      "enabled": true,
+      "proxy_host_rule": tunarr,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+    },
   }
 }
