@@ -1,0 +1,57 @@
+services:
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    # Audiobookshelf does not use PUID/PGID environment variables
+    user: ${PUID}:${PGID}
+    networks:
+      - proxy_net
+    {% if 'audiobookshelf' in expose_ports_enabled_containers %}
+    ports:
+      - 13378:80
+    {% endif %}
+    volumes:
+      # SQLite database, must be on local disk (not a network share)
+      - ${HMSD_APPS_PATH}/audiobookshelf/config:/config
+      # covers, author images, cache, logs and backups
+      - ${HMSD_APPS_PATH}/audiobookshelf/metadata:/metadata
+      # media folder, libraries are added in the web UI (e.g. /data/media_data/_library/Audiobooks)
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'audiobookshelf' in hmsdocker_readonly_media_containers | default([]) }}
+    environment:
+      - TZ=${TIMEZONE}
+    {% if 'audiobookshelf' in traefik_enabled_containers or 'audiobookshelf' in homepage_enabled_containers %}
+    labels:
+      {% if 'audiobookshelf' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.audiobookshelf-${COMPOSE_PROJECT}.loadbalancer.server.port=80
+      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['audiobookshelf']['proxy_host_rule'] | default('audiobookshelf') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'audiobookshelf' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-audiobookshelf-midware@docker' if 'audiobookshelf' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'audiobookshelf' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=Audiobookshelf
+      - homepage.icon=audiobookshelf.png
+      - homepage.href=http://{{ hms_docker_container_map['audiobookshelf']['proxy_host_rule'] | default('audiobookshelf') }}.${HMSD_DOMAIN}
+      - homepage.description=Audiobook and Podcast Server
+      - homepage.widget.type=audiobookshelf
+      - homepage.widget.url=http://audiobookshelf:80
+      - homepage.widget.key=${AUDIOBOOKSHELF_KEY:-apikeyapikeyapikey}
+        {% if 'audiobookshelf' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:80/healthcheck || exit 1
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s

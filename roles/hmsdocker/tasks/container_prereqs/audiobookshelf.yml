@@ -1,0 +1,15 @@
+- name: (Prereq - Audiobookshelf) - Ensure metadata directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/audiobookshelf/metadata"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - Audiobookshelf) - Ensure Audiobooks and Podcasts library folders
+  ansible.builtin.file:
+    path: "{{ hmsdocker_library_path }}/{{ item }}"
+    state: directory
+  loop:
+    - Audiobooks
+    - Podcasts
