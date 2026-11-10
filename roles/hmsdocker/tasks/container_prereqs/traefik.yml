@@ -52,6 +52,12 @@
     lstrip_blocks: yes
     trim_blocks: yes
 
+- name: Traefik Prereq - Remove CrowdSec bouncer middleware if CrowdSec is disabled
+  ansible.builtin.file:
+    path: "{{ traefik_static_config_dir.path }}/hmsd_crowdsec.yml"
+    state: absent
+  when: "'crowdsec' not in enabled_containers"
+
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:
     src: traefik/hmsd_traefik_additional_routes.yml.j2
