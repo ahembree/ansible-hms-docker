@@ -1,0 +1,41 @@
+---
+title: ErsatzTV
+description: "Run ErsatzTV in HMS-Docker to build live TV channels from your Plex, Jellyfin, Emby, or local media libraries, with hardware transcoding."
+sidebar:
+  label: ErsatzTV
+---
+
+[ErsatzTV](https://github.com/ErsatzTV/legacy) builds live TV channels from your media and streams them as IPTV (an M3U playlist and XMLTV guide) to apps like Plex, Jellyfin, Emby, or any IPTV player.
+
+HMS-Docker uses the full ErsatzTV app (`ghcr.io/ersatztv/legacy`), which includes the web UI, library sources, and scheduling. The separate "ErsatzTV Next" project is not included.
+
+## Setup
+
+Enable `ersatztv` in the [Container Map](/docs/container-list/#container-map) and run the playbook. ErsatzTV is then available at `ersatztv.<domain>` through Traefik, or on port `8409` if ports are exposed.
+
+## Media sources
+
+ErsatzTV mounts the media share at `/data`, the same path Plex, Jellyfin, and Emby use. When you add a Plex, Jellyfin, or Emby source, ErsatzTV plays the files directly from disk using the paths the media server reports, so no **Path Replacements** are needed.
+
+Use these server URLs when adding a source:
+
+- Plex: `http://plex:32400`
+- Jellyfin: `http://jellyfin:8096`
+- Emby: `http://emby:8096`
+
+For a local library, use folders under `/data/media_data/_library/` (replace `media_data` and `_library` if you changed `hms_docker_primary_mount_name` or `hms_docker_library_folder_name`).
+
+## Channels in your media server
+
+ErsatzTV's playlist and guide are at:
+
+- `http://ersatztv:8409/iptv/channels.m3u`
+- `http://ersatztv:8409/iptv/xmltv.xml`
+
+Use these URLs when adding ErsatzTV as a Live TV / DVR source in a media server that runs in the same stack. For devices outside the stack, use `https://ersatztv.<domain>/iptv/channels.m3u` instead.
+
+## Hardware transcoding
+
+With `enable_intel_gpu: true`, ErsatzTV gets `/dev/dri` and the host's `render` group, so it can use Intel QSV/VAAPI while running as the `container_uid` user. With `enable_nvidia_gpu: true`, it uses the Nvidia runtime. Select the matching hardware acceleration in each ErsatzTV **FFmpeg Profile**.
+
+Transcode files go to `<hms_docker_apps_path>/ersatztv/transcode`, or to RAM if `hmsdocker_transcode_tmpfs_enabled` is set.
