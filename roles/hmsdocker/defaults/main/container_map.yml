@@ -237,6 +237,10 @@ hms_docker_container_map:
     enabled: false
     homepage: true
     homepage_stats: false
+  netbird:
+    enabled: false
+    homepage: false
+    homepage_stats: false
   notifiarr:
     authentik: false
     directory: true

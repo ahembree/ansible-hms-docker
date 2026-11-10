@@ -8,7 +8,7 @@
 # Layout:
 #   1. Initialize the warnings list.
 #   2. Hard-fail asserts (always-required vars).
-#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
+#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale/netbird).
 #   4. Soft-warning appends (non-fatal; surfaced at the end).
 #   5. Print warnings if any.
 
@@ -210,6 +210,24 @@
     - >-
       (tailscale_enabled | default(false))
       or (hms_docker_container_map['tailscale']['enabled'] | default(false))
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# NetBird
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate NetBird setup key when netbird is enabled
+  ansible.builtin.assert:
+    that:
+      - (netbird_setup_key | default('', true)) | length > 0
+    fail_msg: >-
+      The netbird container is enabled but netbird_setup_key is empty.
+      Create a setup key in the NetBird dashboard under Setup Keys and
+      set it in inventory/group_vars/all/netbird.yml.
+    quiet: true
+  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when:
+    - hms_docker_container_map['netbird']['enabled'] | default(false)
     - not is_github_runner
 
 # ---------------------------------------------------------------------------

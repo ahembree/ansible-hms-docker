@@ -1,0 +1,7 @@
+### NetBird Settings
+# Setup key used to register this server as a NetBird peer, required when the netbird container is enabled
+netbird_setup_key:
+# Management server URL, only needed for a self-hosted NetBird server (such as 'https://netbird.example.com:443'), leave empty for NetBird Cloud // default: ''
+netbird_management_url:
+# Name of the peer in NetBird, leave empty to use this server's hostname // default: ''
+netbird_hostname:

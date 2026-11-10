@@ -1,0 +1,46 @@
+---
+title: NetBird VPN
+description: "Connect your HMS-Docker server to a NetBird network as a peer, using NetBird Cloud or a self-hosted NetBird server."
+sidebar:
+  label: NetBird
+---
+
+[NetBird](https://netbird.io/) is a WireGuard-based mesh VPN. HMS-Docker can run the NetBird client so your server joins your NetBird network as a peer. This works with NetBird Cloud and with a self-hosted NetBird server. HMS-Docker does not install the NetBird server itself.
+
+## Setup
+
+1. In the NetBird dashboard, go to **Setup Keys** and create a key. A one-off key is enough for a single server.
+2. Set the key in `inventory/group_vars/all/netbird.yml`:
+
+    ```yaml
+    netbird_setup_key: <your setup key>
+    ```
+
+3. Enable `netbird` in the [Container Map](/docs/container-list/#container-map) and run the playbook.
+
+The server then shows up under **Peers** in the NetBird dashboard.
+
+### Settings
+
+| Variable | Default | Description |
+|-|-|-|
+| `netbird_setup_key` | | Setup key used to register the server. Required when `netbird` is enabled. |
+| `netbird_management_url` | | Only for a self-hosted NetBird server, for example `https://netbird.example.com:443`. Leave empty for NetBird Cloud. |
+| `netbird_hostname` | this server's hostname | The peer name shown in NetBird. |
+
+## Notes
+
+- The setup key is only used to register the server the first time. NetBird stores the peer's identity in `<hms_docker_apps_path>/netbird/state`. If the key later expires or is revoked, the server stays connected. If you delete the state folder, the server registers again and needs a valid key.
+- If the key is invalid, the container keeps restarting. Check `docker logs netbird` for the reason.
+- The container runs on its own Docker network, not the host network. To reach your server or other devices on its network from other NetBird peers, add a **Network** in the NetBird dashboard with this server as the routing peer, and add your server's IP or local subnet as a resource.
+
+## Homepage widget
+
+To show the number of online peers and users in [Homepage](/docs/services/homepage/), set `homepage: true` for `netbird` in the Container Map and add a personal access token:
+
+```yaml
+# inventory/group_vars/all/homepage_api_keys.yml
+hmsdocker_homepage_netbird_key: <personal access token>
+```
+
+The token must belong to a user with the Admin role. NetBird recommends creating a service user for this. The widget uses `https://api.netbird.io`, or your `netbird_management_url` if set.

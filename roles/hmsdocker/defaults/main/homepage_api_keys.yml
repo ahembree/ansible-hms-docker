@@ -34,6 +34,10 @@ hmsdocker_homepage_cftunnel_tunnelid:
 hmsdocker_homepage_tailscale_api_key: 
 hmsdocker_homepage_tailscale_device_id: 
 
+# NetBird
+# Personal access token from a user with the Admin role (a service user is recommended)
+hmsdocker_homepage_netbird_key: 
+
 # Speedtest Tracker
 hmsdocker_homepage_speedtest_api_key:
 
