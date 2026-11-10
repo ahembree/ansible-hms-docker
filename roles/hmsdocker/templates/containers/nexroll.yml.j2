@@ -36,12 +36,24 @@ services:
       - JELLYFIN_URL=http://jellyfin:8096
       - JELLYFIN_API_KEY=${JELLYFIN_KEY}
     {% endif %}
-    {% if 'nexroll' in traefik_enabled_containers %}
+    {% if 'nexroll' in traefik_enabled_containers or 'nexroll' in homepage_enabled_containers %}
     labels:
+      {% if 'nexroll' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.services.nexroll-${COMPOSE_PROJECT}.loadbalancer.server.port=9393
       - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nexroll' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nexroll-midware@docker' if 'nexroll' in authentik_enabled_containers }}
+      {% endif %}
+      {% if 'nexroll' in homepage_enabled_containers %}
+      - homepage.group=Media
+      - homepage.name=NeXroll
+      - homepage.icon=mdi-movie-open-play
+      - homepage.href=http://{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}
+      - homepage.description=Preroll Manager
+        {% if 'nexroll' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
     {% endif %}
     healthcheck:
       test: curl -fsS http://127.0.0.1:9393/health || exit 1
