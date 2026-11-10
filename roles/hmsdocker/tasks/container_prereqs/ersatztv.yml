@@ -1,0 +1,23 @@
+- name: (Prereq - ErsatzTV) - Ensure transcode directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/ersatztv/transcode"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+  when: not hmsdocker_transcode_tmpfs_enabled | default(false)
+
+# ErsatzTV runs as container_uid, which needs the host's render group to use the Intel GPU
+- name: (Prereq - ErsatzTV) - Get host render group
+  ansible.builtin.getent:
+    database: group
+    key: render
+    fail_key: false
+  when: enable_intel_gpu | default(false)
+
+- name: (Prereq - ErsatzTV) - Set render group ID
+  ansible.builtin.set_fact:
+    ersatztv_render_gid: "{{ ansible_facts.getent_group.render[1] }}"
+  when:
+    - enable_intel_gpu | default(false)
+    - ansible_facts.getent_group.render | default(none) is not none
