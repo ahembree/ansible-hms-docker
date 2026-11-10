@@ -16,3 +16,22 @@ hmsdocker_family_override: "{{ 'redhat' if ansible_os_family | lower == 'almalin
 # Which python interpreter to use, only change if you're an advanced user and know what you're doing
 ansible_python_interpreter: /usr/bin/python3
 #######################################################################
+
+# Containers that must be able to write to the media share. Listing one of these in
+# hmsdocker_readonly_media_containers has no effect and triggers a preflight warning.
+hmsdocker_media_writer_containers:
+  - bazarr
+  - cross-seed
+  - deluge
+  - fileflows
+  - lidarr
+  - nzbget
+  - qbittorrent
+  - radarr
+  - sabnzbd
+  - sonarr
+  - tdarr
+  - tinymediamanager
+  - transmission
+  - unmanic
+  - unpackerr

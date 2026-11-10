@@ -237,6 +237,21 @@
     - not is_github_runner
 
 # ---------------------------------------------------------------------------
+# Read-only media mounts
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate hmsdocker_readonly_media_containers is a list
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_readonly_media_containers | default([]) is iterable
+      - hmsdocker_readonly_media_containers | default([]) is not string
+      - hmsdocker_readonly_media_containers | default([]) is not mapping
+    fail_msg: >-
+      hmsdocker_readonly_media_containers must be a list of container names,
+      e.g. ["plex", "jellyfin"]. Update it in inventory/group_vars/all/container_settings.yml.
+    quiet: true
+
+# ---------------------------------------------------------------------------
 # Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
 # printed at the end of preflight if non-empty.
 # ---------------------------------------------------------------------------
@@ -261,6 +276,13 @@
       or (hms_docker_container_map['deluge']['enabled'] | default(false))
     - ((hmsdocker_vpn_user | default('', true)) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
+
+- name: (preflight) Warn if read-only media is set for containers that must write to it
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains ' + (readonly_media_writers | join(', ')) + ', which must be able to write to the media share. The read-only setting is ignored for these containers.'] }}"
+  vars:
+    readonly_media_writers: "{{ hmsdocker_readonly_media_containers | default([]) | intersect(hmsdocker_media_writer_containers) }}"
+  when: readonly_media_writers | length > 0
 
 # ---------------------------------------------------------------------------
 # Print collected warnings

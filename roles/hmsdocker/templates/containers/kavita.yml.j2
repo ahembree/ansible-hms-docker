@@ -18,7 +18,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
-      - ${HMSD_MOUNT_PATH}:/data
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'kavita' in hmsdocker_readonly_media_containers }}
     {% if 'kavita' in expose_ports_enabled_containers %}
     ports:
       - 5000:5000

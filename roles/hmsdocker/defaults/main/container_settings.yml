@@ -22,3 +22,9 @@ container_gid: 1234
 # This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
 # If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
 container_expose_ports: no
+
+# Containers that get the media share (hms_docker_mount_path) mounted read-only, so they can read the library but cannot change or delete it // default: []
+# Supported: plex, emby, jellyfin, kavita, calibre
+# Some features stop working when the media share is read-only (e.g. saving NFO files or artwork into media folders), see the docs before enabling
+# Example: hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
+hmsdocker_readonly_media_containers: []

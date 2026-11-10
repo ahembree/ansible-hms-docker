@@ -76,6 +76,58 @@ When set to `yes`, all container ports will be exposed on the host. If Traefik i
 
 For per-container port exposure, use the `expose_ports` setting in the [Container Map](/docs/container-list/#container-map).
 
+### Read-Only Media Mounts
+
+```yaml
+hmsdocker_readonly_media_containers: []
+```
+
+A list of containers that get the media share (`hms_docker_mount_path`) mounted read-only, for example:
+
+```yaml
+hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
+```
+
+Each listed container still sees the media share at `/data`, but the mount is made with `:ro`. The container can read and play everything, but it cannot create, change, or delete anything on the share. This limits the damage a compromised or misbehaving media server can do. It cannot delete your library or encrypt it for ransom.
+
+Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`.
+
+Containers that need to write to the media share are not supported: `sonarr`, `radarr`, `lidarr`, `bazarr`, `cross-seed`, `tinymediamanager`, the download clients (`transmission`, `qbittorrent`, `deluge`, `nzbget`, `sabnzbd`), `unpackerr`, `tdarr`, `unmanic`, and `fileflows`. If you list one of them, the playbook shows a preflight warning and leaves that container's mount writable.
+
+:::caution[Features that stop working]
+
+Anything that writes into the media folders fails once the share is read-only. Change these settings in the app so it stores the data in its own config folder instead, or accept that the feature is unavailable.
+
+**Plex**
+- Deleting media from within Plex ("Allow media deletion")
+- Optimized versions, if they are saved next to the media (the default)
+- DVR recordings saved into the library
+
+**Jellyfin and Emby**
+- Saving NFO metadata files ("Nfo" metadata saver)
+- "Save artwork into media folders"
+- Saving downloaded subtitles into media folders
+- Saving trickplay / thumbnail images next to the media
+- Saving downloaded lyrics into media folders (Jellyfin)
+- Deleting media from within the app
+- DVR / Live TV recordings saved into the library
+
+**Calibre**
+- Adding, editing, converting, or deleting books in a Calibre library that lives on the media share. A library kept in Calibre's own `/config` folder is not affected.
+
+**Kavita**
+- Kavita does not normally write to the library, so nothing should change.
+
+Playback, library scans, and anything the app stores in its own config folder (watch history, posters it does not save into media folders, and so on) keep working.
+
+:::
+
+:::note
+
+The Sonarr/Radarr family and the download clients still write to the media share as before. A read-only media server can always read new files as soon as they are imported.
+
+:::
+
 ---
 
 ## Advanced Settings
