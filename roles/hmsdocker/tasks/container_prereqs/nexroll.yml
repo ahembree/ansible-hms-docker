@@ -1,0 +1,4 @@
+- name: (Prereq - NeXroll) - Ensure prerolls folder on the media share
+  ansible.builtin.file:
+    path: "{{ hmsdocker_primary_mount_path }}/prerolls"
+    state: directory

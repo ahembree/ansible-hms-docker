@@ -1,0 +1,51 @@
+services:
+  nexroll:
+    image: jbrns/nexroll:latest
+    container_name: nexroll
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if 'nexroll' in expose_ports_enabled_containers %}
+    ports:
+      - 9393:9393
+    {% endif %}
+    volumes:
+      # NeXroll keeps its database, secrets, logs and thumbnails in /data
+      - ${HMSD_APPS_PATH}/nexroll/config:/data
+      # Prerolls live on the media share and are mounted at the same path the media servers use,
+      # so the path NeXroll sends to Plex is already correct and needs no path mapping
+      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/prerolls:/data/{{ hms_docker_primary_mount_name }}/prerolls
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - NEXROLL_RUN_AS_PUID=true
+      - NEXROLL_PREROLL_PATH=/data/{{ hms_docker_primary_mount_name }}/prerolls
+    {% if 'plex' in enabled_containers %}
+      - PLEX_URL=http://plex:32400
+      - PLEX_TOKEN=${PLEX_KEY}
+    {% endif %}
+    {% if 'jellyfin' in enabled_containers %}
+      - JELLYFIN_URL=http://jellyfin:8096
+      - JELLYFIN_API_KEY=${JELLYFIN_KEY}
+    {% endif %}
+    {% if 'nexroll' in traefik_enabled_containers %}
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.nexroll-${COMPOSE_PROJECT}.loadbalancer.server.port=9393
+      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nexroll' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nexroll-midware@docker' if 'nexroll' in authentik_enabled_containers }}
+    {% endif %}
+    healthcheck:
+      test: curl -fsS http://127.0.0.1:9393/health || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

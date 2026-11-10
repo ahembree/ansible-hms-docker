@@ -237,6 +237,14 @@ hms_docker_container_map:
     enabled: false
     homepage: true
     homepage_stats: false
+  nexroll:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    proxy_host_rule: nexroll
+    traefik: true
   notifiarr:
     authentik: false
     directory: true

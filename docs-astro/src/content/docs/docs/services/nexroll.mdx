@@ -1,0 +1,66 @@
+---
+title: NeXroll Preroll Manager
+description: "Run NeXroll in HMS-Docker to manage and schedule preroll videos for Plex, Jellyfin, and Emby, including how the preroll folder paths are set up."
+sidebar:
+  label: NeXroll
+---
+
+[NeXroll](https://github.com/JFLXCLOUD/NeXroll) manages and schedules the preroll videos your media servers play before a movie. It supports Plex, Jellyfin, and Emby.
+
+## Setup
+
+Enable `nexroll` in the [Container Map](/docs/container-list/#container-map). No other settings are required. The playbook will:
+
+1. Create a `prerolls` folder on your media share, next to the `_library` folder
+2. Mount that folder into NeXroll at the same path your media servers already use for it
+3. Fill in the Plex and Jellyfin connection details if those containers are enabled
+
+NeXroll is then available at `nexroll.<domain>` through Traefik, or on port `9393` if ports are exposed.
+
+## Where the prerolls live
+
+NeXroll keeps its own database, settings, logs, and thumbnails in `/data` inside its container. That is mapped to the usual app folder, `<hms_docker_apps_path>/nexroll/config`.
+
+The preroll videos are stored on the media share instead, so that Plex, Jellyfin, and Emby can read them through the media mount they already have:
+
+| | Path |
+|-|-|
+| On the host | `<hms_docker_mount_path>/<hms_docker_primary_mount_name>/prerolls` (by default `/mnt/hms-docker/media_data/prerolls`) |
+| Inside Plex, Jellyfin, and Emby | `/data/media_data/prerolls` |
+| Inside NeXroll | `/data/media_data/prerolls` (this is also set as `NEXROLL_PREROLL_PATH`) |
+
+When NeXroll sets a preroll in Plex, it writes the file path into Plex's "Movie pre-roll video" setting, and Plex plays the file from its own disk. That path has to be the path Plex uses for the file. Because the prerolls folder is mounted at the same path in NeXroll and in the media servers, the path NeXroll sends is already correct.
+
+:::tip
+
+You do not need to add anything under NeXroll's **Settings > Path Mappings**. If you ever enter or check a path by hand, use `/data/media_data/prerolls/...`.
+
+If you changed `hms_docker_primary_mount_name`, replace `media_data` in these paths with your value.
+
+:::
+
+NeXroll needs write access to the prerolls folder, because it saves uploads, downloads, and thumbnails there and moves files into category folders. Make sure the folder is writable by the `container_uid`/`container_gid` user, as with the rest of your media share. NeXroll runs as that user (`NEXROLL_RUN_AS_PUID=true`).
+
+## Connecting your media servers
+
+All containers share the `proxy_net` network, so NeXroll reaches the media servers by container name. Host networking, which the NeXroll docs suggest, is not needed.
+
+### Plex
+
+If Plex is enabled, NeXroll is started with `PLEX_URL=http://plex:32400` and `PLEX_TOKEN` set to the Plex token the playbook reads from your Plex config. The token is only available after Plex has been claimed and the playbook has run again, so you may need to run the playbook a second time after setting up Plex. You can also connect Plex by hand in NeXroll under **Connect > Plex** using the same URL.
+
+:::note
+
+The URL uses `http://`. If you set Plex's **Secure connections** option to **Required**, Plex may reject this connection. Leave it on the default, **Preferred**.
+
+:::
+
+### Jellyfin
+
+If Jellyfin is enabled, NeXroll is started with `JELLYFIN_URL=http://jellyfin:8096`. `JELLYFIN_API_KEY` is filled from `homepage_jellyfin_key` if you have set it; otherwise, create an API key in Jellyfin under **Dashboard > API Keys** and enter it in NeXroll under **Connect > Jellyfin**.
+
+Jellyfin plays prerolls through the NeXroll Intros plugin, which downloads them from NeXroll over the network rather than reading the folder. When the plugin asks for the NeXroll URL, use `http://nexroll:9393`.
+
+### Emby
+
+Emby is set up in the NeXroll web UI, not with environment variables. Under **Connect > Emby**, use `http://emby:8096` as the server URL and an API key from Emby's **Settings > API Keys**. Like Jellyfin, Emby uses the NeXroll Intros plugin, which downloads prerolls from `http://nexroll:9393`. See the [NeXroll Emby guide](https://github.com/JFLXCLOUD/NeXroll/blob/main/docs/wiki/Emby.md) for the plugin setup.
