@@ -1,0 +1,42 @@
+services:
+  netbird:
+    image: netbirdio/netbird:latest
+    container_name: netbird
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+    volumes:
+      - ${HMSD_APPS_PATH}/netbird/state:/var/lib/netbird
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - NB_SETUP_KEY=${NETBIRD_SETUP_KEY}
+      - NB_HOSTNAME={{ netbird_hostname | default(ansible_facts['hostname'], true) }}
+    {% if netbird_management_url | default('', true) | length > 0 %}
+      - NB_MANAGEMENT_URL={{ netbird_management_url }}
+    {% endif %}
+    {% if 'netbird' in homepage_enabled_containers %}
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=NetBird
+      - homepage.icon=netbird.png
+      - homepage.description=VPN
+      - homepage.widget.type=netbird
+      - homepage.widget.url={{ (netbird_management_url | default('', true) | regex_replace(':443/?$', '') | regex_replace('/$', '')) or 'https://api.netbird.io' }}
+      - homepage.widget.key=${NETBIRD_API_KEY}
+    {% endif %}
+    healthcheck:
+      test: netbird status --check ready || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
