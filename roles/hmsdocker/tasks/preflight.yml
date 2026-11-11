@@ -279,7 +279,7 @@
 
 - name: (preflight) Warn if read-only media is set for unsupported containers
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains ' + (readonly_media_unsupported | join(', ')) + ', which does not support a read-only media share (supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '). The media share stays writable for these containers.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains containers that do not support a read-only media share: ' + (readonly_media_unsupported | join(', ')) + '. The media share stays writable for them. Supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '.'] }}"
   vars:
     readonly_media_unsupported: "{{ hmsdocker_readonly_media_containers | default([], true) | difference(hmsdocker_readonly_media_supported_containers) }}"
   when: readonly_media_unsupported | length > 0
