@@ -42,7 +42,7 @@ services:
       - {{ plex_transcode_folder }}:/transcode
       {% endif %}
       # media folder where all movies and series are stored
-      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'plex' in hmsdocker_readonly_media_containers }}
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'plex' in hmsdocker_readonly_media_containers | default([], true) }}
     {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
     tmpfs:
       - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777

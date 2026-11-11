@@ -18,7 +18,7 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/calibre/config:/config
-      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'calibre' in hmsdocker_readonly_media_containers }}
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'calibre' in hmsdocker_readonly_media_containers | default([], true) }}
     {% if 'calibre' in expose_ports_enabled_containers %}
     ports:
       - 8083:8080 # remote desktop http

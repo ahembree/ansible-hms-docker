@@ -92,7 +92,7 @@ Each listed container still sees the media share at `/data`, but the mount is ma
 
 Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`.
 
-Containers that need to write to the media share are not supported: `sonarr`, `radarr`, `lidarr`, `bazarr`, `cross-seed`, `tinymediamanager`, the download clients (`transmission`, `qbittorrent`, `deluge`, `nzbget`, `sabnzbd`), `unpackerr`, `tdarr`, `unmanic`, and `fileflows`. If you list one of them, the playbook shows a preflight warning and leaves that container's mount writable.
+Any other container is not supported, including the ones that need to write to the media share (the Sonarr/Radarr family, the download clients, `tdarr`, and so on). If you list an unsupported container, or misspell a name, the playbook shows a preflight warning and that container's mount stays writable.
 
 :::caution[Features that stop working]
 
@@ -119,6 +119,12 @@ Anything that writes into the media folders fails once the share is read-only. C
 - Kavita does not normally write to the library, so nothing should change.
 
 Playback, library scans, and anything the app stores in its own config folder (watch history, posters it does not save into media folders, and so on) keep working.
+
+:::
+
+:::caution[Additional NAS shares on older kernels]
+
+If you mount [additional NAS shares](/docs/getting-started/nas/#additional-nas-mounts) inside `hms_docker_mount_path` (the recommended setup), they only become read-only on Linux kernel 5.12 or later (with Docker 25 or later, which the playbook installs). On older kernels (for example Alma/Rocky/RHEL 8 or Debian 11), Docker cannot make the shares mounted under `/data` read-only, so containers listed here can still write to them. The playbook shows a preflight warning when this applies.
 
 :::
 
