@@ -52,11 +52,23 @@
     lstrip_blocks: yes
     trim_blocks: yes
 
-- name: Traefik Prereq - Remove CrowdSec bouncer middleware if CrowdSec is disabled
-  ansible.builtin.file:
+- name: Traefik Prereq - Check for a leftover CrowdSec bouncer middleware
+  ansible.builtin.stat:
     path: "{{ traefik_static_config_dir.path }}/hmsd_crowdsec.yml"
-    state: absent
+  register: traefik_crowdsec_middleware
   when: "'crowdsec' not in enabled_containers"
+
+# Traefik keeps referencing the middleware until it restarts, so it's removed by a handler that runs after the restart
+- name: Traefik Prereq - Remove CrowdSec bouncer middleware after Traefik restarts
+  ansible.builtin.debug:
+    msg: CrowdSec is disabled, its Traefik middleware will be removed after Traefik restarts
+  changed_when: true
+  notify:
+    - Restart traefik
+    - Remove CrowdSec bouncer middleware
+  when:
+    - "'crowdsec' not in enabled_containers"
+    - traefik_crowdsec_middleware.stat.exists | default(false)
 
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:

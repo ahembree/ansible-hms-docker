@@ -15,8 +15,8 @@ experimental:
     crowdsec-bouncer:
       moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
       version: "{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
-{% endif %}
 
+{% endif %}
 api:
   dashboard: true
   disabledashboardad: true
@@ -30,9 +30,15 @@ entryPoints:
     address: :8082
   web:
     address: :80
+{% if 'crowdsec' in enabled_containers and hmsdocker_crowdsec_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_crowdsec_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
 {% if traefik_ssl_enabled or 'crowdsec' in enabled_containers %}
     http:
-{% endif %}
 {% if 'crowdsec' in enabled_containers %}
       middlewares:
         - crowdsec@file
@@ -43,9 +49,19 @@ entryPoints:
           to: websecure
           scheme: https
           permanent: true
+{% endif %}
+{% endif %}
+{% if traefik_ssl_enabled %}
 
   websecure:
     address: :443
+{% if 'crowdsec' in enabled_containers and hmsdocker_crowdsec_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_crowdsec_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
     asDefault: true
     http3: {}
     http:
