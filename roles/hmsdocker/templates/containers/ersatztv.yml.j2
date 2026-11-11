@@ -32,7 +32,7 @@ services:
       - ${HMSD_APPS_PATH}/ersatztv/transcode:/transcode
       {% endif %}
       # media folder, used by local libraries and to play media from Plex/Jellyfin/Emby directly from disk
-      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'ersatztv' in hmsdocker_readonly_media_containers | default([]) }}
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'ersatztv' in hmsdocker_readonly_media_containers | default([], true) }}
     {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
     tmpfs:
       - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
