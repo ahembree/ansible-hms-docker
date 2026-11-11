@@ -23,7 +23,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/tunarr/config:/config/tunarr
       # media folder, used by Tunarr "Local" media sources
-      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'tunarr' in hmsdocker_readonly_media_containers | default([]) }}
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'tunarr' in hmsdocker_readonly_media_containers | default([], true) }}
     environment:
       - TZ=${TIMEZONE}
     {% if enable_nvidia_gpu %}
