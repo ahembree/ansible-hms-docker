@@ -11,6 +11,12 @@
     - not traefik_certs_dir.changed
     - not ansible_check_mode
 
+# Must stay after "Restart traefik", handlers run in the order they are defined
+- name: Remove CrowdSec bouncer middleware
+  ansible.builtin.file:
+    path: "{{ hmsdocker_traefik_static_config_location }}/hmsd_crowdsec.yml"
+    state: absent
+
 - name: Restart sabnzbd
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"

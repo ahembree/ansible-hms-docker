@@ -1,12 +1,12 @@
 ### CrowdSec Settings
-# CrowdSec reads Traefik's access logs and blocks abusive IPs at Traefik on every route, using the CrowdSec bouncer plugin
+# CrowdSec reads Traefik's access logs and blocks abusive IPs on every route through Traefik (ports 80 and 443), using the CrowdSec bouncer plugin
 # Enable it with `crowdsec` in the container map. Requires Traefik, and turns on Traefik access logs while enabled
 # The bouncer API key is generated automatically
 
 # Optional: enroll this instance in the CrowdSec Console (https://app.crowdsec.net) with this enrollment key // default: ""
 hmsdocker_crowdsec_enroll_key: ""
 
-# IPs or subnets of proxies in front of Traefik (such as a load balancer), so the bouncer uses the real client IP from the X-Forwarded-For header // default: []
+# IPs or subnets of proxies in front of Traefik (such as a load balancer). Traefik trusts their X-Forwarded-For header on the web/websecure entrypoints, so CrowdSec and the bouncer see the real client IP // default: []
 # Example: ["172.16.0.0/12"]
 hmsdocker_crowdsec_trusted_proxies: []
 
