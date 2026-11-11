@@ -24,7 +24,7 @@ services:
       # covers, author images, cache, logs and backups
       - ${HMSD_APPS_PATH}/audiobookshelf/metadata:/metadata
       # media folder, libraries are added in the web UI (e.g. /data/media_data/_library/Audiobooks)
-      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'audiobookshelf' in hmsdocker_readonly_media_containers | default([]) }}
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'audiobookshelf' in hmsdocker_readonly_media_containers | default([], true) }}
     environment:
       - TZ=${TIMEZONE}
     {% if 'audiobookshelf' in traefik_enabled_containers or 'audiobookshelf' in homepage_enabled_containers %}
