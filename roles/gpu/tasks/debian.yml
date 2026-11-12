@@ -1,9 +1,22 @@
 ---
-- name: Ensure nvidia-container-toolkit apt GPG key
-  ansible.builtin.apt_key:
-    url: https://nvidia.github.io/libnvidia-container/gpgkey
-    keyring: /etc/apt/trusted.gpg.d/libnvidia-container.gpg
+# `apt-key` was removed from newer Debian/Ubuntu releases, so the `apt_key` module fails.
+# The key is dearmored into the same keyring path the repo entry has always referenced
+# (via `signed-by`), so hosts that already have it keep a single, consistent sources entry.
+- name: Ensure gnupg is installed
+  ansible.builtin.package:
+    name: gnupg
     state: present
+  ignore_errors: '{{ ansible_check_mode }}'
+
+- name: Ensure nvidia-container-toolkit apt GPG key
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey |
+    gpg --dearmor -o /etc/apt/trusted.gpg.d/libnvidia-container.gpg
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/trusted.gpg.d/libnvidia-container.gpg
+  when: not ansible_check_mode
 
 - name: Ensure nvidia-container-toolkit repo
   ansible.builtin.apt_repository:
