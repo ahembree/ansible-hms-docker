@@ -92,6 +92,8 @@ Each listed container still sees the media share at `/data`, but the mount is ma
 
 Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`.
 
+`checkrr` and `librariarr` always mount the media share read-only, whether or not they are listed. Listing them is accepted without a warning.
+
 Any other container is not supported, including the ones that need to write to the media share (the Sonarr/Radarr family, the download clients, `tdarr`, and so on). If you list an unsupported container, or misspell a name, the playbook shows a preflight warning and that container's mount stays writable.
 
 :::caution[Features that stop working]
