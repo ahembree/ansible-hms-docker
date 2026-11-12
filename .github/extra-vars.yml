@@ -16,6 +16,7 @@
   "media_avail_script_enabled": true,
   "hmsdocker_app_bootstrap": true,
   "hmsdocker_svc_misc_arr_scripts_enabled": true,
+  "hmsdocker_readonly_media_containers": ["plex", "sonarr"],
   "hms_docker_container_map": {
     "traefik": {
       "enabled": true,
