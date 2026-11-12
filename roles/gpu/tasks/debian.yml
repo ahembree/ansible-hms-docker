@@ -1,12 +1,20 @@
 ---
+# `apt-key` was removed from newer Debian/Ubuntu releases, so the key is
+# downloaded to a keyring file and referenced via `signed-by` instead.
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
 - name: Ensure nvidia-container-toolkit apt GPG key
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
     url: https://nvidia.github.io/libnvidia-container/gpgkey
-    keyring: /etc/apt/trusted.gpg.d/libnvidia-container.gpg
-    state: present
+    dest: /etc/apt/keyrings/libnvidia-container.asc
+    mode: "0644"
 
 - name: Ensure nvidia-container-toolkit repo
   ansible.builtin.apt_repository:
-    repo: deb [signed-by=/etc/apt/trusted.gpg.d/libnvidia-container.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /
+    repo: deb [signed-by=/etc/apt/keyrings/libnvidia-container.asc] https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /
     state: present
     filename: nvidia-container-toolkit
