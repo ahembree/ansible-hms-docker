@@ -19,9 +19,12 @@ ansible_python_interpreter: /usr/bin/python3
 
 # Containers whose media share mount honors hmsdocker_readonly_media_containers.
 # Listing any other container there has no effect and triggers a preflight warning.
+# checkrr and librariarr always mount the media share read-only, so listing them is valid but changes nothing.
 hmsdocker_readonly_media_supported_containers:
   - calibre
+  - checkrr
   - emby
   - jellyfin
   - kavita
+  - librariarr
   - plex
