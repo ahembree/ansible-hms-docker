@@ -478,6 +478,16 @@ hms_docker_container_map:
     homepage_stats: true
     proxy_host_rule: tubearchivist
     traefik: true
+  tunarr:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tunarr
+    traefik: true
   unmanic:
     authentik: false
     directory: true
