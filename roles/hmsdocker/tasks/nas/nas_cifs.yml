@@ -32,3 +32,9 @@
   when:
     - cifs_creds_file is defined
     - not ansible_check_mode
+  register: nas_cifs_mount
+
+- name: NAS - CIFS - Flag media mount change so containers are recreated
+  ansible.builtin.set_fact:
+    hmsdocker_media_mounts_changed: true
+  when: nas_cifs_mount is changed

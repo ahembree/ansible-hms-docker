@@ -17,7 +17,7 @@
     loop_var: mount_path
   when:
     - nas_client_remote_additional_paths is defined
-    - item.type == "cifs"
+    - mount_path.type == "cifs"
   register: cifs_additional_paths
 
 - name: NAS - Additional CIFS - Ensure additional CIFS credential files if defined
@@ -48,9 +48,8 @@
     fstype: cifs
     opts: credentials={{ cifs_mount[1].dest }},{{ cifs_mount[0].mount_path.cifs_opts }}
     state: "{{ nas_client_mount_state }}"
-  with_nested:
-    - "{{ cifs_additional_paths.results }}"
-    - "{{ cifs_additional_creds.results }}"
+  # Both lists loop over nas_client_remote_additional_paths in order, so zip pairs each path with its own creds file
+  loop: "{{ cifs_additional_paths.results | zip(cifs_additional_creds.results) | list }}"
   loop_control:
     loop_var: cifs_mount
   when:
@@ -58,6 +57,12 @@
     - cifs_mount[1].dest is defined
     - cifs_mount[0].mount_path.type == "cifs"
     - not ansible_check_mode
+  register: cifs_additional_mounts
+
+- name: NAS - Additional CIFS - Flag media mount change so containers are recreated
+  ansible.builtin.set_fact:
+    hmsdocker_media_mounts_changed: true
+  when: cifs_additional_mounts is changed
 
 - name: NAS - Additional CIFS - Ensure library folders for additional paths
   ansible.builtin.file:
@@ -71,5 +76,5 @@
   when:
     - cifs_additional_paths is defined
     - cifs_library_folder[0].mount_path.type == "cifs"
-    - library_folders[0].mount_path.create_library_folders | default(false)
+    - cifs_library_folder[0].mount_path.create_library_folders | default(false)
     - not ansible_check_mode
