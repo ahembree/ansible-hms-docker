@@ -43,6 +43,12 @@
     - nfs_additional_paths is defined
     - nfs_mount.mount_path.type == "nfs"
     - not ansible_check_mode
+  register: nfs_additional_mounts
+
+- name: NAS - Additional NFS - Flag media mount change so containers are recreated
+  ansible.builtin.set_fact:
+    hmsdocker_media_mounts_changed: true
+  when: nfs_additional_mounts is changed
 
 - name: NAS - Additional NFS - Ensure library folders for additional paths
   ansible.builtin.file:

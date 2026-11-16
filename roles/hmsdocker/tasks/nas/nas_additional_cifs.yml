@@ -58,6 +58,12 @@
     - cifs_mount[1].dest is defined
     - cifs_mount[0].mount_path.type == "cifs"
     - not ansible_check_mode
+  register: cifs_additional_mounts
+
+- name: NAS - Additional CIFS - Flag media mount change so containers are recreated
+  ansible.builtin.set_fact:
+    hmsdocker_media_mounts_changed: true
+  when: cifs_additional_mounts is changed
 
 - name: NAS - Additional CIFS - Ensure library folders for additional paths
   ansible.builtin.file:
