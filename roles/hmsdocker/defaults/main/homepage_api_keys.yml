@@ -55,6 +55,10 @@ hmsdocker_homepage_deluge_pass: deluge
 # Enable "Fenrus Dashboard Endpoint" in FileFlows under Settings > General to get the token
 hmsdocker_homepage_fileflows_key:
 
+# Audiobookshelf API key
+# Log in as an admin and create one under Settings > API Keys
+hmsdocker_homepage_audiobookshelf_key:
+
 # Dockhand credentials
 hmsdocker_homepage_dockhand_user:
 hmsdocker_homepage_dockhand_pass: 
