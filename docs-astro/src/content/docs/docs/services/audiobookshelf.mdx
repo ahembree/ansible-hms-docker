@@ -38,7 +38,7 @@ Libraries are added in the web UI under **Settings > Libraries**. Use these fold
 - Audiobooks: `/data/media_data/_library/Audiobooks`
 - Podcasts: `/data/media_data/_library/Podcasts`
 
-Audiobookshelf needs write access to these folders to download podcast episodes, and for features such as embedding metadata, merging files into an `.m4b`, and saving covers next to the media. Make sure they are writable by the `container_uid`/`container_gid` user, as with the rest of your media share.
+Audiobookshelf needs write access to these folders to download podcast episodes, and for features such as embedding metadata, merging files into an `.m4b`, and saving covers next to the media. On a local media share, the playbook creates them owned by the `container_uid`/`container_gid` user. On a NAS share, or if the folders already existed, make sure they are writable by that user, as with the rest of your media share. If you add `audiobookshelf` to [`hmsdocker_readonly_media_containers`](/docs/other/container-settings/#read-only-media-mounts), these features stop working.
 
 ## Homepage widget
 
