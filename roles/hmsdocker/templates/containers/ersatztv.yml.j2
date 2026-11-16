@@ -21,9 +21,9 @@ services:
     {% if enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
-    {% if ersatztv_render_gid is defined %}
+    {% if hmsdocker_ersatztv_render_gid is defined %}
     group_add:
-      - "{{ ersatztv_render_gid }}"
+      - "{{ hmsdocker_ersatztv_render_gid }}"
     {% endif %}
     {% endif %}
     volumes:

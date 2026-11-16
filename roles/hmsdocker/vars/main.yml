@@ -24,7 +24,9 @@ hmsdocker_readonly_media_supported_containers:
   - calibre
   - checkrr
   - emby
+  - ersatztv
   - jellyfin
   - kavita
   - librariarr
   - plex
+  - tunarr

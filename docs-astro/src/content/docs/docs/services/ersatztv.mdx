@@ -36,6 +36,6 @@ Use these URLs when adding ErsatzTV as a Live TV / DVR source in a media server 
 
 ## Hardware transcoding
 
-With `enable_intel_gpu: true`, ErsatzTV gets `/dev/dri` and the host's `render` group, so it can use Intel QSV/VAAPI while running as the `container_uid` user. With `enable_nvidia_gpu: true`, it uses the Nvidia runtime. Select the matching hardware acceleration in each ErsatzTV **FFmpeg Profile**.
+With `enable_intel_gpu: true`, ErsatzTV gets `/dev/dri` and the group that owns `/dev/dri/renderD128` (usually `render`), so it can use Intel QSV/VAAPI while running as the `container_uid` user. If that device doesn't exist, the playbook shows a warning and ErsatzTV runs without hardware transcoding. With `enable_nvidia_gpu: true`, it uses the Nvidia runtime. Select the matching hardware acceleration in each ErsatzTV **FFmpeg Profile**.
 
 Transcode files go to `<hms_docker_apps_path>/ersatztv/transcode`, or to RAM if `hmsdocker_transcode_tmpfs_enabled` is set.

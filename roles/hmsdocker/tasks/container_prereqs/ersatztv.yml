@@ -7,17 +7,24 @@
     group: "{{ container_gid }}"
   when: not hmsdocker_transcode_tmpfs_enabled | default(false)
 
-# ErsatzTV runs as container_uid, which needs the host's render group to use the Intel GPU
-- name: (Prereq - ErsatzTV) - Get host render group
-  ansible.builtin.getent:
-    database: group
-    key: render
-    fail_key: false
+# ErsatzTV runs as container_uid, which needs the group that owns the GPU render node to use the Intel GPU.
+# The group ID is read from the device itself, since not every host has a group named "render".
+- name: (Prereq - ErsatzTV) - Get GPU render node
+  ansible.builtin.stat:
+    path: /dev/dri/renderD128
+  register: prereq_ersatztv_render_node
   when: enable_intel_gpu | default(false)
 
 - name: (Prereq - ErsatzTV) - Set render group ID
   ansible.builtin.set_fact:
-    ersatztv_render_gid: "{{ ansible_facts.getent_group.render[1] }}"
+    hmsdocker_ersatztv_render_gid: "{{ prereq_ersatztv_render_node.stat.gid }}"
   when:
     - enable_intel_gpu | default(false)
-    - ansible_facts.getent_group.render | default(none) is not none
+    - prereq_ersatztv_render_node.stat.exists | default(false)
+
+- name: (Prereq - ErsatzTV) - Warn if the GPU render node is missing
+  ansible.builtin.debug:
+    msg: "WARNING: enable_intel_gpu is set but /dev/dri/renderD128 does not exist, so ErsatzTV cannot use hardware transcoding. Check that the GPU driver is loaded on the host."
+  when:
+    - enable_intel_gpu | default(false)
+    - not (prereq_ersatztv_render_node.stat.exists | default(false))
