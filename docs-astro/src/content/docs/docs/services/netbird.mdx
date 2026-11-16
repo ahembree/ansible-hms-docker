@@ -13,7 +13,7 @@ sidebar:
 2. Set the key in `inventory/group_vars/all/netbird.yml`:
 
     ```yaml
-    netbird_setup_key: <your setup key>
+    hmsdocker_netbird_setup_key: <your setup key>
     ```
 
 3. Enable `netbird` in the [Container Map](/docs/container-list/#container-map) and run the playbook.
@@ -24,9 +24,9 @@ The server then shows up under **Peers** in the NetBird dashboard.
 
 | Variable | Default | Description |
 |-|-|-|
-| `netbird_setup_key` | | Setup key used to register the server. Required when `netbird` is enabled. |
-| `netbird_management_url` | | Only for a self-hosted NetBird server, for example `https://netbird.example.com:443`. Leave empty for NetBird Cloud. |
-| `netbird_hostname` | this server's hostname | The peer name shown in NetBird. |
+| `hmsdocker_netbird_setup_key` | | Setup key used to register the server. Required when `netbird` is enabled. |
+| `hmsdocker_netbird_management_url` | | Only for a self-hosted NetBird server, for example `https://netbird.example.com:443`. Leave empty for NetBird Cloud. |
+| `hmsdocker_netbird_hostname` | this server's hostname | The peer name shown in NetBird. |
 
 ## Notes
 
@@ -43,4 +43,4 @@ To show the number of online peers and users in [Homepage](/docs/services/homepa
 hmsdocker_homepage_netbird_key: <personal access token>
 ```
 
-The token must belong to a user with the Admin role. NetBird recommends creating a service user for this. The widget uses `https://api.netbird.io`, or your `netbird_management_url` if set.
+The token must belong to a user with the Admin role. NetBird recommends creating a service user for this. The widget uses `https://api.netbird.io`, or your `hmsdocker_netbird_management_url` if set.

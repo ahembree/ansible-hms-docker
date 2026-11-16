@@ -219,9 +219,9 @@
 - name: (preflight) Validate NetBird setup key when netbird is enabled
   ansible.builtin.assert:
     that:
-      - (netbird_setup_key | default('', true)) | length > 0
+      - (hmsdocker_netbird_setup_key | default('', true)) | length > 0
     fail_msg: >-
-      The netbird container is enabled but netbird_setup_key is empty.
+      The netbird container is enabled but hmsdocker_netbird_setup_key is empty.
       Create a setup key in the NetBird dashboard under Setup Keys and
       set it in inventory/group_vars/all/netbird.yml.
     quiet: true
