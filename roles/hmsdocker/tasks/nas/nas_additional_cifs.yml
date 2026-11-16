@@ -48,9 +48,8 @@
     fstype: cifs
     opts: credentials={{ cifs_mount[1].dest }},{{ cifs_mount[0].mount_path.cifs_opts }}
     state: "{{ nas_client_mount_state }}"
-  with_nested:
-    - "{{ cifs_additional_paths.results }}"
-    - "{{ cifs_additional_creds.results }}"
+  # Both lists loop over nas_client_remote_additional_paths in order, so zip pairs each path with its own creds file
+  loop: "{{ cifs_additional_paths.results | zip(cifs_additional_creds.results) | list }}"
   loop_control:
     loop_var: cifs_mount
   when:
