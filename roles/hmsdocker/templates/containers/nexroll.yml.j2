@@ -32,10 +32,6 @@ services:
       - PLEX_URL=http://plex:32400
       - PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if 'jellyfin' in enabled_containers %}
-      - JELLYFIN_URL=http://jellyfin:8096
-      - JELLYFIN_API_KEY=${JELLYFIN_KEY}
-    {% endif %}
     {% if 'nexroll' in traefik_enabled_containers or 'nexroll' in homepage_enabled_containers %}
     labels:
       {% if 'nexroll' in traefik_enabled_containers %}

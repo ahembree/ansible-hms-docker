@@ -13,7 +13,7 @@ Enable `nexroll` in the [Container Map](/docs/container-list/#container-map). No
 
 1. Create a `prerolls` folder on your media share, next to the `_library` folder
 2. Mount that folder into NeXroll at the same path your media servers already use for it
-3. Fill in the Plex and Jellyfin connection details if those containers are enabled
+3. Fill in the Plex connection details if Plex is enabled
 
 NeXroll is then available at `nexroll.<domain>` through Traefik, or on port `9393` if ports are exposed.
 
@@ -57,7 +57,7 @@ The URL uses `http://`. If you set Plex's **Secure connections** option to **Req
 
 ### Jellyfin
 
-If Jellyfin is enabled, NeXroll is started with `JELLYFIN_URL=http://jellyfin:8096`. `JELLYFIN_API_KEY` is filled from `homepage_jellyfin_key` if you have set it; otherwise, create an API key in Jellyfin under **Dashboard > API Keys** and enter it in NeXroll under **Connect > Jellyfin**.
+Jellyfin is set up in the NeXroll web UI. Under **Connect > Jellyfin**, use `http://jellyfin:8096` as the server URL and an API key created in Jellyfin under **Dashboard > API Keys**.
 
 Jellyfin plays prerolls through the NeXroll Intros plugin, which downloads them from NeXroll over the network rather than reading the folder. When the plugin asks for the NeXroll URL, use `http://nexroll:9393`.
 
