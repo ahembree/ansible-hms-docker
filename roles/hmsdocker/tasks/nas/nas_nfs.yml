@@ -22,3 +22,9 @@
     fstype: nfs
     opts: "{{ nas_client_nfs_opts }}"
     state: "{{ nas_client_mount_state }}"
+  register: nas_nfs_mount
+
+- name: NAS - NFS - Flag media mount change so containers are recreated
+  ansible.builtin.set_fact:
+    hmsdocker_media_mounts_changed: true
+  when: nas_nfs_mount is changed
