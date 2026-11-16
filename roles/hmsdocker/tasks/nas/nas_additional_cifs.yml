@@ -17,7 +17,7 @@
     loop_var: mount_path
   when:
     - nas_client_remote_additional_paths is defined
-    - item.type == "cifs"
+    - mount_path.type == "cifs"
   register: cifs_additional_paths
 
 - name: NAS - Additional CIFS - Ensure additional CIFS credential files if defined
