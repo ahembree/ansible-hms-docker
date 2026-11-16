@@ -1,3 +1,4 @@
+# No owner is set: the CrowdSec image runs as root and has no PUID/PGID support
 - name: (Prereq - CrowdSec) - Ensure data and acquisition directories
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/crowdsec/{{ item }}"
@@ -39,6 +40,9 @@
   when: prereq_crowdsec_bouncer_key.dest is defined
   no_log: "{{ not debug_mode }}"
 
+# Same task as in the Traefik prereqs. Prereqs run in container map order, and a user's map can list
+# crowdsec before traefik (e.g. after `make update` merges new services), so on a fresh install the
+# directory may not exist yet when the middleware file below is written
 - name: (Prereq - CrowdSec) - Ensure Traefik static file dir
   ansible.builtin.file:
     path: "{{ hmsdocker_traefik_static_config_location }}"
