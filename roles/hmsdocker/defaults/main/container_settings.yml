@@ -42,5 +42,6 @@ hmsdocker_socket_proxy_log_level: info
 #  `allow`: Docker API path regexes per HTTP method (get, head, post, put, patch, delete). A method listed here replaces the built-in list for that method
 #  `bind_mount_from`: host directories the container may bind mount into containers it creates
 # Supported containers: authentik, beszel, fileflows, homepage, traefik, uptimekuma, watchtower
+# Traefik, Homepage, Watchtower and Authentik only accept "proxy" or "direct"
 # Example: hmsdocker_socket_proxy_overrides: { uptimekuma: { mode: direct } }
 hmsdocker_socket_proxy_overrides: {}

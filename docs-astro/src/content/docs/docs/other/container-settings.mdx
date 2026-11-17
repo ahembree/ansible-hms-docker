@@ -151,7 +151,7 @@ hmsdocker_socket_proxy_overrides: {}
 
 Settings for the [Docker Socket Proxy](/docs/services/socket-proxy/), which is enabled with `socket-proxy` in the [Container Map](/docs/container-list/#container-map).
 
-`hmsdocker_socket_proxy_log_level` is the log level of the proxies (`debug`, `info`, `warn`, `error`). Blocked requests are logged at `warn`, `debug` also logs every allowed request.
+`hmsdocker_socket_proxy_log_level` is the log level of the proxies, one of `debug`, `info`, `warn` or `error` (the proxies do not start with any other value, so the playbook checks it). Blocked requests are logged at `warn`, `debug` also logs every allowed request.
 
 `hmsdocker_socket_proxy_overrides` changes the built-in access of individual containers, or switches a container back to the unfiltered Docker socket:
 

@@ -1,3 +1,5 @@
+{% set socket_proxy_client = 'homepage' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -12,17 +14,9 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if 'homepage' in socket_proxy_enabled_containers %}
-    depends_on:
-      socket-proxy-homepage:
-        condition: service_healthy
-    {% endif %}
+    {% include 'socket_proxy/client_depends_on.j2' %}
     volumes:
-    {% if 'homepage' in socket_proxy_enabled_containers %}
-      - ${HMSD_APPS_PATH}/socket-proxy/homepage:{{ hmsdocker_socket_proxy_client_dir }}:ro
-    {% elif 'homepage' not in socket_proxy_no_access_containers %}
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    {% endif %}
+    {% include 'socket_proxy/client_volume.j2' %}
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}

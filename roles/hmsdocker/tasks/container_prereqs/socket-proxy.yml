@@ -1,9 +1,11 @@
 ---
 # The socket proxies run as nobody (65534) with the group that owns the Docker socket,
 # so they can read the Docker socket without running as root.
+# follow: /var/run/docker.sock can be a symlink, and the group of the socket itself is what counts
 - name: Socket Proxy Prereq - Check Docker socket
   ansible.builtin.stat:
     path: /var/run/docker.sock
+    follow: true
   register: socket_proxy_docker_socket
 
 - name: Socket Proxy Prereq - Fail if the Docker socket is missing

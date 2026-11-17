@@ -36,17 +36,26 @@ hmsdocker_readonly_media_supported_containers:
 # The directory is mounted instead of the socket file because the proxy recreates the socket file every time it starts.
 # Users change these with hmsdocker_socket_proxy_overrides (container_settings.yml), not here.
 #   mode:            proxy = filtered socket, none = no Docker socket, direct = unfiltered Docker socket
+#   modes:           the modes users may choose for this container. Containers that cannot work without Docker
+#                    do not allow "none"
 #   allow:           Docker API path regexes per HTTP method. socket-proxy anchors each with ^ and $ and matches
 #                    the URL path only (no query string). `(/v1\.\d+)?` covers versioned and unversioned paths.
 #   bind_mount_from: host directories allowed as bind mount sources when the client creates containers
+#   labels:          extra labels for the client's socket-proxy container
+#   requires_ssl:    the client container only runs when traefik_ssl_enabled is on
 # Left out on purpose:
 #   netdata          mounts the host root (/), which already contains the Docker socket
 #   portainer, dockhand  container management UIs that need the whole Docker API
 hmsdocker_socket_proxy_client_dir: /var/run/socket-proxy
+hmsdocker_socket_proxy_image: docker.io/wollomatic/socket-proxy:1
+hmsdocker_socket_proxy_log_levels: [debug, info, warn, error]
+hmsdocker_socket_proxy_methods: [get, head, post, put, patch, delete]
 hmsdocker_socket_proxy_builtin_clients:
   # Authentik worker: creates, restarts and removes its proxy outpost containers
   authentik:
     mode: proxy
+    modes: [proxy, direct]
+    requires_ssl: true
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
@@ -63,6 +72,7 @@ hmsdocker_socket_proxy_builtin_clients:
   # Beszel agent: container list, stats, details and logs
   beszel:
     mode: proxy
+    modes: [proxy, none, direct]
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
@@ -71,10 +81,12 @@ hmsdocker_socket_proxy_builtin_clients:
   # FileFlows only uses Docker for its optional "Docker Siblings" runners, which this project does not set up
   fileflows:
     mode: none
+    modes: [proxy, none, direct]
     allow: {}
   # Homepage: container discovery, status and stats
   homepage:
     mode: proxy
+    modes: [proxy, direct]
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|containers/json|containers/[^/]+/(json|stats))'
@@ -83,6 +95,7 @@ hmsdocker_socket_proxy_builtin_clients:
   # Traefik: Docker provider (container labels and events)
   traefik:
     mode: proxy
+    modes: [proxy, direct]
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
@@ -91,6 +104,7 @@ hmsdocker_socket_proxy_builtin_clients:
   # Uptime Kuma: Docker container monitors
   uptimekuma:
     mode: proxy
+    modes: [proxy, none, direct]
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json)'
@@ -100,6 +114,7 @@ hmsdocker_socket_proxy_builtin_clients:
   # bind mounts, so bind mounts cannot be restricted for it
   watchtower:
     mode: proxy
+    modes: [proxy, direct]
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
@@ -110,3 +125,7 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/(containers/create|containers/[^/]+/(start|stop|kill|restart|rename|wait)|images/create|networks/[^/]+/(connect|disconnect))'
       delete:
         - '(/v1\.\d+)?/(containers/[^/]+|images/.+)'
+    # Watchtower reaches Docker through this proxy, so it must not update (stop) it. The playbook pulls
+    # the proxy image on every run instead
+    labels:
+      - com.centurylinklabs.watchtower.enable=false

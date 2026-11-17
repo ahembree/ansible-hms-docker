@@ -29,7 +29,7 @@ Each container only has its own folder mounted, so it cannot use another contain
 
 :::caution[Uptime Kuma]
 
-Uptime Kuma stores its Docker hosts in its own database, so the playbook cannot change them. After enabling the socket proxy, go to **Settings > Docker Hosts** in Uptime Kuma and change the socket path of each existing Docker host from `/var/run/docker.sock` to `/var/run/socket-proxy/docker.sock`. New Docker hosts need the new path too. The playbook reminds you of this the first time it sets up the proxy for Uptime Kuma.
+Uptime Kuma stores its Docker hosts in its own database, so the playbook cannot change them. After enabling the socket proxy, go to **Settings > Docker Hosts** in Uptime Kuma and change the socket path of each existing Docker host from `/var/run/docker.sock` to `/var/run/socket-proxy/docker.sock`. New Docker hosts need the new path too. The playbook reminds you of this on the run that switches Uptime Kuma to the socket proxy.
 
 :::
 
@@ -69,7 +69,7 @@ For both, the proxy still blocks everything they do not need, such as `exec`, vo
 
 ### Authentik
 
-Authentik only creates its "Local Docker connection" (used by the outposts) when it finds `/var/run/docker.sock`. With the socket proxy, the playbook mounts a blueprint into the worker at `/blueprints/hmsd` that creates this connection if it does not exist yet. An existing "Local Docker connection" is left as it is, and keeps working because it reads `DOCKER_HOST`.
+Authentik only creates its "Local Docker connection" (used by the outposts) when it finds `/var/run/docker.sock`. With the socket proxy, the playbook mounts a blueprint into the worker at `/blueprints/hmsd` that does the same as Authentik's own check: it creates the connection while no local Docker connection exists. An existing one is left as it is (also if you renamed it), and keeps working because it reads `DOCKER_HOST`. As without the socket proxy, deleting the local Docker connection makes Authentik create it again.
 
 ### FileFlows
 
@@ -88,11 +88,11 @@ FileFlows then gets `DOCKER_HOST=unix:///var/run/socket-proxy/docker.sock`. Use 
 
 ## Changing the defaults
 
-Set `hmsdocker_socket_proxy_overrides` in `inventory/group_vars/all/container_settings.yml`. Only the containers listed in the table above are supported, others are ignored with a warning.
+Set `hmsdocker_socket_proxy_overrides` in `inventory/group_vars/all/container_settings.yml`. Only the containers listed in the table above are supported, others are ignored with a warning. While the socket proxy is enabled, the playbook checks the overrides before it changes anything and stops with an error if one is not valid.
 
 | Key | Values |
 |-|-|
-| `mode` | `proxy`: filtered socket (default, except FileFlows). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy |
+| `mode` | `proxy`: filtered socket (default, except FileFlows). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy. Traefik, Homepage, Watchtower and Authentik cannot work without Docker, so they only accept `proxy` or `direct` |
 | `allow` | Docker API path regexes per HTTP method (`get`, `head`, `post`, `put`, `patch`, `delete`). Setting a method replaces the built-in list for that method. Each regex is anchored (`^...$`) and matched against the path only, without the query string. Group alternatives, e.g. `(/version\|/_ping)` |
 | `bind_mount_from` | Host folders the container may bind mount into containers it creates |
 
@@ -132,5 +132,7 @@ level=WARN msg="blocked request" reason="path not allowed" method=GET URL=/v1.47
 To see every request a container makes, set `hmsdocker_socket_proxy_log_level: debug` in `inventory/group_vars/all/container_settings.yml` and run the playbook again.
 
 If a container cannot reach Docker at all, check that its proxy is healthy (`docker ps --filter name=socket-proxy`). The proxies run as user `65534` with the group that owns `/var/run/docker.sock`, and stop themselves if the Docker socket stops responding (for example after a Docker update) so that Docker restarts them.
+
+The proxies use the `wollomatic/socket-proxy:1` image. Watchtower updates them like any other container, except the one it uses itself, which it must not stop. Instead, the playbook pulls the image on every run and recreates any proxy whose image changed.
 
 To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.

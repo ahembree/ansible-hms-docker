@@ -8,7 +8,7 @@ services:
 {% for client in socket_proxy_enabled_containers %}
   {% set profile = hmsdocker_socket_proxy_clients[client] %}
   socket-proxy-{{ client }}:
-    image: docker.io/wollomatic/socket-proxy:1
+    image: {{ hmsdocker_socket_proxy_image }}
     container_name: socket-proxy-{{ client }}
     restart: ${RESTART_POLICY}
     # nobody, with the group that owns the Docker socket
@@ -46,17 +46,20 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${HMSD_APPS_PATH}/socket-proxy/{{ client }}:/run/socket-proxy
-    {% if client == 'watchtower' %}
+    {% if profile.labels | default([], true) | length > 0 %}
     labels:
-      # Watchtower reaches Docker through this container, so it must not update it
-      - com.centurylinklabs.watchtower.enable=false
+      {% for label in profile.labels %}
+      - {{ label | replace('$', '$$') | to_json }}
+      {% endfor %}
     {% endif %}
+    # Clients wait for this to be healthy: check every second while starting, then every 30s
     healthcheck:
       test: ["CMD", "/healthcheck"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 10s
+      start_interval: 1s
 
 {% endfor %}
 {% endif %}
