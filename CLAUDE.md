@@ -17,7 +17,7 @@ All day-to-day workflows go through the [Makefile](Makefile):
 | `make apply` | Live apply with `--diff`. |
 | `make install-reqs` | Installs galaxy roles + `community.docker` / `community.general` collections. Auto-run by `check`/`apply`. |
 | `make update` | `git pull`s the **currently checked-out branch**, then (via `make migrate-config`, re-invoked so the freshly pulled Makefile runs) rewrites deprecated variable names in `inventory/group_vars/all/*.yml` from [migrations/variable_renames.yml](migrations/variable_renames.yml) and merges new services/keys from the local `roles/hmsdocker/defaults/main/container_map.yml` (uses a vendored `yq` in `./bin/`). |
-| `make switch-develop` / `make switch-stable` | Check out `develop` / `master` (refuses with local changes to tracked files), then run `make update`. `make branch` shows the current branch. |
+| `make switch-develop` / `make switch-stable` | Check out `develop` / `master` (git carries non-conflicting local edits over), then run `make update`. `make branch` shows the current branch. |
 | `make verify-containers` | Runs `.github/workflows/scripts/check_containers.py` to validate exposed ports (used in CI). |
 | `make manager` | Interactive Python settings editor (`settings_manager.py` in a venv). |
 

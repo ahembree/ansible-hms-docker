@@ -38,7 +38,7 @@ To go back to stable releases:
 make switch-stable
 ```
 
-Both commands refuse to run if you have edited files tracked by git (commit or stash them first), then switch branches and run `make update` for you. To see which branch you are on, run `make branch`.
+Both commands switch branches and run `make update` for you. Local edits such as `inventory/hosts.yml` are kept; if an edited file also changed between the branches, git refuses and you need to commit or stash it first. To see which branch you are on, run `make branch`.
 
 :::caution[Switching back to stable]
 

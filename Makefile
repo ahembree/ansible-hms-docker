@@ -18,6 +18,11 @@ STABLE_BRANCH = master
 DEVELOP_BRANCH = develop
 DEFAULT_CONTAINER_MAP = roles/hmsdocker/defaults/main/container_map.yml
 
+# No longer used by this Makefile, but DO NOT REMOVE: older Makefiles' 'make update'
+# recipe keeps running after 'git pull' and greps this line out of the freshly
+# pulled Makefile. Without it their first update silently skips the container map merge.
+REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
+
 VENV_DIR = .venv
 VENV_PY = $(VENV_DIR)/bin/python3
 # Marker file used to detect when requirements.txt changed since the last install
@@ -215,18 +220,18 @@ migrate-config: $(YQ_LOCAL)
 # doesn't exist yet) and then runs 'make update' on it.
 # Usage: $(MAKE) -s _switch-branch TARGET=<branch>
 _switch-branch:
-	@if [ -n "$$(git status --porcelain --untracked-files=no)" ]; then \
-		printf $(_ERROR) "FAIL" "You have local changes to tracked files, commit or stash them before switching:"; \
-		git status --short --untracked-files=no; \
-		exit 1; \
-	fi
 	@# Explicit refspec so this also works for clones made with --single-branch
 	@git fetch -q origin "+refs/heads/$(TARGET):refs/remotes/origin/$(TARGET)"
+	@# Local edits (e.g. inventory/hosts.yml for a remote host) are carried over;
+	@# git only refuses if an edited file also differs between the two branches.
 	@if git show-ref --verify --quiet "refs/heads/$(TARGET)"; then \
 		git checkout -q "$(TARGET)"; \
 	else \
 		git checkout -q -b "$(TARGET)" --track "origin/$(TARGET)"; \
-	fi
+	fi || { \
+		printf $(_ERROR) "FAIL" "Could not switch to '$(TARGET)', commit or stash the local changes listed above and try again"; \
+		exit 1; \
+	}
 	@printf $(_TITLE) "OK" "Switched to '$(TARGET)'"
 	@$(MAKE) -s update
 

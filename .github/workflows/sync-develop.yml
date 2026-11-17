@@ -5,8 +5,9 @@ name: Sync master into develop
 # 'develop' so the next release doesn't regress or conflict.
 #
 # Requires: Settings > Actions > General > "Allow GitHub Actions to create and
-# approve pull requests". PRs opened with GITHUB_TOKEN do not trigger other
-# workflows, so CI won't run on the sync PR until it is updated by a person.
+# approve pull requests". PRs opened with GITHUB_TOKEN do not trigger
+# pull_request workflows, so the playbook tests are dispatched on 'master'
+# directly; their checks land on the same commit the sync PR points at.
 
 on:
   push:
@@ -15,6 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write  # workflow_dispatch of the playbook tests
   contents: read
   pull-requests: write
 
@@ -56,3 +58,6 @@ jobs:
           gh pr create --base develop --head master \
             --title "chore: sync master into develop" \
             --body "Automated: \`master\` has changes that \`develop\` does not (usually a hotfix). Merge with a **merge commit** to keep both branches in step."
+
+          # workflow_dispatch is the one trigger GITHUB_TOKEN may fire
+          gh workflow run run-playbook.yml --ref master
