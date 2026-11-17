@@ -21,6 +21,7 @@ ansible_python_interpreter: /usr/bin/python3
 # Listing any other container there has no effect and triggers a preflight warning.
 # checkrr and librariarr always mount the media share read-only, so listing them is valid but changes nothing.
 hmsdocker_readonly_media_supported_containers:
+  - audiobookshelf
   - calibre
   - checkrr
   - emby

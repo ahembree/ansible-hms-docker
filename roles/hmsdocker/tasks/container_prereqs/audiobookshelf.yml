@@ -1,0 +1,30 @@
+- name: (Prereq - Audiobookshelf) - Ensure metadata directory with correct ownership
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/audiobookshelf/metadata"
+    state: directory
+    mode: '0755'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+
+- name: (Prereq - Audiobookshelf) - Check for existing Audiobooks and Podcasts library folders
+  ansible.builtin.stat:
+    path: "{{ hmsdocker_library_path }}/{{ item }}"
+  loop:
+    - Audiobooks
+    - Podcasts
+  register: prereq_audiobookshelf_library_stat
+
+# Audiobookshelf runs as container_uid and nothing in the image fixes ownership, so new folders on a local share
+# are owned by that user (podcast downloads fail on root:root folders). Existing folders and NAS shares, where
+# chown can fail (e.g. NFS root_squash or CIFS), are left as they are.
+- name: (Prereq - Audiobookshelf) - Ensure Audiobooks and Podcasts library folders
+  ansible.builtin.file:
+    path: "{{ hmsdocker_library_path }}/{{ item.item }}"
+    state: directory
+    owner: "{{ container_uid if audiobookshelf_folder_new | bool else omit }}"
+    group: "{{ container_gid if audiobookshelf_folder_new | bool else omit }}"
+  loop: "{{ prereq_audiobookshelf_library_stat.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  vars:
+    audiobookshelf_folder_new: "{{ hms_docker_media_share_type | lower == 'local' and not item.stat.exists }}"

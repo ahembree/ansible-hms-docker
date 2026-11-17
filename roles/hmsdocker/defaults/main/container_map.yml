@@ -13,6 +13,16 @@
 #  `traefik`: Enables or disables accessing the container via Traefik
 
 hms_docker_container_map:
+  audiobookshelf:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: audiobookshelf
+    traefik: true
   authentik:
     directory: true
     enabled: false
