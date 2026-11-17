@@ -78,6 +78,7 @@ hmsdocker_socket_proxy_builtin_clients:
     allow:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
+        - '(/v1\.\d+)?/images/.+/json'
       head:
         - '(/v1\.\d+)?/_ping'
   # Homepage: container discovery, status and stats
