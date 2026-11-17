@@ -11,6 +11,14 @@
 #   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
 #   4. Soft-warning appends (non-fatal; surfaced at the end).
 #   5. Print warnings if any.
+#
+# Do NOT set no_log on the asserts below. A failing assert with no_log is fully
+# censored, which hides fail_msg from the user. These asserts are safe without
+# it: `that:` only tests length/emptiness, `quiet: true` suppresses details on
+# success, and on failure Ansible prints fail_msg plus the expression TEXT (not
+# the evaluated values). Never interpolate a secret into fail_msg; if an assert
+# must compare a secret's value, compute a boolean under no_log with set_fact
+# and assert on that boolean instead.
 
 - name: (preflight) Initialize warnings list
   ansible.builtin.set_fact:
@@ -64,7 +72,6 @@
       and hmsdocker_spottarr_usenet_password in
       inventory/group_vars/all/service_misc.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when: hms_docker_container_map['spottarr']['enabled'] | default(false) | bool
 
 # ---------------------------------------------------------------------------
@@ -84,7 +91,6 @@
       '//nas.example.com/share'), nas_client_cifs_username, and
       nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - hms_docker_media_share_type | default('local') == 'cifs'
     - not is_github_runner
@@ -120,7 +126,6 @@
       Visit https://plex.tv/claim to obtain a token, then set plex_claim_token
       in inventory/group_vars/all/plex.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when: 
     - hms_docker_container_map['plex']['enabled'] | default(false)
     - not is_github_runner
@@ -151,7 +156,6 @@
       Traefik SSL is using Cloudflare as the DNS provider but cloudflare_api_token
       is empty. Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - traefik_ssl_enabled | default(false) | bool
     - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
@@ -169,7 +173,6 @@
       The cloudflare-ddns container is enabled but cloudflare_api_token is empty.
       Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (cloudflare_ddns_enabled | default(false))
@@ -185,7 +188,6 @@
       See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
       and set cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (cloudflare_tunnel_enabled | default(false))
@@ -205,7 +207,6 @@
       Generate one at https://login.tailscale.com/admin/settings/keys and
       set it in inventory/group_vars/all/tailscale.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (tailscale_enabled | default(false))
