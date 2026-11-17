@@ -17,6 +17,11 @@ services:
     {% endif %}
     networks:
       - proxy_net
+    {% if 'fileflows' in socket_proxy_enabled_containers %}
+    depends_on:
+      socket-proxy-fileflows:
+        condition: service_healthy
+    {% endif %}
     {% if enable_intel_gpu %}
     devices:
       - "/dev/dri:/dev/dri"
@@ -25,13 +30,20 @@ services:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
+    {% if 'fileflows' in socket_proxy_enabled_containers %}
+      - DOCKER_HOST=unix://{{ hmsdocker_socket_proxy_client_dir }}/docker.sock
+    {% endif %}
     {% if enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
     volumes:
+    {% if 'fileflows' in socket_proxy_enabled_containers %}
+      - ${HMSD_APPS_PATH}/socket-proxy/fileflows:{{ hmsdocker_socket_proxy_client_dir }}:ro
+    {% elif 'fileflows' not in socket_proxy_no_access_containers %}
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    {% endif %}
       - ${HMSD_APPS_PATH}/fileflows/config:/app/Data
       - ${HMSD_APPS_PATH}/fileflows/logs:/app/Logs
       - ${HMSD_APPS_PATH}/fileflows/common:/app/common

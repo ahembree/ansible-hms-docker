@@ -29,3 +29,84 @@ hmsdocker_readonly_media_supported_containers:
   - kavita
   - librariarr
   - plex
+
+# Docker socket proxy (`socket-proxy` in the container map).
+# Each container below with `mode: proxy` gets its own socket-proxy container. That container creates a filtered Docker
+# socket in apps/socket-proxy/<container>/, which is mounted at hmsdocker_socket_proxy_client_dir inside the client.
+# The directory is mounted instead of the socket file because the proxy recreates the socket file every time it starts.
+# Users change these with hmsdocker_socket_proxy_overrides (container_settings.yml), not here.
+#   mode:            proxy = filtered socket, none = no Docker socket, direct = unfiltered Docker socket
+#   allow:           Docker API path regexes per HTTP method. socket-proxy anchors each with ^ and $ and matches
+#                    the URL path only (no query string). `(/v1\.\d+)?` covers versioned and unversioned paths.
+#   bind_mount_from: host directories allowed as bind mount sources when the client creates containers
+# Left out on purpose:
+#   netdata          mounts the host root (/), which already contains the Docker socket
+#   portainer, dockhand  container management UIs that need the whole Docker API
+hmsdocker_socket_proxy_client_dir: /var/run/socket-proxy
+hmsdocker_socket_proxy_builtin_clients:
+  # Authentik worker: creates, restarts and removes its proxy outpost containers
+  authentik:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
+        - '(/v1\.\d+)?/images/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+      post:
+        - '(/v1\.\d+)?/(containers/create|containers/[^/]+/(start|stop|kill|restart|wait)|images/create)'
+      delete:
+        - '(/v1\.\d+)?/containers/[^/]+'
+    # Outposts need no bind mounts, so allow none (nothing is ever mounted from this path)
+    bind_mount_from:
+      - /nonexistent
+  # Beszel agent: container list, stats, details and logs
+  beszel:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # FileFlows only uses Docker for its optional "Docker Siblings" runners, which this project does not set up
+  fileflows:
+    mode: none
+    allow: {}
+  # Homepage: container discovery, status and stats
+  homepage:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|containers/json|containers/[^/]+/(json|stats))'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Traefik: Docker provider (container labels and events)
+  traefik:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Uptime Kuma: Docker container monitors
+  uptimekuma:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Watchtower: pulls images and recreates containers. It must recreate containers with their existing
+  # bind mounts, so bind mounts cannot be restricted for it
+  watchtower:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
+        - '(/v1\.\d+)?/(images|distribution)/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+      post:
+        - '(/v1\.\d+)?/(containers/create|containers/[^/]+/(start|stop|kill|restart|rename|wait)|images/create|networks/[^/]+/(connect|disconnect))'
+      delete:
+        - '(/v1\.\d+)?/(containers/[^/]+|images/.+)'

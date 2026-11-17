@@ -19,6 +19,8 @@ This Authentik installation is based on the [single application](https://docs.go
 
 There are no authentik proxy containers defined in the `docker-compose.yml` file. This is because authentik will auto-detect the Docker socket and be able to start/stop its own proxy containers by using the configurations below.
 
+If the [Docker Socket Proxy](/docs/services/socket-proxy/) is enabled, the Authentik worker reaches Docker through its own filtered socket instead, and the playbook makes sure the `Local Docker connection` exists.
+
 Authentik is able to be controlled on a per-container basis, but requires a bit of configuration as outlined below.
 
 ## Important Note

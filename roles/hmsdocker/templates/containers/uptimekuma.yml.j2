@@ -12,9 +12,18 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    {% if 'uptimekuma' in socket_proxy_enabled_containers %}
+    depends_on:
+      socket-proxy-uptimekuma:
+        condition: service_healthy
+    {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
+    {% if 'uptimekuma' in socket_proxy_enabled_containers %}
+      - ${HMSD_APPS_PATH}/socket-proxy/uptimekuma:{{ hmsdocker_socket_proxy_client_dir }}:ro
+    {% elif 'uptimekuma' not in socket_proxy_no_access_containers %}
       - /var/run/docker.sock:/var/run/docker.sock
+    {% endif %}
     {% if 'uptimekuma' in expose_ports_enabled_containers %}
     ports:
       - 3001:3001

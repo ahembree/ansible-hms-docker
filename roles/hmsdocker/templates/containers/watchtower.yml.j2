@@ -11,14 +11,31 @@ services:
         max-file: "5"
       driver: json-file
     command: --cleanup --schedule "{{ container_auto_update_schedule }}"
+    {% if 'watchtower' in socket_proxy_enabled_containers %}
+    depends_on:
+      socket-proxy-watchtower:
+        condition: service_healthy
+    {% endif %}
+    {% if 'watchtower' in socket_proxy_enabled_containers %}
+    volumes:
+      - ${HMSD_APPS_PATH}/socket-proxy/watchtower:{{ hmsdocker_socket_proxy_client_dir }}:ro
+    {% elif 'watchtower' not in socket_proxy_no_access_containers %}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    {% endif %}
+    {% if 'watchtower' in homepage_enabled_containers or 'watchtower' in socket_proxy_enabled_containers %}
+    environment:
+      {% if 'watchtower' in socket_proxy_enabled_containers %}
+      - DOCKER_HOST=unix://{{ hmsdocker_socket_proxy_client_dir }}/docker.sock
+      {% endif %}
+      {% if 'watchtower' in homepage_enabled_containers %}
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
+      - WATCHTOWER_HTTP_API_ENDPOINTS=metrics
+      {% endif %}
+    {% endif %}
     {% if 'watchtower' in homepage_enabled_containers %}
     networks:
       - proxy_net
-    environment:
-      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
-      - WATCHTOWER_HTTP_API_ENDPOINTS=metrics
     labels:
       - homepage.group=Infrastructure
       - homepage.name=Watchtower

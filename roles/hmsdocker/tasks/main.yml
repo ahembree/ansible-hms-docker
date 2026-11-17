@@ -142,6 +142,51 @@
             )
           }}
 
+# Built-in socket proxy settings merged with the user's overrides. Overrides for containers
+# without built-in support are dropped (preflight warns about them).
+- name: Build Docker socket proxy settings
+  ansible.builtin.set_fact:
+    hmsdocker_socket_proxy_clients: >-
+      {{
+        hmsdocker_socket_proxy_builtin_clients
+        | combine(
+            hmsdocker_socket_proxy_overrides | default({}, true) | dict2items
+            | selectattr('key', 'in', hmsdocker_socket_proxy_builtin_clients.keys() | list)
+            | items2dict,
+            recursive=True
+          )
+      }}
+
+# Containers that get a filtered socket, and containers that get no Docker socket at all.
+# Both are empty unless socket-proxy is enabled. Authentik only runs with SSL enabled.
+- name: Build Docker socket proxy facts
+  ansible.builtin.set_fact:
+    socket_proxy_enabled_containers: >-
+      {{
+        (
+          hmsdocker_socket_proxy_clients | dict2items |
+          selectattr('value.mode', 'equalto', 'proxy') |
+          map(attribute='key') |
+          select('in', enabled_containers) |
+          reject('in', [] if (traefik_ssl_enabled | default(false)) else ['authentik']) |
+          list
+        )
+        if ('socket-proxy' in enabled_containers)
+        else []
+      }}
+    socket_proxy_no_access_containers: >-
+      {{
+        (
+          hmsdocker_socket_proxy_clients | dict2items |
+          selectattr('value.mode', 'equalto', 'none') |
+          map(attribute='key') |
+          select('in', enabled_containers) |
+          list
+        )
+        if ('socket-proxy' in enabled_containers)
+        else []
+      }}
+
 - name: Get list of container task files in the role
   ansible.builtin.set_fact:
     container_prereq_task_files: "{{ lookup('fileglob', role_path + '/tasks/container_prereqs/*.yml', wantlist=True) }}"

@@ -252,6 +252,31 @@
     quiet: true
 
 # ---------------------------------------------------------------------------
+# Docker socket proxy
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate hmsdocker_socket_proxy_overrides
+  ansible.builtin.assert:
+    that:
+      - socket_proxy_overrides is mapping
+      - socket_proxy_overrides.values() | reject('mapping') | list | length == 0
+      - socket_proxy_override_modes | difference(['proxy', 'none', 'direct']) | length == 0
+      - socket_proxy_override_methods | difference(['get', 'head', 'post', 'put', 'patch', 'delete']) | length == 0
+    fail_msg: >-
+      hmsdocker_socket_proxy_overrides must map container names to settings, e.g.
+      { uptimekuma: { mode: direct } }. `mode` must be "proxy", "none" or "direct", and the keys under
+      `allow` must be HTTP methods: get, head, post, put, patch, delete.
+      Update it in inventory/group_vars/all/container_settings.yml.
+    quiet: true
+  vars:
+    socket_proxy_overrides: "{{ hmsdocker_socket_proxy_overrides | default({}, true) }}"
+    socket_proxy_override_values: "{{ socket_proxy_overrides.values() | list if socket_proxy_overrides is mapping else [] }}"
+    socket_proxy_override_modes: "{{ socket_proxy_override_values | select('mapping') | selectattr('mode', 'defined') | map(attribute='mode') | list }}"
+    socket_proxy_override_methods: >-
+      {{ socket_proxy_override_values | select('mapping') | selectattr('allow', 'defined')
+         | map(attribute='allow') | select('mapping') | map('list') | flatten | list }}
+
+# ---------------------------------------------------------------------------
 # Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
 # printed at the end of preflight if non-empty.
 # ---------------------------------------------------------------------------
@@ -299,6 +324,37 @@
     - nas_client_use_additional_paths | default(false) | bool
     - ansible_facts['kernel'] is version('5.12', '<')
     - readonly_media_nested_shares | length > 0
+
+- name: (preflight) Warn if socket proxy overrides are set for unsupported containers
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_socket_proxy_overrides contains containers without socket proxy support: ' + (socket_proxy_unsupported | join(', ')) + '. They are ignored. Supported: ' + (hmsdocker_socket_proxy_builtin_clients.keys() | list | join(', ')) + '.'] }}"
+  vars:
+    socket_proxy_unsupported: "{{ hmsdocker_socket_proxy_overrides | default({}, true) | list | difference(hmsdocker_socket_proxy_builtin_clients.keys() | list) }}"
+  when: socket_proxy_unsupported | length > 0
+
+# Uptime Kuma keeps its Docker hosts in its own database, so the socket path has to be changed in its UI.
+# Only shown until the first run that sets up its socket proxy.
+- name: (preflight) Check whether Uptime Kuma uses the socket proxy
+  ansible.builtin.set_fact:
+    socket_proxy_uptimekuma_proxied: >-
+      {{
+        (hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool)
+        and (hms_docker_container_map['uptimekuma']['enabled'] | default(false) | bool)
+        and ((hmsdocker_socket_proxy_overrides | default({}, true)).get('uptimekuma') or {}).get('mode', hmsdocker_socket_proxy_builtin_clients['uptimekuma']['mode']) == 'proxy'
+      }}
+
+- name: (preflight) Check for an existing Uptime Kuma socket proxy
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/socket-proxy/uptimekuma"
+  register: socket_proxy_uptimekuma_dir
+  when: socket_proxy_uptimekuma_proxied | bool
+
+- name: (preflight) Warn that Uptime Kuma Docker hosts must be updated for the socket proxy
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Uptime Kuma now reaches Docker through the socket proxy. In Uptime Kuma, go to Settings > Docker Hosts and change the socket path of existing Docker hosts from /var/run/docker.sock to ' + hmsdocker_socket_proxy_client_dir + '/docker.sock.'] }}"
+  when:
+    - socket_proxy_uptimekuma_proxied | bool
+    - not socket_proxy_uptimekuma_dir.stat.exists
 
 # ---------------------------------------------------------------------------
 # Print collected warnings

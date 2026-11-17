@@ -345,6 +345,9 @@
     "netdata": {
       "enabled": false
     },
+    "socket-proxy": {
+      "enabled": true
+    },
     "wizarr": {
       "enabled": false,
       "proxy_host_rule": "wizarr",

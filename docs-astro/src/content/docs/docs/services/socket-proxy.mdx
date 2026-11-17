@@ -1,0 +1,136 @@
+---
+title: Docker Socket Proxy
+description: "Give each HMS-Docker container that uses the Docker socket its own filtered socket that only allows the Docker API requests it needs, using wollomatic/socket-proxy."
+sidebar:
+  label: Docker Socket Proxy
+---
+
+Several containers in this project talk to Docker through the Docker socket (`/var/run/docker.sock`). Full access to that socket is the same as root access on the host, and mounting it read-only (`:ro`) does not change that: `:ro` only stops the socket file itself from being replaced, every Docker API request still works.
+
+The socket proxy closes that gap. When it is enabled, each of these containers gets its own [socket-proxy](https://github.com/wollomatic/socket-proxy) container, and that proxy only lets through the Docker API requests that one container needs. For example, Traefik can read container labels and events, but cannot start containers, read logs, or run commands in other containers.
+
+## Enabling
+
+Enable `socket-proxy` in the [Container Map](/docs/container-list/#container-map) and run the playbook:
+
+```yaml
+  socket-proxy:
+    enabled: true
+```
+
+For every supported container that is enabled, the playbook then:
+
+1. Creates a `socket-proxy-<container>` container (for example `socket-proxy-traefik`)
+2. Creates `<hms_docker_apps_path>/socket-proxy/<container>/`, where that proxy creates a filtered `docker.sock`
+3. Mounts that folder into the container at `/var/run/socket-proxy`, instead of mounting `/var/run/docker.sock`
+4. Points the container at `/var/run/socket-proxy/docker.sock`
+
+Each container only has its own folder mounted, so it cannot use another container's socket.
+
+:::caution[Uptime Kuma]
+
+Uptime Kuma stores its Docker hosts in its own database, so the playbook cannot change them. After enabling the socket proxy, go to **Settings > Docker Hosts** in Uptime Kuma and change the socket path of each existing Docker host from `/var/run/docker.sock` to `/var/run/socket-proxy/docker.sock`. New Docker hosts need the new path too. The playbook reminds you of this the first time it sets up the proxy for Uptime Kuma.
+
+:::
+
+Everything else is changed by the playbook.
+
+## What each container can do
+
+All paths also match their versioned form (e.g. `/v1.47/containers/json`). Every container may also call `/_ping`.
+
+| Container | Docker access | How it is pointed at the proxy |
+|-|-|-|
+| Traefik | Read: version, events, container list and details | `providers.docker.endpoint` in the Traefik config |
+| Homepage | Read: version, container list, details and stats | `socket` in `homepage/config/docker.yaml` (only the `/var/run/docker.sock` line is changed) |
+| Uptime Kuma | Read: version, info, container list and details | Docker host in the Uptime Kuma UI (see above) |
+| Beszel agent | Read: version, info, container list, details, stats and logs | `DOCKER_HOST` |
+| Watchtower | Read: version, info, events, containers, images, networks. Write: pull images, create, start, stop, restart, rename and remove containers, remove images, connect containers to networks | `DOCKER_HOST` |
+| Authentik worker | Read: version, info, containers, images, networks. Write: pull images, create, start, stop, restart and remove containers. Containers it creates cannot bind mount any host folder | `DOCKER_HOST`, plus a blueprint that creates the "Local Docker connection" (see [below](#authentik)) |
+| FileFlows | None, the Docker socket is no longer mounted | - |
+
+Everything not listed is blocked, including running commands in containers (`exec`), volumes, building images, pruning, and reading files from containers.
+
+### Not covered
+
+These containers keep the Docker socket as before:
+
+- **Netdata** mounts the whole host filesystem (`/`), which already contains the Docker socket, so a proxy would not limit it
+- **Portainer** and **Dockhand** are container management UIs that need the whole Docker API
+
+### Limits
+
+The proxy limits _which_ Docker API requests a container can make. Containers that are allowed to create containers can still be used to take over the host:
+
+- **Watchtower** has to recreate containers with the same bind mounts they had before (Netdata mounts `/`), so it cannot be limited to certain folders
+- **Authentik** cannot bind mount host folders, but the proxy does not check for privileged containers or host namespaces in the containers it creates
+
+For both, the proxy still blocks everything they do not need, such as `exec`, volumes, image builds and pruning.
+
+### Authentik
+
+Authentik only creates its "Local Docker connection" (used by the outposts) when it finds `/var/run/docker.sock`. With the socket proxy, the playbook mounts a blueprint into the worker at `/blueprints/hmsd` that creates this connection if it does not exist yet. An existing "Local Docker connection" is left as it is, and keeps working because it reads `DOCKER_HOST`.
+
+### FileFlows
+
+FileFlows only uses the Docker socket for its optional "Docker Siblings" runners, which this project does not set up. If you set them up yourself, give FileFlows a filtered socket with [overrides](#changing-the-defaults), for example:
+
+```yaml
+hmsdocker_socket_proxy_overrides:
+  fileflows:
+    mode: proxy
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|containers/json|containers/[^/]+/json)'
+```
+
+FileFlows then gets `DOCKER_HOST=unix:///var/run/socket-proxy/docker.sock`. Use the [debug log](#troubleshooting) to find the other requests it needs.
+
+## Changing the defaults
+
+Set `hmsdocker_socket_proxy_overrides` in `inventory/group_vars/all/container_settings.yml`. Only the containers listed in the table above are supported, others are ignored with a warning.
+
+| Key | Values |
+|-|-|
+| `mode` | `proxy`: filtered socket (default, except FileFlows). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy |
+| `allow` | Docker API path regexes per HTTP method (`get`, `head`, `post`, `put`, `patch`, `delete`). Setting a method replaces the built-in list for that method. Each regex is anchored (`^...$`) and matched against the path only, without the query string. Group alternatives, e.g. `(/version\|/_ping)` |
+| `bind_mount_from` | Host folders the container may bind mount into containers it creates |
+
+Examples:
+
+```yaml
+# Keep using the unfiltered socket for Uptime Kuma
+hmsdocker_socket_proxy_overrides:
+  uptimekuma:
+    mode: direct
+```
+
+```yaml
+# Let the Beszel agent read images as well
+hmsdocker_socket_proxy_overrides:
+  beszel:
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
+        - '(/v1\.\d+)?/images/json'
+```
+
+The built-in settings are in `roles/hmsdocker/vars/main.yml` (`hmsdocker_socket_proxy_builtin_clients`).
+
+## Troubleshooting
+
+Blocked requests are logged by the proxy:
+
+```bash
+docker logs socket-proxy-<container>
+```
+
+```
+level=WARN msg="blocked request" reason="path not allowed" method=GET URL=/v1.47/images/json
+```
+
+To see every request a container makes, set `hmsdocker_socket_proxy_log_level: debug` in `inventory/group_vars/all/container_settings.yml` and run the playbook again.
+
+If a container cannot reach Docker at all, check that its proxy is healthy (`docker ps --filter name=socket-proxy`). The proxies run as user `65534` with the group that owns `/var/run/docker.sock`, and stop themselves if the Docker socket stops responding (for example after a Docker update) so that Docker restarts them.
+
+To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.

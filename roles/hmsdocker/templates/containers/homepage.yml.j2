@@ -12,8 +12,17 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    {% if 'homepage' in socket_proxy_enabled_containers %}
+    depends_on:
+      socket-proxy-homepage:
+        condition: service_healthy
+    {% endif %}
     volumes:
+    {% if 'homepage' in socket_proxy_enabled_containers %}
+      - ${HMSD_APPS_PATH}/socket-proxy/homepage:{{ hmsdocker_socket_proxy_client_dir }}:ro
+    {% elif 'homepage' not in socket_proxy_no_access_containers %}
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    {% endif %}
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}

@@ -67,12 +67,24 @@ services:
         max-file: "5"
       driver: json-file
     network_mode: host
+    {% if 'beszel' in socket_proxy_enabled_containers %}
+    depends_on:
+      socket-proxy-beszel:
+        condition: service_healthy
+    {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/beszel/config/beszel_agent_data:/var/lib/beszel-agent
       - ${HMSD_APPS_PATH}/beszel/config/beszel_socket:/beszel_socket
+    {% if 'beszel' in socket_proxy_enabled_containers %}
+      - ${HMSD_APPS_PATH}/socket-proxy/beszel:{{ hmsdocker_socket_proxy_client_dir }}:ro
+    {% elif 'beszel' not in socket_proxy_no_access_containers %}
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    {% endif %}
     environment:
       LISTEN: /beszel_socket/beszel.sock
+    {% if 'beszel' in socket_proxy_enabled_containers %}
+      DOCKER_HOST: unix://{{ hmsdocker_socket_proxy_client_dir }}/docker.sock
+    {% endif %}
       HUB_URL: http{{ 's' if traefik_ssl_enabled }}://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}{{ ':8091' if 'beszel' in expose_ports_enabled_containers }}
       TOKEN: ${BESZEL_TOKEN:-}
       KEY: ${BESZEL_KEY:-}
