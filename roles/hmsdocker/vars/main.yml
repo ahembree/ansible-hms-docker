@@ -25,10 +25,12 @@ hmsdocker_readonly_media_supported_containers:
   - calibre
   - checkrr
   - emby
+  - ersatztv
   - jellyfin
   - kavita
   - librariarr
   - plex
+  - tunarr
 
 # Docker socket proxy (`socket-proxy` in the container map).
 # Each container below with `mode: proxy` gets its own socket-proxy container. That container creates a filtered Docker

@@ -90,7 +90,7 @@ hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
 
 Each listed container still sees the media share at `/data`, but the mount is made with `:ro`. The container can read and play everything, but it cannot create, change, or delete anything on the share. This limits the damage a compromised or misbehaving media server can do. It cannot delete your library or encrypt it for ransom.
 
-Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`, `audiobookshelf`.
+Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`, `ersatztv`, `tunarr`, `audiobookshelf`.
 
 `checkrr` and `librariarr` always mount the media share read-only, whether or not they are listed. Listing them is accepted without a warning.
 
@@ -119,6 +119,9 @@ Anything that writes into the media folders fails once the share is read-only. C
 
 **Kavita**
 - Kavita does not normally write to the library, so nothing should change.
+
+**ErsatzTV and Tunarr**
+- Both only read media, so nothing should change.
 
 **Audiobookshelf**
 - Downloading podcast episodes into the `Podcasts` folder

@@ -69,6 +69,8 @@ export default defineConfig({
     }),
 		starlight({
 			favicon: 'favicon.ico',
+			// Custom 404 lives in src/pages/404.astro.
+			disable404Route: true,
       plugins: [starlightThemeNext()],
 			customCss: [
 				'./src/styles/global.css',
