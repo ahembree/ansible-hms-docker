@@ -1,5 +1,3 @@
-{% set socket_proxy_client = 'fileflows' %}
-{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
   fileflows:
     image: revenz/fileflows
@@ -19,7 +17,6 @@ services:
     {% endif %}
     networks:
       - proxy_net
-    {% include 'socket_proxy/client_depends_on.j2' %}
     {% if enable_intel_gpu %}
     devices:
       - "/dev/dri:/dev/dri"
@@ -28,14 +25,14 @@ services:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    {% include 'socket_proxy/client_docker_host.j2' %}
     {% if enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
+    # No Docker socket: FileFlows only uses it for its optional "Docker Siblings" runners, which this
+    # project does not set up. Add the socket and TempPathHost with a docker-compose.override.yml to use them
     volumes:
-    {% include 'socket_proxy/client_volume.j2' %}
       - ${HMSD_APPS_PATH}/fileflows/config:/app/Data
       - ${HMSD_APPS_PATH}/fileflows/logs:/app/Logs
       - ${HMSD_APPS_PATH}/fileflows/common:/app/common

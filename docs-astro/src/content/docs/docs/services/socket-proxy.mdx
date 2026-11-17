@@ -47,7 +47,6 @@ All paths also match their versioned form (e.g. `/v1.47/containers/json`). Every
 | Beszel agent | Read: version, info, container list, details, stats and logs | `DOCKER_HOST` |
 | Watchtower | Read: version, info, events, containers, images, networks. Write: pull images, create, start, stop, restart, rename and remove containers, remove images, connect containers to networks | `DOCKER_HOST` |
 | Authentik worker | Read: version, info, containers, images, networks. Write: pull images, create, start, stop, restart and remove containers. Containers it creates cannot bind mount any host folder | `DOCKER_HOST`, plus a blueprint that creates the "Local Docker connection" (see [below](#authentik)) |
-| FileFlows | None, the Docker socket is no longer mounted | - |
 
 Everything not listed is blocked, including running commands in containers (`exec`), volumes, building images, pruning, and reading files from containers.
 
@@ -71,28 +70,13 @@ For both, the proxy still blocks everything they do not need, such as `exec`, vo
 
 Authentik only creates its "Local Docker connection" (used by the outposts) when it finds `/var/run/docker.sock`. With the socket proxy, the playbook mounts a blueprint into the worker at `/blueprints/hmsd` that does the same as Authentik's own check: it creates the connection while no local Docker connection exists. An existing one is left as it is (also if you renamed it), and keeps working because it reads `DOCKER_HOST`. As without the socket proxy, deleting the local Docker connection makes Authentik create it again.
 
-### FileFlows
-
-FileFlows only uses the Docker socket for its optional "Docker Siblings" runners, which this project does not set up. If you set them up yourself, give FileFlows a filtered socket with [overrides](#changing-the-defaults), for example:
-
-```yaml
-hmsdocker_socket_proxy_overrides:
-  fileflows:
-    mode: proxy
-    allow:
-      get:
-        - '(/v1\.\d+)?/(_ping|version|containers/json|containers/[^/]+/json)'
-```
-
-FileFlows then gets `DOCKER_HOST=unix:///var/run/socket-proxy/docker.sock`. Use the [debug log](#troubleshooting) to find the other requests it needs.
-
 ## Changing the defaults
 
 Set `hmsdocker_socket_proxy_overrides` in `inventory/group_vars/all/container_settings.yml`. Only the containers listed in the table above are supported, others are ignored with a warning. While the socket proxy is enabled, the playbook checks the overrides before it changes anything and stops with an error if one is not valid.
 
 | Key | Values |
 |-|-|
-| `mode` | `proxy`: filtered socket (default, except FileFlows). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy. Traefik, Homepage, Watchtower and Authentik cannot work without Docker, so they only accept `proxy` or `direct` |
+| `mode` | `proxy`: filtered socket (default). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy. Traefik, Homepage, Watchtower and Authentik cannot work without Docker, so they only accept `proxy` or `direct` |
 | `allow` | Docker API path regexes per HTTP method (`get`, `head`, `post`, `put`, `patch`, `delete`). Setting a method replaces the built-in list for that method. Each regex is anchored (`^...$`) and matched against the path only, without the query string. Group alternatives, e.g. `(/version\|/_ping)` |
 | `bind_mount_from` | Host folders the container may bind mount into containers it creates |
 

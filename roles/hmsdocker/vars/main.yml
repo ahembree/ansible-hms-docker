@@ -80,11 +80,6 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
       head:
         - '(/v1\.\d+)?/_ping'
-  # FileFlows only uses Docker for its optional "Docker Siblings" runners, which this project does not set up
-  fileflows:
-    mode: none
-    modes: [proxy, none, direct]
-    allow: {}
   # Homepage: container discovery, status and stats
   homepage:
     mode: proxy
