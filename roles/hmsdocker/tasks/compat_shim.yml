@@ -59,8 +59,8 @@
   when:
     - (lookup('vars', item.old) | default('', true) | string) | length > 0
     - item.new not in hmsdocker_user_set_new_names
-  # Old values may include credentials (e.g. transmission_vpn_pass).
-  # Match the rest of preflight's no_log pattern.
+  # Old values may include credentials (e.g. transmission_vpn_pass), and
+  # set_fact echoes them in its result, so hide output unless debug_mode.
   no_log: "{{ not (debug_mode | default(false) | bool) }}"
 
 - name: (compat) Record deprecation warnings for renamed variables
