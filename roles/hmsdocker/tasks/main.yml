@@ -210,11 +210,25 @@
     - nas_client_use_additional_paths is defined and nas_client_use_additional_paths
   no_log: "{{ not debug_mode }}"
 
+- name: Check for existing library folders.
+  ansible.builtin.stat:
+    path: "{{ hmsdocker_library_path }}/{{ item.folder_name }}"
+  with_items: "{{ hms_docker_library_folders }}"
+  register: library_folders_stat
+
+# New folders on a local share are owned by the container user so the apps can write to them.
+# Existing folders and NAS shares (where chown can fail, e.g. NFS root_squash or CIFS) are left as they are.
 - name: Ensure library folders.
   ansible.builtin.file:
-    path: "{{ hmsdocker_library_path }}/{{ item.folder_name }}"
+    path: "{{ hmsdocker_library_path }}/{{ item.item.folder_name }}"
     state: directory
-  with_items: "{{ hms_docker_library_folders }}"
+    owner: "{{ container_uid if library_folder_new | bool else omit }}"
+    group: "{{ container_gid if library_folder_new | bool else omit }}"
+  with_items: "{{ library_folders_stat.results }}"
+  loop_control:
+    label: "{{ item.item.folder_name }}"
+  vars:
+    library_folder_new: "{{ hms_docker_media_share_type | lower == 'local' and not item.stat.exists }}"
 
 - name: Ensure container config directories exist if not already
   ansible.builtin.file:
@@ -320,6 +334,8 @@
     state: "{{ hms_docker_compose_container_state }}"
     remove_orphans: "{{ container_remove_orphans }}"
     build: never
+    # Containers only see a share mounted under the media path after they are recreated
+    recreate: "{{ 'always' if hmsdocker_media_mounts_changed | default(false) else 'auto' }}"
     # env_file: "{{ compose_env.dest }}" # Commented out since this module defaults to using the .env file within the project_src location, but leaving just in case advanced users wish to point to a different location
   when:
     - not ansible_check_mode
