@@ -14,7 +14,8 @@ services:
       - download_net
       - proxy_net
     {% if hmsdocker_vpn_type == 'wireguard' %}
-    privileged: true
+    cap_add:
+      - NET_ADMIN
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     {% else %}
