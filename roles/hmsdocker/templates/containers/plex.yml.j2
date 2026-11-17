@@ -42,7 +42,7 @@ services:
       - {{ plex_transcode_folder }}:/transcode
       {% endif %}
       # media folder where all movies and series are stored
-      - ${HMSD_MOUNT_PATH}:/data
+      - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'plex' in hmsdocker_readonly_media_containers | default([], true) }}
     {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
     tmpfs:
       - /transcode:size={{ hmsdocker_transcode_tmpfs_size | default('4g') }},mode=1777
@@ -71,8 +71,8 @@ services:
       {% endif %}
     {% endif %}
     healthcheck:
-      test: curl -f http://127.0.0.1:32400/web || exit 1
+      test: curl -f http://127.0.0.1:32400/identity || exit 1
       interval: 5s
-      timeout: 2s
+      timeout: 5s
       retries: 3
       start_period: 30s

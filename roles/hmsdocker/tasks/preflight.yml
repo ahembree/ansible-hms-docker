@@ -237,6 +237,21 @@
     - not is_github_runner
 
 # ---------------------------------------------------------------------------
+# Read-only media mounts
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate hmsdocker_readonly_media_containers is a list
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_readonly_media_containers | default([], true) is iterable
+      - hmsdocker_readonly_media_containers | default([], true) is not string
+      - hmsdocker_readonly_media_containers | default([], true) is not mapping
+    fail_msg: >-
+      hmsdocker_readonly_media_containers must be a list of container names,
+      e.g. ["plex", "jellyfin"]. Update it in inventory/group_vars/all/container_settings.yml.
+    quiet: true
+
+# ---------------------------------------------------------------------------
 # Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
 # printed at the end of preflight if non-empty.
 # ---------------------------------------------------------------------------
@@ -261,6 +276,29 @@
       or (hms_docker_container_map['deluge']['enabled'] | default(false))
     - ((hmsdocker_vpn_user | default('', true)) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
+
+- name: (preflight) Warn if read-only media is set for unsupported containers
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains containers that do not support a read-only media share: ' + (readonly_media_unsupported | join(', ')) + '. The media share stays writable for them. Supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '.'] }}"
+  vars:
+    readonly_media_unsupported: "{{ hmsdocker_readonly_media_containers | default([], true) | difference(hmsdocker_readonly_media_supported_containers) }}"
+  when: readonly_media_unsupported | length > 0
+
+- name: (preflight) Warn if read-only media does not cover additional NAS shares on this kernel
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Kernel ' + ansible_facts['kernel'] + ' is older than 5.12, so read-only media mounts do not apply to the additional NAS shares mounted inside ' + hms_docker_mount_path + ' (' + (readonly_media_nested_shares | join(', ')) + '). Containers in hmsdocker_readonly_media_containers can still write to them.'] }}"
+  vars:
+    readonly_media_nested_shares: >-
+      {{ nas_client_remote_additional_paths | default([], true)
+         | selectattr('type', 'defined') | selectattr('type', 'in', ['nfs', 'cifs'])
+         | selectattr('local_mount_path', 'defined')
+         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_escape) ~ '/')
+         | map(attribute='local_mount_path') | list }}
+  when:
+    - hmsdocker_readonly_media_containers | default([], true) | intersect(hmsdocker_readonly_media_supported_containers) | length > 0
+    - nas_client_use_additional_paths | default(false) | bool
+    - ansible_facts['kernel'] is version('5.12', '<')
+    - readonly_media_nested_shares | length > 0
 
 # ---------------------------------------------------------------------------
 # Print collected warnings
