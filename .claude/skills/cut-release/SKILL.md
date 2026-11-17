@@ -12,8 +12,10 @@ Two files, always the same two:
 | Required | `hms-docker.yml` — bump `hmsd_current_version` (line 8) |
 | Required | `docs-astro/src/content/docs/docs/release-notes/v<major>.<minor>.md` |
 
-The notes file gets a `## v<version>` section. `master` is protected, so the work lands
-through a PR, and the **merge commit** that touches `hms-docker.yml` on `master` is what
+The notes file gets a `## v<version>` section. `master` holds released code only and is
+protected; all work lands on `develop` through PRs. The bump goes to `develop` like any
+other change, then a `develop` → `master` PR is merged (merge commit, never squash). That
+**merge commit** touching `hms-docker.yml` on `master` is what
 fires [.github/workflows/release.yml](../../../.github/workflows/release.yml) — it tags
 `v<version>` and publishes a public GitHub Release whose body is scraped out of that
 section. v1.18.0 through v1.18.5 are all tagged on `Merge pull request #…` commits.
@@ -26,8 +28,12 @@ is not optional.
 ```bash
 ./bin/yq '.[0].vars.hmsd_current_version' hms-docker.yml   # e.g. 1.18.7
 git tag --list 'v*' | sort -V | tail -1                     # e.g. v1.18.7
-git log --oneline "$(git tag --list 'v*' | sort -V | tail -1)"..HEAD
+git fetch -q origin develop master
+git log --oneline "$(git tag --list 'v*' | sort -V | tail -1)"..origin/develop
 ```
+
+Releases are cut from `develop`. Commits on `develop` but not on `master` are the
+unreleased set.
 
 If the version is **already ahead** of the newest tag, a bump is committed but unreleased —
 do not bump again. The pending merge releases it. Say so and stop.
@@ -138,16 +144,16 @@ does not match — fix it now, because nothing downstream will complain.
 
 ## 7. Branch, commit, and hand off
 
-**Never commit to `master`** — it is protected, and commits made there cannot be pushed and
-have to be replayed onto a branch later. If `git branch --show-current` prints `master`,
-branch off HEAD first:
+**Never commit to `master` or `develop`** — both are protected. Branch off `develop`:
 
 ```bash
-git switch -c release/<version>
+git switch -c release/<version> origin/develop
 ```
 
-Branching off HEAD carries any local unpushed commits along with it. That is correct — a
-branch is how they reach `master`. Existing naming is `claude/<topic>-<hash>` or
+The release branch is PR'd into `develop`, then `develop` is PR'd into `master`.
+A hotfix is the exception: branch `hotfix/<topic>` off `origin/master` and PR it straight
+to `master` (only `develop` and `hotfix/*` may target `master`); `sync-develop.yml` then
+opens a `master` → `develop` PR. Existing naming is `claude/<topic>-<hash>` or
 `<verb>-<topic>`; `release/<version>` fits a pure version bump.
 
 **Commit as Claude's identity.** Local git config is the human's, so override per-commit
@@ -172,8 +178,8 @@ git push -u origin release/<version>
 ```
 
 and push only if the user explicitly asks in this session. Close by saying plainly that the
-release publishes when the **PR is merged** to `master` — not when the branch is pushed, and
-not when the PR is opened.
+release publishes when the **`develop` → `master` PR is merged** — not when the branch is
+pushed, not when it merges to `develop`, and not when a PR is opened.
 
 ## Anti-patterns
 
@@ -194,9 +200,13 @@ Each of these is a real property of
 - **Appending the new section to the bottom** of the notes file. Newest goes on top.
 - **A 2-part version** (`1.19`). It breaks the semver comparison against `.hmsd-version` on
   every existing install.
-- **Committing to `master`.** Branch first, always.
+- **Committing to `master` or `develop`.** Branch first, always.
+- **Opening a feature/release PR against `master`.** `pr-target-guard.yml` fails it; target
+  `develop`.
+- **Squash-merging `develop` → `master`.** Use a merge commit or the branches diverge.
 - **Committing as the human.** Author *and* committer must be
   `Claude <noreply@anthropic.com>`.
 - **Running `gh pr create`.** The skill stops at the commit.
-- **Expecting the pushed branch to release.** The workflow only fires on `master`.
+- **Expecting the pushed branch, or `develop`, to release.** The workflow only fires on
+  `master`.
 - **Merging the PR to "test" it.** The merge is the publish.

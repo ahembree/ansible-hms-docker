@@ -1,0 +1,32 @@
+name: PR Target Guard
+
+# 'master' only receives released code. Feature and fix PRs go to 'develop';
+# 'master' accepts PRs only from 'develop' (a release) or 'hotfix/*' branches
+# in this repository. Make "Check PR source branch" a required status check
+# on 'master' so a PR opened against the wrong base cannot be merged.
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+jobs:
+  check-source:
+    name: Check PR source branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only allow develop or hotfix/* into master
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO" = "$BASE_REPO" ] && { [ "$HEAD_REF" = "develop" ] || [[ "$HEAD_REF" == hotfix/* ]]; }; then
+            echo "Source branch '$HEAD_REF' is allowed to target master."
+            exit 0
+          fi
+          echo "::error::Pull requests must target the 'develop' branch. 'master' only accepts releases (from 'develop') and 'hotfix/*' branches. Click 'Edit' next to the PR title and change the base branch to 'develop'."
+          exit 1

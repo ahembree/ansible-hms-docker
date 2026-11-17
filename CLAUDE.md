@@ -16,7 +16,8 @@ All day-to-day workflows go through the [Makefile](Makefile):
 | `make check` | Dry run with `--diff --check`. |
 | `make apply` | Live apply with `--diff`. |
 | `make install-reqs` | Installs galaxy roles + `community.docker` / `community.general` collections. Auto-run by `check`/`apply`. |
-| `make update` | `git pull`, then rewrites deprecated variable names in `inventory/group_vars/all/*.yml` from [migrations/variable_renames.yml](migrations/variable_renames.yml), then merges new services/keys from the remote `container_map.yml` (uses a vendored `yq` in `./bin/`). |
+| `make update` | `git pull`s the **currently checked-out branch**, then (via `make migrate-config`, re-invoked so the freshly pulled Makefile runs) rewrites deprecated variable names in `inventory/group_vars/all/*.yml` from [migrations/variable_renames.yml](migrations/variable_renames.yml) and merges new services/keys from the local `roles/hmsdocker/defaults/main/container_map.yml` (uses a vendored `yq` in `./bin/`). |
+| `make switch-develop` / `make switch-stable` | Check out `develop` / `master` (refuses with local changes to tracked files), then run `make update`. `make branch` shows the current branch. |
 | `make verify-containers` | Runs `.github/workflows/scripts/check_containers.py` to validate exposed ports (used in CI). |
 | `make manager` | Interactive Python settings editor (`settings_manager.py` in a venv). |
 
@@ -70,11 +71,19 @@ When renaming a variable, **always** add an entry to `migrations/variable_rename
 
 `hmsd_current_version` in `hms-docker.yml` (a **quoted** 3-part semver — unquoted values like `1.20` parse as the YAML float `1.2` and break the semver comparison; a runtime assert in `tasks/versioning.yml` enforces the format) is compared at runtime against the on-disk version file at `{{ hms_docker_data_path }}/.hmsd-version`. The on-disk value is normalized before comparison (releases 1.4–1.9 wrote 2-part versions). Mismatches trigger migration logic in `tasks/versioning.yml`; the version file itself is written at the end of `tasks/main.yml` so a failed run re-prompts on retry. Bump this when shipping a breaking change that needs a migration.
 
+### Branching model
+
+- **`master`** = released code only. It is the default branch, so `git clone` and `make update` give users the latest release. It only moves when a release is cut (or a hotfix lands).
+- **`develop`** = integration branch. All feature/fix PRs target `develop`.
+- [.github/workflows/pr-target-guard.yml](.github/workflows/pr-target-guard.yml) fails PRs into `master` unless the source is `develop` or `hotfix/*`.
+- Hotfix: branch `hotfix/<topic>` off `master`, PR it to `master` (with a patch bump + notes). [.github/workflows/sync-develop.yml](.github/workflows/sync-develop.yml) then opens a `master` → `develop` PR if `develop` is missing the change.
+- Merge `develop` → `master` with a **merge commit**, never squash, so the branches don't diverge.
+
 **Cutting a release:**
 
-1. Bump `hmsd_current_version` in [hms-docker.yml](hms-docker.yml), keeping it quoted.
+1. On a branch off `develop`, bump `hmsd_current_version` in [hms-docker.yml](hms-docker.yml), keeping it quoted, and PR it into `develop`.
 2. Add a matching `## v<version>` section to the release-notes file for that minor series, e.g. `docs-astro/src/content/docs/docs/release-notes/v1.18.md`. The header must be exactly `## v<version>` (matching the new version) — the release workflow extracts everything between it and the next `## ` heading as the GitHub Release body.
-3. Merge to `master`. [.github/workflows/release.yml](.github/workflows/release.yml) triggers on pushes to `master` that touch `hms-docker.yml`: it reads the version, tags it, and creates the GitHub Release from the extracted notes. Releases are not cut from feature branches.
+3. Open a PR from `develop` to `master` and merge it with a merge commit. [.github/workflows/release.yml](.github/workflows/release.yml) triggers on pushes to `master` that touch `hms-docker.yml`: it reads the version, tags it, and creates the GitHub Release from the extracted notes. Releases are not cut from feature branches or from `develop`.
 
 ### Supporting roles
 

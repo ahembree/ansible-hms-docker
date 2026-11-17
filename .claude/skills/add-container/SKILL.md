@@ -162,7 +162,8 @@ Homepage credential styles:
   `hmsd_current_version` exactly; the release workflow extracts everything between it and
   the next `## `.
 - **`hms-docker.yml`** — bump `hmsd_current_version` (3-part semver). Tell the user this
-  cuts a GitHub Release when merged to master.
+  cuts a GitHub Release once it reaches master (PRs go to `develop`; the
+  `develop` → `master` merge is the release).
 - **`.github/extra-vars.yml`** — add an entry to the duplicated CI container map so the
   deployment test exercises the service. It is JSON-ish with unquoted scalar values and a
   different key order from the real map:
