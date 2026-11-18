@@ -277,6 +277,13 @@
     - ((hmsdocker_vpn_user | default('', true)) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
 
+- name: (preflight) Warn if Tinyauth is enabled without users
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but hmsdocker_tinyauth_users is empty. Add at least one user in inventory/group_vars/all/service_misc.yml or nobody can sign in.'] }}"
+  when:
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false)
+    - (hmsdocker_tinyauth_users | default([], true)) | length == 0
+
 - name: (preflight) Warn if read-only media is set for unsupported containers
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains containers that do not support a read-only media share: ' + (readonly_media_unsupported | join(', ')) + '. The media share stays writable for them. Supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '.'] }}"

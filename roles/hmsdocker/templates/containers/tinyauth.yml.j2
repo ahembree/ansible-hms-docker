@@ -1,0 +1,56 @@
+services:
+  tinyauth:
+    image: ghcr.io/tinyauthapp/tinyauth:v5
+    container_name: tinyauth
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% if 'tinyauth' in expose_ports_enabled_containers %}
+    ports:
+      - 3004:3000
+    {% endif %}
+    environment:
+      - TZ=${TIMEZONE}
+      - TINYAUTH_APPURL=http{{ 's' if traefik_ssl_enabled }}://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}
+      - TINYAUTH_AUTH_USERS=${TINYAUTH_USERS:-}
+      - TINYAUTH_AUTH_SECURECOOKIE={{ 'true' if traefik_ssl_enabled else 'false' }}
+      - TINYAUTH_DATABASE_PATH=/data/tinyauth.db
+      - TINYAUTH_RESOURCES_PATH=/data/resources
+    volumes:
+      - ${HMSD_APPS_PATH}/tinyauth/config:/data
+      # Used to read tinyauth ACL labels from other containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    {% if 'tinyauth' in traefik_enabled_containers or 'tinyauth' in homepage_enabled_containers %}
+    labels:
+      {% if 'tinyauth' in traefik_enabled_containers %}
+      - traefik.enable=true
+      - traefik.http.services.tinyauth-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
+      - traefik.http.routers.tinyauth-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.tinyauth-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tinyauth' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tinyauth-midware@docker' if 'tinyauth' in authentik_enabled_containers }}
+      # Forward-auth middleware, add `tinyauth-${COMPOSE_PROJECT}@docker` to another router's middlewares to protect it
+      - traefik.http.middlewares.tinyauth-${COMPOSE_PROJECT}.forwardauth.address=http://tinyauth:3000/api/auth/traefik
+      {% endif %}
+      {% if 'tinyauth' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=Tinyauth
+      - homepage.icon=tinyauth.png
+      - homepage.href=http://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}
+      - homepage.description=Authentication Middleware
+        {% if 'tinyauth' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "tinyauth", "healthcheck"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 30s
