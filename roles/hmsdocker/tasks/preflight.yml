@@ -293,7 +293,7 @@
       {{ nas_client_remote_additional_paths | default([], true)
          | selectattr('type', 'defined') | selectattr('type', 'in', ['nfs', 'cifs'])
          | selectattr('local_mount_path', 'defined')
-         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_escape) ~ '/')
+         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_replace('/+$', '') | regex_escape) ~ '/')
          | map(attribute='local_mount_path') | list }}
   when:
     - hmsdocker_readonly_media_containers | default([], true) | intersect(hmsdocker_readonly_media_supported_containers) | length > 0
