@@ -1,3 +1,7 @@
+{% set socket_proxy_client = 'authentik' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock' %}
+{% set socket_proxy_env_map = true %}
+{% set socket_proxy_depends_entry_only = true %}
 services:
   authentik-postgresql:
     container_name: authentik-postgresql
@@ -106,7 +110,10 @@ services:
     depends_on:
       authentik-postgresql:
         condition: service_healthy
+    {% include 'socket_proxy/client_depends_on.j2' %}
     environment:
+    {# The "Local Docker connection" reads DOCKER_HOST #}
+    {% include 'socket_proxy/client_docker_host.j2' %}
       AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
@@ -120,7 +127,10 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/authentik/data:/data
       - ${HMSD_APPS_PATH}/authentik/certs:/certs
-      - /var/run/docker.sock:/var/run/docker.sock
+    {% include 'socket_proxy/client_volume.j2' %}
+    {% if 'authentik' in socket_proxy_enabled_containers %}
+      - ${HMSD_APPS_PATH}/authentik/blueprints:/blueprints/hmsd:ro
+    {% endif %}
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
 

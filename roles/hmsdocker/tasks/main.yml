@@ -142,6 +142,53 @@
             )
           }}
 
+- name: Build Docker socket proxy settings
+  ansible.builtin.import_tasks: "socket_proxy_settings.yml"
+
+# Containers that get a filtered socket, and containers that get no Docker socket at all.
+# Both are empty unless socket-proxy is enabled. Containers whose settings say `requires_ssl`
+# (Authentik) only run, and so only get a proxy, when SSL is enabled.
+- name: Build Docker socket proxy facts
+  ansible.builtin.set_fact:
+    socket_proxy_enabled_containers: >-
+      {{
+        (
+          hmsdocker_socket_proxy_clients | dict2items |
+          selectattr('value.mode', 'equalto', 'proxy') |
+          map(attribute='key') |
+          select('in', enabled_containers) |
+          reject('in', socket_proxy_unavailable) |
+          list
+        )
+        if ('socket-proxy' in enabled_containers)
+        else []
+      }}
+    socket_proxy_no_access_containers: >-
+      {{
+        (
+          hmsdocker_socket_proxy_clients | dict2items |
+          selectattr('value.mode', 'equalto', 'none') |
+          map(attribute='key') |
+          select('in', enabled_containers) |
+          list
+        )
+        if ('socket-proxy' in enabled_containers)
+        else []
+      }}
+  vars:
+    socket_proxy_unavailable: >-
+      {{
+        []
+        if (traefik_ssl_enabled | default(false) | bool)
+        else (
+          hmsdocker_socket_proxy_clients | dict2items |
+          selectattr('value.requires_ssl', 'defined') |
+          selectattr('value.requires_ssl') |
+          map(attribute='key') |
+          list
+        )
+      }}
+
 - name: Get list of container task files in the role
   ansible.builtin.set_fact:
     container_prereq_task_files: "{{ lookup('fileglob', role_path + '/tasks/container_prereqs/*.yml', wantlist=True) }}"
@@ -326,6 +373,25 @@
     backup: yes
     lstrip_blocks: yes
     trim_blocks: yes
+
+# The proxies use a floating tag (`:1`) and Watchtower must not update its own proxy, so pull the
+# image on every run. Compose then recreates any proxy whose image changed. A failed pull (e.g. offline)
+# is not fatal as long as the image is already on the host.
+- name: Update socket proxy image
+  when:
+    - socket_proxy_enabled_containers | length > 0
+    - not ansible_check_mode
+  block:
+    - name: Pull the latest socket proxy image
+      community.docker.docker_compose_v2_pull:
+        project_src: "{{ hms_docker_data_path }}"
+        project_name: "{{ project_name }}"
+        policy: always
+        services: "{{ socket_proxy_enabled_containers | map('regex_replace', '^', 'socket-proxy-') | list }}"
+  rescue:
+    - name: Socket proxy image could not be pulled
+      ansible.builtin.debug:
+        msg: "Could not pull {{ hmsdocker_socket_proxy_image }}, the socket proxies keep the image they have. {{ ansible_failed_result.msg | default('') }}"
 
 - name: Ensure containers defined in compose file.
   community.docker.docker_compose_v2:

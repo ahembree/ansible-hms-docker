@@ -30,8 +30,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
+    # No Docker socket: FileFlows only uses it for its optional "Docker Siblings" runners, which this
+    # project does not set up. Add the socket and TempPathHost with a docker-compose.override.yml to use them
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${HMSD_APPS_PATH}/fileflows/config:/app/Data
       - ${HMSD_APPS_PATH}/fileflows/logs:/app/Logs
       - ${HMSD_APPS_PATH}/fileflows/common:/app/common
