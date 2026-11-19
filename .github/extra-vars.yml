@@ -180,6 +180,28 @@
       "homepage": true,
       "homepage_stats": false
     },
+    "pocketid": {
+      "enabled": true,
+      "proxy_host_rule": pocketid,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
+    "tinyauth": {
+      "enabled": true,
+      "proxy_host_rule": tinyauth,
+      "directory": true,
+      "traefik": true,
+      "authentik": false,
+      "authentik_provider_type": proxy,
+      "expose_to_public": false,
+      "homepage": true,
+      "homepage_stats": false
+    },
     "tdarr": {
       "enabled": false,
       "proxy_host_rule": tdarr,

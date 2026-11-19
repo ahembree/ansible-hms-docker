@@ -33,7 +33,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.audiobookshelf-${COMPOSE_PROJECT}.loadbalancer.server.port=80
       - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['audiobookshelf']['proxy_host_rule'] | default('audiobookshelf') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'audiobookshelf' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-audiobookshelf-midware@docker' if 'audiobookshelf' in authentik_enabled_containers }}
+      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'audiobookshelf' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-audiobookshelf-midware@docker' if 'audiobookshelf' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'audiobookshelf' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'audiobookshelf' in homepage_enabled_containers %}
       - homepage.group=Media

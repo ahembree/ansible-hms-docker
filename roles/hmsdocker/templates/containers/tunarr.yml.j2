@@ -37,7 +37,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.tunarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8000
       - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tunarr']['proxy_host_rule'] | default('tunarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tunarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tunarr-midware@docker' if 'tunarr' in authentik_enabled_containers }}
+      - traefik.http.routers.tunarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tunarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tunarr-midware@docker' if 'tunarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'tunarr' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'tunarr' in homepage_enabled_containers %}
       - homepage.group=Media

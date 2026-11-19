@@ -44,6 +44,7 @@ All paths also match their versioned form (e.g. `/v1.47/containers/json`). Every
 | Traefik | Read: version, events, container list and details | `providers.docker.endpoint` in the Traefik config |
 | Homepage | Read: version, container list, details and stats | `socket` in `homepage/config/docker.yaml` (only the `/var/run/docker.sock` line is changed) |
 | Uptime Kuma | Read: version, info, container list and details | Docker host in the Uptime Kuma UI (see above) |
+| Tinyauth | Read: version, events, container list and details | `DOCKER_HOST` |
 | Beszel agent | Read: version, info, container list, details, stats and logs | `DOCKER_HOST` |
 | Watchtower | Read: version, info, events, containers, images, networks. Write: pull images, create, start, stop, restart, rename and remove containers, remove images, connect containers to networks | `DOCKER_HOST` |
 | Authentik worker | Read: version, info, containers, images, networks. Write: pull images, create, start, stop, restart and remove containers. Containers it creates cannot bind mount any host folder | `DOCKER_HOST`, plus a blueprint that creates the "Local Docker connection" (see [below](#authentik)) |

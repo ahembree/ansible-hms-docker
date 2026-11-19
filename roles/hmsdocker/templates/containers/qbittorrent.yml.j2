@@ -48,7 +48,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.qbittorrent-${COMPOSE_PROJECT}.loadbalancer.server.port=8086
       - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'qbittorrent' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-qbittorrent-midware@docker' if 'qbittorrent' in authentik_enabled_containers }}
+      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'qbittorrent' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-qbittorrent-midware@docker' if 'qbittorrent' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'qbittorrent' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'qbittorrent' in homepage_enabled_containers %}
       - homepage.group=Downloads

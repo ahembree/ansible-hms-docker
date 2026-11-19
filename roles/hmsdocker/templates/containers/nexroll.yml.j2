@@ -38,7 +38,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.nexroll-${COMPOSE_PROJECT}.loadbalancer.server.port=9393
       - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nexroll' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nexroll-midware@docker' if 'nexroll' in authentik_enabled_containers }}
+      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nexroll' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nexroll-midware@docker' if 'nexroll' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'nexroll' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'nexroll' in homepage_enabled_containers %}
       - homepage.group=Media

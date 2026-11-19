@@ -252,6 +252,64 @@
     quiet: true
 
 # ---------------------------------------------------------------------------
+# Tinyauth / Pocket ID
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Tinyauth list settings
+  ansible.builtin.assert:
+    that:
+      - item.value | default([], true) is iterable
+      - item.value | default([], true) is not string
+      - item.value | default([], true) is not mapping
+    fail_msg: >-
+      {{ item.key }} must be a list, e.g. {{ item.example }}. Update it in
+      inventory/group_vars/all/sso.yml.
+    quiet: true
+  loop:
+    - { key: hmsdocker_tinyauth_users, value: "{{ hmsdocker_tinyauth_users | default([]) }}", example: '["user:$2a$10$..."]' }
+    - { key: hmsdocker_tinyauth_protected_containers, value: "{{ hmsdocker_tinyauth_protected_containers | default([]) }}", example: '["sonarr", "radarr"]' }
+    - { key: hmsdocker_tinyauth_oauth_whitelist, value: "{{ hmsdocker_tinyauth_oauth_whitelist | default([]) }}", example: '["you@example.com"]' }
+  loop_control:
+    label: "{{ item.key }}"
+  when: hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
+
+- name: (preflight) Validate Tinyauth Pocket ID sign-in requirements
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['enabled'] | default(false) | bool)
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['traefik'] | default(false) | bool)
+      - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
+      - hms_docker_container_map['tinyauth']['traefik'] | default(false) | bool
+      - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
+      - traefik_ssl_enabled | default(false) | bool
+      - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
+      - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length == 0)
+        or (hmsdocker_tinyauth_pocketid_client_secret | length >= 16)
+    fail_msg: >-
+      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
+      traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
+      pocketid must also be enabled with traefik: true. The client ID must be 2-128 letters, digits, _ or -,
+      and a client secret the playbook registers in Pocket ID, if set, at least 16 characters.
+    quiet: true
+  when: hmsdocker_tinyauth_pocketid_enabled | default(false) | bool
+
+- name: (preflight) Validate external Pocket ID settings
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_tinyauth_pocketid_base_url is match('^https://[^/\\s]+(/[^\\s]*)?$')
+      - (hmsdocker_tinyauth_pocketid_manage_client | bool)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length > 0)
+    fail_msg: >-
+      hmsdocker_tinyauth_pocketid_url must be the https:// URL of your Pocket ID (e.g. https://id.example.com).
+      Without hmsdocker_tinyauth_pocketid_api_key the playbook cannot create the OIDC client: create it in
+      Pocket ID with the callback URL
+      https://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.{{ hms_docker_domain }}/api/oauth/callback/pocketid
+      and set hmsdocker_tinyauth_pocketid_client_id and hmsdocker_tinyauth_pocketid_client_secret to its values.
+    quiet: true
+  when: hmsdocker_tinyauth_pocketid_external | bool
+
+# ---------------------------------------------------------------------------
 # Docker socket proxy (only checked while socket-proxy is enabled)
 # ---------------------------------------------------------------------------
 
@@ -346,6 +404,71 @@
       or (hms_docker_container_map['deluge']['enabled'] | default(false))
     - ((hmsdocker_vpn_user | default('', true)) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
+
+- name: (preflight) Warn if Tinyauth is enabled without users
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but hmsdocker_tinyauth_users is empty. Add at least one user in inventory/group_vars/all/sso.yml or nobody can sign in.'] }}"
+  when:
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false)
+    - (hmsdocker_tinyauth_users | default([], true)) | length == 0
+    - not (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool)
+
+- name: (preflight) Warn if Tinyauth protected containers are not applied
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{ hmsdocker_preflight_warnings + ['hmsdocker_tinyauth_protected_containers has entries that are not protected: '
+      + (tinyauth_skipped | join(', ')) + '. Tinyauth must be enabled with traefik: true, each entry must be enabled with traefik: true,'
+      + ' and ' + (hmsdocker_tinyauth_unsupported_containers | join(', ')) + ' cannot be protected.'] }}
+  vars:
+    tinyauth_skipped: >-
+      {{
+        hmsdocker_tinyauth_protected_containers | default([], true)
+        if not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+        else (
+          hmsdocker_tinyauth_protected_containers | default([], true)
+          | reject('in', hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
+              | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | map(attribute='key') | list)
+          | list
+          + (hmsdocker_tinyauth_protected_containers | default([], true) | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
+        ) | unique
+      }}
+  when:
+    - hmsdocker_tinyauth_protected_containers | default([], true) is not string
+    - tinyauth_skipped | length > 0
+
+- name: (preflight) Warn if external hosts ask for Tinyauth without it
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These traefik_ext_hosts_list entries have tinyauth: yes, but the tinyauth container is not enabled with traefik: true, so they are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
+  vars:
+    tinyauth_ext_hosts: >-
+      {{ traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+         | selectattr('tinyauth', 'defined') | selectattr('tinyauth') | map(attribute='friendly_name') | list }}
+  when:
+    - traefik_ext_hosts_enabled | default(false) | bool
+    - not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+    - tinyauth_ext_hosts | length > 0
+
+- name: (preflight) Warn if containers are protected by both Tinyauth and Authentik
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These containers are in hmsdocker_tinyauth_protected_containers and have authentik: true, so users must sign in to both: ' + (tinyauth_and_authentik | join(', ')) + '.'] }}"
+  vars:
+    tinyauth_and_authentik: >-
+      {{ hmsdocker_tinyauth_protected_containers | default([], true)
+         | select('in', hms_docker_container_map | dict2items | selectattr('value.authentik', 'defined')
+             | selectattr('value.authentik', 'equalto', true) | map(attribute='key') | list)
+         | list }}
+  when:
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false)
+    - hms_docker_container_map['authentik']['enabled'] | default(false)
+    - hmsdocker_tinyauth_protected_containers | default([], true) is not string
+    - tinyauth_and_authentik | length > 0
+
+- name: (preflight) Warn if Pocket ID is enabled without SSL
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Pocket ID is enabled without HTTPS (traefik_ssl_enabled is off or Pocket ID has traefik: false). Pocket ID signs in with passkeys, which browsers only allow over HTTPS, so sign-in will not work.'] }}"
+  when:
+    - hms_docker_container_map['pocketid']['enabled'] | default(false)
+    - (not (traefik_ssl_enabled | default(false) | bool)) or (not (hms_docker_container_map['pocketid']['traefik'] | default(false)))
 
 - name: (preflight) Warn if read-only media is set for unsupported containers
   ansible.builtin.set_fact:

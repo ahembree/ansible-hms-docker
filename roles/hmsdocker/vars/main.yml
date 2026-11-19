@@ -99,6 +99,15 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
       head:
         - '(/v1\.\d+)?/_ping'
+  # Tinyauth: reads access-control labels from containers (label provider)
+  tinyauth:
+    mode: proxy
+    modes: [proxy, none, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
   # Uptime Kuma: Docker container monitors
   uptimekuma:
     mode: proxy
@@ -127,3 +136,15 @@ hmsdocker_socket_proxy_builtin_clients:
     # the proxy image on every run instead
     labels:
       - com.centurylinklabs.watchtower.enable=false
+
+# Containers that cannot be put behind Tinyauth with hmsdocker_tinyauth_protected_containers:
+# tinyauth and pocketid serve the sign-in itself, authentik and n8n set their own Traefik middlewares
+hmsdocker_tinyauth_unsupported_containers: [tinyauth, pocketid, authentik, n8n]
+
+# Tinyauth sign-in with Pocket ID (settings in defaults/main/sso.yml)
+# external: Tinyauth uses the Pocket ID at hmsdocker_tinyauth_pocketid_url instead of the pocketid container
+hmsdocker_tinyauth_pocketid_base_url: "{{ hmsdocker_tinyauth_pocketid_url | default('', true) | regex_replace('/+$', '') }}"
+hmsdocker_tinyauth_pocketid_external: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length > 0) }}"
+hmsdocker_tinyauth_pocketid_local: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length == 0) }}"
+# The playbook creates the OIDC client itself, unless an external Pocket ID has no API key to do it with
+hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_local | bool) or ((hmsdocker_tinyauth_pocketid_external | bool) and (hmsdocker_tinyauth_pocketid_api_key | default('', true) | length > 0)) }}"

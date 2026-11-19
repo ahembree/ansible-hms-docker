@@ -32,7 +32,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.uptimekuma-${COMPOSE_PROJECT}.loadbalancer.server.port=3001
       - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['uptimekuma']['proxy_host_rule'] | default('uptime-kuma') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'uptimekuma' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if 'uptimekuma' in authentik_enabled_containers }}
+      - traefik.http.routers.uptimekuma-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'uptimekuma' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-uptimekuma-midware@docker' if 'uptimekuma' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'uptimekuma' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'uptimekuma' in homepage_enabled_containers %}
       - homepage.group=Media
