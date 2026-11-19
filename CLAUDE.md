@@ -76,6 +76,7 @@ When renaming a variable, **always** add an entry to `migrations/variable_rename
 - **`master`** = released code only. It is the default branch, so `git clone` and `make update` give users the latest release. It only moves when a release is cut (or a hotfix lands).
 - **`develop`** = integration branch. All feature/fix PRs target `develop`.
 - [.github/workflows/pr-target-guard.yml](.github/workflows/pr-target-guard.yml) fails PRs into `master` unless the source is `develop` or `hotfix/*` (same repo). It is a CI check because GitHub branch protection/rulesets cannot restrict a PR's source branch; it only enforces once marked as a required status check on `master`. Keeping `master` as the default branch (so clones get released code) means new PRs default to `master`, and this check is what turns that into a hard stop.
+- [.github/workflows/pr-retarget-develop.yml](.github/workflows/pr-retarget-develop.yml) runs on `pull_request_target` when a PR is opened/reopened against `master` and, unless the source is `develop` or `hotfix/*` (same repo), switches its base to `develop` and comments. It never checks out PR code. The guard still fails the initial run; that stale check is harmless once the PR targets `develop`.
 - Hotfix: branch `hotfix/<topic>` off `master`, PR it to `master` (with a patch bump + notes). [.github/workflows/sync-develop.yml](.github/workflows/sync-develop.yml) then opens a `master` → `develop` PR if `develop` is missing the change.
 - Merge `develop` → `master` with a **merge commit**, never squash, so the branches don't diverge.
 

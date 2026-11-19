@@ -1,0 +1,42 @@
+name: Retarget PRs to develop
+
+# 'master' is the default branch, so new PRs default to it. Feature and fix
+# PRs belong on 'develop': this moves any PR opened against 'master' to
+# 'develop' unless it is a release (from 'develop') or a hotfix ('hotfix/*')
+# from this repository. pr-target-guard.yml remains the hard stop if this
+# cannot run.
+#
+# pull_request_target gives the token write access on fork PRs too. This job
+# never checks out or runs PR code; it only reads event metadata through env
+# vars, so the elevated token is not exposed to untrusted code.
+
+on:
+  pull_request_target:
+    branches:
+      - master
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  retarget:
+    name: Retarget to develop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move PR base to develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO" = "$BASE_REPO" ] && { [ "$HEAD_REF" = "develop" ] || [[ "$HEAD_REF" == hotfix/* ]]; }; then
+            echo "Source branch '$HEAD_REF' may target master; leaving it."
+            exit 0
+          fi
+
+          gh pr edit "$PR_NUMBER" --base develop
+          gh pr comment "$PR_NUMBER" --body "This PR was retargeted from \`master\` to \`develop\` automatically. \`master\` only receives releases (from \`develop\`) and \`hotfix/*\` branches; all other changes go to \`develop\` first. If the diff now shows unexpected commits, rebase your branch onto \`develop\`."
