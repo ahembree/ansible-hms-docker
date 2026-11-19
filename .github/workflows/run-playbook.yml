@@ -2,7 +2,12 @@ name: Ubuntu Deployment Tests
 
 on:
   workflow_dispatch:
+  # Branch pushes are covered by the pull_request trigger; only test
+  # long-lived branches on push so PR commits don't run twice.
   push:
+    branches:
+      - master
+      - develop
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
