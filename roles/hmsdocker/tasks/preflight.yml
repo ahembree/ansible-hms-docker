@@ -11,6 +11,14 @@
 #   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
 #   4. Soft-warning appends (non-fatal; surfaced at the end).
 #   5. Print warnings if any.
+#
+# Do NOT set no_log on the asserts below. A failing assert with no_log is fully
+# censored, which hides fail_msg from the user. These asserts are safe without
+# it: `that:` only tests length/emptiness, `quiet: true` suppresses details on
+# success, and on failure Ansible prints fail_msg plus the expression TEXT (not
+# the evaluated values). Never interpolate a secret into fail_msg; if an assert
+# must compare a secret's value, compute a boolean under no_log with set_fact
+# and assert on that boolean instead.
 
 - name: (preflight) Initialize warnings list
   ansible.builtin.set_fact:
@@ -30,17 +38,17 @@
   ansible.builtin.assert:
     that:
       - project_name is defined
-      - (project_name | default('', true)) | length > 0
+      - (project_name | default('', true) | string) | length > 0
       - hms_docker_domain is defined
-      - (hms_docker_domain | default('', true)) | length > 0
+      - (hms_docker_domain | default('', true) | string) | length > 0
       - hms_docker_data_path is defined
-      - (hms_docker_data_path | default('', true)) | length > 0
+      - (hms_docker_data_path | default('', true) | string) | length > 0
       - hms_docker_apps_path is defined
-      - (hms_docker_apps_path | default('', true)) | length > 0
+      - (hms_docker_apps_path | default('', true) | string) | length > 0
       - hms_docker_mount_path is defined
-      - (hms_docker_mount_path | default('', true)) | length > 0
+      - (hms_docker_mount_path | default('', true) | string) | length > 0
       - hmsdocker_docker_network_base_subnet is defined
-      - (hmsdocker_docker_network_base_subnet | default('', true)) | length > 0
+      - (hmsdocker_docker_network_base_subnet | default('', true) | string) | length > 0
       - container_uid is defined
       - container_gid is defined
       - hms_docker_container_map is defined
@@ -57,14 +65,13 @@
     that:
       - (hmsdocker_spottarr_usenet_hostname | default('', true) | trim | length) > 0
       - (hmsdocker_spottarr_usenet_username | default('', true) | trim | length) > 0
-      - (hmsdocker_spottarr_usenet_password | default('', true) | length) > 0
+      - (hmsdocker_spottarr_usenet_password | default('', true) | string | length) > 0
     fail_msg: >-
       Spottarr is enabled but its Usenet connection is incomplete. Set
       hmsdocker_spottarr_usenet_hostname, hmsdocker_spottarr_usenet_username,
       and hmsdocker_spottarr_usenet_password in
       inventory/group_vars/all/service_misc.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when: hms_docker_container_map['spottarr']['enabled'] | default(false) | bool
 
 # ---------------------------------------------------------------------------
@@ -74,17 +81,16 @@
 - name: (preflight) Validate CIFS share configuration
   ansible.builtin.assert:
     that:
-      - (nas_client_remote_cifs_path | default('', true)) | length > 0
+      - (nas_client_remote_cifs_path | default('', true) | string) | length > 0
       - "'nas.example.com' not in (nas_client_remote_cifs_path | default(''))"
-      - (nas_client_cifs_username | default('', true)) | length > 0
-      - (nas_client_cifs_password | default('', true)) | length > 0
+      - (nas_client_cifs_username | default('', true) | string) | length > 0
+      - (nas_client_cifs_password | default('', true) | string) | length > 0
     fail_msg: >-
       hms_docker_media_share_type is set to 'cifs' but CIFS configuration is
       incomplete. Set nas_client_remote_cifs_path (must not be the placeholder
       '//nas.example.com/share'), nas_client_cifs_username, and
       nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - hms_docker_media_share_type | default('local') == 'cifs'
     - not is_github_runner
@@ -96,7 +102,7 @@
 - name: (preflight) Validate NFS share configuration
   ansible.builtin.assert:
     that:
-      - (nas_client_remote_nfs_path | default('', true)) | length > 0
+      - (nas_client_remote_nfs_path | default('', true) | string) | length > 0
       - "'nas.example.com' not in (nas_client_remote_nfs_path | default(''))"
     fail_msg: >-
       hms_docker_media_share_type is set to 'nfs' but nas_client_remote_nfs_path
@@ -114,13 +120,12 @@
 - name: (preflight) Validate Plex claim token when Plex is enabled
   ansible.builtin.assert:
     that:
-      - (plex_claim_token | default('', true)) | length > 0
+      - (plex_claim_token | default('', true) | string) | length > 0
     fail_msg: >-
       Plex is enabled in the container map but plex_claim_token is empty.
       Visit https://plex.tv/claim to obtain a token, then set plex_claim_token
       in inventory/group_vars/all/plex.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when: 
     - hms_docker_container_map['plex']['enabled'] | default(false)
     - not is_github_runner
@@ -132,8 +137,8 @@
 - name: (preflight) Validate Traefik SSL configuration
   ansible.builtin.assert:
     that:
-      - (traefik_ssl_letsencrypt_email | default('', true)) | length > 0
-      - (traefik_ssl_dns_provider_code | default('', true)) | length > 0
+      - (traefik_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (traefik_ssl_dns_provider_code | default('', true) | string) | length > 0
     fail_msg: >-
       traefik_ssl_enabled is true but Let's Encrypt configuration is incomplete.
       Set traefik_ssl_letsencrypt_email and traefik_ssl_dns_provider_code
@@ -146,12 +151,11 @@
 - name: (preflight) Validate Cloudflare API token when used as Traefik DNS provider
   ansible.builtin.assert:
     that:
-      - (cloudflare_api_token | default('', true)) | length > 0
+      - (cloudflare_api_token | default('', true) | string) | length > 0
     fail_msg: >-
       Traefik SSL is using Cloudflare as the DNS provider but cloudflare_api_token
       is empty. Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - traefik_ssl_enabled | default(false) | bool
     - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
@@ -164,12 +168,11 @@
 - name: (preflight) Validate Cloudflare API token when cloudflare-ddns container is enabled
   ansible.builtin.assert:
     that:
-      - (cloudflare_api_token | default('', true)) | length > 0
+      - (cloudflare_api_token | default('', true) | string) | length > 0
     fail_msg: >-
       The cloudflare-ddns container is enabled but cloudflare_api_token is empty.
       Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (cloudflare_ddns_enabled | default(false))
@@ -179,13 +182,12 @@
 - name: (preflight) Validate Cloudflare tunnel token when cloudflare-tunnel container is enabled
   ansible.builtin.assert:
     that:
-      - (cloudflare_tunnel_token | default('', true)) | length > 0
+      - (cloudflare_tunnel_token | default('', true) | string) | length > 0
     fail_msg: >-
       The cloudflare-tunnel container is enabled but cloudflare_tunnel_token is empty.
       See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
       and set cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (cloudflare_tunnel_enabled | default(false))
@@ -199,13 +201,12 @@
 - name: (preflight) Validate Tailscale auth key when tailscale is enabled
   ansible.builtin.assert:
     that:
-      - (tailscale_auth_key | default('', true)) | length > 0
+      - (tailscale_auth_key | default('', true) | string) | length > 0
     fail_msg: >-
       The tailscale container is enabled but tailscale_auth_key is empty.
       Generate one at https://login.tailscale.com/admin/settings/keys and
       set it in inventory/group_vars/all/tailscale.yml.
     quiet: true
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
   when:
     - >-
       (tailscale_enabled | default(false))
@@ -224,7 +225,7 @@
 - name: (preflight) Validate VPN provider for Transmission
   ansible.builtin.assert:
     that:
-      - (hmsdocker_vpn_provider | default('', true)) | length > 0
+      - (hmsdocker_vpn_provider | default('', true) | string) | length > 0
     fail_msg: >-
       The transmission container is enabled with hmsdocker_vpn_type='{{ hmsdocker_vpn_type | default('openvpn', true) }}'
       but hmsdocker_vpn_provider is empty. Set it in inventory/group_vars/all/vpn.yml,
@@ -284,8 +285,8 @@
       - traefik_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
       - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
-        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length == 0)
-        or (hmsdocker_tinyauth_pocketid_client_secret | length >= 16)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length == 0)
+        or (hmsdocker_tinyauth_pocketid_client_secret | string | length >= 16)
     fail_msg: >-
       hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
       traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
@@ -299,7 +300,7 @@
     that:
       - hmsdocker_tinyauth_pocketid_base_url is match('^https://[^/\\s]+(/[^\\s]*)?$')
       - (hmsdocker_tinyauth_pocketid_manage_client | bool)
-        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length > 0)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length > 0)
     fail_msg: >-
       hmsdocker_tinyauth_pocketid_url must be the https:// URL of your Pocket ID (e.g. https://id.example.com).
       Without hmsdocker_tinyauth_pocketid_api_key the playbook cannot create the OIDC client: create it in
@@ -402,8 +403,8 @@
       (hms_docker_container_map['transmission']['enabled'] | default(false))
       or (hms_docker_container_map['qbittorrent']['enabled'] | default(false))
       or (hms_docker_container_map['deluge']['enabled'] | default(false))
-    - ((hmsdocker_vpn_user | default('', true)) | length == 0)
-      or ((hmsdocker_vpn_pass | default('', true)) | length == 0)
+    - ((hmsdocker_vpn_user | default('', true) | string) | length == 0)
+      or ((hmsdocker_vpn_pass | default('', true) | string) | length == 0)
 
 - name: (preflight) Warn if Tinyauth is enabled without users
   ansible.builtin.set_fact:
@@ -485,7 +486,7 @@
       {{ nas_client_remote_additional_paths | default([], true)
          | selectattr('type', 'defined') | selectattr('type', 'in', ['nfs', 'cifs'])
          | selectattr('local_mount_path', 'defined')
-         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_escape) ~ '/')
+         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_replace('/+$', '') | regex_escape) ~ '/')
          | map(attribute='local_mount_path') | list }}
   when:
     - hmsdocker_readonly_media_containers | default([], true) | intersect(hmsdocker_readonly_media_supported_containers) | length > 0
