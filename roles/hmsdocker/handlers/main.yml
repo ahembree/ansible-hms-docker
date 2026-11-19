@@ -11,6 +11,24 @@
     - not traefik_certs_dir.changed
     - not ansible_check_mode
 
+# Caddy reloads its config without dropping connections. Skipped while the container is not running,
+# it reads the new Caddyfile when it starts
+- name: Get caddy container
+  community.docker.docker_container_info:
+    name: caddy
+  register: caddy_handler_container_info
+  listen: Reload caddy
+  when: not ansible_check_mode
+
+- name: Reload caddy config
+  community.docker.docker_container_exec:
+    container: caddy
+    command: caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+  listen: Reload caddy
+  when:
+    - not ansible_check_mode
+    - caddy_handler_container_info.container.State.Running | default(false)
+
 - name: Restart sabnzbd
   community.docker.docker_compose_v2:
     project_src: "{{ hms_docker_data_path }}"

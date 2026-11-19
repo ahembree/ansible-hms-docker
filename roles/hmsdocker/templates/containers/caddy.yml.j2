@@ -1,0 +1,53 @@
+services:
+  caddy:
+    image: ${CADDY_IMAGE:-docker.io/library/caddy:2.11.9}
+    container_name: caddy
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    environment:
+      - TZ=${TIMEZONE}
+    {% if traefik_ssl_enabled and traefik_ssl_dns_provider_environment_vars %}
+        {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+      - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
+        {% endfor %}
+    {% endif %}
+    networks:
+      - proxy_net
+    volumes:
+      - ${HMSD_APPS_PATH}/caddy/config:/etc/caddy:ro
+      - {{ hmsdocker_caddy_custom_config_location }}:/etc/caddy-custom:ro
+      - ${HMSD_APPS_PATH}/caddy/data:/data
+    {% if hmsdocker_caddy_build_modules | length > 0 or 'caddy' in homepage_enabled_containers %}
+    labels:
+      {% if hmsdocker_caddy_build_modules | length > 0 %}
+      # Built locally by the playbook, there is no registry image for Watchtower to update it from
+      - com.centurylinklabs.watchtower.enable=false
+      {% endif %}
+      {% if 'caddy' in homepage_enabled_containers %}
+      - homepage.group=Infrastructure
+      - homepage.name=Caddy
+      - homepage.icon=caddy.png
+      - homepage.description=Reverse Proxy
+      - homepage.widget.type=caddy
+      - homepage.widget.url=http://caddy:2020
+        {% if 'caddy' in homepage_stats_enabled_containers %}
+      - homepage.showStats=true
+        {% endif %}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2020/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s

@@ -41,6 +41,21 @@
             if ('traefik' in enabled_containers)
             else []
           }}
+    # Caddy routes the same containers as Traefik (`traefik: true`), only one of the two runs
+    caddy_enabled_containers: >-
+          {{
+            (
+              hms_docker_container_map | dict2items |
+              selectattr('value.enabled', 'defined') |
+              selectattr('value.enabled', 'equalto', true) |
+              selectattr('value.traefik', 'defined') |
+              selectattr('value.traefik', 'equalto', true) |
+              map(attribute='key') |
+              list
+            )
+            if ('caddy' in enabled_containers)
+            else []
+          }}
     traefik_enabled_subdomains: >-
           {{
             hms_docker_container_map | dict2items |
@@ -130,7 +145,7 @@
     expose_ports_enabled_containers: >-
           {{
             enabled_containers
-            if ('traefik' not in enabled_containers or container_expose_ports)
+            if (('traefik' not in enabled_containers and 'caddy' not in enabled_containers) or container_expose_ports)
             else (
               hms_docker_container_map | dict2items |
               selectattr('value.enabled', 'defined') |
@@ -141,6 +156,11 @@
               list
             )
           }}
+
+# Containers reachable through the reverse proxy, whichever of Traefik or Caddy is enabled
+- name: Build reverse proxy facts
+  ansible.builtin.set_fact:
+    proxy_enabled_containers: "{{ traefik_enabled_containers + caddy_enabled_containers }}"
 
 - name: Build Docker socket proxy settings
   ansible.builtin.import_tasks: "socket_proxy_settings.yml"
@@ -339,7 +359,7 @@
     tdarr_api_key: "{{ (prereq_tdarr_slurped_api_key['content'] | b64decode | trim) if prereq_tdarr_slurped_api_key['content'] is defined else '' }}"
     n8n_encryption_key: "{{ (prereq_n8n_slurped_encryption_key['content'] | b64decode) if prereq_n8n_slurped_encryption_key['content'] is defined else '### Will be obtained during full run ###' }}"
 
-# Containers whose Traefik router gets the Tinyauth forward-auth middleware. Tinyauth and Pocket ID are
+# Containers whose Traefik router (or Caddy route) gets the Tinyauth forward auth. Tinyauth and Pocket ID are
 # left out (they serve the sign-in itself), as are containers whose routers do not use the shared middlewares
 - name: Build Tinyauth protected containers fact
   ansible.builtin.set_fact:
@@ -347,11 +367,11 @@
       {{
         (
           hmsdocker_tinyauth_protected_containers | default([], true) |
-          select('in', traefik_enabled_containers) |
+          select('in', proxy_enabled_containers) |
           reject('in', hmsdocker_tinyauth_unsupported_containers) |
           list
         )
-        if ('tinyauth' in traefik_enabled_containers)
+        if ('tinyauth' in proxy_enabled_containers)
         else []
       }}
 

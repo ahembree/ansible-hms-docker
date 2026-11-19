@@ -72,7 +72,7 @@ Changing these values after initial setup may cause permission issues with exist
 container_expose_ports: no
 ```
 
-When set to `yes`, all container ports will be exposed on the host. If Traefik is disabled in the container map, this is automatically overridden to `yes`.
+When set to `yes`, all container ports will be exposed on the host. If neither Traefik nor Caddy is enabled in the container map, this is automatically overridden to `yes`.
 
 For per-container port exposure, use the `expose_ports` setting in the [Container Map](/docs/container-list/#container-map).
 
@@ -214,7 +214,7 @@ The IP range used for all Docker networks. Individual `/24` subnets are provisio
 hms_docker_subnet_mask: "24"
 ```
 
-Your local network subnet mask (e.g., for a `192.168.1.0/24` network, use `24`). Used to generate Traefik IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
+Your local network subnet mask (e.g., for a `192.168.1.0/24` network, use `24`). Used to generate the Traefik/Caddy IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
 
 ### Secrets File Permissions
 

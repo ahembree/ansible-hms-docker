@@ -30,12 +30,32 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  # Caddy is configured from hmsdocker_caddy_upstreams instead of container labels, so it must match the Traefik labels
+  caddy-upstreams:
+    name: Check Caddy upstreams
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repo code
+        uses: actions/checkout@v6
+
+      - name: Compare Caddy upstreams with Traefik labels
+        run: |
+          python3 -c "import yaml" || sudo apt-get install -y python3-yaml
+          python3 .github/workflows/scripts/check_caddy_upstreams.py
+
   playbook-run:
-    name: Test ${{ matrix.os-version }}
+    name: Test ${{ matrix.os-version }}${{ matrix.proxy == 'caddy' && ' (caddy)' || '' }}
     runs-on: ${{ matrix.os-version }}
     strategy:
       matrix:
         os-version: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04"]
+        proxy: ["traefik"]
+        include:
+          # Same run with Caddy as the reverse proxy instead of Traefik
+          - os-version: "ubuntu-24.04"
+            proxy: "caddy"
+    env:
+      EXTRA_VARS: ${{ github.workspace }}/.github/extra-vars-run.yml
 
     steps:
       - name: Check out repo code
@@ -60,6 +80,17 @@ jobs:
           chmod 0600 ./inventory/group_vars/all/*.yml
           make install-reqs
 
+      - name: Build extra vars for the reverse proxy
+        run: |
+          python3 - "${{ matrix.proxy }}" <<'PY'
+          import sys, yaml
+          extra_vars = yaml.safe_load(open('.github/extra-vars.yml'))
+          container_map = extra_vars['hms_docker_container_map']
+          container_map['traefik']['enabled'] = sys.argv[1] == 'traefik'
+          container_map['caddy'] = {'enabled': sys.argv[1] == 'caddy', 'directory': True, 'homepage': True, 'homepage_stats': False}
+          yaml.safe_dump(extra_vars, open('.github/extra-vars-run.yml', 'w'))
+          PY
+
       - name: Run playbook in check mode
         run: >-
           sudo ansible-playbook
@@ -67,7 +98,7 @@ jobs:
           hms-docker.yml
           --diff
           --check
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"
 
       - name: Run playbook
         run: >-
@@ -75,7 +106,7 @@ jobs:
           -i inventory/hosts.yml
           hms-docker.yml
           --diff
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"
 
       - name: Check containers
         run: |
@@ -89,4 +120,4 @@ jobs:
           -i inventory/hosts.yml
           hms-docker.yml
           --diff
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"

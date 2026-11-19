@@ -1,0 +1,94 @@
+---
+# Same list Traefik builds in its prereqs, used to verify the routes (traefik_verify_endpoints)
+- name: Caddy Prereq - Extend subdomain hosts list with external hosts
+  ansible.builtin.set_fact:
+    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
+  when:
+    - traefik_ext_hosts_enabled
+    - item.enabled
+    - item.subdomain_name not in traefik_enabled_subdomains
+  loop: '{{ traefik_ext_hosts_list }}'
+
+- name: Caddy Prereq - Extend subdomain hosts list if 4K instances are enabled
+  ansible.builtin.set_fact:
+    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [hms_docker_container_map[item]['proxy_host_rule'] | default(item) ~ '-4k'] }}"
+  when:
+    - separate_4k_instances_enable
+    - item in caddy_enabled_containers
+  loop:
+    - sonarr
+    - radarr
+
+# Two routes for the same host would stop Caddy from starting, so the Caddyfile only keeps the first one
+- name: Caddy Prereq - Warn about duplicate hosts
+  ansible.builtin.debug:
+    msg: >-
+      These hosts are used by more than one container or external host, Caddy only routes the first one:
+      {{ caddy_duplicate_hosts | join(', ') }}. Give each a unique proxy_host_rule or subdomain_name.
+  when: caddy_duplicate_hosts | length > 0
+  vars:
+    caddy_container_hosts: >-
+      {{
+        caddy_enabled_containers | select('in', hmsdocker_caddy_upstreams.keys() | list)
+        | map('extract', hms_docker_container_map) | map(attribute='proxy_host_rule', default='') | list
+      }}
+    caddy_ext_hosts: >-
+      {{
+        (traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+          | map(attribute='subdomain_name') | list)
+        if (traefik_ext_hosts_enabled | default(false)) else []
+      }}
+    caddy_duplicate_hosts: >-
+      {{
+        (caddy_container_hosts + caddy_ext_hosts) | reject('equalto', '') | community.general.counter
+        | dict2items | selectattr('value', 'gt', 1) | map(attribute='key') | list
+      }}
+
+- name: Caddy Prereq - Ensure Caddy directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ hms_docker_apps_path }}/caddy/config"
+    - "{{ hms_docker_apps_path }}/caddy/data"
+    - "{{ hmsdocker_caddy_custom_config_location }}"
+
+- name: Caddy Prereq - Ensure Caddyfile
+  ansible.builtin.template:
+    src: caddy/Caddyfile.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/config/Caddyfile"
+    mode: '0640'
+    group: docker
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
+  notify: Reload caddy
+
+# The official image has no DNS provider modules, so Caddy is built with the one needed for SSL (and any extra modules)
+- name: Caddy Prereq - Build Caddy image with modules
+  when: hmsdocker_caddy_build_modules | length > 0
+  block:
+    - name: Caddy Prereq - Ensure Caddy build directory
+      ansible.builtin.file:
+        path: "{{ hms_docker_apps_path }}/caddy/build"
+        state: directory
+        mode: '0755'
+
+    - name: Caddy Prereq - Ensure Caddy Dockerfile
+      ansible.builtin.template:
+        src: caddy/Dockerfile.j2
+        dest: "{{ hms_docker_apps_path }}/caddy/build/Dockerfile"
+        mode: '0644'
+        trim_blocks: true
+        lstrip_blocks: true
+
+    # The image tag includes the Caddy version and a hash of the modules, so a change to either builds a new image
+    - name: Caddy Prereq - Build Caddy image
+      community.docker.docker_image_build:
+        name: "{{ hmsdocker_caddy_image.split(':')[0] }}"
+        tag: "{{ hmsdocker_caddy_image.split(':')[1] }}"
+        path: "{{ hms_docker_apps_path }}/caddy/build"
+        pull: true
+        rebuild: never
+      when: not ansible_check_mode

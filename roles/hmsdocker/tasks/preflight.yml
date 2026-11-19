@@ -131,8 +131,18 @@
     - not is_github_runner
 
 # ---------------------------------------------------------------------------
-# Traefik / SSL
+# Reverse proxy (Traefik or Caddy) / SSL
 # ---------------------------------------------------------------------------
+
+# Both bind ports 80 and 443 on the host
+- name: (preflight) Validate only one reverse proxy is enabled
+  ansible.builtin.assert:
+    that:
+      - not ((hms_docker_container_map['traefik']['enabled'] | default(false) | bool) and (hms_docker_container_map['caddy']['enabled'] | default(false) | bool))
+    fail_msg: >-
+      traefik and caddy are both enabled in the container map, but only one reverse proxy can run.
+      Set `enabled: false` on one of them in inventory/group_vars/all/container_map.yml.
+    quiet: true
 
 - name: (preflight) Validate Traefik SSL configuration
   ansible.builtin.assert:
@@ -146,19 +156,57 @@
     quiet: true
   when:
     - traefik_ssl_enabled | default(false) | bool
+    - not (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
     - not is_github_runner
 
-- name: (preflight) Validate Cloudflare API token when used as Traefik DNS provider
+- name: (preflight) Validate Caddy configuration
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_caddy_version | default('', true) | string) is match('^[0-9]+[.][0-9]+[.][0-9]+$')
+      - (hmsdocker_caddy_version | string) is version('2.11.6', '>=')
+      - (hmsdocker_caddy_log_level | default('', true) | string | upper) in ['DEBUG', 'INFO', 'WARN', 'ERROR']
+      - hmsdocker_caddy_extra_modules | default([], true) is iterable
+      - hmsdocker_caddy_extra_modules | default([], true) is not string
+      - hmsdocker_caddy_extra_modules | default([], true) is not mapping
+    fail_msg: >-
+      hmsdocker_caddy_version must be a quoted Caddy release of 2.11.6 or newer (e.g. "2.11.9"),
+      hmsdocker_caddy_log_level one of DEBUG, INFO, WARN or ERROR, and hmsdocker_caddy_extra_modules a list
+      of Go module paths. Update them in inventory/group_vars/all/caddy.yml.
+    quiet: true
+  when: hms_docker_container_map['caddy']['enabled'] | default(false) | bool
+
+- name: (preflight) Validate Caddy SSL configuration
+  ansible.builtin.assert:
+    that:
+      - (traefik_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (hmsdocker_caddy_dns_provider | default('', true) | string) is match('^[A-Za-z0-9_.-]+$')
+      - (hmsdocker_caddy_dns_provider_module | default('', true) | string) | length > 0
+      - (hmsdocker_caddy_dns_provider_config | default('', true) | string) | length > 0
+    fail_msg: >-
+      traefik_ssl_enabled is true but the Caddy SSL configuration is incomplete. Set traefik_ssl_letsencrypt_email
+      in inventory/group_vars/all/traefik.yml, and hmsdocker_caddy_dns_provider (e.g. cloudflare) and
+      hmsdocker_caddy_dns_provider_config in inventory/group_vars/all/caddy.yml. Providers and their settings
+      are listed at https://github.com/caddy-dns.
+    quiet: true
+  when:
+    - traefik_ssl_enabled | default(false) | bool
+    - hms_docker_container_map['caddy']['enabled'] | default(false) | bool
+    - not is_github_runner
+
+- name: (preflight) Validate Cloudflare API token when used as the SSL DNS provider
   ansible.builtin.assert:
     that:
       - (cloudflare_api_token | default('', true) | string) | length > 0
     fail_msg: >-
-      Traefik SSL is using Cloudflare as the DNS provider but cloudflare_api_token
+      SSL is using Cloudflare as the DNS provider but cloudflare_api_token
       is empty. Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   when:
     - traefik_ssl_enabled | default(false) | bool
-    - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
+    - >-
+      (hmsdocker_caddy_dns_provider | default('', true)) == 'cloudflare'
+      if (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
+      else (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
     - not is_github_runner
 
 # ---------------------------------------------------------------------------
@@ -281,15 +329,15 @@
       - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['traefik'] | default(false) | bool)
       - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
       - hms_docker_container_map['tinyauth']['traefik'] | default(false) | bool
-      - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
+      - (hms_docker_container_map['traefik']['enabled'] | default(false) | bool) or (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
       - traefik_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
       - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
         or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length == 0)
         or (hmsdocker_tinyauth_pocketid_client_secret | string | length >= 16)
     fail_msg: >-
-      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
-      traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
+      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and a reverse proxy (traefik or caddy) enabled in the
+      container map with traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
       pocketid must also be enabled with traefik: true. The client ID must be 2-128 letters, digits, _ or -,
       and a client secret the playbook registers in Pocket ID, if set, at least 16 characters.
     quiet: true

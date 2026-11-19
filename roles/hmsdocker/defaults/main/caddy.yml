@@ -1,0 +1,44 @@
+# Caddy reverse proxy, an alternative to Traefik
+# Enable `caddy` and disable `traefik` in the container map to use it, only one of them can run.
+#
+# Caddy routes the same containers as Traefik (those with `traefik: true` in the container map) and uses these
+# settings from traefik.yml, so switching between the two does not change how your services are reached:
+#   traefik_ssl_enabled, traefik_ssl_use_letsencrypt_staging_url, traefik_ssl_letsencrypt_email, traefik_ssl_sans,
+#   traefik_ssl_dns_provider_environment_vars, traefik_ssl_dns_resolver_1, traefik_ssl_dns_resolver_2,
+#   traefik_security_hardening, traefik_subnet_allow_list, traefik_ext_hosts_enabled, traefik_ext_hosts_list,
+#   traefik_enable_access_logs, traefik_verify_endpoints
+
+# Caddy release to deploy, 2.11.6 or newer // default: "2.11.9"
+hmsdocker_caddy_version: "2.11.9"
+
+# The Caddy log level, helpful for troubleshooting SSL issues // default: "INFO" // valid: "DEBUG", "INFO", "WARN", "ERROR"
+hmsdocker_caddy_log_level: "INFO"
+
+### SSL, only used when traefik_ssl_enabled is on
+# Caddy gets the certificates with the Let's Encrypt DNS challenge through a DNS provider module, which the playbook
+# builds into the Caddy image. Find your provider and its settings at https://github.com/caddy-dns
+# e.g. "cloudflare" for https://github.com/caddy-dns/cloudflare // default: same as traefik_ssl_dns_provider_code
+hmsdocker_caddy_dns_provider: "{{ traefik_ssl_dns_provider_code }}"
+
+# Go module of the DNS provider, only change this for a provider that is not under github.com/caddy-dns
+hmsdocker_caddy_dns_provider_module: "github.com/caddy-dns/{{ hmsdocker_caddy_dns_provider }}"
+
+# Settings of the DNS provider, written as in the provider's README after `dns <provider>`
+# Use {env.NAME} for values from traefik_ssl_dns_provider_environment_vars so secrets stay out of the Caddyfile
+# This is the Cloudflare example, it uses the CF_DNS_API_TOKEN from traefik_ssl_dns_provider_environment_vars
+# (the token needs the Zone.Zone:Read and Zone.DNS:Edit permissions)
+# For providers with several settings, use a block, e.g. for route53:
+# hmsdocker_caddy_dns_provider_config: |-
+#   {
+#     access_key_id {env.AWS_ACCESS_KEY_ID}
+#     secret_access_key {env.AWS_SECRET_ACCESS_KEY}
+#     region us-east-1
+#   }
+hmsdocker_caddy_dns_provider_config: "{env.CF_DNS_API_TOKEN}"
+
+# Additional Caddy modules to build into the image, as Go module paths (e.g. "github.com/mholt/caddy-ratelimit") // default: []
+hmsdocker_caddy_extra_modules: []
+
+# Where your own Caddy configs are stored, every `*.caddy` file in this folder is imported into the Caddyfile
+# Use it to proxy containers outside of this project, see the Caddy docs page
+hmsdocker_caddy_custom_config_location: "{{ hms_docker_apps_path }}/caddy/custom"

@@ -1,0 +1,161 @@
+{#
+  Caddy config for the `caddy` container. Mirrors the Traefik config:
+  - the routes Traefik builds from container labels (`traefik: true` in the container map, see
+    hmsdocker_caddy_upstreams in vars/main.yml), plus the external hosts in traefik_ext_hosts_list
+  - the internal/external IP allowlists, Authentik and Tinyauth forward auth, and the security hardening headers
+  - the Let's Encrypt wildcard certificate (DNS challenge) when traefik_ssl_enabled is on
+#}
+{% set ssl = traefik_ssl_enabled | default(false) | bool %}
+{% set site_prefix = '' if ssl else 'http://' %}
+{% set allow_list = ['127.0.0.1/32'] + (traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') | map('trim') | select | list) %}
+{% set seen = namespace(hosts=[]) %}
+{% macro site(address, upstream, allowlist=true, outpost='', tinyauth=false, headers={}, ext_host=false) %}
+{{ address }} {
+{% if traefik_enable_access_logs | default(false) %}
+	log
+{% endif %}
+{% if headers | length > 0 %}
+	header {
+{% for name, value in headers.items() %}
+		{{ name }} "{{ value }}"
+{% endfor %}
+	}
+{% endif %}
+	route {
+{% if allowlist %}
+		import hmsd_internal
+{% endif %}
+{% if outpost %}
+		import hmsd_authentik {{ outpost }}
+{% endif %}
+{% if tinyauth %}
+		import hmsd_tinyauth
+{% endif %}
+{% if upstream is match('https://') %}
+		reverse_proxy {{ upstream }} {
+			transport http {
+				tls_insecure_skip_verify
+			}
+		}
+{% elif ext_host %}
+		# Sends the external host's own hostname, like Traefik's passHostHeader: false (default for HTTPS upstreams)
+		reverse_proxy {{ upstream }} {
+			header_up Host {upstream_hostport}
+		}
+{% else %}
+		reverse_proxy {{ upstream }}
+{% endif %}
+	}
+}
+{% endmacro %}
+# Managed by hms-docker, changes to this file are overwritten on the next playbook run
+# Add your own sites to `*.caddy` files in {{ hmsdocker_caddy_custom_config_location }}, see the end of this file
+{
+	admin localhost:2019
+	persist_config off
+	log {
+		level {{ hmsdocker_caddy_log_level | upper }}
+	}
+{% if ssl %}
+	email {{ traefik_ssl_letsencrypt_email }}
+{% if traefik_ssl_use_letsencrypt_staging_url %}
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+{% endif %}
+	acme_dns {{ hmsdocker_caddy_dns_provider }} {{ hmsdocker_caddy_dns_provider_config }}
+	tls_resolvers {{ traefik_ssl_dns_resolver_1 }} {{ traefik_ssl_dns_resolver_2 }}
+{% if traefik_ssl_sans | default([], true) | length > 0 %}
+	# Wildcard certificate(s), sites they cover use them instead of getting their own certificate
+	tls_automate_names {{ traefik_ssl_sans | join(' ') }}
+{% endif %}
+{% else %}
+	auto_https off
+{% endif %}
+}
+
+# Only allows the IPs in traefik_subnet_allow_list (and localhost), other clients get a 403
+(hmsd_internal) {
+	@hmsd_denied not remote_ip {{ allow_list | join(' ') }}
+	respond @hmsd_denied "Forbidden" 403
+}
+
+# Authentik forward auth, the argument is the name of the Authentik outpost container
+(hmsd_authentik) {
+	reverse_proxy /outpost.goauthentik.io/* http://{args[0]}:9000
+	forward_auth http://{args[0]}:9000 {
+		uri /outpost.goauthentik.io/auth/caddy
+		copy_headers {{ hmsdocker_caddy_authentik_headers | join(' ') }}
+		trusted_proxies private_ranges
+	}
+}
+
+# Tinyauth forward auth, requires a Tinyauth sign-in
+(hmsd_tinyauth) {
+	forward_auth http://tinyauth:3000 {
+		uri /api/auth/caddy
+	}
+}
+
+### Containers
+{% for name in caddy_enabled_containers if name in hmsdocker_caddy_upstreams %}
+{% set up = hmsdocker_caddy_upstreams[name] %}
+{% set up_allowlist = up.allowlist | default(true) | bool %}
+{% set up_sso = up_allowlist and (up.sso | default(true) | bool) %}
+{% set instances = [''] + (['-4k'] if (up.separate_4k | default(false) and separate_4k_instances_enable | default(false)) else []) %}
+{% for suffix in instances %}
+{% set host = (hms_docker_container_map[name]['proxy_host_rule'] | default(name)) ~ suffix ~ '.' ~ hms_docker_domain %}
+{% if host not in seen.hosts %}
+{% set seen.hosts = seen.hosts + [host] %}
+{{ site(
+    address=site_prefix ~ host,
+    upstream=(up.scheme | default('http')) ~ '://' ~ (up.host | default(name)) ~ suffix ~ ':' ~ up.port,
+    allowlist=(up_allowlist and name not in expose_public_enabled_containers),
+    outpost=('authentik-proxy-' ~ project_name ~ '-' ~ name ~ suffix) if (up_sso and name in authentik_enabled_containers) else '',
+    tinyauth=(up_sso and name in tinyauth_protected_containers),
+    headers=((hmsdocker_caddy_security_headers if (traefik_security_hardening and up_allowlist) else {}) | combine(up.headers | default({})))
+) }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% if traefik_ext_hosts_enabled | default(false) %}
+### External hosts (traefik_ext_hosts_list)
+{% for item in traefik_ext_hosts_list | default([], true) %}
+{% if item.enabled | default(false) and (item.friendly_name | default('')) != '' and (item.subdomain_name | default('')) != '' and (item.backend_url | default('')) != '' %}
+{% set host = item.subdomain_name ~ '.' ~ hms_docker_domain %}
+{% if host not in seen.hosts %}
+{% set seen.hosts = seen.hosts + [host] %}
+# {{ item.friendly_name }}
+{{ site(
+    address=site_prefix ~ host,
+    upstream=item.backend_url | regex_replace('^([A-Za-z][A-Za-z0-9+.-]*://[^/?#]+).*$', '\\1'),
+    allowlist=not (item.expose_publicly | default(false)),
+    outpost=('authentik-proxy-' ~ project_name ~ '-' ~ (item.friendly_name | regex_replace(regex, replace))) if ('authentik' in enabled_containers and ssl and item.authentik | default(false)) else '',
+    tinyauth=('tinyauth' in proxy_enabled_containers and item.tinyauth | default(false)),
+    headers=(hmsdocker_caddy_security_headers if traefik_security_hardening else {}),
+    ext_host=true
+) }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+# Health check of the container, and the read-only upstream status for the Homepage widget.
+# Only reachable on the Docker network, the admin API itself stays on localhost
+http://:2020 {
+	handle /healthz {
+		respond "OK" 200
+	}
+	@hmsd_upstreams {
+		method GET
+		path /reverse_proxy/upstreams
+	}
+	handle @hmsd_upstreams {
+		reverse_proxy 127.0.0.1:2019 {
+			header_up Host localhost:2019
+		}
+	}
+	handle {
+		respond 404
+	}
+}
+
+# Your own sites
+import /etc/caddy-custom/*.caddy

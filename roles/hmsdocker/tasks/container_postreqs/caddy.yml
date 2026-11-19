@@ -1,0 +1,45 @@
+---
+# A Caddyfile that Caddy cannot load (e.g. wrong DNS provider settings) stops the container from starting
+- name: Caddy Postreq - Ensure Caddy is running
+  when:
+    - not ansible_check_mode
+    - hms_docker_compose_container_state | default('present') == 'present'
+  block:
+    - name: Caddy Postreq - Wait for the Caddy container
+      community.docker.docker_container_info:
+        name: caddy
+      register: caddy_container_info
+      until: caddy_running | bool
+      retries: 10
+      delay: 3
+      failed_when: false
+      vars:
+        caddy_running: >-
+          {{
+            caddy_container_info.exists | default(false)
+            and caddy_container_info.container.State.Running
+            and not caddy_container_info.container.State.Restarting
+          }}
+
+    - name: Caddy Postreq - Check the Caddy container is running
+      ansible.builtin.assert:
+        that:
+          - caddy_container_info.exists | default(false)
+          - caddy_container_info.container.State.Running
+          - not caddy_container_info.container.State.Restarting
+        fail_msg: >-
+          The caddy container is not running. Run `docker logs caddy` to see why, usually Caddy could not load
+          its config (e.g. hmsdocker_caddy_dns_provider_config does not match the DNS provider).
+          The generated config is {{ hms_docker_apps_path }}/caddy/config/Caddyfile.
+        quiet: true
+
+- name: Caddy Postreq - Verify all Caddy endpoints are accessible
+  ansible.builtin.uri:
+    url: http://{{ item }}.{{ hms_docker_domain }}
+    status_code: 200,302,308,401,403
+    validate_certs: false
+  loop: "{{ traefik_enabled_subdomains }}"
+  when:
+    - traefik_verify_endpoints | default(false)
+  ignore_errors: true
+  register: caddy_successful_endpoints
