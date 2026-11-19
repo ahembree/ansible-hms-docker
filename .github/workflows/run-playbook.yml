@@ -11,14 +11,22 @@ on:
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
+      - 'galaxy-requirements.yml'
+      - 'ansible.cfg'
+      - 'Makefile'
+      - 'inventory/**'
+      - '.github/extra-vars.yml'
+      - '.github/workflows/run-playbook.yml'
+      - '.github/workflows/scripts/**'
   pull_request:
     branches:
       - master
       - develop
     types: [opened, synchronize, reopened]
-    paths:
-      - 'roles/**'
-      - 'hms-docker.yml'
+    # No paths filter on pull_request: these jobs are required checks on
+    # master, and a path-filtered workflow never reports, leaving the PR stuck
+    # on "Expected". The job always runs and skips its steps when nothing
+    # relevant changed, so the check still reports success under the same name.
   schedule:
     - cron:  '23 9 * * 0'
 
@@ -40,12 +48,36 @@ jobs:
     steps:
       - name: Check out repo code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Detect relevant changes
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          PATTERN: '^(roles/|inventory/|\.github/workflows/scripts/|hms-docker\.yml$|galaxy-requirements\.yml$|ansible\.cfg$|Makefile$|\.github/extra-vars\.yml$|\.github/workflows/run-playbook\.yml$)'
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Checkout is the PR merge commit; its first parent is the base tip.
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          echo "$changed"
+          if echo "$changed" | grep -qE "$PATTERN"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No relevant files changed; skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Add hosts to /etc/hosts
+        if: steps.changes.outputs.run == 'true'
         run: |
             for name in sonarr radarr sonarr-4k radarr-4k prowlarr spottarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr tunarr nexroll audiobookshelf ersatztv pocketid tinyauth; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
+        if: steps.changes.outputs.run == 'true'
         run: |
           sudo apt update
           sudo sudo apt install software-properties-common
@@ -53,6 +85,7 @@ jobs:
           sudo apt install ansible
 
       - name: Ensure base playbook requirements
+        if: steps.changes.outputs.run == 'true'
         # does not use the `make` command since it requires input and we cannot input in a Runner
         run: |
           mkdir -p ./inventory/group_vars/all
@@ -61,6 +94,7 @@ jobs:
           make install-reqs
 
       - name: Run playbook in check mode
+        if: steps.changes.outputs.run == 'true'
         run: >-
           sudo ansible-playbook
           -i inventory/hosts.yml
@@ -70,6 +104,7 @@ jobs:
           --extra-vars "@.github/extra-vars.yml"
 
       - name: Run playbook
+        if: steps.changes.outputs.run == 'true'
         run: >-
           sudo ansible-playbook
           -i inventory/hosts.yml
@@ -78,12 +113,14 @@ jobs:
           --extra-vars "@.github/extra-vars.yml"
 
       - name: Check containers
+        if: steps.changes.outputs.run == 'true'
         run: |
           sleep 60
           sudo pip3 install requests python-dotenv xmltodict cryptography docker
           sudo make verify-containers
 
       - name: Run playbook again to ensure API keys are retrieved
+        if: steps.changes.outputs.run == 'true'
         run: >-
           sudo ansible-playbook
           -i inventory/hosts.yml

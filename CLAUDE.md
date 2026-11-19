@@ -21,7 +21,7 @@ All day-to-day workflows go through the [Makefile](Makefile):
 | `make verify-containers` | Runs `.github/workflows/scripts/check_containers.py` to validate exposed ports (used in CI). |
 | `make manager` | Interactive Python settings editor (`settings_manager.py` in a venv). |
 
-There is no separate test/lint runner; CI in [.github/workflows/run-playbook.yml](.github/workflows/run-playbook.yml) is essentially `make check` followed by `make apply` followed by `make verify-containers`. Lint config is [.ansible-lint](.ansible-lint).
+There is no separate test/lint runner; CI in [.github/workflows/run-playbook.yml](.github/workflows/run-playbook.yml) is essentially `make check` followed by `make apply` followed by `make verify-containers`. Its jobs and the docs build (`test-docs.yml`) are required checks on `master`, so their `pull_request` triggers have **no `paths` filter** (a filtered workflow never reports and blocks the PR forever); instead a "Detect relevant changes" step skips the remaining steps when no relevant file changed. Keep the push `paths` list and the step's `PATTERN` in sync when adding inputs. Lint config is [.ansible-lint](.ansible-lint).
 
 ## Architecture
 
