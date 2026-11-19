@@ -78,11 +78,11 @@ Two files are always written:
 
 Anything else is added only when the service actually needs it — a `container_prereqs`/`container_postreqs` task file, an `env.j2` variable, a `service_misc.yml` tunable, a Homepage credential, or a restart handler.
 
-It also updates the user-facing pieces: the category bullet and the Map table row on the [Container List](/docs/container-list/) page, a release-notes entry, the `hmsd_current_version` bump in `hms-docker.yml`, and the CI container map in `.github/extra-vars.yml`.
+It also updates the user-facing pieces: the category bullet and the Map table row on the [Container List](/docs/container-list/) page, a release-notes entry under `## Unreleased`, and the CI container map in `.github/extra-vars.yml`. It does not bump `hmsd_current_version`; that happens when a release is cut.
 
 :::caution[Warning]
 
-Bumping `hmsd_current_version` is what triggers a GitHub Release when the change merges to `master`. If you are opening a pull request rather than releasing, leave the version alone and say so.
+Pull requests go to the `develop` branch, not `master`. A GitHub Release is only published when `develop` is merged into `master` with a bumped `hmsd_current_version`, which the `cut-release` skill handles.
 
 :::
 

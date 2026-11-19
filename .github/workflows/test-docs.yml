@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - master
+      - develop
     paths:
       - 'docs-astro/**'
       - 'roles/hmsdocker/defaults/main/container_map.yml'

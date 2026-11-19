@@ -44,7 +44,7 @@ Please see the docs page at: https://hmsdocker.dev
 
 ## Contributing
 
-Pull requests are always welcome!
+Pull requests are always welcome! Please open them against the `develop` branch. `master` only receives releases.
 
 If you have suggestions for containers to add or any other improvements, please submit a [Discussion Post](https://github.com/ahembree/ansible-hms-docker/discussions)
 

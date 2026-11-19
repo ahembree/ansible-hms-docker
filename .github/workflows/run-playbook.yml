@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - master
+      - develop
     types: [opened, synchronize, reopened]
     paths:
       - 'roles/**'
