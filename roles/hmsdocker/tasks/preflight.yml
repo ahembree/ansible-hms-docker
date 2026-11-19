@@ -285,8 +285,8 @@
       - traefik_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
       - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
-        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length == 0)
-        or (hmsdocker_tinyauth_pocketid_client_secret | length >= 16)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length == 0)
+        or (hmsdocker_tinyauth_pocketid_client_secret | string | length >= 16)
     fail_msg: >-
       hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
       traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
@@ -300,7 +300,7 @@
     that:
       - hmsdocker_tinyauth_pocketid_base_url is match('^https://[^/\\s]+(/[^\\s]*)?$')
       - (hmsdocker_tinyauth_pocketid_manage_client | bool)
-        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length > 0)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length > 0)
     fail_msg: >-
       hmsdocker_tinyauth_pocketid_url must be the https:// URL of your Pocket ID (e.g. https://id.example.com).
       Without hmsdocker_tinyauth_pocketid_api_key the playbook cannot create the OIDC client: create it in
