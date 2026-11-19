@@ -1,3 +1,5 @@
+{% set socket_proxy_client = 'tinyauth' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
   tinyauth:
     image: ghcr.io/tinyauthapp/tinyauth:v5
@@ -12,21 +14,26 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    {% include 'socket_proxy/client_depends_on.j2' %}
     {% if 'tinyauth' in expose_ports_enabled_containers %}
     ports:
       - 3004:3000
     {% endif %}
     environment:
       - TZ=${TIMEZONE}
-      - TINYAUTH_APPURL=http{{ 's' if traefik_ssl_enabled }}://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}
+      - TINYAUTH_APPURL=http{{ 's' if traefik_ssl_enabled and 'tinyauth' in traefik_enabled_containers }}://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}{{ ':3004' if 'tinyauth' not in traefik_enabled_containers and 'tinyauth' in expose_ports_enabled_containers }}
       - TINYAUTH_AUTH_USERS=${TINYAUTH_USERS:-}
-      - TINYAUTH_AUTH_SECURECOOKIE={{ 'true' if traefik_ssl_enabled else 'false' }}
+      - TINYAUTH_AUTH_SECURECOOKIE={{ 'true' if traefik_ssl_enabled and 'tinyauth' in traefik_enabled_containers else 'false' }}
       - TINYAUTH_DATABASE_PATH=/data/tinyauth.db
       - TINYAUTH_RESOURCES_PATH=/data/resources
+      {% if 'tinyauth' in socket_proxy_no_access_containers %}
+      - TINYAUTH_LABELPROVIDER=none
+      {% endif %}
+    {% include 'socket_proxy/client_docker_host.j2' %}
     volumes:
       - ${HMSD_APPS_PATH}/tinyauth/config:/data
-      # Used to read tinyauth ACL labels from other containers
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # Used to read tinyauth access-control labels from other containers
+    {% include 'socket_proxy/client_volume.j2' %}
     {% if 'tinyauth' in traefik_enabled_containers or 'tinyauth' in homepage_enabled_containers %}
     labels:
       {% if 'tinyauth' in traefik_enabled_containers %}

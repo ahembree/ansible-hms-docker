@@ -99,6 +99,15 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
       head:
         - '(/v1\.\d+)?/_ping'
+  # Tinyauth: reads access-control labels from containers (label provider)
+  tinyauth:
+    mode: proxy
+    modes: [proxy, none, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
   # Uptime Kuma: Docker container monitors
   uptimekuma:
     mode: proxy
