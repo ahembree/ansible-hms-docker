@@ -1,0 +1,56 @@
+# Single sign-on settings: Authentik, Tinyauth and Pocket ID
+
+#######################################################################
+### Authentik settings
+
+# If cloudflare should be enabled when routing traffic through a Cloudflare Tunnel
+# This requires a lot of configuring on your end to ensure that any services exposed through a Cloudflare Tunnel are secure
+hmsdocker_authentik_enabled_through_cftunnel: false
+
+# Authentik release to deploy // default: "2026.8"
+# Authentik must be upgraded one release at a time (e.g. 2025.12 -> 2026.2 -> 2026.5 -> 2026.8) and refuses to start
+# if a release is skipped. The playbook stops before applying a skip and tells you which version to set here next.
+# See: https://docs.goauthentik.io/install-config/upgrade/
+hmsdocker_authentik_version: "2026.8"
+
+# Advanced Authentik settings
+authentik_pg_user: authentik
+authentik_pg_db: authentik
+authentik_key_path: "{{ hms_docker_data_path }}/.authentik.key"
+authentik_pgpass_path: "{{ hms_docker_data_path }}/.authentik.pgpass"
+authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+
+# These are not required if not using GeoIP
+authentik_geoip_account_id: ""
+authentik_geoip_license_key: ""
+### End Authentik settings
+#######################################################################
+
+#######################################################################
+### Tinyauth settings
+# List of Tinyauth users in `username:bcrypt_hash` format
+# Generate an entry with: docker run -i -t --rm ghcr.io/tinyauthapp/tinyauth:v5 user create --interactive
+# Example:
+# hmsdocker_tinyauth_users:
+#   - 'user:$2a$10$UdLYoJ5lgPsC0RKqYH/jMua7zIn0g9kPqWmhYayJYLaZQ/FTmH2/u'
+hmsdocker_tinyauth_users: []
+
+# Containers (container map keys) that require a Tinyauth sign-in. Each must have `traefik: true` in the container map
+# Example: hmsdocker_tinyauth_protected_containers: [sonarr, radarr, prowlarr]
+hmsdocker_tinyauth_protected_containers: []
+
+# Emails allowed to sign in to Tinyauth through OAuth (Pocket ID). Empty allows every Pocket ID user
+# A value wrapped in slashes is a regex, e.g. '/@example\.com$/'
+hmsdocker_tinyauth_oauth_whitelist: []
+
+# Sign in to Tinyauth with Pocket ID. Requires `pocketid` and `tinyauth` enabled with `traefik: true`, and traefik_ssl_enabled
+# The playbook creates the OIDC client in Pocket ID and configures Tinyauth for it
+hmsdocker_tinyauth_pocketid_enabled: false
+# Skip the Tinyauth login page and go straight to Pocket ID
+hmsdocker_tinyauth_pocketid_auto_redirect: false
+# Client ID of the OIDC client created in Pocket ID
+hmsdocker_tinyauth_pocketid_client_id: tinyauth
+# Client secret of the OIDC client. Leave empty to have the playbook generate one
+hmsdocker_tinyauth_pocketid_client_secret: ""
+### End Tinyauth settings
+#######################################################################

@@ -30,35 +30,6 @@ hmsdocker_notifiarr_api_key:
 #######################################################################
 
 #######################################################################
-### Tinyauth settings
-# List of Tinyauth users in `username:bcrypt_hash` format
-# Generate an entry with: docker run -i -t --rm ghcr.io/tinyauthapp/tinyauth:v5 user create --interactive
-# Example:
-# hmsdocker_tinyauth_users:
-#   - 'user:$2a$10$UdLYoJ5lgPsC0RKqYH/jMua7zIn0g9kPqWmhYayJYLaZQ/FTmH2/u'
-hmsdocker_tinyauth_users: []
-
-# Containers (container map keys) that require a Tinyauth sign-in. Each must have `traefik: true` in the container map
-# Example: hmsdocker_tinyauth_protected_containers: [sonarr, radarr, prowlarr]
-hmsdocker_tinyauth_protected_containers: []
-
-# Emails allowed to sign in to Tinyauth through OAuth (Pocket ID). Empty allows every Pocket ID user
-# A value wrapped in slashes is a regex, e.g. '/@example\.com$/'
-hmsdocker_tinyauth_oauth_whitelist: []
-
-# Sign in to Tinyauth with Pocket ID. Requires `pocketid` and `tinyauth` enabled with `traefik: true`, and traefik_ssl_enabled
-# The playbook creates the OIDC client in Pocket ID and configures Tinyauth for it
-hmsdocker_tinyauth_pocketid_enabled: false
-# Skip the Tinyauth login page and go straight to Pocket ID
-hmsdocker_tinyauth_pocketid_auto_redirect: false
-# Client ID of the OIDC client created in Pocket ID
-hmsdocker_tinyauth_pocketid_client_id: tinyauth
-# Client secret of the OIDC client. Leave empty to have the playbook generate one
-hmsdocker_tinyauth_pocketid_client_secret: ""
-### End Tinyauth settings
-#######################################################################
-
-#######################################################################
 ### Tautulli settings
 # Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
 tautulli_include_jbops: false

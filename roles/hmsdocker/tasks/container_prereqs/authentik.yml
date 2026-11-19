@@ -18,7 +18,7 @@
     fail_msg: >-
       Authentik {{ authentik_running_version }} is running, and upgrading straight to {{ authentik_target_version }} skips
       at least one release, which Authentik does not allow. Set `hmsdocker_authentik_version: "{{ authentik_next_version }}"`
-      in inventory/group_vars/all/authentik.yml, run the playbook, and repeat with each next release
+      in inventory/group_vars/all/sso.yml (authentik.yml on older installs), run the playbook, and repeat with each next release
       ({{ authentik_upgrade_path | select('version', authentik_running_version, '>') | select('version', authentik_target_version, '<=') | join(' -> ') }}) until you reach
       {{ authentik_target_version }}, then set it back to the default (or remove it).
     quiet: true

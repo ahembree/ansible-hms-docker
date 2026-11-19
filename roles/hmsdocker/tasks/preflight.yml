@@ -263,7 +263,7 @@
       - item.value | default([], true) is not mapping
     fail_msg: >-
       {{ item.key }} must be a list, e.g. {{ item.example }}. Update it in
-      inventory/group_vars/all/service_misc.yml.
+      inventory/group_vars/all/sso.yml.
     quiet: true
   loop:
     - { key: hmsdocker_tinyauth_users, value: "{{ hmsdocker_tinyauth_users | default([]) }}", example: '["user:$2a$10$..."]' }
@@ -390,7 +390,7 @@
 
 - name: (preflight) Warn if Tinyauth is enabled without users
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but hmsdocker_tinyauth_users is empty. Add at least one user in inventory/group_vars/all/service_misc.yml or nobody can sign in.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but hmsdocker_tinyauth_users is empty. Add at least one user in inventory/group_vars/all/sso.yml or nobody can sign in.'] }}"
   when:
     - hms_docker_container_map['tinyauth']['enabled'] | default(false)
     - (hmsdocker_tinyauth_users | default([], true)) | length == 0
