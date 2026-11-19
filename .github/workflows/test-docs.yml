@@ -1,7 +1,12 @@
 name: Test Astro Docs Build
 
 on:
+  # Branch pushes are covered by the pull_request trigger; only test
+  # long-lived branches on push so PR commits don't run twice.
   push:
+    branches:
+      - master
+      - develop
     paths:
       - 'docs-astro/**'
       - 'roles/hmsdocker/defaults/main/container_map.yml'
