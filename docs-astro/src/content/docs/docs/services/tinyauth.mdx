@@ -1,0 +1,134 @@
+---
+title: Tinyauth and Pocket ID
+description: "Put HMS-Docker services behind a Tinyauth sign-in, with Pocket ID passkeys as the login, configured entirely from inventory variables."
+sidebar:
+  label: Tinyauth and Pocket ID
+---
+
+[Tinyauth](https://github.com/steveiliop56/tinyauth) is a lightweight sign-in page for Traefik: a service behind it can only be opened after signing in. [Pocket ID](https://github.com/pocket-id/pocket-id) is an OIDC provider that signs users in with passkeys. Together they are a lighter alternative to [Authentik](/docs/services/authentik/).
+
+Both are optional and can be used on their own. The settings below are in `inventory/group_vars/all/sso.yml`, next to the Authentik settings.
+
+## Requirements
+
+- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `traefik: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
+- Traefik with SSL (`traefik_ssl_enabled`) to sign in with Pocket ID, since passkeys only work over HTTPS (the playbook checks this). Tinyauth with only local users also runs without SSL, but its session cookie is then sent unencrypted, so use SSL whenever you can
+
+## Signing in with Pocket ID
+
+```yaml
+hmsdocker_tinyauth_pocketid_enabled: true
+```
+
+The playbook then:
+
+1. Generates a static API key for Pocket ID and a client secret for Tinyauth (stored in their config folders)
+2. Creates a `tinyauth` OIDC client in Pocket ID with Tinyauth's callback URL and that secret
+3. Configures Tinyauth to use it, with a **Pocket ID** button on its login page
+
+After the run, open `https://pocketid.<your domain>/setup` to create the first Pocket ID admin and their passkey (Pocket ID's own one-time setup). Then add the users who should be able to sign in.
+
+Optional settings:
+
+```yaml
+# Skip the Tinyauth login page and go straight to Pocket ID
+hmsdocker_tinyauth_pocketid_auto_redirect: true
+
+# Only these Pocket ID users may sign in (empty allows all of them). A value wrapped in slashes is a regex
+hmsdocker_tinyauth_oauth_whitelist:
+  - you@example.com
+  - '/@example\.com$/'
+
+# Use your own client ID or secret (the secret must be at least 16 characters)
+hmsdocker_tinyauth_pocketid_client_id: tinyauth
+hmsdocker_tinyauth_pocketid_client_secret: ""
+```
+
+If the OIDC client already exists in Pocket ID (for example, you created it by hand), the playbook keeps it, adds Tinyauth's callback URL if it is missing, and adds the playbook's client secret alongside any existing ones.
+
+## Using a Pocket ID you already run
+
+To use a Pocket ID that runs somewhere else instead of the `pocketid` container, set its URL. The `pocketid` container does not need to be enabled.
+
+```yaml
+hmsdocker_tinyauth_pocketid_enabled: true
+hmsdocker_tinyauth_pocketid_url: https://id.example.com
+```
+
+Tinyauth must be able to reach that URL, and your browser must too.
+
+The OIDC client can then be set up in one of two ways:
+
+- **Let the playbook create it**: in Pocket ID, go to **Settings > Admin > API Keys** and create a key with the `oidc-clients:read` and `oidc-clients:write` permissions, then set it here. The playbook creates or updates the client like it does for the `pocketid` container. Renew the key in Pocket ID before it expires.
+
+  ```yaml
+  hmsdocker_tinyauth_pocketid_api_key: <API key>
+  ```
+
+- **Create it yourself**: in Pocket ID, add an OIDC client with the callback URL `https://tinyauth.<your domain>/api/oauth/callback/pocketid` (use your Tinyauth `proxy_host_rule` if you changed it), then set its ID and secret here. The playbook only configures Tinyauth.
+
+  ```yaml
+  hmsdocker_tinyauth_pocketid_client_id: <client ID>
+  hmsdocker_tinyauth_pocketid_client_secret: <client secret>
+  ```
+
+## Local users
+
+Tinyauth can also have its own username/password users, with or without Pocket ID:
+
+```yaml
+hmsdocker_tinyauth_users:
+  - 'user:$2a$10$UdLYoJ5lgPsC0RKqYH/jMua7zIn0g9kPqWmhYayJYLaZQ/FTmH2/u'
+```
+
+Generate an entry with:
+
+```bash
+docker run -i -t --rm ghcr.io/tinyauthapp/tinyauth:v5 user create --interactive
+```
+
+## Protecting services
+
+List the container map keys of the services that require a sign-in:
+
+```yaml
+hmsdocker_tinyauth_protected_containers:
+  - sonarr
+  - radarr
+  - prowlarr
+```
+
+Each listed service must be enabled with `traefik: true`. Its Traefik router gets the Tinyauth middleware after the usual IP allowlist, so opening it redirects to Tinyauth until you sign in. Protecting `sonarr` or `radarr` also protects their 4K instances.
+
+`tinyauth` and `pocketid` (which serve the sign-in), and `authentik` and `n8n` (which set their own Traefik middlewares) cannot be protected. A service that also has `authentik: true` would ask for both sign-ins, and the playbook warns about it.
+
+Anything that reaches a protected service through its Traefik URL without a browser sign-in is blocked too, for example mobile apps or scripts that call the *Arr APIs. Homepage widgets and the apps in this stack talk to each other over the Docker network, not through Traefik, so they are not affected. Protect only the services you open in a browser, or use Tinyauth's access controls ([Tinyauth docs](https://tinyauth.app/docs/getting-started)) to let specific paths through.
+
+### Services outside this project
+
+Routes to [external services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) in `traefik_ext_hosts_list` (in `inventory/group_vars/all/traefik.yml`) can require a Tinyauth sign-in too:
+
+```yaml
+traefik_ext_hosts_list: [
+  {
+    friendly_name: grafana,
+    subdomain_name: grafana,
+    backend_url: "http://192.168.1.50:3000",
+    enabled: yes,
+    expose_publicly: no,
+    authentik: no,
+    authentik_provider_type: proxy,
+    tinyauth: yes
+  },
+]
+```
+
+For a [container in another Compose project](/docs/services/traefik/other-svcs/#adding-other-containers-to-traefik) on the same host, add the Tinyauth middleware to its router yourself, after the IP allowlist. Replace `hms-docker` with your `project_name` if you changed it:
+
+```yaml
+- traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file,tinyauth-hms-docker@docker
+```
+
+## Socket proxy
+
+Tinyauth reads access-control labels from other containers through the Docker socket. With the [Docker Socket Proxy](/docs/services/socket-proxy/) enabled, it only gets read access to container details and events.

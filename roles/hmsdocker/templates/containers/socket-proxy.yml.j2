@@ -1,0 +1,65 @@
+{# One socket-proxy per client container. Each one exposes a filtered Docker socket in
+   apps/socket-proxy/<client>/ that only allows the Docker API requests that client needs.
+   Settings: hmsdocker_socket_proxy_builtin_clients (vars/main.yml) + hmsdocker_socket_proxy_overrides #}
+{% if socket_proxy_enabled_containers | length == 0 %}
+services: {}
+{% else %}
+services:
+{% for client in socket_proxy_enabled_containers %}
+  {% set profile = hmsdocker_socket_proxy_clients[client] %}
+  socket-proxy-{{ client }}:
+    image: {{ hmsdocker_socket_proxy_image }}
+    container_name: socket-proxy-{{ client }}
+    restart: ${RESTART_POLICY}
+    # nobody, with the group that owns the Docker socket
+    user: "65534:{{ socket_proxy_docker_gid }}"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Serves a Unix socket only, no network access at all
+    network_mode: none
+    mem_limit: 64m
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    command:
+      - -loglevel={{ hmsdocker_socket_proxy_log_level }}
+      - -proxysocketendpoint=/run/socket-proxy/docker.sock
+      - -proxysocketendpointfilemode=0660
+      - -allowhealthcheck
+      # Exit if the Docker socket stops responding (e.g. after a Docker update) so the container is restarted
+      - -watchdoginterval=60
+      - -stoponwatchdog
+      - -shutdowngracetime=5
+    {% for method, rules in (profile.allow | default({}, true)) | dictsort %}
+      {% for rule in rules %}
+      - {{ ('-allow' ~ (method | upper) ~ '=' ~ rule) | replace('$', '$$') | to_json }}
+      {% endfor %}
+    {% endfor %}
+    {% if profile.bind_mount_from | default([], true) | length > 0 %}
+      - {{ ('-allowbindmountfrom=' ~ (profile.bind_mount_from | join(','))) | to_json }}
+    {% endif %}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HMSD_APPS_PATH}/socket-proxy/{{ client }}:/run/socket-proxy
+    {% if profile.labels | default([], true) | length > 0 %}
+    labels:
+      {% for label in profile.labels %}
+      - {{ label | replace('$', '$$') | to_json }}
+      {% endfor %}
+    {% endif %}
+    # Clients wait for this to be healthy: check every second while starting, then every 30s
+    healthcheck:
+      test: ["CMD", "/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+      start_interval: 1s
+
+{% endfor %}
+{% endif %}

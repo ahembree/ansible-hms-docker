@@ -39,7 +39,7 @@ A clear and concise description of what you expected to happen.
 As some examples, if the issue is related to a below item then provide the variables from the mentioned file:
 
 - Cloudflare: `cloudflare.yml`
-- Authentik: `authentik.yml`
+- Authentik, Tinyauth or Pocket ID: `sso.yml` (`authentik.yml` on older installs)
 - NAS: `nas.yml` and the appropriate type (such as NFS, CIFS, or if it's an additional path)
 - VPN: `vpn.yml`
 - Traefik: `traefik.yml`
