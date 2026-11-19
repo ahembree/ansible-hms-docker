@@ -16,6 +16,9 @@ http:
       {% if ('authentik' in enabled_containers and traefik_ssl_enabled | default(False)) and item.authentik | default(False) %}
         - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
       {% endif %}
+      {% if 'tinyauth' in traefik_enabled_containers and item.tinyauth | default(False) %}
+        - tinyauth-{{ project_name }}@docker
+      {% endif %}
       service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}
       rule: Host(`{{ item.subdomain_name }}.{{ hms_docker_domain }}`)
 

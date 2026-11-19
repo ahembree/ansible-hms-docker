@@ -436,6 +436,18 @@
     - hmsdocker_tinyauth_protected_containers | default([], true) is not string
     - tinyauth_skipped | length > 0
 
+- name: (preflight) Warn if external hosts ask for Tinyauth without it
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These traefik_ext_hosts_list entries have tinyauth: yes, but the tinyauth container is not enabled with traefik: true, so they are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
+  vars:
+    tinyauth_ext_hosts: >-
+      {{ traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+         | selectattr('tinyauth', 'defined') | selectattr('tinyauth') | map(attribute='friendly_name') | list }}
+  when:
+    - traefik_ext_hosts_enabled | default(false) | bool
+    - not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+    - tinyauth_ext_hosts | length > 0
+
 - name: (preflight) Warn if containers are protected by both Tinyauth and Authentik
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These containers are in hmsdocker_tinyauth_protected_containers and have authentik: true, so users must sign in to both: ' + (tinyauth_and_authentik | join(', ')) + '.'] }}"
