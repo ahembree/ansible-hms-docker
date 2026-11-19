@@ -31,7 +31,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.beszel-${COMPOSE_PROJECT}.loadbalancer.server.port=8090
       - traefik.http.routers.beszel-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}
+      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'beszel' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'beszel' in homepage_enabled_containers %}
       - homepage.group=Infrastructure

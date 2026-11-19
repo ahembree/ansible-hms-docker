@@ -136,3 +136,7 @@ hmsdocker_socket_proxy_builtin_clients:
     # the proxy image on every run instead
     labels:
       - com.centurylinklabs.watchtower.enable=false
+
+# Containers that cannot be put behind Tinyauth with hmsdocker_tinyauth_protected_containers:
+# tinyauth and pocketid serve the sign-in itself, authentik and n8n set their own Traefik middlewares
+hmsdocker_tinyauth_unsupported_containers: [tinyauth, pocketid, authentik, n8n]

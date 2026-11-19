@@ -1,0 +1,14 @@
+# Client secret of the Pocket ID OIDC client. container_postreqs/pocketid.yml registers it in Pocket ID
+- name: (Prereq - Tinyauth) - Ensure Pocket ID client secret
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/tinyauth/config/.pocketid_client_secret' }}"
+    mode: '0600'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    # A user-supplied secret always wins, a generated one is only written once
+    force: "{{ (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length) > 0 }}"
+  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_tinyauth_pocketid_enabled | default(false)
+  vars:
+    key: "{{ hmsdocker_tinyauth_pocketid_client_secret | default('', true) or lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
