@@ -1,8 +1,8 @@
 name: Sync master into develop
 
 # After anything lands on 'master' that 'develop' doesn't already have (a
-# hotfix, or a squash-merged release), open a PR merging 'master' back into
-# 'develop' so the next release doesn't regress or conflict.
+# hotfix), open a PR merging 'master' back into 'develop' and merge it with a
+# merge commit, so the next release doesn't regress or conflict.
 #
 # Requires: Settings > Actions > General > "Allow GitHub Actions to create and
 # approve pull requests". PRs opened with GITHUB_TOKEN do not trigger
@@ -17,7 +17,7 @@ on:
 
 permissions:
   actions: write  # workflow_dispatch of the playbook tests
-  contents: read
+  contents: write  # merge the sync PR
   pull-requests: write
 
 concurrency:
@@ -49,15 +49,28 @@ jobs:
             exit 0
           fi
 
-          existing=$(gh pr list --base develop --head master --state open --json number --jq '.[0].number')
-          if [ -n "$existing" ]; then
-            echo "Sync PR #$existing is already open."
-            exit 0
+          pr=$(gh pr list --base develop --head master --state open --json number --jq '.[0].number')
+          if [ -n "$pr" ]; then
+            echo "Sync PR #$pr is already open."
+          else
+            url=$(gh pr create --base develop --head master \
+              --title "chore: sync master into develop" \
+              --body "Automated: \`master\` has changes that \`develop\` does not (usually a hotfix). This workflow merges it with a **merge commit**; if it is still open, merge it with **Merge**, never **Squash**.")
+            pr=${url##*/}
+            # workflow_dispatch is the one trigger GITHUB_TOKEN may fire
+            gh workflow run run-playbook.yml --ref master
           fi
 
-          gh pr create --base develop --head master \
-            --title "chore: sync master into develop" \
-            --body "Automated: \`master\` has changes that \`develop\` does not (usually a hotfix). Merge with a **merge commit** to keep both branches in step."
-
-          # workflow_dispatch is the one trigger GITHUB_TOKEN may fire
-          gh workflow run run-playbook.yml --ref master
+          # Merge it ourselves so it is always a merge commit. A squash would leave
+          # master's commits out of develop's history, and this workflow would then
+          # open a new sync PR after every later push to master.
+          # --auto waits for develop's ruleset requirements (needs "Allow auto-merge"
+          # in Settings > General); otherwise try merging right away. If neither works
+          # (merge conflict, failing requirement), the PR stays open for a person.
+          if gh pr merge "$pr" --merge --auto; then
+            echo "Auto-merge (merge commit) enabled on #$pr."
+          elif gh pr merge "$pr" --merge; then
+            echo "Merged #$pr with a merge commit."
+          else
+            echo "::warning::Could not merge sync PR #$pr automatically. Merge it with 'Merge', not 'Squash'."
+          fi
