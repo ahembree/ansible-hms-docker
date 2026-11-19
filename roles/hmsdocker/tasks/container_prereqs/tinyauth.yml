@@ -1,4 +1,4 @@
-# Client secret of the Pocket ID OIDC client. container_postreqs/pocketid.yml registers it in Pocket ID
+# Client secret of the Pocket ID OIDC client. container_postreqs/tinyauth.yml registers it in Pocket ID
 - name: (Prereq - Tinyauth) - Ensure Pocket ID client secret
   ansible.builtin.template:
     src: secret_key_file.j2

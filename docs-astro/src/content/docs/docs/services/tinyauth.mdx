@@ -11,7 +11,7 @@ Both are optional and can be used on their own. The settings below are in `inven
 
 ## Requirements
 
-- `tinyauth` (and `pocketid`, to sign in with Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `traefik: true`
+- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `traefik: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
 - Traefik with SSL (`traefik_ssl_enabled`). Pocket ID passkeys only work over HTTPS, and Tinyauth's session cookie must be secure
 
 ## Signing in with Pocket ID
@@ -45,6 +45,32 @@ hmsdocker_tinyauth_pocketid_client_secret: ""
 ```
 
 If the OIDC client already exists in Pocket ID (for example, you created it by hand), the playbook keeps it, adds Tinyauth's callback URL if it is missing, and adds the playbook's client secret alongside any existing ones.
+
+## Using a Pocket ID you already run
+
+To use a Pocket ID that runs somewhere else instead of the `pocketid` container, set its URL. The `pocketid` container does not need to be enabled.
+
+```yaml
+hmsdocker_tinyauth_pocketid_enabled: true
+hmsdocker_tinyauth_pocketid_url: https://id.example.com
+```
+
+Tinyauth must be able to reach that URL, and your browser must too.
+
+The OIDC client can then be set up in one of two ways:
+
+- **Let the playbook create it**: in Pocket ID, go to **Settings > Admin > API Keys** and create a key with the `oidc-clients:read` and `oidc-clients:write` permissions, then set it here. The playbook creates or updates the client like it does for the `pocketid` container. Renew the key in Pocket ID before it expires.
+
+  ```yaml
+  hmsdocker_tinyauth_pocketid_api_key: <API key>
+  ```
+
+- **Create it yourself**: in Pocket ID, add an OIDC client with the callback URL `https://tinyauth.<your domain>/api/oauth/callback/pocketid` (use your Tinyauth `proxy_host_rule` if you changed it), then set its ID and secret here. The playbook only configures Tinyauth.
+
+  ```yaml
+  hmsdocker_tinyauth_pocketid_client_id: <client ID>
+  hmsdocker_tinyauth_pocketid_client_secret: <client secret>
+  ```
 
 ## Local users
 

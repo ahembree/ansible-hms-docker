@@ -11,7 +11,7 @@
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
 
-# Lets the playbook create the Tinyauth OIDC client through the Pocket ID API (container_postreqs/pocketid.yml)
+# Lets the playbook create the Tinyauth OIDC client through the Pocket ID API (container_postreqs/tinyauth.yml)
 - name: (Prereq - Pocket ID) - Generate static API key
   ansible.builtin.template:
     src: secret_key_file.j2
@@ -21,6 +21,6 @@
     group: "{{ container_gid }}"
     force: false
   no_log: "{{ not debug_mode }}"
-  when: hmsdocker_tinyauth_pocketid_enabled | default(false)
+  when: hmsdocker_tinyauth_pocketid_local | bool
   vars:
     key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"

@@ -34,11 +34,17 @@ services:
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_CLIENTID={{ hmsdocker_tinyauth_pocketid_client_id }}
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_CLIENTSECRETFILE=/data/.pocketid_client_secret
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_SCOPES=openid,email,profile,groups
+        {% if hmsdocker_tinyauth_pocketid_external | bool %}
+      - TINYAUTH_OAUTH_PROVIDERS_pocketid_AUTHURL={{ hmsdocker_tinyauth_pocketid_base_url }}/authorize
+      - TINYAUTH_OAUTH_PROVIDERS_pocketid_TOKENURL={{ hmsdocker_tinyauth_pocketid_base_url }}/api/oidc/token
+      - TINYAUTH_OAUTH_PROVIDERS_pocketid_USERINFOURL={{ hmsdocker_tinyauth_pocketid_base_url }}/api/oidc/userinfo
+        {% else %}
       # Opened by the browser
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_AUTHURL=https://{{ hms_docker_container_map['pocketid']['proxy_host_rule'] | default('pocketid') }}.${HMSD_DOMAIN}/authorize
       # Called by Tinyauth over the Docker network
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_TOKENURL=http://pocketid:1411/api/oidc/token
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_USERINFOURL=http://pocketid:1411/api/oidc/userinfo
+        {% endif %}
       - TINYAUTH_OAUTH_PROVIDERS_pocketid_REDIRECTURL=https://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}/api/oauth/callback/pocketid
         {% if hmsdocker_tinyauth_pocketid_auto_redirect | default(false) %}
       - TINYAUTH_OAUTH_AUTOREDIRECT=pocketid

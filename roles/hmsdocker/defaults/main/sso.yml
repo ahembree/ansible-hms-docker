@@ -43,14 +43,23 @@ hmsdocker_tinyauth_protected_containers: []
 # A value wrapped in slashes is a regex, e.g. '/@example\.com$/'
 hmsdocker_tinyauth_oauth_whitelist: []
 
-# Sign in to Tinyauth with Pocket ID. Requires `pocketid` and `tinyauth` enabled with `traefik: true`, and traefik_ssl_enabled
+# Sign in to Tinyauth with Pocket ID. Requires `tinyauth` enabled with `traefik: true`, and traefik_ssl_enabled
 # The playbook creates the OIDC client in Pocket ID and configures Tinyauth for it
 hmsdocker_tinyauth_pocketid_enabled: false
+# Pocket ID to use. Empty uses the `pocketid` container (it must be enabled with `traefik: true`)
+# Set to the URL of a Pocket ID running elsewhere to use that instead, e.g. https://id.example.com
+hmsdocker_tinyauth_pocketid_url: ""
+# Only for a Pocket ID set with hmsdocker_tinyauth_pocketid_url: an API key from it (Settings > Admin > API Keys) with the
+# `oidc-clients:read` and `oidc-clients:write` permissions, so the playbook can create the OIDC client
+# Leave empty to create the client yourself in Pocket ID, then set hmsdocker_tinyauth_pocketid_client_id and
+# hmsdocker_tinyauth_pocketid_client_secret to its values
+hmsdocker_tinyauth_pocketid_api_key: ""
 # Skip the Tinyauth login page and go straight to Pocket ID
 hmsdocker_tinyauth_pocketid_auto_redirect: false
 # Client ID of the OIDC client created in Pocket ID
 hmsdocker_tinyauth_pocketid_client_id: tinyauth
-# Client secret of the OIDC client. Leave empty to have the playbook generate one
+# Client secret of the OIDC client. Leave empty to have the playbook generate one (not possible with an external
+# Pocket ID without an API key)
 hmsdocker_tinyauth_pocketid_client_secret: ""
 ### End Tinyauth settings
 #######################################################################

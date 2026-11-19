@@ -276,21 +276,38 @@
 - name: (preflight) Validate Tinyauth Pocket ID sign-in requirements
   ansible.builtin.assert:
     that:
-      - hms_docker_container_map['pocketid']['enabled'] | default(false) | bool
-      - hms_docker_container_map['pocketid']['traefik'] | default(false) | bool
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['enabled'] | default(false) | bool)
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['traefik'] | default(false) | bool)
       - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
       - hms_docker_container_map['tinyauth']['traefik'] | default(false) | bool
       - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
       - traefik_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
-      - (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length == 0)
+      - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length == 0)
         or (hmsdocker_tinyauth_pocketid_client_secret | length >= 16)
     fail_msg: >-
-      hmsdocker_tinyauth_pocketid_enabled requires pocketid, tinyauth and traefik enabled in the
-      container map with traefik: true on pocketid and tinyauth, and traefik_ssl_enabled. The client ID
-      must be 2-128 letters, digits, _ or -, and a client secret, if set, at least 16 characters.
+      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
+      traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
+      pocketid must also be enabled with traefik: true. The client ID must be 2-128 letters, digits, _ or -,
+      and a client secret the playbook registers in Pocket ID, if set, at least 16 characters.
     quiet: true
   when: hmsdocker_tinyauth_pocketid_enabled | default(false) | bool
+
+- name: (preflight) Validate external Pocket ID settings
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_tinyauth_pocketid_base_url is match('^https://[^/\\s]+(/[^\\s]*)?$')
+      - (hmsdocker_tinyauth_pocketid_manage_client | bool)
+        or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length > 0)
+    fail_msg: >-
+      hmsdocker_tinyauth_pocketid_url must be the https:// URL of your Pocket ID (e.g. https://id.example.com).
+      Without hmsdocker_tinyauth_pocketid_api_key the playbook cannot create the OIDC client: create it in
+      Pocket ID with the callback URL
+      https://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.{{ hms_docker_domain }}/api/oauth/callback/pocketid
+      and set hmsdocker_tinyauth_pocketid_client_id and hmsdocker_tinyauth_pocketid_client_secret to its values.
+    quiet: true
+  when: hmsdocker_tinyauth_pocketid_external | bool
 
 # ---------------------------------------------------------------------------
 # Docker socket proxy (only checked while socket-proxy is enabled)
