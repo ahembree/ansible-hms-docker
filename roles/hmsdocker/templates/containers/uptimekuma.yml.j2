@@ -1,3 +1,5 @@
+{% set socket_proxy_client = 'uptimekuma' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock' %}
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:2
@@ -12,9 +14,10 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    {% include 'socket_proxy/client_depends_on.j2' %}
     volumes:
       - ${HMSD_APPS_PATH}/uptimekuma/config:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
+    {% include 'socket_proxy/client_volume.j2' %}
     {% if 'uptimekuma' in expose_ports_enabled_containers %}
     ports:
       - 3001:3001

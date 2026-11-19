@@ -252,6 +252,76 @@
     quiet: true
 
 # ---------------------------------------------------------------------------
+# Docker socket proxy (only checked while socket-proxy is enabled)
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate Docker socket proxy settings
+  when: hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool
+  block:
+    # socket-proxy refuses to start with any other log level, and every proxied container waits for it
+    - name: (preflight) Validate hmsdocker_socket_proxy_log_level
+      ansible.builtin.assert:
+        that:
+          - hmsdocker_socket_proxy_log_level is string
+          - (hmsdocker_socket_proxy_log_level | lower) in hmsdocker_socket_proxy_log_levels
+        fail_msg: >-
+          hmsdocker_socket_proxy_log_level must be one of: {{ hmsdocker_socket_proxy_log_levels | join(', ') }}.
+          Update it in inventory/group_vars/all/container_settings.yml.
+        quiet: true
+
+    - name: (preflight) Validate hmsdocker_socket_proxy_overrides is a mapping
+      ansible.builtin.assert:
+        that:
+          - hmsdocker_socket_proxy_overrides | default({}, true) is mapping
+        fail_msg: >-
+          hmsdocker_socket_proxy_overrides must map container names to settings, e.g.
+          { uptimekuma: { mode: direct } }. Update it in inventory/group_vars/all/container_settings.yml.
+        quiet: true
+
+    # Each regex list must really be a list: a string would be split into one rule per character.
+    - name: (preflight) Validate each socket proxy override
+      ansible.builtin.assert:
+        that:
+          - item.value is mapping
+          - item.value.mode is not defined or item.value.mode in socket_proxy_modes
+          - socket_proxy_allow is mapping
+          - socket_proxy_allow.keys() | list | difference(hmsdocker_socket_proxy_methods) | length == 0
+          - socket_proxy_allow.values() | reject('iterable') | list | length == 0
+          - socket_proxy_allow.values() | select('string') | list | length == 0
+          - socket_proxy_allow.values() | select('mapping') | list | length == 0
+          - socket_proxy_allow.values() | flatten(levels=1) | reject('string') | list | length == 0
+          - socket_proxy_allow.values() | flatten(levels=1) | select('equalto', '') | list | length == 0
+          - socket_proxy_bind_mounts is iterable
+          - socket_proxy_bind_mounts is not string
+          - socket_proxy_bind_mounts is not mapping
+          - socket_proxy_bind_mounts | reject('string') | list | length == 0
+          - socket_proxy_bind_mounts | reject('match', '/') | list | length == 0
+          - socket_proxy_bind_mounts | select('search', ',') | list | length == 0
+        fail_msg: >-
+          hmsdocker_socket_proxy_overrides.{{ item.key }} is not valid. `mode` must be one of:
+          {{ socket_proxy_modes | join(', ') }}. `allow` must map HTTP methods
+          ({{ hmsdocker_socket_proxy_methods | join(', ') }}) to lists of regexes, e.g. get: ['(/v1\.\d+)?/_ping'].
+          `bind_mount_from` must be a list of absolute paths.
+          Update it in inventory/group_vars/all/container_settings.yml.
+        quiet: true
+      # The loop is evaluated before `when`, so it must not fail when socket-proxy is off and the overrides are malformed
+      loop: >-
+        {{
+          (hmsdocker_socket_proxy_overrides | dict2items | selectattr('key', 'in', hmsdocker_socket_proxy_builtin_clients.keys() | list) | list)
+          if (hmsdocker_socket_proxy_overrides | default({}, true) is mapping and hmsdocker_socket_proxy_overrides | default({}, true) | length > 0)
+          else []
+        }}
+      loop_control:
+        label: "{{ item.key }}"
+      vars:
+        socket_proxy_modes: "{{ hmsdocker_socket_proxy_builtin_clients[item.key]['modes'] }}"
+        socket_proxy_allow: "{{ (item.value.allow | default({}, true)) if item.value is mapping else {} }}"
+        socket_proxy_bind_mounts: "{{ (item.value.bind_mount_from | default([], true)) if item.value is mapping else [] }}"
+
+- name: (preflight) Build Docker socket proxy settings
+  ansible.builtin.import_tasks: "socket_proxy_settings.yml"
+
+# ---------------------------------------------------------------------------
 # Soft warnings (non-fatal). Appended to hmsdocker_preflight_warnings and
 # printed at the end of preflight if non-empty.
 # ---------------------------------------------------------------------------
@@ -299,6 +369,41 @@
     - nas_client_use_additional_paths | default(false) | bool
     - ansible_facts['kernel'] is version('5.12', '<')
     - readonly_media_nested_shares | length > 0
+
+- name: (preflight) Warn if socket proxy overrides are set for unsupported containers
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_socket_proxy_overrides contains containers without socket proxy support: ' + (socket_proxy_unsupported | join(', ')) + '. They are ignored. Supported: ' + (hmsdocker_socket_proxy_builtin_clients.keys() | list | join(', ')) + '.'] }}"
+  vars:
+    socket_proxy_unsupported: "{{ hmsdocker_socket_proxy_overrides | default({}, true) | list | difference(hmsdocker_socket_proxy_builtin_clients.keys() | list) }}"
+  when:
+    - hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool
+    - socket_proxy_unsupported | length > 0
+
+# Uptime Kuma keeps its Docker hosts in its own database, so the playbook cannot point them at the filtered
+# socket. Warn on the run that switches Uptime Kuma to the socket proxy, i.e. while its current compose file
+# does not mount the proxy yet (also after the proxy was turned off and on again).
+- name: (preflight) Check whether Uptime Kuma uses the socket proxy
+  ansible.builtin.set_fact:
+    socket_proxy_uptimekuma_proxied: >-
+      {{
+        (hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool)
+        and (hms_docker_container_map['uptimekuma']['enabled'] | default(false) | bool)
+        and hmsdocker_socket_proxy_clients['uptimekuma']['mode'] == 'proxy'
+      }}
+
+- name: (preflight) Read the current Uptime Kuma compose file
+  ansible.builtin.slurp:
+    src: "{{ hms_docker_data_path }}/compose_files/uptimekuma.yml"
+  register: socket_proxy_uptimekuma_compose
+  failed_when: false
+  when: socket_proxy_uptimekuma_proxied | bool
+
+- name: (preflight) Warn that Uptime Kuma Docker hosts must be updated for the socket proxy
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Uptime Kuma now reaches Docker through the socket proxy. In Uptime Kuma, go to Settings > Docker Hosts and change the socket path of existing Docker hosts from /var/run/docker.sock to ' + hmsdocker_socket_proxy_client_dir + '/docker.sock.'] }}"
+  when:
+    - socket_proxy_uptimekuma_proxied | bool
+    - "'/socket-proxy/uptimekuma:' not in (socket_proxy_uptimekuma_compose.content | default('') | b64decode)"
 
 # ---------------------------------------------------------------------------
 # Print collected warnings

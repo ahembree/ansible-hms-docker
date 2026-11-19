@@ -1,0 +1,10 @@
+{# Makes a container that uses the socket proxy wait until its proxy is healthy.
+   Set before including: socket_proxy_client. Set socket_proxy_depends_entry_only when the
+   service already has a depends_on block, to only add the entry #}
+{% if socket_proxy_client in socket_proxy_enabled_containers %}
+{% if not (socket_proxy_depends_entry_only | default(false)) %}
+    depends_on:
+{% endif %}
+      socket-proxy-{{ socket_proxy_client }}:
+        condition: service_healthy
+{% endif %}

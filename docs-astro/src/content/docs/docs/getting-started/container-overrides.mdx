@@ -36,6 +36,20 @@ If you want to check the final Compose configuration after modification of the o
 sudo docker compose config
 ```
 
+## FileFlows Docker Siblings
+
+FileFlows does not get the Docker socket, because it only uses it for its optional [Docker Siblings](https://fileflows.com/docs/installation/docker/) runners. To use them, add the socket and FileFlows' `TempPathHost` (the host folder FileFlows' `/temp` is mounted from, `hmsdocker_transcode_temp_path` + `/fileflows`) in the override file:
+
+```yaml
+# /opt/hms-docker/docker-compose.override.yml
+services:
+  fileflows:
+    environment:
+      - TempPathHost=/tmp/hmsd_transcode/fileflows
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
 ## Private Internet Access (PIA)
 
 The Deluge and qBittorrent containers natively support PIA. Set the following in `inventory/group_vars/all/vpn.yml`:

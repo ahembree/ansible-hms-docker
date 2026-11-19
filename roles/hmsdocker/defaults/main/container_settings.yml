@@ -28,3 +28,20 @@ container_expose_ports: no
 # Some features stop working when the media share is read-only (e.g. saving NFO files or artwork into media folders), see the docs before enabling
 # Example: hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
 hmsdocker_readonly_media_containers: []
+
+### Docker socket proxy
+# Enable `socket-proxy` in the container map to give each container that uses the Docker socket its own filtered socket
+# that only allows the Docker API requests that container needs. See the "Docker Socket Proxy" docs page.
+
+# Log level of the socket proxies // default: "info" // valid: "debug", "info", "warn", "error"
+# Blocked requests are logged at "warn", "debug" also logs every allowed request
+hmsdocker_socket_proxy_log_level: info
+
+# Per-container changes to the built-in socket proxy settings // default: {}
+#  `mode`: "proxy" (filtered socket), "none" (no Docker access) or "direct" (unfiltered Docker socket, same as without the socket proxy)
+#  `allow`: Docker API path regexes per HTTP method (get, head, post, put, patch, delete). A method listed here replaces the built-in list for that method
+#  `bind_mount_from`: host directories the container may bind mount into containers it creates
+# Supported containers: authentik, beszel, homepage, traefik, uptimekuma, watchtower
+# Traefik, Homepage, Watchtower and Authentik only accept "proxy" or "direct"
+# Example: hmsdocker_socket_proxy_overrides: { uptimekuma: { mode: direct } }
+hmsdocker_socket_proxy_overrides: {}
