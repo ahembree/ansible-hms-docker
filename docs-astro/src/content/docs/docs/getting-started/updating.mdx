@@ -13,7 +13,38 @@ make update
 
 Previous variable names will still work for at least a year after the change and will be noted as such within the default configs. Please update to resolve.
 
-If any new containers or container controls were added since you last updated, your `container_map.yml` file will also be updated with the defaults for the new container(s) and controls.
+If any new containers or container controls were added since you last updated, your `container_map.yml` file will also be updated with the defaults for the new container(s) and controls. The defaults come from the version of the code you just pulled, so they always match what you are about to apply.
+
+## Release channels
+
+The repo has two long-lived branches:
+
+| Branch | Channel | What it contains |
+|-|-|-|
+| `master` | Stable (default) | Only released versions. It only changes when a new [release](/docs/release-notes/) is published. |
+| `develop` | Development | Every merged change, including ones that are not in a release yet. Can be unstable. |
+
+`make update` pulls whichever branch you currently have checked out, so a normal clone stays on stable releases.
+
+To try changes before they are released, switch to `develop`:
+
+```bash
+make switch-develop
+```
+
+To go back to stable releases:
+
+```bash
+make switch-stable
+```
+
+Both commands switch branches and run `make update` for you. Local edits such as `inventory/hosts.yml` are kept; if an edited file also changed between the branches, git refuses and you need to commit or stash it first. To see which branch you are on, run `make branch`.
+
+:::caution[Switching back to stable]
+
+Moving from `develop` to `master` can roll back changes that were already applied to your host. If `develop` added a container that is not in the latest release yet, `make update` warns about it. Disable it in your `container_map.yml` before running `make apply`.
+
+:::
 
 Please see the [Release Notes](/docs/release-notes/) if you are updating from a previous version.
 

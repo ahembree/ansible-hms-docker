@@ -13,6 +13,16 @@
 #  `traefik`: Enables or disables accessing the container via Traefik
 
 hms_docker_container_map:
+  audiobookshelf:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: audiobookshelf
+    traefik: true
   authentik:
     directory: true
     enabled: false
@@ -143,6 +153,16 @@ hms_docker_container_map:
     homepage_stats: true
     proxy_host_rule: emby
     traefik: true
+  ersatztv:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: ersatztv
+    traefik: true
   fileflows:
     authentik: false
     directory: true
@@ -240,6 +260,16 @@ hms_docker_container_map:
     enabled: false
     homepage: true
     homepage_stats: false
+  nexroll:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: nexroll
+    traefik: true
   notifiarr:
     authentik: false
     directory: true
@@ -294,6 +324,16 @@ hms_docker_container_map:
     homepage: true
     homepage_stats: true
     proxy_host_rule: plex
+    traefik: true
+  pocketid:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: pocketid
     traefik: true
   portainer:
     authentik: false
@@ -379,6 +419,8 @@ hms_docker_container_map:
     homepage_stats: false
     proxy_host_rule: seerr
     traefik: true
+  socket-proxy:
+    enabled: false
   sonarr:
     authentik: false
     directory: true
@@ -432,6 +474,16 @@ hms_docker_container_map:
     homepage: true
     homepage_stats: false
     proxy_host_rule: tdarr
+    traefik: true
+  tinyauth:
+    authentik: false
+    directory: true
+    enabled: false
+    expose_ports: false
+    expose_to_public: false
+    homepage: true
+    homepage_stats: false
+    proxy_host_rule: tinyauth
     traefik: true
   tinymediamanager:
     authentik: false

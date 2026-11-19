@@ -23,7 +23,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.sonarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if 'sonarr' in authentik_enabled_containers }}
+      - traefik.http.routers.sonarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-midware@docker' if 'sonarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'sonarr' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers
@@ -83,7 +83,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.sonarr-4k-${COMPOSE_PROJECT}.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['sonarr']['proxy_host_rule'] | default('sonarr') }}-4k.${HMSD_DOMAIN}`)
-      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if 'sonarr' in authentik_enabled_containers }}
+      - traefik.http.routers.sonarr-4k-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'sonarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-sonarr-4k-midware@docker' if 'sonarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'sonarr' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'sonarr' in homepage_enabled_containers %}
       - homepage.group=Managers - 4K

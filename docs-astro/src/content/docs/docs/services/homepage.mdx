@@ -34,6 +34,7 @@ For services that don't support automatic key retrieval, you will need to manual
 | Dockhand | `hmsdocker_homepage_dockhand_user` / `_pass` | Username and password |
 | qBittorrent | `hmsdocker_homepage_qbittorrent_user` / `_pass` | Web UI username (default `admin`) and password |
 | Deluge | `hmsdocker_homepage_deluge_pass` | Web UI password (default `deluge`, the image default) |
+| Audiobookshelf | `hmsdocker_homepage_audiobookshelf_key` | API key created under Settings > API Keys (as an admin) |
 | FileFlows | `hmsdocker_homepage_fileflows_key` | FileFlows 26.10+ only serves widget data via the Fenrus endpoint. Enable "Fenrus Dashboard Endpoint" under Settings > General and use its token |
 
 Tdarr needs no manual key: the playbook generates one and seeds it into Tdarr (used by the internal node and the widget).

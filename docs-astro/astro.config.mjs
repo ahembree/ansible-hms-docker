@@ -69,6 +69,8 @@ export default defineConfig({
     }),
 		starlight({
 			favicon: 'favicon.ico',
+			// Custom 404 lives in src/pages/404.astro.
+			disable404Route: true,
       plugins: [starlightThemeNext()],
 			customCss: [
 				'./src/styles/global.css',
@@ -193,7 +195,7 @@ export default defineConfig({
       ],
 			lastUpdated: true,
 			editLink:{
-				baseUrl: 'https://github.com/ahembree/ansible-hms-docker/edit/master/docs-astro'
+				baseUrl: 'https://github.com/ahembree/ansible-hms-docker/edit/develop/docs-astro'
 			}
 		}),
 		icon({

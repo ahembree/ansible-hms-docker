@@ -18,7 +18,7 @@
     fail_msg: >-
       Authentik {{ authentik_running_version }} is running, and upgrading straight to {{ authentik_target_version }} skips
       at least one release, which Authentik does not allow. Set `hmsdocker_authentik_version: "{{ authentik_next_version }}"`
-      in inventory/group_vars/all/authentik.yml, run the playbook, and repeat with each next release
+      in inventory/group_vars/all/sso.yml (authentik.yml on older installs), run the playbook, and repeat with each next release
       ({{ authentik_upgrade_path | select('version', authentik_running_version, '>') | select('version', authentik_target_version, '<=') | join(' -> ') }}) until you reach
       {{ authentik_target_version }}, then set it back to the default (or remove it).
     quiet: true
@@ -111,6 +111,28 @@
   when: 
     - item.name in ['sonarr', 'radarr']
     - separate_4k_instances_enable | default(false)
+
+# With the socket proxy the worker has no /var/run/docker.sock, so authentik does not create its
+# "Local Docker connection" on its own. This blueprint creates it (and leaves an existing one alone).
+- name: Authentik Prereq - Ensure blueprints directory
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/authentik/blueprints"
+    state: directory
+    mode: 0755
+  when: "'authentik' in socket_proxy_enabled_containers"
+
+- name: Authentik Prereq - Ensure Docker connection blueprint for the socket proxy
+  ansible.builtin.template:
+    src: authentik/hmsd_docker_connection.yaml.j2
+    dest: "{{ hms_docker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
+    mode: 0644
+  when: "'authentik' in socket_proxy_enabled_containers"
+
+- name: Authentik Prereq - Remove Docker connection blueprint when the socket proxy is not used
+  ansible.builtin.file:
+    path: "{{ hms_docker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
+    state: absent
+  when: "'authentik' not in socket_proxy_enabled_containers"
 
 # Authentik 2025.12+ stores files under a /data mount instead of /media
 # (https://docs.goauthentik.io/releases/2025.12/#storage-mount-changes).

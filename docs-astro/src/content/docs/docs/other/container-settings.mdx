@@ -90,7 +90,7 @@ hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
 
 Each listed container still sees the media share at `/data`, but the mount is made with `:ro`. The container can read and play everything, but it cannot create, change, or delete anything on the share. This limits the damage a compromised or misbehaving media server can do. It cannot delete your library or encrypt it for ransom.
 
-Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`.
+Supported containers: `plex`, `emby`, `jellyfin`, `kavita`, `calibre`, `ersatztv`, `tunarr`, `audiobookshelf`.
 
 `checkrr` and `librariarr` always mount the media share read-only, whether or not they are listed. Listing them is accepted without a warning.
 
@@ -120,6 +120,15 @@ Anything that writes into the media folders fails once the share is read-only. C
 **Kavita**
 - Kavita does not normally write to the library, so nothing should change.
 
+**ErsatzTV and Tunarr**
+- Both only read media, so nothing should change.
+
+**Audiobookshelf**
+- Downloading podcast episodes into the `Podcasts` folder
+- Embedding metadata into audio files ("Embed metadata" / "Quick embed")
+- Saving covers and metadata files next to the media ("Store covers with item" and "Store metadata with item"). With these off, the default, Audiobookshelf keeps them in its own `metadata` folder.
+- Uploading books and deleting items from within Audiobookshelf
+
 Playback, library scans, and anything the app stores in its own config folder (watch history, posters it does not save into media folders, and so on) keep working.
 
 :::
@@ -135,6 +144,27 @@ If you mount [additional NAS shares](/docs/getting-started/nas/#additional-nas-m
 The Sonarr/Radarr family and the download clients still write to the media share as before. A read-only media server can always read new files as soon as they are imported.
 
 :::
+
+### Docker Socket Proxy
+
+```yaml
+hmsdocker_socket_proxy_log_level: info
+hmsdocker_socket_proxy_overrides: {}
+```
+
+Settings for the [Docker Socket Proxy](/docs/services/socket-proxy/), which is enabled with `socket-proxy` in the [Container Map](/docs/container-list/#container-map).
+
+`hmsdocker_socket_proxy_log_level` is the log level of the proxies, one of `debug`, `info`, `warn` or `error` (the proxies do not start with any other value, so the playbook checks it). Blocked requests are logged at `warn`, `debug` also logs every allowed request.
+
+`hmsdocker_socket_proxy_overrides` changes the built-in access of individual containers, or switches a container back to the unfiltered Docker socket:
+
+```yaml
+hmsdocker_socket_proxy_overrides:
+  uptimekuma:
+    mode: direct
+```
+
+See [Changing the defaults](/docs/services/socket-proxy/#changing-the-defaults) for all options.
 
 ---
 

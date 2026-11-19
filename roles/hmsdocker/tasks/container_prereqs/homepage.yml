@@ -28,7 +28,21 @@
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
     force: no
-    
+  register: homepage_docker_config
+
+# Points the Docker host at the filtered socket when Homepage uses the socket proxy, and back otherwise.
+# Only the two socket paths the playbook manages are changed (quoted or not, with or without a trailing
+# comment), anything else in docker.yaml is left alone.
+- name: Homepage Prereq - Ensure homepage Docker socket path
+  ansible.builtin.replace:
+    path: "{{ hms_docker_apps_path }}/homepage/config/docker.yaml"
+    regexp: '^([ \t]*socket:[ \t]*)(["'']?)(/var/run/docker\.sock|{{ hmsdocker_socket_proxy_client_dir | regex_escape }}/docker\.sock)\2([ \t]*(#.*)?)$'
+    replace: '\g<1>\g<2>{{ homepage_docker_socket }}\g<2>\g<4>'
+  vars:
+    homepage_docker_socket: "{{ (hmsdocker_socket_proxy_client_dir ~ '/docker.sock') if 'homepage' in socket_proxy_enabled_containers else '/var/run/docker.sock' }}"
+  # In check mode a new docker.yaml is not written, so there is nothing to change yet
+  when: not (ansible_check_mode and homepage_docker_config is changed)
+
 - name: Homepage Prereq - Ensure homepage services config
   ansible.builtin.copy:
     src: homepage_services.yaml

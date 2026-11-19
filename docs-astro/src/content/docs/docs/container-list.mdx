@@ -16,6 +16,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Jellyfin](https://docs.linuxserver.io/images/docker-jellyfin/)
 - [Emby](https://docs.linuxserver.io/images/docker-emby/)
 - [Kavita](https://hub.docker.com/r/kizaing/kavita): digital library for comics, manga, and books
+- [Audiobookshelf](https://github.com/advplyr/audiobookshelf): audiobook and podcast server <Badge text="New" variant="success"/>
 
 ## Media Management Systems
 
@@ -41,8 +42,10 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Unmanic](https://github.com/Unmanic/unmanic): media transcoding
 - [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr): IPTV manager
 - [Tunarr](https://github.com/chrisbenincasa/tunarr): live TV channels built from your media server libraries <Badge text="New" variant="success"/>
+- [ErsatzTV](https://github.com/ErsatzTV/legacy): live TV channels built from your media libraries <Badge text="New" variant="success"/>
 - [PASTA](https://github.com/cglatot/pasta): audio and subtitle management
 - [Recyclarr](https://github.com/recyclarr/recyclarr): auto-sync for [TRaSH guides](https://trash-guides.info/)
+- [NeXroll](https://github.com/JFLXCLOUD/NeXroll): preroll manager for Plex, Jellyfin, and Emby <Badge text="New" variant="success"/>
 
 ## Download Clients
 
@@ -77,6 +80,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Portainer](https://hub.docker.com/r/portainer/portainer): container management GUI
 - [Dockhand](https://github.com/Finsys/dockhand): container management GUI
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
+- [Socket Proxy](https://github.com/wollomatic/socket-proxy): gives each container that uses the Docker socket a filtered socket with only the access it needs, [see here](/docs/services/socket-proxy/) <Badge text="New" variant="success"/>
 - [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
@@ -88,6 +92,8 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [n8n](https://n8n.io/): workflow automations
 - [Scrutiny](https://github.com/analogj/scrutiny): drive health monitoring
 - [Beszel](https://github.com/henrygd/beszel): observability
+- [Pocket ID](https://github.com/pocket-id/pocket-id): passkey-only OIDC provider <Badge text="New" variant="success"/>
+- [Tinyauth](https://github.com/steveiliop56/tinyauth): lightweight authentication middleware for Traefik, see [Tinyauth and Pocket ID](/docs/services/tinyauth/) <Badge text="New" variant="success"/>
 
 ## Container Map
 
@@ -163,7 +169,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Dispatcharr                              | &#9744;            | `dispatcharr`        | `9191`                         | `9191`                         | &#9745;                | &#9744;              |
 | Tunarr                                   | &#9744;            | `tunarr`             | `8002`                         | `8000`                         | &#9745;                | &#9745;              |
 | Cloudflare Tunnel                        | &#9744;            | `cloudflare-tunnel`  |                                |                                | &#9744;                | &#9744;              |
-| Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9744;              |
+| Tailscale                                | &#9744;            | `tailscale`          |                                |                                | &#9744;                | &#9745;              |
 | Tracearr                                 | &#9744;            | `tracearr`           | `3002`                         | `3000`                         | &#9745;                | &#9745;              |
 | Cross-Seed                               | &#9744;            | `cross-seed`         | `2468`                         | `2468`                         | &#9744;                | &#9744;              |
 | n8n                                      | &#9744;            | `n8n`                | `5678`                         | `5678`                         | &#9745;                | &#9744;              |
@@ -171,6 +177,12 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Scrutiny                                 | &#9744;            | `scrutiny`           | `8087`                         | `8080`                         | &#9745;                | &#9745;              |
 | Beszel                                   | &#9744;            | `beszel`             | `8091`                         | `8090`                         | &#9745;                | &#9745;              |
 | Byparr                                   | &#9744;            | `byparr`             | `8192`                         | `8191`                         | &#9744;                | &#9744;              |
+| NeXroll                                  | &#9744;            | `nexroll`            | `9393`                         | `9393`                         | &#9745;                | &#9745;              |
+| ErsatzTV                                 | &#9744;            | `ersatztv`           | `8409`                         | `8409`                         | &#9745;                | &#9745;              |
+| Audiobookshelf                           | &#9744;            | `audiobookshelf`     | `13378`                        | `80`                           | &#9745;                | &#9745;              |
+| Pocket ID                                | &#9744;            | `pocketid`           | `1411`                         | `1411`                         | &#9745;                | &#9745;              |
+| Tinyauth                                 | &#9744;            | `tinyauth`           | `3004`                         | `3000`                         | &#9745;                | &#9745;              |
+| Socket Proxy                             | &#9744;            | `socket-proxy-<name>` |                                |                                | &#9744;                | &#9744;              |
 | CrowdSec                                 | &#9744;            | `crowdsec`           |                                |                                | &#9744;                | &#9744;              |
 
 ### Container Map Entry Example

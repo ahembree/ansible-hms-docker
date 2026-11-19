@@ -2,13 +2,19 @@ name: Ubuntu Deployment Tests
 
 on:
   workflow_dispatch:
+  # Branch pushes are covered by the pull_request trigger; only test
+  # long-lived branches on push so PR commits don't run twice.
   push:
+    branches:
+      - master
+      - develop
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
   pull_request:
     branches:
       - master
+      - develop
     types: [opened, synchronize, reopened]
     paths:
       - 'roles/**'
@@ -37,7 +43,7 @@ jobs:
 
       - name: Add hosts to /etc/hosts
         run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr spottarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr tunarr; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
+            for name in sonarr radarr sonarr-4k radarr-4k prowlarr spottarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr tunarr nexroll audiobookshelf ersatztv pocketid tinyauth; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
         run: |

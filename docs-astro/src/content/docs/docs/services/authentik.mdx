@@ -19,6 +19,8 @@ This Authentik installation is based on the [single application](https://docs.go
 
 There are no authentik proxy containers defined in the `docker-compose.yml` file. This is because authentik will auto-detect the Docker socket and be able to start/stop its own proxy containers by using the configurations below.
 
+If the [Docker Socket Proxy](/docs/services/socket-proxy/) is enabled, the Authentik worker reaches Docker through its own filtered socket instead, and the playbook makes sure the `Local Docker connection` exists.
+
 Authentik is able to be controlled on a per-container basis, but requires a bit of configuration as outlined below.
 
 ## Important Note
@@ -155,10 +157,10 @@ After deploying the Cloudflare Tunnel by following up to Step 4 in the [Cloudfla
 
 <Steps>
 
-1. Set the following variable in `inventory/group_vars/all/authentik.yml` to `true`:
+1. Set the following variable in `inventory/group_vars/all/sso.yml` to `true`:
 
     ```yaml
-    #inventory/group_vars/all/authentik.yml
+    #inventory/group_vars/all/sso.yml
     hmsdocker_authentik_enabled_through_cftunnel: true
     ```
 
@@ -210,7 +212,13 @@ To ensure these key and pgpass files are not changed by Ansible, `force: no` is 
 
 ## Upgrading Authentik
 
-The Authentik release is set by `hmsdocker_authentik_version` in `inventory/group_vars/all/authentik.yml` (default: `"2026.8"`).
+The Authentik release is set by `hmsdocker_authentik_version` in `inventory/group_vars/all/sso.yml` (default: `"2026.8"`).
+
+:::note
+
+Authentik settings used to be in `authentik.yml`. If your `inventory/group_vars/all/` still has an `authentik.yml`, it keeps working: Ansible reads every file in that folder.
+
+:::
 
 Authentik must be upgraded one release at a time (for example `2025.12` -> `2026.2` -> `2026.5` -> `2026.8`) and refuses to start if a release is skipped. Before applying, the playbook compares the running Authentik version with the target. If the upgrade would skip a release, it stops and tells you which version to set next:
 

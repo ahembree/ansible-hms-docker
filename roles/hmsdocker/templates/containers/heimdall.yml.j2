@@ -29,7 +29,7 @@ services:
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.port=443
       - traefik.http.services.heimdall-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['heimdall']['proxy_host_rule'] | default('heimdall') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'heimdall' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker' if 'heimdall' in authentik_enabled_containers }}
+      - traefik.http.routers.heimdall-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'heimdall' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-heimdall-midware@docker' if 'heimdall' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'heimdall' in tinyauth_protected_containers }}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:80/ || exit 1

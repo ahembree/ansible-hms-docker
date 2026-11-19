@@ -1,0 +1,19 @@
+---
+# Built-in socket proxy settings (vars/main.yml) merged with the user's hmsdocker_socket_proxy_overrides.
+# Imported by preflight.yml (after the overrides are validated) and by main.yml, so both use the same result.
+# Overrides only apply while socket-proxy is enabled, and overrides for containers without built-in
+# support are dropped (preflight warns about them).
+- name: Build Docker socket proxy settings
+  ansible.builtin.set_fact:
+    hmsdocker_socket_proxy_clients: >-
+      {{
+        hmsdocker_socket_proxy_builtin_clients
+        | combine(
+            hmsdocker_socket_proxy_overrides | default({}, true) | dict2items
+            | selectattr('key', 'in', hmsdocker_socket_proxy_builtin_clients.keys() | list)
+            | items2dict,
+            recursive=True
+          )
+        if (hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool)
+        else hmsdocker_socket_proxy_builtin_clients
+      }}
