@@ -2,6 +2,8 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL:=help
 
+.PHONY: confirm config check apply install-reqs verify-containers manager update migrate-config _switch-branch switch-develop switch-stable branch help
+
 DEFAULT_CONFS = vars/default/*.yml
 ADVANCED_CONFS = roles/hmsdocker/defaults/main/*.yml
 
@@ -9,6 +11,16 @@ BASEDIR=$(shell pwd)
 
 CUSTOM_CONF_DIR = inventory/group_vars/all
 
+# Release channels: STABLE_BRANCH only moves when a release is cut,
+# DEVELOP_BRANCH holds merged-but-unreleased changes.
+# 'make update' pulls whichever branch is currently checked out.
+STABLE_BRANCH = master
+DEVELOP_BRANCH = develop
+DEFAULT_CONTAINER_MAP = roles/hmsdocker/defaults/main/container_map.yml
+
+# No longer used by this Makefile, but DO NOT REMOVE: older Makefiles' 'make update'
+# recipe keeps running after 'git pull' and greps this line out of the freshly
+# pulled Makefile. Without it their first update silently skips the container map merge.
 REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
 
 VENV_DIR = .venv
@@ -130,7 +142,25 @@ manager:
 
 update: $(YQ_LOCAL)
 	@echo "Version Before: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
-	@echo "Updating from Git repo..." && git pull origin master -q
+	@branch=$$(git symbolic-ref --short -q HEAD) || { \
+		printf $(_ERROR) "FAIL" "Not on a branch (detached HEAD). Run 'make switch-stable' or 'make switch-develop' first."; \
+		exit 1; \
+	}; \
+	if [ "$$branch" = "$(STABLE_BRANCH)" ]; then \
+		printf $(_TITLE) "INFO" "Release channel: stable ($$branch)"; \
+	elif [ "$$branch" = "$(DEVELOP_BRANCH)" ]; then \
+		printf $(_WARN) "INFO" "Release channel: develop ($$branch) - includes unreleased changes"; \
+	else \
+		printf $(_WARN) "WARN" "On non-channel branch '$$branch', pulling 'origin/$$branch'"; \
+	fi; \
+	echo "Updating from Git repo..." && git pull origin "$$branch" -q
+	@# Re-invoke make so the rest runs from the freshly pulled Makefile, migrations and container map
+	@$(MAKE) -s migrate-config
+
+# Applies variable renames and merges new container map services/keys into the
+# user's config, using the migrations and default container map of the branch
+# that is checked out (so they always match the code that will be applied).
+migrate-config: $(YQ_LOCAL)
 	@echo "Applying variable renames from migrations/variable_renames.yml..."
 	@$(YQ_LOCAL) -r '.variable_renames[] | .old + ":" + .new' migrations/variable_renames.yml \
 		| while IFS=: read old new; do \
@@ -143,29 +173,31 @@ update: $(YQ_LOCAL)
 			done; \
 		done
 
-	@REMOTE_CONFIG_URL=$$(grep -oP '^REMOTE_CONFIG_URL\s*=\s*\K.*' Makefile | tr -d ' '); \
-	echo "Fetching container map updates from $$REMOTE_CONFIG_URL/container_map.yml..."; \
-	tmpfile=$$(mktemp); \
-	curl -s "$$REMOTE_CONFIG_URL/container_map.yml" > "$$tmpfile"; \
+	@if [ ! -f "$(CUSTOM_CONF_DIR)/container_map.yml" ]; then \
+		echo "No $(CUSTOM_CONF_DIR)/container_map.yml found, skipping container map merge (run 'make config' first)"; \
+		exit 0; \
+	fi; \
+	srcfile="$(DEFAULT_CONTAINER_MAP)"; \
+	echo "Merging container map updates from $$srcfile..."; \
 	echo Checking for new services...; \
-	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$tmpfile" | while read service; do \
+	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$srcfile" | while read service; do \
 		exists=$$($(YQ_LOCAL) eval ".hms_docker_container_map | has(\"$$service\")" "$(CUSTOM_CONF_DIR)/container_map.yml"); \
 		if [ "$$exists" = "false" ]; then \
 			echo "Adding missing service: $$service"; \
-			$(YQ_LOCAL) eval -i '.hms_docker_container_map."'$$service'" = load("'"$$tmpfile"'").hms_docker_container_map."'$$service'"' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
+			$(YQ_LOCAL) eval -i '.hms_docker_container_map."'$$service'" = load("'"$$srcfile"'").hms_docker_container_map."'$$service'"' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
 		else \
-			$(YQ_LOCAL) -r ".hms_docker_container_map.$$service | keys | .[]" "$$tmpfile" | while read key; do \
+			$(YQ_LOCAL) -r ".hms_docker_container_map.$$service | keys | .[]" "$$srcfile" | while read key; do \
 				existskey=$$($(YQ_LOCAL) eval ".hms_docker_container_map.$$service | has(\"$$key\")" "$(CUSTOM_CONF_DIR)/container_map.yml"); \
 				if [ "$$existskey" = "false" ]; then \
 					echo "Adding missing key: $$service.$$key"; \
-					$(YQ_LOCAL) eval -i '.hms_docker_container_map."'$$service'"."'$$key'" = load("'"$$tmpfile"'").hms_docker_container_map."'$$service'"."'$$key'"' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
+					$(YQ_LOCAL) eval -i '.hms_docker_container_map."'$$service'"."'$$key'" = load("'"$$srcfile"'").hms_docker_container_map."'$$service'"."'$$key'"' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
 				fi; \
 			done; \
 		fi; \
 	done; \
 	echo Coalescing service controls...; \
-	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$tmpfile" | while read service; do \
-		remote_keys=$$($(YQ_LOCAL) -r '.hms_docker_container_map."'$$service'" | keys | .[]' "$$tmpfile"); \
+	$(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$srcfile" | while read service; do \
+		remote_keys=$$($(YQ_LOCAL) -r '.hms_docker_container_map."'$$service'" | keys | .[]' "$$srcfile"); \
 		local_keys=$$($(YQ_LOCAL) -r '.hms_docker_container_map."'$$service'" | keys | .[]' "$(CUSTOM_CONF_DIR)/container_map.yml"); \
 		for key in $$local_keys; do \
 			if ! echo "$$remote_keys" | grep -qx "$$key"; then \
@@ -174,10 +206,55 @@ update: $(YQ_LOCAL)
 			fi; \
 		done; \
 	done; \
+	remote_services=$$($(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$$srcfile"); \
+	for service in $$($(YQ_LOCAL) -r '.hms_docker_container_map | keys | .[]' "$(CUSTOM_CONF_DIR)/container_map.yml"); do \
+		if ! echo "$$remote_services" | grep -qx "$$service"; then \
+			printf $(_WARN) "WARN" "Service '$$service' in your container_map.yml does not exist on this branch, disable or remove it before running 'make apply'"; \
+		fi; \
+	done; \
 	$(YQ_LOCAL) eval -i 'sort_keys(.hms_docker_container_map)' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
-	rm -f "$$tmpfile"; \
 	echo "Update finished"
 	@echo "Version Now: $$($(YQ_LOCAL) '.[0].vars.hmsd_current_version' hms-docker.yml)"
+
+# Checks out a release channel branch (creating a local tracking branch if it
+# doesn't exist yet) and then runs 'make update' on it.
+# Usage: $(MAKE) -s _switch-branch TARGET=<branch>
+_switch-branch:
+	@# Explicit refspec so this also works for clones made with --single-branch
+	@git fetch -q origin "+refs/heads/$(TARGET):refs/remotes/origin/$(TARGET)"
+	@# Local edits (e.g. inventory/hosts.yml for a remote host) are carried over;
+	@# git only refuses if an edited file also differs between the two branches.
+	@if git show-ref --verify --quiet "refs/heads/$(TARGET)"; then \
+		git checkout -q "$(TARGET)"; \
+	else \
+		git checkout -q -b "$(TARGET)" --track "origin/$(TARGET)"; \
+	fi || { \
+		printf $(_ERROR) "FAIL" "Could not switch to '$(TARGET)', commit or stash the local changes listed above and try again"; \
+		exit 1; \
+	}
+	@printf $(_TITLE) "OK" "Switched to '$(TARGET)'"
+	@$(MAKE) -s update
+
+switch-develop:
+	@printf $(_WARN) "WARN" "The '$(DEVELOP_BRANCH)' branch contains changes that have not been released yet and may be unstable."
+	@REPLY="" ; \
+	read -p "Switch to the '$(DEVELOP_BRANCH)' branch? [y/n] > " -r ; \
+	if [[ ! $$REPLY =~ ^[Yy]$$ ]]; then \
+		printf $(_ERROR) "FAIL" "Stopping"; \
+		exit 1; \
+	fi
+	@$(MAKE) -s _switch-branch TARGET=$(DEVELOP_BRANCH)
+
+switch-stable:
+	@if [ "$$(git symbolic-ref --short -q HEAD)" = "$(DEVELOP_BRANCH)" ]; then \
+		printf $(_WARN) "WARN" "Moving from '$(DEVELOP_BRANCH)' to '$(STABLE_BRANCH)' rolls back any unreleased changes."; \
+		printf $(_WARN) "WARN" "Services that only exist on '$(DEVELOP_BRANCH)' will be flagged below, review them before 'make apply'."; \
+	fi
+	@$(MAKE) -s _switch-branch TARGET=$(STABLE_BRANCH)
+
+branch:
+	@echo "Current branch: $$(git symbolic-ref --short -q HEAD || echo 'detached HEAD')"
+	@echo "Playbook version: $$(grep -oP 'hmsd_current_version:\s*"\K[^"]+' hms-docker.yml)"
 
 help:
 	@echo make config :: copy default config files
@@ -185,4 +262,7 @@ help:
 	@echo make apply :: apply any changes identified in the diff
 	@echo make install-reqs :: installs ansible galaxy role requirements
 	@echo make verify-containers :: checks containers exposed ports \(used in GitHub Actions\)
-	@echo make update :: updates from the git repo and updates variable names \(if they were changed\)
+	@echo make update :: updates from the git repo \(current branch\) and updates variable names \(if they were changed\)
+	@echo make switch-develop :: switch to the develop branch \(unreleased changes\) and update
+	@echo make switch-stable :: switch to the stable master branch \(latest release\) and update
+	@echo make branch :: show the current branch and playbook version

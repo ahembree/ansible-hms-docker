@@ -1,0 +1,18 @@
+# Managed by hms-docker.
+# authentik only creates its "Local Docker connection" when it finds /var/run/docker.sock. With the socket proxy
+# the worker reaches Docker through {{ hmsdocker_socket_proxy_client_dir }}/docker.sock instead (DOCKER_HOST),
+# so this does the same as authentik's own discovery: it creates the connection only while no local Docker
+# connection exists. An existing one (renamed or not) is left alone.
+version: 1
+metadata:
+  name: hms-docker - Local Docker connection
+entries:
+  - model: authentik_outposts.dockerserviceconnection
+    state: created
+    conditions:
+      - !Condition [NOR, !Find [authentik_outposts.dockerserviceconnection, [local, true]]]
+    identifiers:
+      name: Local Docker connection
+    attrs:
+      local: true
+      url: unix://{{ hmsdocker_socket_proxy_client_dir }}/docker.sock

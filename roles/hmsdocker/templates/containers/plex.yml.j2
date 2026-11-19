@@ -54,7 +54,7 @@ services:
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
       - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'plex' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker' if 'plex' in authentik_enabled_containers }}
+      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'plex' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker' if 'plex' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'plex' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'plex' in homepage_enabled_containers %}
       - homepage.group=Media

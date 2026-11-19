@@ -13,6 +13,8 @@ Have you updated your local code to the latest available from the repo: yes/no
 
 Have you ran `make update` after updating your local code: yes/no
 
+Which branch are you on (run `make branch`), `master` or `develop`: 
+
 What version of HMS-Docker are you currently using (run `cat /opt/hms-docker/.hmsd-version`), or is this a new install: 
 
 ## Operating System and Version
@@ -37,7 +39,7 @@ A clear and concise description of what you expected to happen.
 As some examples, if the issue is related to a below item then provide the variables from the mentioned file:
 
 - Cloudflare: `cloudflare.yml`
-- Authentik: `authentik.yml`
+- Authentik, Tinyauth or Pocket ID: `sso.yml` (`authentik.yml` on older installs)
 - NAS: `nas.yml` and the appropriate type (such as NFS, CIFS, or if it's an additional path)
 - VPN: `vpn.yml`
 - Traefik: `traefik.yml`

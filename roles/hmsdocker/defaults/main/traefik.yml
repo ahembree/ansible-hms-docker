@@ -60,6 +60,7 @@ traefik_ext_hosts_enabled: no
 #    expose_publicly: no,               # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
 #    authentik: no,                     # whether or not to apply authentik settings to the service
 #    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
+#    tinyauth: no,                      # whether or not to require a Tinyauth sign-in (needs the tinyauth container with traefik: true)
 
 traefik_ext_hosts_list: [
   {
@@ -69,7 +70,8 @@ traefik_ext_hosts_list: [
     enabled: yes,
     expose_publicly: no,
     authentik: no,
-    authentik_provider_type: proxy
+    authentik_provider_type: proxy,
+    tinyauth: no
   },
   #{
   #  friendly_name: host2,

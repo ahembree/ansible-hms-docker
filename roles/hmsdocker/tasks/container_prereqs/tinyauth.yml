@@ -1,0 +1,32 @@
+# Client secret of the Pocket ID OIDC client. container_postreqs/tinyauth.yml registers it in Pocket ID
+- name: (Prereq - Tinyauth) - Check for existing Pocket ID client secret
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path + '/tinyauth/config/.pocketid_client_secret' }}"
+  register: tinyauth_client_secret_file
+  when: hmsdocker_tinyauth_pocketid_enabled | default(false)
+
+- name: (Prereq - Tinyauth) - Ensure Pocket ID client secret
+  ansible.builtin.template:
+    src: secret_key_file.j2
+    dest: "{{ hms_docker_apps_path + '/tinyauth/config/.pocketid_client_secret' }}"
+    mode: '0600'
+    owner: "{{ container_uid }}"
+    group: "{{ container_gid }}"
+    # A user-supplied secret always wins, a generated one is only written once
+    force: "{{ (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | length) > 0 }}"
+  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_tinyauth_pocketid_enabled | default(false)
+  register: tinyauth_client_secret_written
+  vars:
+    key: "{{ hmsdocker_tinyauth_pocketid_client_secret | default('', true) or lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+
+# Tinyauth only reads the secret file when it starts, and a new secret does not change its compose file
+- name: (Prereq - Tinyauth) - Restart Tinyauth for the new client secret
+  ansible.builtin.debug:
+    msg: The Pocket ID client secret changed, Tinyauth will be restarted
+  changed_when: true
+  notify: Restart tinyauth
+  when:
+    - hmsdocker_tinyauth_pocketid_enabled | default(false)
+    - tinyauth_client_secret_file.stat.exists | default(false)
+    - tinyauth_client_secret_written is changed

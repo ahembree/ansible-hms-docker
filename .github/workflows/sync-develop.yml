@@ -1,0 +1,63 @@
+name: Sync master into develop
+
+# After anything lands on 'master' that 'develop' doesn't already have (a
+# hotfix, or a squash-merged release), open a PR merging 'master' back into
+# 'develop' so the next release doesn't regress or conflict.
+#
+# Requires: Settings > Actions > General > "Allow GitHub Actions to create and
+# approve pull requests". PRs opened with GITHUB_TOKEN do not trigger
+# pull_request workflows, so the playbook tests are dispatched on 'master'
+# directly; their checks land on the same commit the sync PR points at.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  actions: write  # workflow_dispatch of the playbook tests
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Open master -> develop PR if develop is missing changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! git ls-remote --exit-code --heads origin develop >/dev/null; then
+            echo "No develop branch exists; nothing to sync."
+            exit 0
+          fi
+          git fetch -q origin develop
+
+          # Three-dot diff: changes on master since it diverged from develop.
+          # Empty after a normal develop -> master merge commit.
+          if git diff --quiet origin/develop...origin/master; then
+            echo "develop already contains everything on master."
+            exit 0
+          fi
+
+          existing=$(gh pr list --base develop --head master --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Sync PR #$existing is already open."
+            exit 0
+          fi
+
+          gh pr create --base develop --head master \
+            --title "chore: sync master into develop" \
+            --body "Automated: \`master\` has changes that \`develop\` does not (usually a hotfix). Merge with a **merge commit** to keep both branches in step."
+
+          # workflow_dispatch is the one trigger GITHUB_TOKEN may fire
+          gh workflow run run-playbook.yml --ref master

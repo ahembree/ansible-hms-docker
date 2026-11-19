@@ -21,10 +21,130 @@ ansible_python_interpreter: /usr/bin/python3
 # Listing any other container there has no effect and triggers a preflight warning.
 # checkrr and librariarr always mount the media share read-only, so listing them is valid but changes nothing.
 hmsdocker_readonly_media_supported_containers:
+  - audiobookshelf
   - calibre
   - checkrr
   - emby
+  - ersatztv
   - jellyfin
   - kavita
   - librariarr
   - plex
+  - tunarr
+
+# Docker socket proxy (`socket-proxy` in the container map).
+# Each container below with `mode: proxy` gets its own socket-proxy container. That container creates a filtered Docker
+# socket in apps/socket-proxy/<container>/, which is mounted at hmsdocker_socket_proxy_client_dir inside the client.
+# The directory is mounted instead of the socket file because the proxy recreates the socket file every time it starts.
+# Users change these with hmsdocker_socket_proxy_overrides (container_settings.yml), not here.
+#   mode:            proxy = filtered socket, none = no Docker socket, direct = unfiltered Docker socket
+#   modes:           the modes users may choose for this container. Containers that cannot work without Docker
+#                    do not allow "none"
+#   allow:           Docker API path regexes per HTTP method. socket-proxy anchors each with ^ and $ and matches
+#                    the URL path only (no query string). `(/v1\.\d+)?` covers versioned and unversioned paths.
+#   bind_mount_from: host directories allowed as bind mount sources when the client creates containers
+#   labels:          extra labels for the client's socket-proxy container
+#   requires_ssl:    the client container only runs when traefik_ssl_enabled is on
+# Left out on purpose:
+#   netdata          mounts the host root (/), which already contains the Docker socket
+#   portainer, dockhand  container management UIs that need the whole Docker API
+hmsdocker_socket_proxy_client_dir: /var/run/socket-proxy
+hmsdocker_socket_proxy_image: docker.io/wollomatic/socket-proxy:1
+hmsdocker_socket_proxy_log_levels: [debug, info, warn, error]
+hmsdocker_socket_proxy_methods: [get, head, post, put, patch, delete]
+hmsdocker_socket_proxy_builtin_clients:
+  # Authentik worker: creates, restarts and removes its proxy outpost containers
+  authentik:
+    mode: proxy
+    modes: [proxy, direct]
+    requires_ssl: true
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
+        - '(/v1\.\d+)?/images/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+      post:
+        - '(/v1\.\d+)?/(containers/create|containers/[^/]+/(start|stop|kill|restart|wait)|images/create)'
+      delete:
+        - '(/v1\.\d+)?/containers/[^/]+'
+    # Outposts need no bind mounts, so allow none (nothing is ever mounted from this path)
+    bind_mount_from:
+      - /nonexistent
+  # Beszel agent: container list, stats, details and logs
+  beszel:
+    mode: proxy
+    modes: [proxy, none, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
+        - '(/v1\.\d+)?/images/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Homepage: container discovery, status and stats
+  homepage:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|containers/json|containers/[^/]+/(json|stats))'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Traefik: Docker provider (container labels and events)
+  traefik:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Tinyauth: reads access-control labels from containers (label provider)
+  tinyauth:
+    mode: proxy
+    modes: [proxy, none, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|events|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Uptime Kuma: Docker container monitors
+  uptimekuma:
+    mode: proxy
+    modes: [proxy, none, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/json)'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # Watchtower: pulls images and recreates containers. It must recreate containers with their existing
+  # bind mounts, so bind mounts cannot be restricted for it
+  watchtower:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/json|images/json|networks|networks/[^/]+)'
+        - '(/v1\.\d+)?/(images|distribution)/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+      post:
+        - '(/v1\.\d+)?/(containers/create|containers/[^/]+/(start|stop|kill|restart|rename|wait)|images/create|networks/[^/]+/(connect|disconnect))'
+      delete:
+        - '(/v1\.\d+)?/(containers/[^/]+|images/.+)'
+    # Watchtower reaches Docker through this proxy, so it must not update (stop) it. The playbook pulls
+    # the proxy image on every run instead
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+
+# Containers that cannot be put behind Tinyauth with hmsdocker_tinyauth_protected_containers:
+# tinyauth and pocketid serve the sign-in itself, authentik and n8n set their own Traefik middlewares
+hmsdocker_tinyauth_unsupported_containers: [tinyauth, pocketid, authentik, n8n]
+
+# Tinyauth sign-in with Pocket ID (settings in defaults/main/sso.yml)
+# external: Tinyauth uses the Pocket ID at hmsdocker_tinyauth_pocketid_url instead of the pocketid container
+hmsdocker_tinyauth_pocketid_base_url: "{{ hmsdocker_tinyauth_pocketid_url | default('', true) | regex_replace('/+$', '') }}"
+hmsdocker_tinyauth_pocketid_external: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length > 0) }}"
+hmsdocker_tinyauth_pocketid_local: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length == 0) }}"
+# The playbook creates the OIDC client itself, unless an external Pocket ID has no API key to do it with
+hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_local | bool) or ((hmsdocker_tinyauth_pocketid_external | bool) and (hmsdocker_tinyauth_pocketid_api_key | default('', true) | length > 0)) }}"
