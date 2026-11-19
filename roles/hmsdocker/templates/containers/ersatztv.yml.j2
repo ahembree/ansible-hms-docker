@@ -50,7 +50,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.ersatztv-${COMPOSE_PROJECT}.loadbalancer.server.port=8409
       - traefik.http.routers.ersatztv-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['ersatztv']['proxy_host_rule'] | default('ersatztv') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.ersatztv-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'ersatztv' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-ersatztv-midware@docker' if 'ersatztv' in authentik_enabled_containers }}
+      - traefik.http.routers.ersatztv-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'ersatztv' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-ersatztv-midware@docker' if 'ersatztv' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'ersatztv' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'ersatztv' in homepage_enabled_containers %}
       - homepage.group=Media

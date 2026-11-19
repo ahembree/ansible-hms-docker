@@ -27,7 +27,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.pinchflat-${COMPOSE_PROJECT}.loadbalancer.server.port=8945
       - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pinchflat' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker' if 'pinchflat' in authentik_enabled_containers }}
+      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pinchflat' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker' if 'pinchflat' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'pinchflat' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'pinchflat' in homepage_enabled_containers %}
       - homepage.group=Managers

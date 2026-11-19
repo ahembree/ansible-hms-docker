@@ -1,3 +1,5 @@
+{% set socket_proxy_client = 'homepage' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -12,8 +14,9 @@ services:
       driver: json-file
     networks:
       - proxy_net
+    {% include 'socket_proxy/client_depends_on.j2' %}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    {% include 'socket_proxy/client_volume.j2' %}
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}
@@ -27,7 +30,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
       - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}
+      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'homepage' in tinyauth_protected_containers }}
     {% endif %}
     healthcheck:
       test: wget --spider -q http://127.0.0.1:3000/ || exit 1

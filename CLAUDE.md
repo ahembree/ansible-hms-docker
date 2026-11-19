@@ -36,7 +36,7 @@ Inventory is [inventory/hosts.yml](inventory/hosts.yml) (bare: just localhost wi
 
 ### The main role: `roles/hmsdocker/`
 
-- **defaults/main/** — split across many files by concern (`main.yml`, `container_map.yml`, `traefik.yml`, `authentik.yml`, `vpn.yml`, `plex.yml`, `cloudflare.yml`, `nas*.yml`, `gpu.yml`, `tailscale.yml`, `app_bootstrap.yml`, `homepage_api_keys.yml`, `hmsd_advanced.yml`, `container_settings.yml`). When adding a default, place it in the file matching its subsystem.
+- **defaults/main/** — split across many files by concern (`main.yml`, `container_map.yml`, `traefik.yml`, `sso.yml` (Authentik, Tinyauth, Pocket ID), `vpn.yml`, `plex.yml`, `cloudflare.yml`, `nas*.yml`, `gpu.yml`, `tailscale.yml`, `app_bootstrap.yml`, `homepage_api_keys.yml`, `hmsd_advanced.yml`, `container_settings.yml`). When adding a default, place it in the file matching its subsystem.
 - **tasks/main.yml** — versioning checks, then builds derived facts (`enabled_containers`, `traefik_enabled_containers`, `authentik_enabled_containers`, `traefik_enabled_subdomains`) by filtering `hms_docker_container_map`.
 - **tasks/preflight.yml** + **tasks/compat_shim.yml** — preflight imports the compat shim, then runs feature-gated asserts. Soft warnings are appended to `hmsdocker_preflight_warnings` and printed at the end.
 - **tasks/container_prereqs/**, **tasks/container_postreqs/**, **tasks/app_inits/** — per-service setup split into pre-start (mounts, networks, volumes), post-start (settling, handler triggers), and app initialization (API key retrieval, indexer/download-client wiring).
