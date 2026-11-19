@@ -102,7 +102,7 @@ Each listed service must be enabled with `traefik: true`. Its Traefik router get
 
 `tinyauth` and `pocketid` (which serve the sign-in), and `authentik` and `n8n` (which set their own Traefik middlewares) cannot be protected. A service that also has `authentik: true` would ask for both sign-ins, and the playbook warns about it.
 
-Apps that are opened by other apps or clients through Traefik (for example, Homepage widgets, mobile apps, or the *Arr apps' API) are signed out by Tinyauth too. Protect only the services you open in a browser, or use Tinyauth's access controls ([Tinyauth docs](https://tinyauth.app/docs/getting-started)) to let specific paths through.
+Anything that reaches a protected service through its Traefik URL without a browser sign-in is blocked too, for example mobile apps or scripts that call the *Arr APIs. Homepage widgets and the apps in this stack talk to each other over the Docker network, not through Traefik, so they are not affected. Protect only the services you open in a browser, or use Tinyauth's access controls ([Tinyauth docs](https://tinyauth.app/docs/getting-started)) to let specific paths through.
 
 ## Socket proxy
 
