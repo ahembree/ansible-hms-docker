@@ -75,14 +75,16 @@ When renaming a variable, **always** add an entry to `migrations/variable_rename
 
 - **`master`** = released code only. It is the default branch, so `git clone` and `make update` give users the latest release. It only moves when a release is cut (or a hotfix lands).
 - **`develop`** = integration branch. All feature/fix PRs target `develop`.
-- [.github/workflows/pr-target-guard.yml](.github/workflows/pr-target-guard.yml) fails PRs into `master` unless the source is `develop` or `hotfix/*`.
+- [.github/workflows/pr-target-guard.yml](.github/workflows/pr-target-guard.yml) fails PRs into `master` unless the source is `develop` or `hotfix/*` (same repo). It is a CI check because GitHub branch protection/rulesets cannot restrict a PR's source branch; it only enforces once marked as a required status check on `master`. Keeping `master` as the default branch (so clones get released code) means new PRs default to `master`, and this check is what turns that into a hard stop.
 - Hotfix: branch `hotfix/<topic>` off `master`, PR it to `master` (with a patch bump + notes). [.github/workflows/sync-develop.yml](.github/workflows/sync-develop.yml) then opens a `master` → `develop` PR if `develop` is missing the change.
 - Merge `develop` → `master` with a **merge commit**, never squash, so the branches don't diverge.
 
 **Cutting a release:**
 
+Feature/fix PRs into `develop` **do not bump** `hmsd_current_version`. They add their release notes as bullets under a `## Unreleased` section at the top of the newest release-notes file; the release workflow ignores that header.
+
 1. On a branch off `develop`, bump `hmsd_current_version` in [hms-docker.yml](hms-docker.yml), keeping it quoted, and PR it into `develop`.
-2. Add a matching `## v<version>` section to the release-notes file for that minor series, e.g. `docs-astro/src/content/docs/docs/release-notes/v1.18.md`. The header must be exactly `## v<version>` (matching the new version) — the release workflow extracts everything between it and the next `## ` heading as the GitHub Release body.
+2. Rename `## Unreleased` to `## v<version>` (moving it into a new minor-series file on a minor bump), or add the section if none exists, in the release-notes file for that minor series, e.g. `docs-astro/src/content/docs/docs/release-notes/v1.18.md`. The header must be exactly `## v<version>` (matching the new version) — the release workflow extracts everything between it and the next `## ` heading as the GitHub Release body.
 3. Open a PR from `develop` to `master` and merge it with a merge commit. [.github/workflows/release.yml](.github/workflows/release.yml) triggers on pushes to `master` that touch `hms-docker.yml`: it reads the version, tags it, and creates the GitHub Release from the extracted notes. Releases are not cut from feature branches or from `develop`.
 
 ### Supporting roles

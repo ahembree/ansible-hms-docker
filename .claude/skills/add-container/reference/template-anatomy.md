@@ -90,7 +90,9 @@ re-adding it:
 ```
 
 Removing it from a shipped container is a user-visible behaviour change: `6f93080` (tdarr)
-bumped `hmsd_current_version` and added a release-note line for exactly this.
+bumped `hmsd_current_version` and added a release-note line for exactly this. Today that
+is a bullet under `## Unreleased` in the newest release-notes file, with no version bump
+(the version is bumped only when a release is cut).
 
 ### `networks` — required
 

@@ -157,13 +157,15 @@ Homepage credential styles:
   2. A row appended to the `### Map` table: Service Name, Enabled by Default, Container
      Name, Host Port (if enabled), Container Port, Accessible via Traefik, Homepage
      Integration — using `&#9745;` for checked and `&#9744;` for unchecked.
-- **`docs-astro/src/content/docs/docs/release-notes/v<major>.<minor>.md`** — add a
-  `## v<version>` section at the top of the file. The header must match
-  `hmsd_current_version` exactly; the release workflow extracts everything between it and
-  the next `## `.
-- **`hms-docker.yml`** — bump `hmsd_current_version` (3-part semver). Tell the user this
-  cuts a GitHub Release once it reaches master (PRs go to `develop`; the
-  `develop` → `master` merge is the release).
+- **Release notes** — in the newest `docs-astro/src/content/docs/docs/release-notes/v<major>.<minor>.md`
+  (highest minor), add a bullet under a `## Unreleased` section placed directly after the
+  frontmatter, creating that section if it isn't there. Group it under a `### New Containers`
+  sub-heading. Never write a `## v<version>` header here: the version is chosen at release
+  time, and the `cut-release` skill renames `## Unreleased` and moves it to the right file.
+- **`hms-docker.yml`** — **do not** bump `hmsd_current_version`. Feature PRs target
+  `develop`; the version is bumped only by `cut-release`, and the `develop` → `master` merge
+  is what publishes the release. A bump per feature PR would leave intermediate versions
+  that never get tagged.
 - **`.github/extra-vars.yml`** — add an entry to the duplicated CI container map so the
   deployment test exercises the service. It is JSON-ish with unquoted scalar values and a
   different key order from the real map:

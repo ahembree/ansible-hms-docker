@@ -33,7 +33,12 @@ git log --oneline "$(git tag --list 'v*' | sort -V | tail -1)"..origin/develop
 ```
 
 Releases are cut from `develop`. Commits on `develop` but not on `master` are the
-unreleased set.
+unreleased set. Feature PRs leave their notes under a `## Unreleased` section at the top of
+the newest release-notes file; collect it as the starting point for step 4:
+
+```bash
+grep -rn '^## Unreleased' docs-astro/src/content/docs/docs/release-notes/
+```
 
 If the version is **already ahead** of the newest tag, a bump is committed but unreleased —
 do not bump again. The pending merge releases it. Say so and stop.
@@ -62,7 +67,8 @@ State the chosen version and why before editing anything.
 
 ## 3. Bump the version — `hms-docker.yml`
 
-Line 8, in the play-level `vars:`. Unquoted, **3-part semver**.
+Line 8, in the play-level `vars:`. **Quoted**, **3-part semver** (`"1.21.0"`) — unquoted
+`1.20` is the YAML float `1.2`.
 [tasks/versioning.yml](../../../roles/hmsdocker/tasks/versioning.yml) compares it with
 `version_type='semver'` against each install's on-disk `.hmsd-version`; a 2-part value
 breaks that comparison for every existing user.
@@ -73,6 +79,12 @@ One file per **minor series**, all its patches stacked inside, newest at the top
 
 **Patch bump** — the file already exists. Insert the new `## v<version>` section directly
 after the frontmatter's closing `---` and one blank line, above the previous section.
+
+**`## Unreleased`** — if a section with that header exists (step 1), it holds the notes the
+feature PRs wrote. For a patch bump, rename the header to `## v<version>` in place. For a
+minor bump, move its body into the new file under `## v<version>` and delete the
+`## Unreleased` section from the old file. Either way, no `## Unreleased` header may remain
+anywhere once you are done — it would be deployed to the docs site with the release.
 
 **Minor bump** — **create** the file. Its absence is the worst failure in step 6's list.
 Frontmatter is fixed; `order` is the negative minor number, which is what sorts the sidebar
@@ -134,6 +146,9 @@ test -f "$FILE" || echo "MISSING $FILE"
 
 # must print nothing — the tag must not already exist
 git tag --list "v$VERSION"
+
+# must print nothing — every Unreleased section must have been consumed
+grep -rn '^## Unreleased' docs-astro/src/content/docs/docs/release-notes/
 
 # this output IS the GitHub Release body. Empty means an empty release, published silently.
 awk -v v="v$VERSION" '$0 == "## " v {flag=1; next} /^## / && flag {exit} flag' "$FILE"
@@ -204,6 +219,7 @@ Each of these is a real property of
 - **Opening a feature/release PR against `master`.** `pr-target-guard.yml` fails it; target
   `develop`.
 - **Squash-merging `develop` → `master`.** Use a merge commit or the branches diverge.
+- **Leaving a `## Unreleased` header behind.** It ships to the docs site with the release.
 - **Committing as the human.** Author *and* committer must be
   `Claude <noreply@anthropic.com>`.
 - **Running `gh pr create`.** The skill stops at the commit.
