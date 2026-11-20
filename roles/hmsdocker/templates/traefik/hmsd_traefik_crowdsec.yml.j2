@@ -12,12 +12,12 @@ http:
           updateMaxFailure: -1
           # LAN clients are never blocked, so the apps stay reachable if CrowdSec makes a bad decision
           clientTrustedIPs:
-          {% for address in traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
+          {% for address in hmsdocker_proxy_allow_list | regex_replace(', ', ',') | split(',') %}
             - "{{ address | trim }}"
           {% endfor %}
-        {% if hmsdocker_traefik_trusted_proxies | default([], true) | length > 0 %}
+        {% if hmsdocker_proxy_trusted_proxies | default([], true) | length > 0 %}
           forwardedHeadersTrustedIPs:
-          {% for ip in hmsdocker_traefik_trusted_proxies %}
+          {% for ip in hmsdocker_proxy_trusted_proxies %}
             - "{{ ip }}"
           {% endfor %}
         {% endif %}

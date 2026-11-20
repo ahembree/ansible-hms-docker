@@ -33,23 +33,23 @@
               hms_docker_container_map | dict2items |
               selectattr('value.enabled', 'defined') |
               selectattr('value.enabled', 'equalto', true) |
-              selectattr('value.traefik', 'defined') |
-              selectattr('value.traefik', 'equalto', true) |
+              selectattr('value.proxy', 'defined') |
+              selectattr('value.proxy', 'equalto', true) |
               map(attribute='key') |
               list
             )
             if ('traefik' in enabled_containers)
             else []
           }}
-    # Caddy routes the same containers as Traefik (`traefik: true`), only one of the two runs
+    # Caddy routes the same containers as Traefik (`proxy: true`), only one of the two runs
     caddy_enabled_containers: >-
           {{
             (
               hms_docker_container_map | dict2items |
               selectattr('value.enabled', 'defined') |
               selectattr('value.enabled', 'equalto', true) |
-              selectattr('value.traefik', 'defined') |
-              selectattr('value.traefik', 'equalto', true) |
+              selectattr('value.proxy', 'defined') |
+              selectattr('value.proxy', 'equalto', true) |
               map(attribute='key') |
               list
             )
@@ -61,20 +61,20 @@
             hms_docker_container_map | dict2items |
             selectattr('value.enabled', 'defined') |
             selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.traefik', 'defined') |
-            selectattr('value.traefik', 'equalto', true) |
+            selectattr('value.proxy', 'defined') |
+            selectattr('value.proxy', 'equalto', true) |
             map(attribute='value.proxy_host_rule') |
             list
           }}
     traefik_enabled_external_hosts: >-
           {{
-            traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
+            hmsdocker_proxy_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
     authentik_enabled_containers: >-
           {{
             (
               enabled_containers
-              if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in enabled_containers and traefik_ssl_enabled
+              if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in enabled_containers and hmsdocker_ssl_enabled
               else
               (
                 hms_docker_container_map
@@ -85,7 +85,7 @@
                 | selectattr('value.authentik', 'equalto', true)
                 | map(attribute='key')
                 | list
-                if ('authentik' in enabled_containers and traefik_ssl_enabled)
+                if ('authentik' in enabled_containers and hmsdocker_ssl_enabled)
                 else []
               )
             )
@@ -98,8 +98,8 @@
       | dict2items
       | selectattr('value.enabled', 'defined')
       | selectattr('value.enabled', 'equalto', true)
-      | selectattr('value.traefik', 'defined')
-      | selectattr('value.traefik', 'equalto', true)
+      | selectattr('value.proxy', 'defined')
+      | selectattr('value.proxy', 'equalto', true)
       | selectattr('value.authentik', 'defined')
       | selectattr('value.authentik', 'equalto', true)
       | selectattr('value.proxy_host_rule', 'defined')
@@ -216,7 +216,7 @@
     socket_proxy_unavailable: >-
       {{
         []
-        if (traefik_ssl_enabled | default(false) | bool)
+        if (hmsdocker_ssl_enabled | default(false) | bool)
         else (
           hmsdocker_socket_proxy_clients | dict2items |
           selectattr('value.requires_ssl', 'defined') |

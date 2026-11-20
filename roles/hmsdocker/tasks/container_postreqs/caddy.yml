@@ -88,6 +88,6 @@
     validate_certs: false
   loop: "{{ traefik_enabled_subdomains }}"
   when:
-    - traefik_verify_endpoints | default(false)
+    - hmsdocker_proxy_verify_endpoints | default(false)
   ignore_errors: true
   register: caddy_successful_endpoints

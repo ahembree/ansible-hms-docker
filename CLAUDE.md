@@ -16,7 +16,7 @@ All day-to-day workflows go through the [Makefile](Makefile):
 | `make check` | Dry run with `--diff --check`. |
 | `make apply` | Live apply with `--diff`. |
 | `make install-reqs` | Installs galaxy roles + `community.docker` / `community.general` collections. Auto-run by `check`/`apply`. |
-| `make update` | `git pull`s the **currently checked-out branch**, then (via `make migrate-config`, re-invoked so the freshly pulled Makefile runs) rewrites deprecated variable names in `inventory/group_vars/all/*.yml` from [migrations/variable_renames.yml](migrations/variable_renames.yml) and merges new services/keys from the local `roles/hmsdocker/defaults/main/container_map.yml` (uses a vendored `yq` in `./bin/`). |
+| `make update` | `git pull`s the **currently checked-out branch**, then (via `make migrate-config`, re-invoked so the freshly pulled Makefile runs) rewrites deprecated variable names in `inventory/group_vars/all/*.yml` from [migrations/variable_renames.yml](migrations/variable_renames.yml), moves the settings in `reverse_proxy.yml` out of the user's `traefik.yml`, and merges new services/keys from the local `roles/hmsdocker/defaults/main/container_map.yml` (uses a vendored `yq` in `./bin/`). When it changes the config, the previous copy is kept in `backups/inventory-<date>` (gitignored). |
 | `make switch-develop` / `make switch-stable` | Check out `develop` / `master` (git carries non-conflicting local edits over), then run `make update`. `make branch` shows the current branch. |
 | `make verify-containers` | Runs `.github/workflows/scripts/check_containers.py` to validate exposed ports (used in CI). |
 | `make manager` | Interactive Python settings editor (`settings_manager.py` in a venv). |
@@ -37,7 +37,7 @@ Inventory is [inventory/hosts.yml](inventory/hosts.yml) (bare: just localhost wi
 
 ### The main role: `roles/hmsdocker/`
 
-- **defaults/main/** — split across many files by concern (`main.yml`, `container_map.yml`, `traefik.yml`, `sso.yml` (Authentik, Tinyauth, Pocket ID), `vpn.yml`, `plex.yml`, `cloudflare.yml`, `nas*.yml`, `gpu.yml`, `tailscale.yml`, `app_bootstrap.yml`, `homepage_api_keys.yml`, `hmsd_advanced.yml`, `container_settings.yml`). When adding a default, place it in the file matching its subsystem.
+- **defaults/main/** — split across many files by concern (`main.yml`, `container_map.yml`, `reverse_proxy.yml` (SSL, allow-list, hardening, external hosts: shared by Traefik and Caddy), `traefik.yml`, `caddy.yml`, `sso.yml` (Authentik, Tinyauth, Pocket ID), `vpn.yml`, `plex.yml`, `cloudflare.yml`, `nas*.yml`, `gpu.yml`, `tailscale.yml`, `app_bootstrap.yml`, `homepage_api_keys.yml`, `hmsd_advanced.yml`, `container_settings.yml`). When adding a default, place it in the file matching its subsystem.
 - **tasks/main.yml** — versioning checks, then builds derived facts (`enabled_containers`, `traefik_enabled_containers`, `authentik_enabled_containers`, `traefik_enabled_subdomains`) by filtering `hms_docker_container_map`.
 - **tasks/preflight.yml** + **tasks/compat_shim.yml** — preflight imports the compat shim, then runs feature-gated asserts. Soft warnings are appended to `hmsdocker_preflight_warnings` and printed at the end.
 - **tasks/container_prereqs/**, **tasks/container_postreqs/**, **tasks/app_inits/** — per-service setup split into pre-start (mounts, networks, volumes), post-start (settling, handler triggers), and app initialization (API key retrieval, indexer/download-client wiring).
@@ -47,7 +47,7 @@ Inventory is [inventory/hosts.yml](inventory/hosts.yml) (bare: just localhost wi
 
 ### The container map (canonical service toggle)
 
-`hms_docker_container_map` (defined in `roles/hmsdocker/defaults/main/container_map.yml`) is a single dict with ~40+ services. Each entry has keys like `enabled`, `directory`, `traefik`, `authentik`, `authentik_provider_type`, `expose_ports`, `expose_to_public`, `homepage`, `homepage_stats`, `proxy_host_rule`.
+`hms_docker_container_map` (defined in `roles/hmsdocker/defaults/main/container_map.yml`) is a single dict with ~40+ services. Each entry has keys like `enabled`, `directory`, `proxy` (reachable through the reverse proxy; called `traefik` before), `authentik`, `authentik_provider_type`, `expose_ports`, `expose_to_public`, `homepage`, `homepage_stats`, `proxy_host_rule`.
 
 Service enablement is **two-stage** — gating happens at task time, not in the top-level template:
 
@@ -60,7 +60,7 @@ Adding a service = adding a map entry in `container_map.yml` + a `templates/cont
 
 ### Caddy (alternative reverse proxy)
 
-`caddy` in the container map replaces `traefik` (preflight fails if both are enabled; both bind 80/443). It reuses the per-service `traefik: true` flag and the `traefik_*` SSL/allowlist/hardening/ext-host settings, so switching proxies changes nothing else. Proxy-agnostic logic should use the `proxy_enabled_containers` fact (`traefik_enabled_containers` + `caddy_enabled_containers`), not `traefik_enabled_containers`.
+`caddy` in the container map replaces `traefik` (preflight fails if both are enabled; both bind 80/443). It reuses the per-service `proxy: true` flag and the shared settings in `reverse_proxy.yml` (`hmsdocker_ssl_*`, `hmsdocker_proxy_*`), so switching proxies changes nothing else. Only Traefik-specific settings keep a `traefik_` prefix (e.g. `traefik_ssl_dns_provider_code`). Proxy-agnostic logic should use the `proxy_enabled_containers` fact (`traefik_enabled_containers` + `caddy_enabled_containers`), not `traefik_enabled_containers`.
 
 Caddy does **not** read container labels: `templates/caddy/Caddyfile.j2` renders one site per proxied container from `hmsdocker_caddy_upstreams` in `vars/main.yml` (host/port/scheme, mirroring the Traefik labels). `.github/workflows/scripts/check_caddy_upstreams.py` (CI) fails when the two diverge, so a new web-UI service needs an upstream entry. With SSL on, `tasks/container_prereqs/caddy.yml` builds a local `hmsd-caddy` image with the caddy-dns module (xcaddy); Caddyfile changes are applied with the `Reload caddy` handler (graceful `caddy reload`). The Caddyfile lives in a folder per image (`apps/caddy/config/<hmsdocker_caddy_config_name>`, mounted at `/etc/caddy`), so a new image also changes the mount and Compose switches image and config together; an old image never loads a config needing modules it lacks (and vice versa). The postreq removes other images' folders and old `hmsd-caddy` images once Caddy runs the current one.
 
@@ -70,8 +70,8 @@ CrowdSec works with either proxy: `hmsdocker_crowdsec_bouncer_name` (`traefik` o
 
 [migrations/variable_renames.yml](migrations/variable_renames.yml) is the **single source of truth** for deprecated variable names. It feeds two paths:
 
-1. **Runtime** — `tasks/compat_shim.yml` aliases old names to new ones in-memory using a `varnames` lookup, skips null/empty values, runs `no_log: true`, and emits a single warning telling the user to migrate.
-2. **On-disk** — `make update` reads the same file via `yq` and rewrites `inventory/group_vars/all/*.yml` with anchored `sed` (preserves YAML formatting).
+1. **Runtime** — `tasks/compat_shim.yml` aliases old names to new ones in-memory using a `varnames` lookup, skips null and empty-string values (but carries `false`, `0` and `[]` over), runs `no_log: true`, and emits a single warning telling the user to migrate. It also maps the container map's old per-service `traefik` key to `proxy` (nested keys are not covered by the rename file), and fails when it can't (a map passed as extra vars outranks `set_fact`); `make migrate-config` renames that key on disk with `yq`, in every inventory file that defines the map, before merging the default map, which would otherwise delete it as obsolete.
+2. **On-disk** — `make update` reads the same file via `yq` and rewrites `inventory/group_vars/all/*.yml` with anchored `sed` (preserves YAML formatting). It does not move a renamed key to another file, except the keys of `defaults/main/reverse_proxy.yml`, which it moves from the user's `traefik.yml` to `reverse_proxy.yml` (group_vars files load alphabetically, so a key left in `traefik.yml` would override `reverse_proxy.yml`).
 
 When renaming a variable, **always** add an entry to `migrations/variable_renames.yml` rather than hand-editing the shim or update script. Naming convention is shifting from `hms_docker_*` to `hmsdocker_*` — both still appear; don't bulk-rename without a migration entry.
 

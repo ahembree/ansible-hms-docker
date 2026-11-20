@@ -78,7 +78,7 @@ argument_specs:
       # ---- Container map ----
       hms_docker_container_map:
         type: dict
-        description: Per-container enable/expose/traefik settings.
+        description: Per-container enable/expose/proxy settings.
 
       # ---- Networking ----
       hmsdocker_docker_network_base_subnet:
@@ -97,39 +97,39 @@ argument_specs:
         choices: [openvpn, wireguard, custom]
         description: VPN protocol used by transmission/qbittorrent/deluge ('custom' uses a user-supplied config).
 
-      # ---- Traefik / SSL ----
-      traefik_ssl_enabled:
+      # ---- Reverse proxy (Traefik or Caddy) / SSL, reverse_proxy.yml unless noted ----
+      hmsdocker_ssl_enabled:
         type: bool
         description: Enable wildcard SSL certificate generation via Let's Encrypt DNS-01.
-      traefik_security_hardening:
+      hmsdocker_proxy_security_hardening:
         type: bool
-        description: Apply additional Traefik security defaults (minimum TLS 1.2, etc.).
-      traefik_ssl_use_letsencrypt_staging_url:
+        description: Apply additional reverse proxy security defaults (minimum TLS 1.2, HTTPS only, security headers).
+      hmsdocker_ssl_letsencrypt_staging:
         type: bool
         description: Use the Let's Encrypt staging CA (recommended until certs are confirmed working).
-      traefik_ssl_sans:
+      hmsdocker_ssl_sans:
         type: list
         elements: str
         description: Subject Alternative Names included in the generated certificate.
-      traefik_ext_hosts_enabled:
+      hmsdocker_proxy_ext_hosts_enabled:
         type: bool
-        description: Watch a directory for external Traefik file-provider configs.
-      traefik_ext_hosts_list:
+        description: Route the external hosts in hmsdocker_proxy_ext_hosts_list through the reverse proxy.
+      hmsdocker_proxy_ext_hosts_list:
         type: list
         elements: dict
-        description: External upstream hosts to proxy through Traefik.
+        description: External upstream hosts to proxy through Traefik or Caddy.
       traefik_log_level:
         type: str
         choices: [DEBUG, INFO, WARN, ERROR, FATAL, PANIC]
-        description: Traefik log verbosity.
-      traefik_verify_endpoints:
+        description: Traefik log verbosity (traefik.yml).
+      hmsdocker_proxy_verify_endpoints:
         type: bool
-        description: Probe each Traefik route post-deploy (requires valid DNS for all FQDNs).
-      traefik_enable_access_logs:
+        description: Probe each reverse proxy route post-deploy (requires valid DNS for all FQDNs).
+      hmsdocker_proxy_access_logs:
         type: bool
         description: Enable full request access logging.
 
-      # ---- Caddy (uses the Traefik SSL, allowlist, hardening and external host settings above) ----
+      # ---- Caddy (uses the shared reverse proxy settings above) ----
       hmsdocker_caddy_version:
         type: str
         description: Caddy release to deploy (2.11.6 or newer).

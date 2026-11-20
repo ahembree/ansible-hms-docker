@@ -147,15 +147,15 @@
 - name: (preflight) Validate Traefik SSL configuration
   ansible.builtin.assert:
     that:
-      - (traefik_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (hmsdocker_ssl_letsencrypt_email | default('', true) | string) | length > 0
       - (traefik_ssl_dns_provider_code | default('', true) | string) | length > 0
     fail_msg: >-
-      traefik_ssl_enabled is true but Let's Encrypt configuration is incomplete.
-      Set traefik_ssl_letsencrypt_email and traefik_ssl_dns_provider_code
-      in inventory/group_vars/all/traefik.yml.
+      hmsdocker_ssl_enabled is true but Let's Encrypt configuration is incomplete.
+      Set hmsdocker_ssl_letsencrypt_email in inventory/group_vars/all/reverse_proxy.yml and
+      traefik_ssl_dns_provider_code in inventory/group_vars/all/traefik.yml.
     quiet: true
   when:
-    - traefik_ssl_enabled | default(false) | bool
+    - hmsdocker_ssl_enabled | default(false) | bool
     - not (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
     - not is_github_runner
 
@@ -178,18 +178,18 @@
 - name: (preflight) Validate Caddy SSL configuration
   ansible.builtin.assert:
     that:
-      - (traefik_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (hmsdocker_ssl_letsencrypt_email | default('', true) | string) | length > 0
       - (hmsdocker_caddy_dns_provider | default('', true) | string) is match('^[A-Za-z0-9_.-]+$')
       - (hmsdocker_caddy_dns_provider_module | default('', true) | string) | length > 0
       - (hmsdocker_caddy_dns_provider_config | default('', true) | string) | length > 0
     fail_msg: >-
-      traefik_ssl_enabled is true but the Caddy SSL configuration is incomplete. Set traefik_ssl_letsencrypt_email
-      in inventory/group_vars/all/traefik.yml, and hmsdocker_caddy_dns_provider (e.g. cloudflare) and
+      hmsdocker_ssl_enabled is true but the Caddy SSL configuration is incomplete. Set hmsdocker_ssl_letsencrypt_email
+      in inventory/group_vars/all/reverse_proxy.yml, and hmsdocker_caddy_dns_provider (e.g. cloudflare) and
       hmsdocker_caddy_dns_provider_config in inventory/group_vars/all/caddy.yml. Providers and their settings
       are listed at https://github.com/caddy-dns.
     quiet: true
   when:
-    - traefik_ssl_enabled | default(false) | bool
+    - hmsdocker_ssl_enabled | default(false) | bool
     - hms_docker_container_map['caddy']['enabled'] | default(false) | bool
     - not is_github_runner
 
@@ -202,7 +202,7 @@
       is empty. Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   when:
-    - traefik_ssl_enabled | default(false) | bool
+    - hmsdocker_ssl_enabled | default(false) | bool
     - >-
       (hmsdocker_caddy_dns_provider | default('', true)) == 'cloudflare'
       if (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
@@ -343,19 +343,19 @@
   ansible.builtin.assert:
     that:
       - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['enabled'] | default(false) | bool)
-      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['traefik'] | default(false) | bool)
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['proxy'] | default(false) | bool)
       - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
-      - hms_docker_container_map['tinyauth']['traefik'] | default(false) | bool
+      - hms_docker_container_map['tinyauth']['proxy'] | default(false) | bool
       - (hms_docker_container_map['traefik']['enabled'] | default(false) | bool) or (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
-      - traefik_ssl_enabled | default(false) | bool
+      - hmsdocker_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
       - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
         or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length == 0)
         or (hmsdocker_tinyauth_pocketid_client_secret | string | length >= 16)
     fail_msg: >-
       hmsdocker_tinyauth_pocketid_enabled requires tinyauth and a reverse proxy (traefik or caddy) enabled in the
-      container map with traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
-      pocketid must also be enabled with traefik: true. The client ID must be 2-128 letters, digits, _ or -,
+      container map with proxy: true on tinyauth, and hmsdocker_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
+      pocketid must also be enabled with proxy: true. The client ID must be 2-128 letters, digits, _ or -,
       and a client secret the playbook registers in Pocket ID, if set, at least 16 characters.
     quiet: true
   when: hmsdocker_tinyauth_pocketid_enabled | default(false) | bool
@@ -479,39 +479,59 @@
     - (hmsdocker_tinyauth_users | default([], true)) | length == 0
     - not (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool)
 
+# The Tinyauth warnings below only apply while the tinyauth container is enabled: with it disabled, nothing is protected
+# on purpose and its settings are not used. Entries for disabled containers are skipped too, as they are not running
 - name: (preflight) Warn if Tinyauth protected containers are not applied
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: >-
-      {{ hmsdocker_preflight_warnings + ['hmsdocker_tinyauth_protected_containers has entries that are not protected: '
-      + (tinyauth_skipped | join(', ')) + '. Tinyauth must be enabled with traefik: true, each entry must be enabled with traefik: true,'
-      + ' and ' + (hmsdocker_tinyauth_unsupported_containers | join(', ')) + ' cannot be protected.'] }}
+      {{
+        hmsdocker_preflight_warnings + [
+          ('Tinyauth is enabled but has proxy: false in the container map, so it cannot sign anyone in, and these '
+           ~ 'hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (tinyauth_skipped | join(', ')) ~ '.')
+          if not tinyauth_proxied
+          else ('These hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (tinyauth_skipped | join(', '))
+           ~ '. Each must be a container map entry with proxy: true, and ' ~ (hmsdocker_tinyauth_unsupported_containers | join(', '))
+           ~ ' cannot be protected.')
+        ]
+      }}
   vars:
+    tinyauth_proxied: "{{ hms_docker_container_map['tinyauth']['proxy'] | default(false) | bool }}"
+    tinyauth_enabled_keys: >-
+      {{ hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
+         | map(attribute='key') | list }}
+    tinyauth_proxied_keys: >-
+      {{ hms_docker_container_map | dict2items | selectattr('key', 'in', tinyauth_enabled_keys)
+         | selectattr('value.proxy', 'defined') | selectattr('value.proxy', 'equalto', true) | map(attribute='key') | list }}
+    # Listed entries, without the containers that are in the map but disabled (unknown names are kept, they are typos)
+    tinyauth_listed: >-
+      {{ hmsdocker_tinyauth_protected_containers | default([], true)
+         | reject('in', hms_docker_container_map | dict2items | rejectattr('key', 'in', tinyauth_enabled_keys) | map(attribute='key') | list)
+         | list }}
     tinyauth_skipped: >-
       {{
-        hmsdocker_tinyauth_protected_containers | default([], true)
-        if not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+        tinyauth_listed
+        if not tinyauth_proxied
         else (
-          hmsdocker_tinyauth_protected_containers | default([], true)
-          | reject('in', hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
-              | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | map(attribute='key') | list)
-          | list
-          + (hmsdocker_tinyauth_protected_containers | default([], true) | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
+          (tinyauth_listed | reject('in', tinyauth_proxied_keys) | list)
+          + (tinyauth_listed | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
         ) | unique
       }}
   when:
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
     - hmsdocker_tinyauth_protected_containers | default([], true) is not string
     - tinyauth_skipped | length > 0
 
 - name: (preflight) Warn if external hosts ask for Tinyauth without it
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These traefik_ext_hosts_list entries have tinyauth: yes, but the tinyauth container is not enabled with traefik: true, so they are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but has proxy: false in the container map, so these hmsdocker_proxy_ext_hosts_list entries with tinyauth: yes are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
   vars:
     tinyauth_ext_hosts: >-
-      {{ traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+      {{ hmsdocker_proxy_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
          | selectattr('tinyauth', 'defined') | selectattr('tinyauth') | map(attribute='friendly_name') | list }}
   when:
-    - traefik_ext_hosts_enabled | default(false) | bool
-    - not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+    - hmsdocker_proxy_ext_hosts_enabled | default(false) | bool
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
+    - not (hms_docker_container_map['tinyauth']['proxy'] | default(false) | bool)
     - tinyauth_ext_hosts | length > 0
 
 - name: (preflight) Warn if containers are protected by both Tinyauth and Authentik
@@ -531,10 +551,10 @@
 
 - name: (preflight) Warn if Pocket ID is enabled without SSL
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Pocket ID is enabled without HTTPS (traefik_ssl_enabled is off or Pocket ID has traefik: false). Pocket ID signs in with passkeys, which browsers only allow over HTTPS, so sign-in will not work.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Pocket ID is enabled without HTTPS (hmsdocker_ssl_enabled is off or Pocket ID has proxy: false). Pocket ID signs in with passkeys, which browsers only allow over HTTPS, so sign-in will not work.'] }}"
   when:
     - hms_docker_container_map['pocketid']['enabled'] | default(false)
-    - (not (traefik_ssl_enabled | default(false) | bool)) or (not (hms_docker_container_map['pocketid']['traefik'] | default(false)))
+    - (not (hmsdocker_ssl_enabled | default(false) | bool)) or (not (hms_docker_container_map['pocketid']['proxy'] | default(false)))
 
 - name: (preflight) Warn if read-only media is set for unsupported containers
   ansible.builtin.set_fact:
@@ -569,21 +589,21 @@
 
 # An entry Traefik or Caddy cannot parse as an IP or subnet stops it from starting, and a single string instead of a list
 # would be read one character at a time
-- name: (preflight) Validate hmsdocker_traefik_trusted_proxies
+- name: (preflight) Validate hmsdocker_proxy_trusted_proxies
   ansible.builtin.assert:
     that:
-      - hmsdocker_traefik_trusted_proxies is sequence
-      - hmsdocker_traefik_trusted_proxies is not string
-      - hmsdocker_traefik_trusted_proxies is not mapping
-      - "hmsdocker_traefik_trusted_proxies | map('string') | reject('match', '^[0-9A-Fa-f:.]+(/[0-9]{1,3})?$') | list | length == 0"
+      - hmsdocker_proxy_trusted_proxies is sequence
+      - hmsdocker_proxy_trusted_proxies is not string
+      - hmsdocker_proxy_trusted_proxies is not mapping
+      - "hmsdocker_proxy_trusted_proxies | map('string') | reject('match', '^[0-9A-Fa-f:.]+(/[0-9]{1,3})?$') | list | length == 0"
     fail_msg: >-
-      hmsdocker_traefik_trusted_proxies must be a list of IP addresses or subnets, for example ["192.168.1.10"]
-      or ["10.0.0.0/24"], but it is set to {{ hmsdocker_traefik_trusted_proxies | to_json }}. Traefik and Caddy do not
-      start with an invalid entry. Update it in inventory/group_vars/all/traefik.yml.
+      hmsdocker_proxy_trusted_proxies must be a list of IP addresses or subnets, for example ["192.168.1.10"]
+      or ["10.0.0.0/24"], but it is set to {{ hmsdocker_proxy_trusted_proxies | to_json }}. Traefik and Caddy do not
+      start with an invalid entry. Update it in inventory/group_vars/all/reverse_proxy.yml.
     quiet: true
   when:
     - (hms_docker_container_map['traefik']['enabled'] | default(false) | bool) or (hms_docker_container_map['caddy']['enabled'] | default(false) | bool)
-    - hmsdocker_traefik_trusted_proxies | default([], true) | length > 0
+    - hmsdocker_proxy_trusted_proxies | default([], true) | length > 0
 
 - name: (preflight) Validate the CrowdSec bouncer plugin version
   ansible.builtin.assert:

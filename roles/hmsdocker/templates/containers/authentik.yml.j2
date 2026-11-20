@@ -74,7 +74,7 @@ services:
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
       - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
       - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'authentik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
+      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'authentik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file
       {% endif %}
       {% if 'authentik' in homepage_enabled_containers %}
       - homepage.group=Infrastructure

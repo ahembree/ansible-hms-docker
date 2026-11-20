@@ -11,8 +11,8 @@ Both are optional and can be used on their own. The settings below are in `inven
 
 ## Requirements
 
-- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `traefik: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
-- Traefik or Caddy with SSL (`traefik_ssl_enabled`) to sign in with Pocket ID, since passkeys only work over HTTPS (the playbook checks this). Tinyauth with only local users also runs without SSL, but its session cookie is then sent unencrypted, so use SSL whenever you can
+- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `proxy: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
+- Traefik or Caddy with SSL (`hmsdocker_ssl_enabled`) to sign in with Pocket ID, since passkeys only work over HTTPS (the playbook checks this). Tinyauth with only local users also runs without SSL, but its session cookie is then sent unencrypted, so use SSL whenever you can
 
 ## Signing in with Pocket ID
 
@@ -98,7 +98,7 @@ hmsdocker_tinyauth_protected_containers:
   - prowlarr
 ```
 
-Each listed service must be enabled with `traefik: true`. Its Traefik router (or Caddy route) gets the Tinyauth middleware after the usual IP allowlist, so opening it redirects to Tinyauth until you sign in. Protecting `sonarr` or `radarr` also protects their 4K instances.
+Each listed service must be enabled with `proxy: true`. Its Traefik router (or Caddy route) gets the Tinyauth middleware after the usual IP allowlist, so opening it redirects to Tinyauth until you sign in. Protecting `sonarr` or `radarr` also protects their 4K instances.
 
 `tinyauth` and `pocketid` (which serve the sign-in), and `authentik` and `n8n` (which set their own Traefik middlewares) cannot be protected. A service that also has `authentik: true` would ask for both sign-ins, and the playbook warns about it.
 
@@ -106,10 +106,10 @@ Anything that reaches a protected service through its Traefik URL without a brow
 
 ### Services outside this project
 
-Routes to [external services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) in `traefik_ext_hosts_list` (in `inventory/group_vars/all/traefik.yml`) can require a Tinyauth sign-in too:
+Routes to [external services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) in `hmsdocker_proxy_ext_hosts_list` (in `inventory/group_vars/all/reverse_proxy.yml`, or `traefik.yml` until you run `make update`) can require a Tinyauth sign-in too:
 
 ```yaml
-traefik_ext_hosts_list: [
+hmsdocker_proxy_ext_hosts_list: [
   {
     friendly_name: grafana,
     subdomain_name: grafana,

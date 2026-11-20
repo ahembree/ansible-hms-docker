@@ -25,10 +25,10 @@ You must have the correct DNS record for Netdata configured for the below config
 
 :::
 
-In `inventory/group_vars/all/traefik.yml`, set `traefik_ext_hosts_enabled` to `yes` and uncomment the lines in `traefik_ext_hosts_list` that are related to Netdata (like below):
+In `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`), set `hmsdocker_proxy_ext_hosts_enabled` to `yes` and uncomment the lines in `hmsdocker_proxy_ext_hosts_list` that are related to Netdata (like below):
 
 ```yml
-#inventory/group_vars/all/traefik.yml
+#inventory/group_vars/all/reverse_proxy.yml
 ...
 {
   friendly_name: netdata,

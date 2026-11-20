@@ -44,6 +44,14 @@ Both commands switch branches and run `make update` for you. Local edits such as
 
 Moving from `develop` to `master` can roll back changes that were already applied to your host. If `develop` added a container that is not in the latest release yet, `make update` warns about it. Disable it in your `container_map.yml` before running `make apply`.
 
+If `develop` renamed settings, `make update` on `develop` already renamed them in your inventory, and the release on `master` does not know the new names yet. Whenever `make update` changes your config, it first saves a copy in `backups/inventory-<date>` and prints its path. After `make switch-stable`, restore the copy from before you switched to `develop` (the oldest one since then):
+
+```bash
+rm inventory/group_vars/all/*.yml && cp -p backups/inventory-<date>/*.yml inventory/group_vars/all/
+```
+
+Changes you made to your config on `develop` after that backup need to be made again.
+
 :::
 
 Please see the [Release Notes](/docs/release-notes/) if you are updating from a previous version.

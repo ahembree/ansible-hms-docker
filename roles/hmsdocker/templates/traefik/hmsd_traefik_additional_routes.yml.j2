@@ -2,18 +2,18 @@ http:
   routers:
     {{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-{{ project_name }}:
       entryPoints:
-      {% if traefik_ssl_enabled %}
+      {% if hmsdocker_ssl_enabled %}
         - websecure
       {% else %}
         - web
       {% endif %}
       middlewares:
       {% if item.expose_publicly | default(false) %}
-        - external-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
+        - external-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}
       {% else %}
-        - internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
+        - internal-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}
       {% endif %}
-      {% if ('authentik' in enabled_containers and traefik_ssl_enabled | default(False)) and item.authentik | default(False) %}
+      {% if ('authentik' in enabled_containers and hmsdocker_ssl_enabled | default(False)) and item.authentik | default(False) %}
         - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
       {% endif %}
       {% if 'tinyauth' in traefik_enabled_containers and item.tinyauth | default(False) %}

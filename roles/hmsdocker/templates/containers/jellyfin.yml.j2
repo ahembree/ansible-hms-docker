@@ -47,7 +47,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
       - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyfin' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker' if 'jellyfin' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'jellyfin' in tinyauth_protected_containers }}
+      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyfin' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker' if 'jellyfin' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'jellyfin' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'jellyfin' in homepage_enabled_containers %}
       - homepage.group=Media

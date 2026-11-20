@@ -84,8 +84,8 @@ Standard shape:
     expose_to_public: false
     homepage: true
     homepage_stats: false
+    proxy: true
     proxy_host_rule: <key>
-    traefik: true
 ```
 
 ## 4. Compose template — `templates/containers/<key>.yml.j2`
@@ -183,7 +183,7 @@ Homepage credential styles:
         "enabled": true,
         "proxy_host_rule": <key>,
         "directory": true,
-        "traefik": true,
+        "proxy": true,
         "authentik": false,
         "authentik_provider_type": proxy,
         "expose_to_public": false,

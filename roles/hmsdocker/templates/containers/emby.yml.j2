@@ -51,7 +51,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
       - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'emby' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if 'emby' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'emby' in tinyauth_protected_containers }}
+      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'emby' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if 'emby' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'emby' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'emby' in homepage_enabled_containers %}
       - homepage.group=Media

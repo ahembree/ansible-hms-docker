@@ -7,7 +7,7 @@
 # Optional: enroll this instance in the CrowdSec Console (https://app.crowdsec.net) with this enrollment key // default: ""
 hmsdocker_crowdsec_enroll_key: ""
 
-# Proxies in front of Traefik or Caddy (such as a load balancer) are set with `hmsdocker_traefik_trusted_proxies` in traefik.yml
+# Proxies in front of Traefik or Caddy (such as a load balancer) are set with `hmsdocker_proxy_trusted_proxies` in reverse_proxy.yml
 
 # Version (release tag) of the CrowdSec bouncer Traefik plugin (https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin)
 # The playbook downloads it from GitHub and Traefik loads it from that local copy // default: "v1.8.2"

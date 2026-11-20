@@ -16,15 +16,15 @@ services:
       - 80:80
       - 443:443
       - 443:443/udp
-    {% if not traefik_security_hardening and 'traefik' in expose_ports_enabled_containers %}
+    {% if not hmsdocker_proxy_security_hardening and 'traefik' in expose_ports_enabled_containers %}
       - 8080:8080
     {% endif %}
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    {% if traefik_ssl_dns_provider_environment_vars %}
-        {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+    {% if hmsdocker_ssl_dns_provider_environment_vars %}
+        {% for key, value in hmsdocker_ssl_dns_provider_environment_vars.items() %}
         {# Due to how Ansible interprets curly brackets, I had to use 'raw' statements in order to render the ${} around the ansible 'key' variable to reference the .env file variable #}
       - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
         {% endfor %}
@@ -41,15 +41,15 @@ services:
       # CrowdSec bouncer plugin, downloaded by the playbook and loaded as a local plugin
       - ${HMSD_APPS_PATH}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}:{{ hmsdocker_crowdsec_bouncer_plugin_mount }}:ro
     {% endif %}
-    {% if 'traefik' in traefik_enabled_containers or ('traefik' in homepage_enabled_containers and not traefik_security_hardening) %}
+    {% if 'traefik' in traefik_enabled_containers or ('traefik' in homepage_enabled_containers and not hmsdocker_proxy_security_hardening) %}
     labels:
       {% if 'traefik' in traefik_enabled_containers %}
       - traefik.enable=true
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}`)
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.service=api@internal
-      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'traefik' in tinyauth_protected_containers }}
+      - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'traefik' in tinyauth_protected_containers }}
       {% endif %}
-      {% if 'traefik' in homepage_enabled_containers and not traefik_security_hardening %}
+      {% if 'traefik' in homepage_enabled_containers and not hmsdocker_proxy_security_hardening %}
       - homepage.group=Infrastructure
       - homepage.name=Traefik
       - homepage.icon=traefik.png

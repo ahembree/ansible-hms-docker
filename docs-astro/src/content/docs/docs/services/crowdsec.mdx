@@ -34,7 +34,7 @@ These are in `inventory/group_vars/all/crowdsec.yml`:
 | `hmsdocker_crowdsec_bouncer_plugin_version` | `v1.8.2` | Version (release tag) of the Traefik bouncer plugin. |
 | `hmsdocker_crowdsec_caddy_bouncer_version` | `v0.15.0` | Version (release tag) of the [Caddy bouncer module](https://github.com/hslatman/caddy-crowdsec-bouncer). |
 
-If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocker_traefik_trusted_proxies` (see [Proxies in front of Traefik](/docs/services/traefik/security/#proxies-in-front-of-traefik)). Otherwise Traefik's access log, which CrowdSec reads, and the bouncer both see the proxy's IP instead of the client's, and a ban would block the proxy.
+If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocker_proxy_trusted_proxies` (see [Proxies in front of Traefik](/docs/services/traefik/security/#proxies-in-front-of-traefik)). Otherwise Traefik's access log, which CrowdSec reads, and the bouncer both see the proxy's IP instead of the client's, and a ban would block the proxy.
 
 :::caution[Proxies must replace X-Forwarded-For]
 
@@ -46,7 +46,7 @@ CrowdSec reads the client IP from the `X-Forwarded-For` header that the proxy se
 
 - CrowdSec reads the `traefik` container's logs through the Docker API. With the [Docker Socket Proxy](/docs/services/socket-proxy/) enabled, it gets a filtered socket that can only list containers and read their details, events and logs. Without it, the Docker socket is mounted read-only, which does not limit the Docker API.
 - The bouncer runs in stream mode: Traefik pulls the list of banned IPs from CrowdSec every 60 seconds and checks requests locally, so it adds no delay to requests.
-- The bouncer never blocks clients in `traefik_subnet_allow_list` (by default the Docker network and the private ranges `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), even if they are banned. This keeps the apps and dashboards reachable from your LAN if CrowdSec bans a local device by mistake. CrowdSec's default `crowdsecurity/whitelists` parser also keeps private ranges from being banned in the first place.
+- The bouncer never blocks clients in `hmsdocker_proxy_allow_list` (by default the Docker network and the private ranges `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), even if they are banned. This keeps the apps and dashboards reachable from your LAN if CrowdSec bans a local device by mistake. CrowdSec's default `crowdsecurity/whitelists` parser also keeps private ranges from being banned in the first place.
 - If CrowdSec can't be reached (while it restarts, is updated by Watchtower, or has crashed), the bouncer lets all traffic through instead of blocking it, and keeps using the last list of bans it received. Blocking resumes once CrowdSec is back. Traefik logs `crowdsecQuery:unreachable` errors in the meantime.
 - Disabling `crowdsec` removes the bouncer from Traefik on the next playbook run. The middleware file is removed after Traefik has restarted, so routes keep working throughout.
 - After re-enabling, `cscli bouncers list` may show an extra `traefik@<ip>` entry. This is the same bouncer reconnecting from a new container IP and can be ignored, or removed with `cscli bouncers delete`.
@@ -62,7 +62,7 @@ With `caddy` enabled instead of `traefik`, everything above applies, with these 
 3. Every route Caddy serves runs the bouncer first, before the IP allowlist and the sign-ins: the routes of all containers, the external hosts, and your own `*.caddy` sites that `import hmsd_crowdsec` (see [Adding other Containers to Caddy](/docs/services/caddy/#adding-other-containers-to-caddy))
 4. Caddy's access logs are turned on
 
-The bouncer pulls the banned IPs every 60 seconds, never blocks clients in `traefik_subnet_allow_list`, and lets traffic through while CrowdSec can't be reached, like the Traefik plugin. Caddy also starts and reloads while CrowdSec is down. `hmsdocker_traefik_trusted_proxies` applies to Caddy as well. Caddy reads the client IP from the right end of `X-Forwarded-For` and skips the trusted proxies, so a client cannot hide behind an `X-Forwarded-For` value it sends itself.
+The bouncer pulls the banned IPs every 60 seconds, never blocks clients in `hmsdocker_proxy_allow_list`, and lets traffic through while CrowdSec can't be reached, like the Traefik plugin. Caddy also starts and reloads while CrowdSec is down. `hmsdocker_proxy_trusted_proxies` applies to Caddy as well. Caddy reads the client IP from the right end of `X-Forwarded-For` and skips the trusted proxies, so a client cannot hide behind an `X-Forwarded-For` value it sends itself.
 
 When you switch between Traefik and Caddy, the playbook reads the logs of the new proxy, replaces the bouncer registration in CrowdSec, and removes the old one.
 
@@ -74,8 +74,8 @@ The bouncer only runs on Traefik's `web` and `websecure` entrypoints (ports `80`
 
 - [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/), which connects `cloudflared` straight to the container without going through Traefik.
 - Host ports opened with `expose_ports` in the [Container Map](/docs/container-list/#container-map) or with `container_expose_ports`.
-- Traefik's own dashboard on port `8080`. It is published when `traefik_security_hardening` is off (the default) and Traefik's ports are exposed, and it has no authentication in that case. Enable `traefik_security_hardening`, or don't expose Traefik's ports, if the server can be reached from the internet.
-- Clients that connect over IPv6. The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway as the client. That address is normally in `traefik_subnet_allow_list`, so the bouncer never blocks it and CrowdSec never bans it. If the server has a public IPv6 address (for example with `cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall.
+- Traefik's own dashboard on port `8080`. It is published when `hmsdocker_proxy_security_hardening` is off (the default) and Traefik's ports are exposed, and it has no authentication in that case. Enable `hmsdocker_proxy_security_hardening`, or don't expose Traefik's ports, if the server can be reached from the internet.
+- Clients that connect over IPv6. The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway as the client. That address is normally in `hmsdocker_proxy_allow_list`, so the bouncer never blocks it and CrowdSec never bans it. If the server has a public IPv6 address (for example with `cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall.
 
 CrowdSec also only detects attacks in Traefik's access logs, so it doesn't see traffic that skips Traefik either.
 
@@ -85,7 +85,7 @@ CrowdSec also only detects attacks in Traefik's access logs, so it doesn't see t
 # Show active bans
 sudo docker exec crowdsec cscli decisions list
 
-# Ban an IP for 10 minutes (for testing, use an IP outside traefik_subnet_allow_list), then remove the ban
+# Ban an IP for 10 minutes (for testing, use an IP outside hmsdocker_proxy_allow_list), then remove the ban
 sudo docker exec crowdsec cscli decisions add --ip 203.0.113.10 -d 10m
 sudo docker exec crowdsec cscli decisions delete --ip 203.0.113.10
 
