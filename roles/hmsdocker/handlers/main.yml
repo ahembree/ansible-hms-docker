@@ -7,9 +7,27 @@
     remove_orphans: "{{ container_remove_orphans }}"
     services:
       - traefik
+  # traefik_crowdsec_bouncer_added: the CrowdSec postreqs added the bouncer to the running Traefik's config, which only
+  # takes effect after a restart, even on a run that created the certs directory
   when:
-    - not traefik_certs_dir.changed
+    - not traefik_certs_dir.changed or (traefik_crowdsec_bouncer_added | default(false) | bool)
     - not ansible_check_mode
+
+# Must stay after "Restart traefik", handlers run in the order they are defined
+- name: Remove CrowdSec bouncer middleware
+  ansible.builtin.file:
+    path: "{{ hmsdocker_traefik_static_config_location }}/hmsd_crowdsec.yml"
+    state: absent
+
+- name: Restart crowdsec
+  community.docker.docker_compose_v2:
+    project_src: "{{ hms_docker_data_path }}"
+    project_name: "{{ project_name }}"
+    state: restarted
+    remove_orphans: "{{ container_remove_orphans }}"
+    services:
+      - crowdsec
+  when: not ansible_check_mode
 
 - name: Restart sabnzbd
   community.docker.docker_compose_v2:

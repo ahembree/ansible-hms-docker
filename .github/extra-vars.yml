@@ -550,5 +550,9 @@
       "homepage": true,
       "homepage_stats": false
     },
+    "crowdsec": {
+      "enabled": true,
+      "directory": true
+    },
   }
 }

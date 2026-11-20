@@ -111,6 +111,9 @@ hms_docker_container_map:
     directory: true
     enabled: false
     expose_ports: false
+  crowdsec:
+    directory: true
+    enabled: false
   deluge:
     authentik: false
     directory: true
