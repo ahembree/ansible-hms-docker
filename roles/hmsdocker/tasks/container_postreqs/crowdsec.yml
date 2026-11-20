@@ -1,0 +1,22 @@
+# The CrowdSec container only registers the bouncer from BOUNCER_KEY_traefik while no bouncer named "traefik"
+# exists. If the key file was generated again but the database was kept, the old key stays registered and CrowdSec
+# refuses Traefik. The bouncer then lets all traffic through, so nothing is blocked. Replace the registration with
+# the new key in that case. Deleting the bouncer also deletes its auto-created traefik@<ip> entries
+- name: (Postreq - CrowdSec) - Register the new bouncer API key
+  community.docker.docker_container_exec:
+    container: crowdsec
+    argv:
+      - sh
+      - -c
+      - cscli bouncers delete traefik --ignore-missing && cscli bouncers add traefik -k "$BOUNCER_KEY_traefik" > /dev/null
+  register: postreq_crowdsec_bouncer
+  # The container may still be starting after it was recreated with the new key
+  until: postreq_crowdsec_bouncer.rc | default(1) == 0
+  retries: 6
+  delay: 5
+  changed_when: true
+  no_log: "{{ not debug_mode }}"
+  when:
+    - not ansible_check_mode
+    - prereq_crowdsec_bouncer_key is changed
+    - prereq_crowdsec_db.stat.exists | default(false)

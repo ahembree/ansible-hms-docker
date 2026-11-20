@@ -39,6 +39,7 @@ If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocke
 - If CrowdSec can't be reached (while it restarts, is updated by Watchtower, or has crashed), the bouncer lets all traffic through instead of blocking it, and keeps using the last list of bans it received. Blocking resumes once CrowdSec is back. Traefik logs `crowdsecQuery:unreachable` errors in the meantime.
 - Disabling `crowdsec` removes the bouncer from Traefik on the next playbook run. The middleware file is removed after Traefik has restarted, so routes keep working throughout.
 - After re-enabling, `cscli bouncers list` may show an extra `traefik@<ip>` entry. This is the same bouncer reconnecting from a new container IP and can be ignored, or removed with `cscli bouncers delete`.
+- The bouncer API key is stored in `<hms_docker_apps_path>/crowdsec/.bouncer_key`. If you delete that file, the next playbook run generates a new key and replaces the old one in CrowdSec.
 
 ## What CrowdSec does not cover
 

@@ -19,6 +19,13 @@
       labels:
         type: traefik
 
+# Checked before the key is generated: a new key with an existing database means CrowdSec still has the
+# old key registered for the bouncer, which container_postreqs/crowdsec.yml then replaces
+- name: (Prereq - CrowdSec) - Check for an existing CrowdSec database
+  ansible.builtin.stat:
+    path: "{{ hms_docker_apps_path }}/crowdsec/data/crowdsec.db"
+  register: prereq_crowdsec_db
+
 - name: (Prereq - CrowdSec) - Generate bouncer API key
   ansible.builtin.template:
     src: secret_key_file.j2
