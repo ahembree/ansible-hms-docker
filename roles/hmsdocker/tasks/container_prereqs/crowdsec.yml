@@ -63,3 +63,37 @@
   when: "'traefik' in enabled_containers"
   vars:
     crowdsec_bouncer_key: "{{ (prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
+
+# Traefik loads the bouncer plugin from this copy (experimental.localPlugins) instead of the Traefik plugin catalog.
+# From the catalog, Traefik downloads the plugin every time its container is created, and when that fails every route
+# on ports 80 and 443 breaks, because the bouncer is applied to the whole entrypoint. Each version is downloaded once,
+# into its own folder, and a new version makes Traefik's container be recreated with it
+- name: (Prereq - CrowdSec) - Ensure Traefik bouncer plugin
+  when: "'traefik' in enabled_containers"
+  vars:
+    crowdsec_plugin_path: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
+  block:
+    - name: (Prereq - CrowdSec) - Ensure bouncer plugin directory
+      ansible.builtin.file:
+        path: "{{ crowdsec_plugin_path }}"
+        state: directory
+        mode: '0755'
+      register: prereq_crowdsec_plugin_dir
+
+    # In check mode the directory is not created, so there is nothing to download into yet
+    - name: (Prereq - CrowdSec) - Download bouncer plugin
+      ansible.builtin.get_url:
+        url: "https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/archive/refs/tags/{{ hmsdocker_crowdsec_bouncer_plugin_version }}.tar.gz"
+        dest: "{{ crowdsec_plugin_path }}.tar.gz"
+        mode: '0644'
+      when: not (ansible_check_mode and prereq_crowdsec_plugin_dir is changed)
+
+    - name: (Prereq - CrowdSec) - Extract bouncer plugin
+      ansible.builtin.unarchive:
+        src: "{{ crowdsec_plugin_path }}.tar.gz"
+        dest: "{{ crowdsec_plugin_path }}"
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ crowdsec_plugin_path }}/.traefik.yml"
+      when: not ansible_check_mode

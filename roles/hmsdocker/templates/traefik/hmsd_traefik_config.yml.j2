@@ -10,11 +10,11 @@ accessLog: {}
 {% endif %}
 
 {% if 'crowdsec' in enabled_containers %}
+# Loaded from the copy the playbook downloads, so Traefik does not need the plugin catalog to start
 experimental:
-  plugins:
+  localPlugins:
     crowdsec-bouncer:
       moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
-      version: "{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
 
 {% endif %}
 api:

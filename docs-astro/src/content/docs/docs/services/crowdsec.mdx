@@ -18,7 +18,7 @@ Enable `crowdsec` in the [Container Map](/docs/container-list/#container-map) an
 3. Install the bouncer plugin in Traefik and apply it to the `web` and `websecure` entrypoints (ports `80` and `443`), so every route through those ports is covered
 4. Turn on Traefik access logs, which CrowdSec needs
 
-Traefik downloads the plugin from the Traefik plugin catalog when it starts, so the server needs internet access at that time.
+The playbook downloads the plugin from GitHub into `<hms_docker_apps_path>/crowdsec/bouncer-plugin/` (once per version), and Traefik loads it from there. Traefik does not use the Traefik plugin catalog, so it starts without internet access.
 
 ### Settings
 
