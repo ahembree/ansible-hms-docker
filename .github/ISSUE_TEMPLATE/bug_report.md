@@ -42,7 +42,7 @@ As some examples, if the issue is related to a below item then provide the varia
 - Authentik, Tinyauth or Pocket ID: `sso.yml` (`authentik.yml` on older installs)
 - NAS: `nas.yml` and the appropriate type (such as NFS, CIFS, or if it's an additional path)
 - VPN: `vpn.yml`
-- Traefik: `traefik.yml`
+- Traefik or Caddy (SSL, allow-list, external hosts): `reverse_proxy.yml` (`traefik.yml` on older installs), plus `traefik.yml` or `caddy.yml`
 
 Please be sure to redact any sensitive information
 

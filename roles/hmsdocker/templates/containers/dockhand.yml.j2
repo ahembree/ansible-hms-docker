@@ -25,7 +25,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.dockhand-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
       - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['dockhand']['proxy_host_rule'] | default('dockhand') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dockhand' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dockhand-midware@docker' if 'dockhand' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'dockhand' in tinyauth_protected_containers }}
+      - traefik.http.routers.dockhand-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'dockhand' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-dockhand-midware@docker' if 'dockhand' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'dockhand' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'dockhand' in homepage_enabled_containers %}
       - homepage.group=Infrastructure

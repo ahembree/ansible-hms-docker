@@ -1,13 +1,13 @@
 ---
-# Same list Traefik builds in its prereqs, used to verify the routes (traefik_verify_endpoints)
+# Same list Traefik builds in its prereqs, used to verify the routes (hmsdocker_proxy_verify_endpoints)
 - name: Caddy Prereq - Extend subdomain hosts list with external hosts
   ansible.builtin.set_fact:
     traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
   when:
-    - traefik_ext_hosts_enabled
+    - hmsdocker_proxy_ext_hosts_enabled
     - item.enabled
     - item.subdomain_name not in traefik_enabled_subdomains
-  loop: '{{ traefik_ext_hosts_list }}'
+  loop: '{{ hmsdocker_proxy_ext_hosts_list }}'
 
 - name: Caddy Prereq - Extend subdomain hosts list if 4K instances are enabled
   ansible.builtin.set_fact:
@@ -34,9 +34,9 @@
       }}
     caddy_ext_hosts: >-
       {{
-        (traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+        (hmsdocker_proxy_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
           | map(attribute='subdomain_name') | list)
-        if (traefik_ext_hosts_enabled | default(false)) else []
+        if (hmsdocker_proxy_ext_hosts_enabled | default(false)) else []
       }}
     caddy_duplicate_hosts: >-
       {{

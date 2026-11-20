@@ -204,8 +204,8 @@ Here is an example of a container map entry for Sonarr:
     expose_to_public: false         # If the container should be exposed to public (0.0.0.0/0) traffic through the reverse proxy IP allowlist rules
     homepage: true                  # If the integration with the Homepage container should be enabled
     homepage_stats: false           # Enables advanced stats for the container within Homepage (CPU, RAM, RX/TX)
+    proxy: true                     # If container should be accessible via the reverse proxy (Traefik or Caddy)
     proxy_host_rule: sonarr         # The subdomain that will route to the container
-    traefik: true                   # If container should be accessible via the reverse proxy (Traefik or Caddy)
 ...
 ```
 
@@ -281,7 +281,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.<container name>-${COMPOSE_PROJECT}.loadbalancer.server.port=<container UI port>
       - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<container name>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker' if '<container name>' in authentik_enabled_containers }}
+      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<container name>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker' if '<container name>' in authentik_enabled_containers }}
       {% endif %}
       # Below is only for Homepage
       {% if '<container name>' in homepage_enabled_containers %}

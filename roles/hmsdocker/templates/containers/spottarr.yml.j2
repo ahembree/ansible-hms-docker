@@ -39,7 +39,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.spottarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8383
       - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['spottarr']['proxy_host_rule'] | default('spottarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'spottarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-spottarr-midware@docker' if 'spottarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'spottarr' in tinyauth_protected_containers }}
+      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'spottarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-spottarr-midware@docker' if 'spottarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'spottarr' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'spottarr' in homepage_enabled_containers %}
       - homepage.group=Managers

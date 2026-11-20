@@ -9,13 +9,13 @@ import { Steps } from '@astrojs/starlight/components';
 
 [Caddy](https://caddyserver.com/) can be used as the reverse proxy instead of Traefik. It routes the same containers, on the same subdomains, with the same protections:
 
-- every container with `traefik: true` in the [Container Map](/docs/container-list/#container-map) is reachable at `<proxy_host_rule>.<domain>` (and `-4k` for [4K instances](/docs/getting-started/4k-instances/))
+- every container with `proxy: true` in the [Container Map](/docs/container-list/#container-map) is reachable at `<proxy_host_rule>.<domain>` (and `-4k` for [4K instances](/docs/getting-started/4k-instances/))
 - the internal IP allowlist, and `expose_to_public` to lift it
 - a Let's Encrypt wildcard certificate through the DNS challenge, with HTTP/3
 - [Authentik](/docs/services/authentik/) and [Tinyauth](/docs/services/tinyauth/) sign-ins
-- [external hosts](#external-services) from `traefik_ext_hosts_list`
-- the [CrowdSec](/docs/services/crowdsec/#crowdsec-with-caddy) bouncer, and `hmsdocker_traefik_trusted_proxies` for proxies in front of it
-- `traefik_security_hardening`, access logs, endpoint verification, the Homepage widget and the Plex certificate script
+- [external hosts](#external-services) from `hmsdocker_proxy_ext_hosts_list`
+- the [CrowdSec](/docs/services/crowdsec/#crowdsec-with-caddy) bouncer, and `hmsdocker_proxy_trusted_proxies` for proxies in front of it
+- `hmsdocker_proxy_security_hardening`, access logs, endpoint verification, the Homepage widget and the Plex certificate script
 
 Only one reverse proxy can run, since both use ports `80` and `443`. The playbook stops if both are enabled.
 
@@ -48,28 +48,28 @@ Only one reverse proxy can run, since both use ports `80` and `443`. The playboo
 
 The Caddy settings are in `roles/hmsdocker/defaults/main/caddy.yml`. Copy the ones you change into `inventory/group_vars/all/caddy.yml` (or run `make config`, which copies every defaults file).
 
-Everything else is shared with Traefik and stays in `inventory/group_vars/all/traefik.yml`, so switching back and forth does not change how your services are reached:
+Everything else is shared with Traefik and stays in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed), so switching back and forth does not change how your services are reached:
 
 | Setting | Used by Caddy for |
 | ------- | ----------------- |
-| `traefik_ssl_enabled` | getting a Let's Encrypt certificate, see [SSL Certificates](#ssl-certificates) |
-| `traefik_ssl_use_letsencrypt_staging_url` | the Let's Encrypt staging server |
-| `traefik_ssl_letsencrypt_email` | the Let's Encrypt account |
-| `traefik_ssl_sans` | the wildcard certificate(s), `*.<domain>` by default |
-| `traefik_ssl_dns_provider_environment_vars` | the DNS provider credentials, passed to the container |
-| `traefik_ssl_dns_resolver_1`, `traefik_ssl_dns_resolver_2` | the DNS servers used to check the DNS challenge |
-| `traefik_subnet_allow_list` | the internal IP allowlist |
-| `traefik_security_hardening` | [security headers](#security) |
-| `traefik_ext_hosts_enabled`, `traefik_ext_hosts_list` | [external services](#external-services) |
-| `traefik_enable_access_logs` | request logs in `docker logs caddy` |
-| `traefik_verify_endpoints` | checking every route at the end of the run |
-| `hmsdocker_traefik_trusted_proxies` | proxies in front of Caddy, whose `X-Forwarded-For` header gives the client IP |
+| `hmsdocker_ssl_enabled` | getting a Let's Encrypt certificate, see [SSL Certificates](#ssl-certificates) |
+| `hmsdocker_ssl_letsencrypt_staging` | the Let's Encrypt staging server |
+| `hmsdocker_ssl_letsencrypt_email` | the Let's Encrypt account |
+| `hmsdocker_ssl_sans` | the wildcard certificate(s), `*.<domain>` by default |
+| `hmsdocker_ssl_dns_provider_environment_vars` | the DNS provider credentials, passed to the container |
+| `hmsdocker_ssl_dns_resolver_1`, `hmsdocker_ssl_dns_resolver_2` | the DNS servers used to check the DNS challenge |
+| `hmsdocker_proxy_allow_list` | the internal IP allowlist |
+| `hmsdocker_proxy_security_hardening` | [security headers](#security) |
+| `hmsdocker_proxy_ext_hosts_enabled`, `hmsdocker_proxy_ext_hosts_list` | [external services](#external-services) |
+| `hmsdocker_proxy_access_logs` | request logs in `docker logs caddy` |
+| `hmsdocker_proxy_verify_endpoints` | checking every route at the end of the run |
+| `hmsdocker_proxy_trusted_proxies` | proxies in front of Caddy, whose `X-Forwarded-For` header gives the client IP |
 
 `traefik_ssl_dns_provider_code`, `traefik_log_level` and the Traefik dashboard settings are not used by Caddy.
 
 ## SSL Certificates
 
-The [Traefik SSL requirements](/docs/services/traefik/ssl/#requirements) apply: a domain Let's Encrypt can issue certificates for, and a DNS provider with an API key. As with Traefik, start with the staging server (`traefik_ssl_use_letsencrypt_staging_url: true`, the default) and switch to production once the staging certificate works.
+The [Traefik SSL requirements](/docs/services/traefik/ssl/#requirements) apply: a domain Let's Encrypt can issue certificates for, and a DNS provider with an API key. As with Traefik, start with the staging server (`hmsdocker_ssl_letsencrypt_staging: true`, the default) and switch to production once the staging certificate works.
 
 Caddy uses a DNS provider module from [caddy-dns](https://github.com/caddy-dns) for the DNS challenge. The official Caddy image has none, so when SSL is enabled the playbook builds a Caddy image with the module (named `hmsd-caddy`). The first build takes a few minutes, later runs reuse it until the Caddy version or the modules change. Images built for an earlier version or module list are removed once Caddy runs the new one. Docker keeps the build cache, which `docker builder prune` removes.
 
@@ -79,7 +79,7 @@ hmsdocker_caddy_dns_provider: cloudflare              # the module name from htt
 hmsdocker_caddy_dns_provider_config: "{env.CF_DNS_API_TOKEN}"  # what the provider's README puts after `dns <provider>`
 ```
 
-`{env.NAME}` reads a value from the container's environment, which gets every variable in `traefik_ssl_dns_provider_environment_vars`. Use it for keys and tokens so they are not written into the Caddyfile.
+`{env.NAME}` reads a value from the container's environment, which gets every variable in `hmsdocker_ssl_dns_provider_environment_vars`. Use it for keys and tokens so they are not written into the Caddyfile.
 
 :::tip
 
@@ -90,8 +90,8 @@ The defaults already work with Cloudflare: set `cloudflare_api_token` in `invent
 For a provider with several settings, write them as a block. Example for Route 53:
 
 ```yaml
-#inventory/group_vars/all/traefik.yml
-traefik_ssl_dns_provider_environment_vars:
+#inventory/group_vars/all/reverse_proxy.yml
+hmsdocker_ssl_dns_provider_environment_vars:
   {
     "AWS_ACCESS_KEY_ID": "<key id>",
     "AWS_SECRET_ACCESS_KEY": "<secret>",
@@ -109,7 +109,7 @@ hmsdocker_caddy_dns_provider_config: |-
   }
 ```
 
-Caddy gets a certificate for each name in `traefik_ssl_sans` (`*.<domain>` by default) and uses it for every subdomain it covers. A subdomain that no wildcard covers gets its own certificate. Certificates are stored in `<apps path>/caddy/data`.
+Caddy gets a certificate for each name in `hmsdocker_ssl_sans` (`*.<domain>` by default) and uses it for every subdomain it covers. A subdomain that no wildcard covers gets its own certificate. Certificates are stored in `<apps path>/caddy/data`.
 
 Caddy redirects HTTP to HTTPS and serves HTTP/3 on UDP `443`, see [HTTP/3](/docs/services/traefik/ssl/#http3-quic).
 
@@ -117,9 +117,9 @@ Caddy redirects HTTP to HTTPS and serves HTTP/3 on UDP `443`, see [HTTP/3](/docs
 
 The same rules as [Traefik](/docs/services/traefik/security/) apply:
 
-- Containers only accept requests from `127.0.0.1` and the networks in `traefik_subnet_allow_list` (private RFC1918 ranges by default), other clients get a `403`. `expose_to_public: true` on a container (or `expose_publicly: yes` on an external host) removes this restriction
+- Containers only accept requests from `127.0.0.1` and the networks in `hmsdocker_proxy_allow_list` (private RFC1918 ranges by default), other clients get a `403`. `expose_to_public: true` on a container (or `expose_publicly: yes` on an external host) removes this restriction
 - `n8n` is never restricted (like its Traefik router), and handles its own security headers
-- With `traefik_security_hardening`, responses get the `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff` headers. Caddy only accepts TLS 1.2 and newer in any case, and like Traefik, answers requests for any host it does not route (including requests to the server's IP) with a `404`
+- With `hmsdocker_proxy_security_hardening`, responses get the `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff` headers. Caddy only accepts TLS 1.2 and newer in any case, and like Traefik, answers requests for any host it does not route (including requests to the server's IP) with a `404`
 - Traffic through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/) bypasses Caddy the same way it bypasses Traefik
 
 Caddy's admin API only listens inside the container. Port `2020` (reachable from the Docker network only) serves the container health check and the read-only upstream status used by the Homepage widget.
@@ -132,11 +132,11 @@ For Authentik, Caddy forwards to the same outpost containers (`authentik-proxy-<
 
 ## Access logs
 
-With `traefik_enable_access_logs` (or CrowdSec) enabled, Caddy logs every request to `docker logs caddy`, independent of `hmsdocker_caddy_log_level`. API keys and tokens that apps send in headers or the URL (`X-Api-Key`, `X-Plex-Token`, `X-Emby-Token`, `apikey`, `api_key`, `token` and similar) are removed from the log, as are cookies and `Authorization` headers.
+With `hmsdocker_proxy_access_logs` (or CrowdSec) enabled, Caddy logs every request to `docker logs caddy`, independent of `hmsdocker_caddy_log_level`. API keys and tokens that apps send in headers or the URL (`X-Api-Key`, `X-Plex-Token`, `X-Emby-Token`, `apikey`, `api_key`, `token` and similar) are removed from the log, as are cookies and `Authorization` headers.
 
 ## External Services
 
-`traefik_ext_hosts_list` works the same way, see [Adding External Services to Traefik](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik). Caddy sends the external host's own hostname to it (as written in `backend_url`, with the port only if it has one) and does not verify the certificate of an `https://` backend. Only the scheme, host and port of `backend_url` are used, a path is ignored.
+`hmsdocker_proxy_ext_hosts_list` works the same way, see [Adding External Services to Traefik](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik). Caddy sends the external host's own hostname to it (as written in `backend_url`, with the port only if it has one) and does not verify the certificate of an `https://` backend. Only the scheme, host and port of `backend_url` are used, a path is ignored.
 
 If an external host uses the same subdomain as a container, Caddy only routes the container and the playbook prints a warning.
 

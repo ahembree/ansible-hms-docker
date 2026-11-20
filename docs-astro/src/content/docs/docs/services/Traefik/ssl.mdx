@@ -34,19 +34,23 @@ cloudflare_api_token: <token>
 
 ## Configuration
 
-Settings mentioned below should already exist in your `inventory/group_vars/all/traefik.yml`:
+The SSL settings shared by Traefik and Caddy are in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed), the Traefik-only ones in `inventory/group_vars/all/traefik.yml`:
+
+```yaml
+#inventory/group_vars/all/reverse_proxy.yml
+hmsdocker_ssl_enabled: true                     # whether or not to generate a wildcard SSL certificate
+hmsdocker_ssl_dns_provider_environment_vars: {  # the "Environment Variables", along with their values, of the DNS provider you're using (e.g. `"CF_DNS_API_TOKEN": "<token>"` if using `cloudflare`, found at link above)
+  "ENVIRONMENT_VARIABLE_NAME": "ENVIRONMENT_VARIABLE_VALUE",
+  ...
+}
+hmsdocker_ssl_letsencrypt_email:                # the email address to use for Let's Encrypt
+hmsdocker_ssl_letsencrypt_staging: true         # whether to use the Let's Encrypt staging URL for initial testing (default: `true`)
+```
 
 ```yaml
 #inventory/group_vars/all/traefik.yml
-traefik_ssl_enabled: true                     # whether or not to generate a wildcard SSL certificate
-traefik_ssl_dns_provider_zone:                # the zone of the DNS provider (e.g. `example.com`, this will default to the `hms_docker_domain` if not modified)
-traefik_ssl_dns_provider_code:                # the "Provider Code" of the DNS provider (e.g. `cloudflare`, found at link above)
-traefik_ssl_dns_provider_environment_vars: [  # the "Environment Variables", along with their values, of the DNS provider you're using (e.g. `"CF_DNS_API_TOKEN": "<token>"` if using `cloudflare`, found at link above)
-  "ENVIRONMENT_VARIABLE_NAME": "ENVIRONMENT_VARIABLE_VALUE",
-  ...
-] 
-traefik_ssl_letsencrypt_email:                # the email address to use for Let's Encrypt
-traefik_ssl_use_letsencrypt_staging_url: true # whether to use the Let's Encrypt staging URL for initial testing (default: `true`)
+traefik_ssl_dns_provider_code:                  # the "Provider Code" of the DNS provider (e.g. `cloudflare`, found at link above)
+traefik_ssl_dns_provider_zone:                  # the zone of the DNS provider (e.g. `example.com`, this will default to the `hms_docker_domain` if not modified)
 ```
 
 ### First Time Test
@@ -75,15 +79,15 @@ For HTTP/3 to actually be reachable from the public internet, forward UDP/`443` 
 
 ## Changing SSL Certificate SANs
 
-To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/traefik.yml` modify the `traefik_ssl_sans` variable.
+To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed) modify the `hmsdocker_ssl_sans` variable.
 
 By default, it will generate a wildcard certificate for the domain set in `hms_docker_domain`.
 
 Here's an example of adding an additional `*.dev.<domain>` SAN to the certificate:
 
 ```yaml
-#inventory/group_vars/all/traefik.yml
-traefik_ssl_sans: [
+#inventory/group_vars/all/reverse_proxy.yml
+hmsdocker_ssl_sans: [
   '*.{{ hms_docker_domain }}',
   '*.dev.{{ hms_docker_domain }}'
 ]

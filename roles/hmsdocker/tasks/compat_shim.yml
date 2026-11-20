@@ -52,12 +52,15 @@
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:
     label: "{{ item.old }} -> {{ item.new }}"
-  # Skip null / empty old values: Jinja stringifies None as the literal
+  # Skip null / empty-string old values: Jinja stringifies None as the literal
   # "None", which would silently bypass downstream length-based asserts.
+  # Other falsy values (false, no, 0, []) are aliased: they are deliberate
+  # settings, e.g. turning off a setting whose new name defaults to on.
   # Skip names the user already set: set_fact outranks group_vars and would
   # clobber their value with the stale old one.
   when:
-    - (lookup('vars', item.old) | default('', true) | string) | length > 0
+    - lookup('vars', item.old) is not none
+    - not (lookup('vars', item.old) is string and (lookup('vars', item.old) | length) == 0)
     - item.new not in hmsdocker_user_set_new_names
   # Old values may include credentials (e.g. transmission_vpn_pass), and
   # set_fact echoes them in its result, so hide output unless debug_mode.
@@ -81,3 +84,44 @@
   loop: "{{ hmsdocker_active_migrations }}"
   loop_control:
     label: "{{ item.old }} -> {{ item.new }}"
+
+# The per-container `traefik` key of the container map was renamed to `proxy`. Nested keys are not covered by
+# migrations/variable_renames.yml, so entries that still use `traefik` get a `proxy` key with its value here
+# (an entry that already has `proxy` keeps it). `make update` renames the key in the inventory file.
+- name: (compat) Find container map entries that still use the traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_container_map_traefik_key: >-
+      {{
+        hms_docker_container_map | default({}, true) | dict2items
+        | selectattr('value', 'mapping') | selectattr('value.traefik', 'defined')
+        | map(attribute='key') | list
+      }}
+
+- name: (compat) Rename the traefik key of container map entries to proxy
+  ansible.builtin.set_fact:
+    hms_docker_container_map: "{{ hms_docker_container_map | combine(compat_proxy_keys, recursive=True) }}"
+  vars:
+    compat_entries: >-
+      {{
+        hms_docker_container_map | dict2items
+        | selectattr('key', 'in', hmsdocker_container_map_traefik_key)
+        | rejectattr('value.proxy', 'defined') | list
+      }}
+    compat_proxy_keys: >-
+      {{
+        dict(compat_entries | map(attribute='key')
+          | zip(compat_entries | map(attribute='value.traefik') | map('community.general.dict_kv', 'proxy')))
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+- name: (compat) Record deprecation warning for the container map traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{
+        hmsdocker_preflight_warnings
+        + ["DEPRECATED: the `traefik` key of container map entries has been renamed to `proxy` (reachable through "
+           ~ "Traefik or Caddy). These entries still use it: " ~ (hmsdocker_container_map_traefik_key | join(', '))
+           ~ ". Run `make update` to rename it in inventory/group_vars/all/container_map.yml (an entry that has both "
+           ~ "keys uses `proxy`) - the old key will be removed in a future release."]
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0

@@ -44,7 +44,7 @@ hmsdocker_readonly_media_supported_containers:
 #                    the URL path only (no query string). `(/v1\.\d+)?` covers versioned and unversioned paths.
 #   bind_mount_from: host directories allowed as bind mount sources when the client creates containers
 #   labels:          extra labels for the client's socket-proxy container
-#   requires_ssl:    the client container only runs when traefik_ssl_enabled is on
+#   requires_ssl:    the client container only runs when hmsdocker_ssl_enabled is on
 # Left out on purpose:
 #   netdata          mounts the host root (/), which already contains the Docker socket
 #   portainer, dockhand  container management UIs that need the whole Docker API
@@ -170,8 +170,8 @@ hmsdocker_crowdsec_caddy_bouncer_module: "github.com/hslatman/caddy-crowdsec-bou
 # proxy's logs (with the crowdsecurity/<name> collection)
 hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hms_docker_container_map['caddy']['enabled'] | default(false) | bool) else 'traefik' }}"
 
-# Caddy (`caddy` in the container map) routes each container with `traefik: true` to the upstream below, the same
-# container and port that its Traefik labels use. Containers with `traefik: true` but no entry here (no web UI,
+# Caddy (`caddy` in the container map) routes each container with `proxy: true` to the upstream below, the same
+# container and port that its Traefik labels use. Containers with `proxy: true` but no entry here (no web UI,
 # e.g. unpackerr) get no Caddy route. When adding a container with a web UI, add it here as well.
 #   host:        container name on proxy_net // default: the container map key
 #   port:        web UI port inside the container
@@ -242,7 +242,7 @@ hmsdocker_caddy_upstreams:
   uptimekuma: { host: uptime-kuma, port: 3001 }
   wizarr: { port: 5690 }
 
-# Response headers Caddy adds to every route while traefik_security_hardening is on (Traefik's secure-headers middleware)
+# Response headers Caddy adds to every route while hmsdocker_proxy_security_hardening is on (Traefik's secure-headers middleware)
 hmsdocker_caddy_security_headers:
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
@@ -265,7 +265,7 @@ hmsdocker_caddy_authentik_headers:
 # Image Caddy runs: the official image, or one built with the DNS provider (SSL), the CrowdSec bouncer and extra modules
 hmsdocker_caddy_build_modules: >-
   {{
-    ([hmsdocker_caddy_dns_provider_module] if (traefik_ssl_enabled | default(false) | bool) else [])
+    ([hmsdocker_caddy_dns_provider_module] if (hmsdocker_ssl_enabled | default(false) | bool) else [])
     + ([hmsdocker_crowdsec_caddy_bouncer_module] if (hms_docker_container_map['crowdsec']['enabled'] | default(false) | bool) else [])
     + (hmsdocker_caddy_extra_modules | default([], true))
   }}
@@ -282,7 +282,7 @@ hmsdocker_caddy_image: >-
 # that image can load, even if the run stops before Compose recreates it
 hmsdocker_caddy_config_name: "{{ hmsdocker_caddy_image.split(':')[-1] }}"
 
-# Headers and query parameters removed from Caddy's access logs (traefik_enable_access_logs, CrowdSec), so API keys and
+# Headers and query parameters removed from Caddy's access logs (hmsdocker_proxy_access_logs, CrowdSec), so API keys and
 # tokens that apps send through Caddy are not written to `docker logs caddy`. Cookie and Authorization headers are
 # already removed by Caddy. Header names in their canonical form
 hmsdocker_caddy_log_redacted_headers:

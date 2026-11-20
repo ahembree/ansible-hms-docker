@@ -16,7 +16,7 @@ services:
     networks:
       - proxy_net
     environment:
-      APP_URL: http{{ 's' if traefik_ssl_enabled }}://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}{{ ':8091' if 'beszel' in expose_ports_enabled_containers }}
+      APP_URL: http{{ 's' if hmsdocker_ssl_enabled }}://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}{{ ':8091' if 'beszel' in expose_ports_enabled_containers }}
       HEARTBEAT_URL: ${BESZEL_HEARTBEAT_URL:-}
     {% if 'beszel' in expose_ports_enabled_containers %}
     ports:
@@ -31,7 +31,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.beszel-${COMPOSE_PROJECT}.loadbalancer.server.port=8090
       - traefik.http.routers.beszel-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'beszel' in tinyauth_protected_containers }}
+      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'beszel' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'beszel' in homepage_enabled_containers %}
       - homepage.group=Infrastructure
@@ -78,7 +78,7 @@ services:
     environment:
       LISTEN: /beszel_socket/beszel.sock
     {% include 'socket_proxy/client_docker_host.j2' %}
-      HUB_URL: http{{ 's' if traefik_ssl_enabled }}://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}{{ ':8091' if 'beszel' in expose_ports_enabled_containers }}
+      HUB_URL: http{{ 's' if hmsdocker_ssl_enabled }}://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}{{ ':8091' if 'beszel' in expose_ports_enabled_containers }}
       TOKEN: ${BESZEL_TOKEN:-}
       KEY: ${BESZEL_KEY:-}
     devices:

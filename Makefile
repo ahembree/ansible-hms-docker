@@ -177,6 +177,17 @@ migrate-config: $(YQ_LOCAL)
 		echo "No $(CUSTOM_CONF_DIR)/container_map.yml found, skipping container map merge (run 'make config' first)"; \
 		exit 0; \
 	fi; \
+	echo "Renaming the per-container 'traefik' key to 'proxy'..."; \
+	$(YQ_LOCAL) -r '.hms_docker_container_map | to_entries | .[] | select(.value | tag == "!!map") | select(.value | has("traefik")) | .key' "$(CUSTOM_CONF_DIR)/container_map.yml" | while read service; do \
+		hasproxy=$$($(YQ_LOCAL) eval '.hms_docker_container_map."'$$service'" | has("proxy")' "$(CUSTOM_CONF_DIR)/container_map.yml"); \
+		if [ "$$hasproxy" = "true" ]; then \
+			$(YQ_LOCAL) eval -i 'del(.hms_docker_container_map."'$$service'".traefik)' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
+			echo "  $$service: removed traefik, it already has proxy"; \
+		else \
+			$(YQ_LOCAL) eval -i '(.hms_docker_container_map."'$$service'".traefik | key) = "proxy"' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
+			echo "  renamed $$service.traefik -> $$service.proxy"; \
+		fi; \
+	done; \
 	srcfile="$(DEFAULT_CONTAINER_MAP)"; \
 	echo "Merging container map updates from $$srcfile..."; \
 	echo Checking for new services...; \

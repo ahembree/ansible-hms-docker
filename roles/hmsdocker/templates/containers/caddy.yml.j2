@@ -20,8 +20,8 @@ services:
       # CrowdSec bouncer API key, read by the Caddyfile as {env.CROWDSEC_BOUNCER_KEY}
       - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY}
     {% endif %}
-    {% if traefik_ssl_enabled and traefik_ssl_dns_provider_environment_vars %}
-        {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
+    {% if hmsdocker_ssl_enabled and hmsdocker_ssl_dns_provider_environment_vars %}
+        {% for key, value in hmsdocker_ssl_dns_provider_environment_vars.items() %}
       - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
         {% endfor %}
     {% endif %}

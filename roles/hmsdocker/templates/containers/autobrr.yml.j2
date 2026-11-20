@@ -28,7 +28,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.autobrr-${COMPOSE_PROJECT}.loadbalancer.server.port=7474
       - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'autobrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker' if 'autobrr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'autobrr' in tinyauth_protected_containers }}
+      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'autobrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker' if 'autobrr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'autobrr' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'autobrr' in homepage_enabled_containers %}
       - homepage.group=Downloads

@@ -35,7 +35,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.<key>-${COMPOSE_PROJECT}.loadbalancer.server.port=<uiport>
       - traefik.http.routers.<key>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<key>']['proxy_host_rule'] | default('<key>') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.<key>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<key>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<key>-midware@docker' if '<key>' in authentik_enabled_containers }}
+      - traefik.http.routers.<key>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<key>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<key>-midware@docker' if '<key>' in authentik_enabled_containers }}
       {% endif %}
       {% if '<key>' in homepage_enabled_containers %}
       - homepage.group=<group>
@@ -111,7 +111,7 @@ Both `proxy_net` and `download_net` are defined in
 `user: ${PUID}:${PGID}` at the service level instead (autobrr, n8n).
 
 Env values can be computed from Ansible vars — beszel builds its `APP_URL` from
-`traefik_ssl_enabled`, the map's `proxy_host_rule`, and `expose_ports_enabled_containers`.
+`hmsdocker_ssl_enabled`, the map's `proxy_host_rule`, and `expose_ports_enabled_containers`.
 
 Compose interpolation defaults work and are used for optional secrets:
 `${BESZEL_TOKEN:-}`, `${CAPTCHA_SOLVER:-none}`.

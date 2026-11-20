@@ -46,7 +46,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
       - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tubearchivist' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if 'tubearchivist' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'tubearchivist' in tinyauth_protected_containers }}
+      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tubearchivist' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if 'tubearchivist' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'tubearchivist' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'tubearchivist' in homepage_enabled_containers %}
       - homepage.group=Managers
