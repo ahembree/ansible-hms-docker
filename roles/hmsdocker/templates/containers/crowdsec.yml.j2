@@ -18,13 +18,13 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/crowdsec/config:/etc/crowdsec
       - ${HMSD_APPS_PATH}/crowdsec/data:/var/lib/crowdsec/data
-      # used to read the traefik container's logs (config/acquis.d/traefik.yaml)
+      # used to read the reverse proxy container's logs (config/acquis.d/{{ hmsdocker_crowdsec_bouncer_name }}.yaml)
     {% include 'socket_proxy/client_volume.j2' %}
     environment:
       - TZ=${TIMEZONE}
-      - COLLECTIONS=crowdsecurity/traefik
-      # registers the Traefik bouncer with the generated key
-      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY}
+      - COLLECTIONS=crowdsecurity/{{ hmsdocker_crowdsec_bouncer_name }}
+      # registers the bouncer of the reverse proxy (Traefik or Caddy) with the generated key
+      - BOUNCER_KEY_{{ hmsdocker_crowdsec_bouncer_name }}=${CROWDSEC_BOUNCER_KEY}
     {% if hmsdocker_crowdsec_enroll_key | default('', true) | length > 0 %}
       - ENROLL_KEY=${CROWDSEC_ENROLL_KEY}
       - ENROLL_INSTANCE_NAME={{ project_name }}

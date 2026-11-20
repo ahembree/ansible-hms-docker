@@ -1,4 +1,5 @@
-# Managed by hms-docker: Caddy with the DNS provider module (for the Let's Encrypt DNS challenge) and extra modules
+# Managed by hms-docker: Caddy with the DNS provider module (for the Let's Encrypt DNS challenge), the CrowdSec bouncer
+# and extra modules
 FROM docker.io/library/caddy:{{ hmsdocker_caddy_version }}-builder AS builder
 RUN xcaddy build{% for module in hmsdocker_caddy_build_modules %} --with {{ module }}{% endfor +%}
 

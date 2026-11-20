@@ -81,7 +81,7 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/images/.+/json'
       head:
         - '(/v1\.\d+)?/_ping'
-  # CrowdSec: Docker log acquisition (finds the traefik container through the container list and events, then reads its logs)
+  # CrowdSec: Docker log acquisition (finds the traefik or caddy container through the container list and events, then reads its logs)
   crowdsec:
     mode: proxy
     modes: [proxy, direct]
@@ -162,6 +162,13 @@ hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_loca
 # mount of apps/crowdsec/bouncer-plugin/<version>. A new version changes the mount, so Compose recreates Traefik with it
 hmsdocker_crowdsec_bouncer_plugin_module: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
 hmsdocker_crowdsec_bouncer_plugin_mount: "/plugins-local/src/{{ hmsdocker_crowdsec_bouncer_plugin_module }}"
+
+# CrowdSec bouncer Caddy module, built into the Caddy image (with the AppSec module it always pulls in)
+hmsdocker_crowdsec_caddy_bouncer_module: "github.com/hslatman/caddy-crowdsec-bouncer/http@{{ hmsdocker_crowdsec_caddy_bouncer_version }}"
+
+# The reverse proxy the CrowdSec bouncer runs in, and the name it is registered with in CrowdSec. CrowdSec reads this
+# proxy's logs (with the crowdsecurity/<name> collection)
+hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hms_docker_container_map['caddy']['enabled'] | default(false) | bool) else 'traefik' }}"
 
 # Caddy (`caddy` in the container map) routes each container with `traefik: true` to the upstream below, the same
 # container and port that its Traefik labels use. Containers with `traefik: true` but no entry here (no web UI,
@@ -255,10 +262,11 @@ hmsdocker_caddy_authentik_headers:
   - X-Authentik-Meta-App
   - X-Authentik-Meta-Version
 
-# Image Caddy runs: the official image, or one built with the DNS provider (SSL) and extra modules
+# Image Caddy runs: the official image, or one built with the DNS provider (SSL), the CrowdSec bouncer and extra modules
 hmsdocker_caddy_build_modules: >-
   {{
     ([hmsdocker_caddy_dns_provider_module] if (traefik_ssl_enabled | default(false) | bool) else [])
+    + ([hmsdocker_crowdsec_caddy_bouncer_module] if (hms_docker_container_map['crowdsec']['enabled'] | default(false) | bool) else [])
     + (hmsdocker_caddy_extra_modules | default([], true))
   }}
 hmsdocker_caddy_image: >-

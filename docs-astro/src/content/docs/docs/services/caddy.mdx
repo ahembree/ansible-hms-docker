@@ -14,6 +14,7 @@ import { Steps } from '@astrojs/starlight/components';
 - a Let's Encrypt wildcard certificate through the DNS challenge, with HTTP/3
 - [Authentik](/docs/services/authentik/) and [Tinyauth](/docs/services/tinyauth/) sign-ins
 - [external hosts](#external-services) from `traefik_ext_hosts_list`
+- the [CrowdSec](/docs/services/crowdsec/#crowdsec-with-caddy) bouncer, and `hmsdocker_traefik_trusted_proxies` for proxies in front of it
 - `traefik_security_hardening`, access logs, endpoint verification, the Homepage widget and the Plex certificate script
 
 Only one reverse proxy can run, since both use ports `80` and `443`. The playbook stops if both are enabled.
@@ -62,6 +63,7 @@ Everything else is shared with Traefik and stays in `inventory/group_vars/all/tr
 | `traefik_ext_hosts_enabled`, `traefik_ext_hosts_list` | [external services](#external-services) |
 | `traefik_enable_access_logs` | request logs in `docker logs caddy` |
 | `traefik_verify_endpoints` | checking every route at the end of the run |
+| `hmsdocker_traefik_trusted_proxies` | proxies in front of Caddy, whose `X-Forwarded-For` header gives the client IP |
 
 `traefik_ssl_dns_provider_code`, `traefik_log_level` and the Traefik dashboard settings are not used by Caddy.
 
@@ -148,6 +150,8 @@ The container must be on the `hms-docker_proxy_net` network (use your `project_n
 # <apps path>/caddy/custom/myapp.caddy
 myapp.example.com {
 	route {
+		# CrowdSec bouncer (does nothing while crowdsec is disabled), keep it first
+		import hmsd_crowdsec
 		# Internal IP allowlist, leave it out to allow everyone
 		import hmsd_internal
 		# Optional: require a Tinyauth sign-in
@@ -160,6 +164,12 @@ myapp.example.com {
 ```
 
 Without SSL, start the site address with `http://` (e.g. `http://myapp.example.com`).
+
+## CrowdSec
+
+With `crowdsec` enabled, every route Caddy serves blocks the IPs CrowdSec bans. See [CrowdSec with Caddy](/docs/services/crowdsec/#crowdsec-with-caddy).
+
+If Caddy is already running when a change needs a new Caddy image (enabling CrowdSec or SSL, a new Caddy version or module), the playbook keeps the old Caddyfile until Compose has recreated Caddy with the new image, then writes the new one and reloads Caddy. If the run stops before that, Caddy keeps working with its old config, and the next run finishes the change.
 
 ## Homepage
 

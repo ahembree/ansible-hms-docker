@@ -4,14 +4,16 @@
     hmsdocker_caddy_upstreams in vars/main.yml), plus the external hosts in traefik_ext_hosts_list
   - the internal/external IP allowlists, Authentik and Tinyauth forward auth, and the security hardening headers
   - the Let's Encrypt wildcard certificate (DNS challenge) when traefik_ssl_enabled is on
+  - the CrowdSec bouncer on every route while `crowdsec` is enabled, and hmsdocker_traefik_trusted_proxies
 #}
 {% set ssl = traefik_ssl_enabled | default(false) | bool %}
 {% set site_prefix = '' if ssl else 'http://' %}
 {% set allow_list = ['127.0.0.1/32'] + (traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') | map('trim') | select | list) %}
 {% set seen = namespace(hosts=[]) %}
+{% set crowdsec = 'crowdsec' in enabled_containers %}
 {% macro site(address, upstream, allowlist=true, outpost='', tinyauth=false, headers={}, ext_host=false) %}
 {{ address }} {
-{% if traefik_enable_access_logs | default(false) %}
+{% if traefik_enable_access_logs | default(false) or 'crowdsec' in enabled_containers %}
 	log
 {% endif %}
 {% if headers | length > 0 %}
@@ -22,6 +24,9 @@
 	}
 {% endif %}
 	route {
+{% if 'crowdsec' in enabled_containers %}
+		import hmsd_crowdsec
+{% endif %}
 {% if allowlist %}
 		import hmsd_internal
 {% endif %}
@@ -69,6 +74,22 @@
 {% else %}
 	auto_https off
 {% endif %}
+{% if hmsdocker_traefik_trusted_proxies | default([], true) | length > 0 %}
+	# Proxies in front of Caddy (hmsdocker_traefik_trusted_proxies): the client IP is read from their X-Forwarded-For header
+	servers {
+		trusted_proxies static {{ hmsdocker_traefik_trusted_proxies | join(' ') }}
+		trusted_proxies_strict
+	}
+{% endif %}
+{% if crowdsec %}
+	# CrowdSec bouncer, pulls the banned IPs from CrowdSec every 60 seconds (stream mode). If CrowdSec can't be reached,
+	# traffic is let through and the last list of bans is kept
+	crowdsec {
+		api_url http://crowdsec:8080
+		api_key {env.CROWDSEC_BOUNCER_KEY}
+		ticker_interval 60s
+	}
+{% endif %}
 }
 
 # Only allows the IPs in traefik_subnet_allow_list (and localhost), other clients get a 403
@@ -85,6 +106,15 @@
 		copy_headers {{ hmsdocker_caddy_authentik_headers | join(' ') }}
 		trusted_proxies private_ranges
 	}
+}
+
+# CrowdSec bouncer: IPs banned by CrowdSec get a 403. Clients in traefik_subnet_allow_list are never blocked, like with
+# Traefik. Does nothing while `crowdsec` is disabled
+(hmsd_crowdsec) {
+{% if crowdsec %}
+	@hmsd_crowdsec not client_ip {{ allow_list | join(' ') }}
+	crowdsec @hmsd_crowdsec
+{% endif %}
 }
 
 # Tinyauth forward auth, requires a Tinyauth sign-in

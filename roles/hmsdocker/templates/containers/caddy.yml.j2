@@ -16,6 +16,10 @@ services:
       - 443:443/udp
     environment:
       - TZ=${TIMEZONE}
+    {% if 'crowdsec' in enabled_containers %}
+      # CrowdSec bouncer API key, read by the Caddyfile as {env.CROWDSEC_BOUNCER_KEY}
+      - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY}
+    {% endif %}
     {% if traefik_ssl_enabled and traefik_ssl_dns_provider_environment_vars %}
         {% for key, value in traefik_ssl_dns_provider_environment_vars.items() %}
       - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}

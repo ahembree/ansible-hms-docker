@@ -122,22 +122,37 @@ jobs:
           --diff
           --extra-vars "@${{ env.EXTRA_VARS }}"
 
-      - name: Check CrowdSec and its Traefik bouncer
-        if: matrix.proxy == 'traefik'
+      - name: Check CrowdSec and its ${{ matrix.proxy }} bouncer
+        env:
+          PROXY: ${{ matrix.proxy }}
         run: |
-          # Traefik must load the bouncer plugin, otherwise every route on ports 80 and 443 fails
-          if ! sudo docker logs traefik 2>&1 | grep -q "Plugins loaded"; then
-            echo "Traefik did not load the CrowdSec bouncer plugin"
-            sudo docker logs traefik 2>&1 | tail -50
-            exit 1
+          if [ "${PROXY}" = "traefik" ]; then
+            # Traefik must load the bouncer plugin, otherwise every route on ports 80 and 443 fails
+            if ! sudo docker logs traefik 2>&1 | grep -q "Plugins loaded"; then
+              echo "Traefik did not load the CrowdSec bouncer plugin"
+              sudo docker logs traefik 2>&1 | tail -50
+              exit 1
+            fi
+            host="traefik.home.local"
+          else
+            # Caddy must run the image built with the bouncer module, and have it in its config
+            if ! sudo docker exec caddy caddy list-modules | grep -qx "http.handlers.crowdsec"; then
+              echo "Caddy does not have the CrowdSec bouncer module"
+              exit 1
+            fi
+            if ! sudo docker exec caddy caddy adapt --config /etc/caddy/Caddyfile 2>/dev/null | grep -q '"handler":"crowdsec"'; then
+              echo "The Caddyfile does not use the CrowdSec bouncer"
+              exit 1
+            fi
+            host="homepage.home.local"
           fi
-          # Send requests through Traefik so its access log has lines for CrowdSec to read
-          for i in 1 2 3 4 5; do curl -s -o /dev/null -H "Host: traefik.home.local" http://127.0.0.1/ || true; done
-          # The bouncer must authenticate and pull decisions (every 60 seconds), and CrowdSec must read Traefik's logs
+          # Send requests through the proxy so its access log has lines for CrowdSec to read
+          for i in 1 2 3 4 5; do curl -s -o /dev/null -H "Host: ${host}" http://127.0.0.1/ || true; done
+          # The bouncer must authenticate and pull decisions (every 60 seconds), and CrowdSec must read the proxy's logs
           for attempt in $(seq 1 24); do
-            pulled=$(sudo docker exec crowdsec cscli bouncers list -o json | jq '[(. // [])[] | select((.name | startswith("traefik")) and .last_pull != null)] | length')
+            pulled=$(sudo docker exec crowdsec cscli bouncers list -o json | jq --arg proxy "${PROXY}" '[(. // [])[] | select((.name | startswith($proxy)) and .last_pull != null)] | length')
             reads=$(sudo docker exec crowdsec cscli metrics show acquisition -o json | jq '[.acquisition // {} | .[] | .reads // 0] | add // 0')
-            echo "Bouncers that pulled decisions: ${pulled}, Traefik log lines read: ${reads}"
+            echo "Bouncers that pulled decisions: ${pulled}, ${PROXY} log lines read: ${reads}"
             if [ "${pulled}" -gt 0 ] && [ "${reads}" -gt 0 ]; then
               exit 0
             fi
