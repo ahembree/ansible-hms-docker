@@ -81,6 +81,15 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/images/.+/json'
       head:
         - '(/v1\.\d+)?/_ping'
+  # CrowdSec: Docker log acquisition (finds the traefik container through the container list and events, then reads its logs)
+  crowdsec:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/(json|logs))'
+      head:
+        - '(/v1\.\d+)?/_ping'
   # Homepage: container discovery, status and stats
   homepage:
     mode: proxy

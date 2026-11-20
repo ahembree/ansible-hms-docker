@@ -33,7 +33,7 @@ If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocke
 
 ## How it works
 
-- CrowdSec reads the `traefik` container's logs through the Docker socket, which is mounted read-only.
+- CrowdSec reads the `traefik` container's logs through the Docker API. With the [Docker Socket Proxy](/docs/services/socket-proxy/) enabled, it gets a filtered socket that can only list containers and read their details, events and logs. Without it, the Docker socket is mounted read-only, which does not limit the Docker API.
 - The bouncer runs in stream mode: Traefik pulls the list of banned IPs from CrowdSec every 60 seconds and checks requests locally, so it adds no delay to requests.
 - The bouncer never blocks clients in `traefik_subnet_allow_list` (by default the Docker network and the private ranges `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), even if they are banned. This keeps the apps and dashboards reachable from your LAN if CrowdSec bans a local device by mistake. CrowdSec's default `crowdsecurity/whitelists` parser also keeps private ranges from being banned in the first place.
 - If CrowdSec can't be reached (while it restarts, is updated by Watchtower, or has crashed), the bouncer lets all traffic through instead of blocking it, and keeps using the last list of bans it received. Blocking resumes once CrowdSec is back. Traefik logs `crowdsecQuery:unreachable` errors in the meantime.
