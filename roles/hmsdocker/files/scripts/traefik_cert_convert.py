@@ -1,143 +1,268 @@
 #!/usr/bin/env python
+"""Converts a Traefik (ACME) certificate to PKCS12 and applies it to a Plex server.
+
+Traefik stores each certificate in acme.json as a PEM bundle (leaf + intermediates)
+alongside its private key. Plex wants a single PKCS12 file, which must contain the
+intermediates as well or clients that validate strictly will reject the connection.
+"""
+import argparse
+import base64
+import io
+import json
 import logging
 import os
-from datetime import datetime
-
-LOG_PATH=f"{os.path.dirname(os.path.abspath(__file__))}/cert_convert.log"
-logger = logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_PATH, mode='a'),
-        logging.StreamHandler(),
-    ])
-start_time = datetime.now()
-logging.info(f'{"=" * 15} Starting Script at {start_time} {"=" * 15}')
-
-import json
-import base64
-from cryptography import x509
-from cryptography.hazmat.primitives.serialization import BestAvailableEncryption, NoEncryption, load_pem_private_key, pkcs12
+import re
+import stat
 import sys
+import tempfile
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from typing import Dict, List, Optional, Tuple
+
 import defusedxml.ElementTree as ET
-import argparse
-import docker
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import (
+    BestAvailableEncryption,
+    Encoding,
+    NoEncryption,
+    PublicFormat,
+    load_pem_private_key,
+    pkcs12,
+)
 from dotenv import load_dotenv
 
-docker_client = docker.from_env()
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_PATH = f"{SCRIPT_DIR}/cert_convert.log"
+PEM_CERT_RE = re.compile(rb'-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----', re.DOTALL)
+TRUE_VALUES = {'1', 'true', 'yes', 'y', 'on'}
+FALSE_VALUES = {'', '0', 'false', 'no', 'n', 'off', 'none', 'null'}
+PLEX_COMPOSE_SERVICE = 'plex'
+PLEX_STOP_TIMEOUT = 60
 
-try:
-    load_dotenv(f'{os.path.dirname(os.path.abspath(__file__))}/.env')
-    HMSD_APPS_PATH = os.getenv('HMSD_APPS_PATH', '/opt/hms-docker/apps')
-    COMPOSE_PROJECT = os.getenv('COMPOSE_PROJECT', 'hms-docker')
-    HMSD_USER_ID = os.getenv('PUID', 1234)
-    HMSD_GROUP_ID = os.getenv('PGID', 1234)
-    PLEX_PUBLIC_HOSTNAME = os.getenv('PLEX_PUBLIC_HOSTNAME', 'plex')
-    PLEX_CERT_PASSPHRASE = os.getenv('PLEX_CERTIFICATE_PASSPHRASE', None)
-    PLEX_MODIFY_CONFIG = os.getenv('PLEX_CERT_UPDATE_CONFIG', False)
-    PLEX_RESTART = os.getenv('PLEX_CERT_RESTART', False)
-except KeyError as e:
-    logging.warning(f'Failed to find value for {e}')
 
-PLEX_CONFIG_DIR = f"{HMSD_APPS_PATH}/plex/config"
-TRAEFIK_CERT_DIR = f"{HMSD_APPS_PATH}/traefik/config/certs"
+def str_to_bool(value) -> bool:
+    """Parses a boolean from a CLI argument or environment variable
 
-def convert_to_pkcs12(filename: str, pub: str, priv: str, priv_passphrase: str=None) -> None:
-    """Converts PEM data into PKCS12 format and outputs to a file
+    Environment variables and CLI arguments are always strings, so ``"False"`` must not be
+    treated as truthy.
 
     Args:
-        filename (``str``): The path to the output file
-        pub (``str``): The public certificate data
-        priv (``str``): The certificate private key data
-        priv_passphrase (``str``, optional): The private key passphrase. Defaults to ``None``.
-    """    
-    logging.debug(f'Converting to PKCS12 and outputting file to {filename}')
-    cert = x509.load_pem_x509_certificate(str.encode(pub))
-    if priv_passphrase is not None:
-        key = load_pem_private_key(str.encode(priv), str.encode(priv_passphrase))
-        p12 = pkcs12.serialize_key_and_certificates(None, key, cert, None, BestAvailableEncryption(str.encode(priv_passphrase)))
-    else:
-        key = load_pem_private_key(str.encode(priv), None)
-        p12 = pkcs12.serialize_key_and_certificates(None, key, cert, None, NoEncryption())
-    try:
-        with open(filename, 'wb') as file:
-            file.write(p12)
-            logging.info(f'PKCS12 data written to {filename}{" and encrypted" if priv_passphrase is not None else ""}')
-    except FileNotFoundError as e:
-        logging.error(f'Failed to write PKCS12 file to {filename}, directory may not exist (Error: {e})')
-        sys.exit(1)
-    file.close()
-    os.chmod(filename, 0o600)
-    try:
-        os.chown(filename, uid=int(HMSD_USER_ID), gid=int(HMSD_GROUP_ID))
-    except PermissionError as e:
-        logging.error(f'Failed to change ownership of file {filename}, try running script with sudo (Error: {e})')
-        sys.exit(1)
-
-def modify_plex_config(config_path: str, attrib_key: str, attrib_value: str) -> None:
-    """Modifies the Plex server config XML file to have expected values output by this script
-
-    Args:
-        config_path (``str``): The path to the Plex "Preferences.xml" file
-        attrib_key (``str``): The attribute key to update
-        attrib_value (``str``): The value to assign to the attribute key
-    """    
-    try:
-        logging.debug(f'Trying to load Plex config from {config_path}')
-        xml_tree = ET.parse(config_path)
-    except FileNotFoundError as e:
-        logging.error(f'Failed to find config file at location: {config_path} for reason: {e}')
-        sys.exit(1)
-    except PermissionError as e:
-        logging.error(f'Failed to read config file, permission denied, try running as root? {e}')
-        sys.exit(1)
-
-    xml_root = xml_tree.getroot()
-    try:
-        if xml_root.attrib[attrib_key] != attrib_value:
-            logging.info(f'Updating Plex preference: {attrib_key}')
-            xml_root.attrib[attrib_key] = attrib_value
-            logging.debug(f'Writing XML tree to file')
-            xml_tree.write(config_path)
-        else:
-            logging.debug(f'{attrib_key} already equals expected value')
-    except KeyError as e:
-        logging.info(f'Did not find key {attrib_key}, creating and setting value')
-        xml_root.attrib[attrib_key] = attrib_value
-        logging.debug(f'Writing XML tree to file')
-        xml_tree.write(config_path)
-    
-
-def get_pkcs12_serial(data: bytes, passph: str=None) -> str:
-    """Gets the serial from a PKCS12 file
-
-    Args:
-        data (``bytes``): The certificate file binary data
-        passph (``str``, optional): The files passphrase. Defaults to ``None``.
+        value: The value to parse
 
     Returns:
-        ``str``: The serial of the PKCS12 file
-    """    
-    logging.debug('Obtaining PKCS12 certificate serial number')
-    serial = pkcs12.load_pkcs12(data, passph).cert.certificate.serial_number
-    logging.debug(f'PKSC12 Serial: {serial}')
-    return serial
+        ``bool``: The parsed value
+    """
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in TRUE_VALUES:
+        return True
+    if normalized in FALSE_VALUES:
+        return False
+    raise argparse.ArgumentTypeError(f'Expected a boolean (true/false), got: {value!r}')
 
-def get_pem_serial(certificate: str, private: bool=False, passphrase: str=None) -> str:
-    """Gets the serial from PEM data
+
+def env_bool(name: str, default: bool = False) -> bool:
+    """Reads a boolean from an environment variable
 
     Args:
-        certificate (``str``): The certificate data in PEM format
-        private (``bool``, optional): Whether it's a private key or not. Defaults to ``False``.
-        passphrase (``bool``, optional): The private keys passphrase. Defaults to ``None``.
+        name (``str``): The environment variable name
+        default (``bool``, optional): Value to use when the variable is unset. Defaults to ``False``.
 
     Returns:
-        ``str``: The serial of the PEM data
-    """    
-    logging.debug(f'Obtaining PEM certificate serial number')
-    serial = x509.load_pem_x509_certificate(str.encode(certificate)).serial_number
-    logging.debug(f'PEM Serial: {serial}')
-    return serial
+        ``bool``: The parsed value
+    """
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return str_to_bool(value)
+    except argparse.ArgumentTypeError as e:
+        sys.exit(f'Invalid value for {name}: {e}')
+
+
+def setup_logging(verbose: bool = False) -> None:
+    """Configures logging to the console and a size-capped log file next to the script
+
+    Args:
+        verbose (``bool``, optional): Enables debug logging. Defaults to ``False``.
+    """
+    handlers: List[logging.Handler] = [logging.StreamHandler()]
+    file_error = None
+    try:
+        handlers.append(RotatingFileHandler(LOG_PATH, maxBytes=1_000_000, backupCount=3))
+    except OSError as e:
+        file_error = e
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(asctime)s [%(name)s] [%(levelname)s] %(message)s",
+        handlers=handlers)
+    if file_error:
+        logging.warning(f'Could not open log file {LOG_PATH}, logging to console only (Error: {file_error})')
+
+
+def atomic_write(path: str, data: bytes, mode: int, uid: Optional[int] = None, gid: Optional[int] = None) -> None:
+    """Writes a file so that readers only ever see the old or the new contents
+
+    The data is written to a temporary file (created with mode 0600) in the same directory,
+    permissions and ownership are applied, and it is then renamed over the destination.
+
+    Args:
+        path (``str``): The destination path
+        data (``bytes``): The data to write
+        mode (``int``): The file mode to apply
+        uid (``int``, optional): The owning user ID. Defaults to ``None`` (unchanged).
+        gid (``int``, optional): The owning group ID. Defaults to ``None`` (unchanged).
+    """
+    directory = os.path.dirname(path) or '.'
+    fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=f'.{os.path.basename(path)}.')
+    try:
+        with os.fdopen(fd, 'wb') as file:
+            file.write(data)
+            file.flush()
+            os.fsync(file.fileno())
+        os.chmod(tmp_path, mode)
+        if uid is not None and gid is not None:
+            os.chown(tmp_path, uid, gid)
+        os.replace(tmp_path, path)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def spki(public_key) -> bytes:
+    """Returns the DER encoded SubjectPublicKeyInfo of a public key, used to compare keys"""
+    return public_key.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+
+
+def load_cert_bundle(pem: bytes) -> List[x509.Certificate]:
+    """Loads every certificate found in PEM data
+
+    Args:
+        pem (``bytes``): One or more concatenated PEM certificates
+
+    Returns:
+        ``list``: The certificates in the order they appear
+    """
+    certs = [x509.load_pem_x509_certificate(block) for block in PEM_CERT_RE.findall(pem)]
+    if not certs:
+        raise ValueError('No certificates found in PEM data')
+    return certs
+
+
+def split_leaf_and_chain(certs: List[x509.Certificate], key) -> Tuple[x509.Certificate, List[x509.Certificate]]:
+    """Separates the certificate that belongs to the private key from the rest of the chain
+
+    Args:
+        certs (``list``): All certificates from the bundle
+        key: The private key
+
+    Returns:
+        ``tuple``: The leaf certificate and the list of remaining (intermediate) certificates
+    """
+    key_spki = spki(key.public_key())
+    for index, cert in enumerate(certs):
+        if spki(cert.public_key()) == key_spki:
+            return cert, certs[:index] + certs[index + 1:]
+    raise ValueError('None of the certificates match the private key')
+
+
+def cert_expiry(cert: x509.Certificate) -> datetime:
+    """Returns the expiry of a certificate as a naive UTC datetime, on old and new cryptography versions"""
+    expiry = getattr(cert, 'not_valid_after_utc', None)
+    if expiry is None:
+        return cert.not_valid_after
+    return expiry.replace(tzinfo=None)
+
+
+def build_pkcs12(key, leaf: x509.Certificate, chain: List[x509.Certificate], passphrase: Optional[str] = None) -> bytes:
+    """Serializes a key, its certificate and the intermediate chain to PKCS12
+
+    Args:
+        key: The private key
+        leaf (``x509.Certificate``): The certificate matching the private key
+        chain (``list``): The intermediate certificates
+        passphrase (``str``, optional): Passphrase to encrypt the file with. Defaults to ``None``.
+
+    Returns:
+        ``bytes``: The PKCS12 data
+    """
+    encryption = BestAvailableEncryption(passphrase.encode()) if passphrase else NoEncryption()
+    return pkcs12.serialize_key_and_certificates(None, key, leaf, chain or None, encryption)
+
+
+def pkcs12_is_current(path: str, passphrase: Optional[str], leaf: x509.Certificate, chain: List[x509.Certificate]) -> bool:
+    """Checks whether an existing PKCS12 file already holds the expected certificate, chain and encryption
+
+    Args:
+        path (``str``): The path to the existing PKCS12 file
+        passphrase (``str``, optional): The passphrase the file is expected to be encrypted with
+        leaf (``x509.Certificate``): The expected certificate
+        chain (``list``): The expected intermediate certificates
+
+    Returns:
+        ``bool``: ``True`` if the file does not need to be regenerated
+    """
+    try:
+        with open(path, 'rb') as file:
+            data = file.read()
+    except FileNotFoundError:
+        logging.info(f'No existing PKCS12 file at {path}')
+        return False
+    logging.info(f'Found existing PKCS12 file in path: {path}')
+
+    try:
+        existing = pkcs12.load_pkcs12(data, None)
+        encrypted = False
+    except ValueError:
+        existing = None
+        encrypted = True
+
+    if encrypted != bool(passphrase):
+        logging.info(f'Existing PKCS12 file is {"encrypted" if encrypted else "not encrypted"} but a passphrase is {"set" if passphrase else "not set"}')
+        return False
+    if encrypted:
+        try:
+            existing = pkcs12.load_pkcs12(data, passphrase.encode())
+        except ValueError:
+            logging.warning('Existing PKCS12 file could not be read with the configured passphrase')
+            return False
+
+    if existing.cert is None or existing.cert.certificate != leaf:
+        logging.info('Existing PKCS12 file holds a different certificate')
+        return False
+    if [extra.certificate for extra in existing.additional_certs] != chain:
+        logging.info('Existing PKCS12 file holds a different (or no) intermediate chain')
+        return False
+    return True
+
+
+def covering_name(hostname: str, names: List[str]) -> Optional[str]:
+    """Finds the certificate name that covers a hostname
+
+    A name covers the hostname if it is an exact match, or if it is a wildcard for the
+    hostname's parent zone (a wildcard only ever matches a single label).
+
+    Args:
+        hostname (``str``): The hostname to check
+        names (``list``): The certificate's main domain and SANs
+
+    Returns:
+        ``str``: The name that covers the hostname, or ``None``
+    """
+    hostname = hostname.strip().lower().rstrip('.')
+    parent_zone = hostname.split('.', 1)[1] if '.' in hostname else None
+    for name in names:
+        normalized = name.strip().lower().rstrip('.')
+        if normalized == hostname:
+            return name
+        if normalized.startswith('*.') and parent_zone and normalized[2:] == parent_zone:
+            return name
+    return None
+
 
 def get_traefik_cert_store(path: str) -> dict:
     """Gets the Traefik certificate store data
@@ -147,154 +272,239 @@ def get_traefik_cert_store(path: str) -> dict:
 
     Returns:
         ``dict``: The Traefik certificate file in JSON/dict format
-    """    
+    """
     try:
-        logging.debug(f'Attempting to load Traefik certificate store file')
+        logging.debug('Attempting to load Traefik certificate store file')
         # deepcode ignore PT: Script allows user to input path to cert file
-        json_data = json.load(open(path, 'r'))
+        with open(path, 'r') as file:
+            json_data = json.load(file)
     except FileNotFoundError as e:
         logging.error(f'Failed to find certificate file at {path}, has Traefik successfully created one? (Error: {e})')
         sys.exit(1)
     except PermissionError as e:
         logging.error(f'Permission denied, try running with sudo (Error: {e})')
         sys.exit(1)
-    logging.debug(f'Successfully obtained Traefik certificate store data')
+    except json.JSONDecodeError as e:
+        logging.error(f'Certificate file at {path} is empty or not valid JSON, have certificates successfully provisioned yet? (Error: {e})')
+        sys.exit(1)
+    logging.debug('Successfully obtained Traefik certificate store data')
     return json_data
 
-def restart_plex(compose_project: str) -> None:
-    """Restarts the Plex container in the defined Compose project
+
+def select_certificate(entries: list, hostname: str) -> Optional[dict]:
+    """Picks the certificate that covers the hostname, preferring the one that expires last
+
+    Args:
+        entries (``list``): The certificate entries of a Traefik certificate resolver
+        hostname (``str``): The hostname the certificate must cover
+
+    Returns:
+        ``dict``: The selected certificate (main domain, key, leaf, chain), or ``None`` if nothing covers the hostname
+    """
+    selected = None
+    for entry in entries:
+        domain_data = entry.get('domain') or {}
+        main_domain = domain_data.get('main')
+        if not main_domain:
+            continue
+        names = [main_domain] + (domain_data.get('sans') or [])
+        covered_by = covering_name(hostname, names)
+        if covered_by is None:
+            logging.debug(f'Certificate for {main_domain} does not cover {hostname}, skipping')
+            continue
+        logging.debug(f'Hostname {hostname} is covered by {covered_by} (certificate main domain: {main_domain})')
+        try:
+            key = load_pem_private_key(base64.b64decode(entry['key']), None)
+            leaf, chain = split_leaf_and_chain(load_cert_bundle(base64.b64decode(entry['certificate'])), key)
+        except (KeyError, ValueError, TypeError) as e:
+            logging.warning(f'Skipping unusable certificate for {main_domain} (Error: {e})')
+            continue
+        candidate = {'main_domain': main_domain, 'covered_by': covered_by, 'key': key, 'leaf': leaf, 'chain': chain}
+        if selected is None or cert_expiry(leaf) > cert_expiry(selected['leaf']):
+            selected = candidate
+    if selected is not None:
+        logging.info(f'Hostname {hostname} is covered by {selected["covered_by"]} (certificate main domain: {selected["main_domain"]}, expires: {cert_expiry(selected["leaf"])} UTC)')
+    return selected
+
+
+def sync_plex_config(config_path: str, desired: Dict[str, str], dry_run: bool = False) -> List[str]:
+    """Ensures the Plex server config XML file has the expected attribute values
+
+    Args:
+        config_path (``str``): The path to the Plex "Preferences.xml" file
+        desired (``dict``): The attribute keys and the values they should have
+        dry_run (``bool``, optional): Only report what would change. Defaults to ``False``.
+
+    Returns:
+        ``list``: The attribute keys that differ (dry run) or were updated
+    """
+    try:
+        logging.debug(f'Trying to load Plex config from {config_path}')
+        xml_tree = ET.parse(config_path)
+        config_stat = os.stat(config_path)
+    except FileNotFoundError as e:
+        logging.error(f'Failed to find config file at location: {config_path} for reason: {e}')
+        sys.exit(1)
+    except PermissionError as e:
+        logging.error(f'Failed to read config file, permission denied, try running as root? {e}')
+        sys.exit(1)
+    except ET.ParseError as e:
+        logging.error(f'Failed to parse config file at location: {config_path} for reason: {e}')
+        sys.exit(1)
+
+    xml_root = xml_tree.getroot()
+    # A missing attribute is equivalent to an empty value
+    changed = [key for key, value in desired.items() if xml_root.attrib.get(key, '') != value]
+    if not changed:
+        logging.debug('Plex config already has the expected values')
+        return changed
+    if dry_run:
+        return changed
+
+    for key in changed:
+        logging.info(f'Updating Plex preference: {key}')
+        xml_root.attrib[key] = desired[key]
+    buffer = io.BytesIO()
+    xml_tree.write(buffer, encoding='utf-8', xml_declaration=True)
+    try:
+        atomic_write(config_path, buffer.getvalue(), stat.S_IMODE(config_stat.st_mode), config_stat.st_uid, config_stat.st_gid)
+    except PermissionError as e:
+        logging.error(f'Failed to write config file, permission denied, try running as root? {e}')
+        sys.exit(1)
+    return changed
+
+
+def get_plex_container(compose_project: str):
+    """Gets the running Plex container of the defined Compose project
 
     Args:
         compose_project (``str``): The Compose project where the Plex container is
-    """    
-    container = get_container_by_image('lscr.io/linuxserver/plex')
-    if container is type(list):
-        for con in container:
-            if con.labels['com.docker.compose.project'] == compose_project:
-                logging.warning(f'Restarting container ID: {con.short_id}')
-                con.restart()
-    else:
-        if container.labels['com.docker.compose.project'] == compose_project:
-            logging.warning(f'Restarting container ID: {container.short_id}')
-            container.restart()
-
-def get_container_by_image(image: str):
-    """Gets the Container object based on the image name
-
-    Args:
-        image (``str``): The image used to start the container
 
     Returns:
-        ``str`` or ``list``: The Container object or list of Container objects
-    """    
-    container_list = docker_client.containers.list(filters={
-        'ancestor': image
-    })
-    if len(container_list) == 1:
-        return container_list[0]
-    else:
-        logging.warning(f'Got more than one container for image {image}, found: {len(container_list)}')
-        return container_list
+        The Container object, or ``None`` if there is not exactly one running Plex container
+    """
+    # Imported here so the Docker SDK and socket are only needed when a restart is requested
+    import docker
+    try:
+        container_list = docker.from_env().containers.list(filters={
+            'label': [
+                f'com.docker.compose.project={compose_project}',
+                f'com.docker.compose.service={PLEX_COMPOSE_SERVICE}',
+            ]
+        })
+    except docker.errors.DockerException as e:
+        logging.error(f'Failed to query Docker for the Plex container (Error: {e})')
+        return None
+    if len(container_list) != 1:
+        logging.warning(f'Expected exactly one running "{PLEX_COMPOSE_SERVICE}" container in project {compose_project}, found: {len(container_list)}')
+        return None
+    return container_list[0]
 
-def main():
+
+def parse_args() -> argparse.Namespace:
+    """Parses CLI arguments, with defaults coming from the environment / .env file"""
+    apps_path = os.getenv('HMSD_APPS_PATH', '/opt/hms-docker/apps')
+    plex_config_dir = f'{apps_path}/plex/config'
     parser = argparse.ArgumentParser(
         prog='traefik-to-plex-pkcs12',
         description='Converts a Traefik certificate file to PKCS12 format and applies it to a Plex server'
     )
-    parser.add_argument('-r', '--restart-plex', choices=[True, False], default=PLEX_RESTART, help='Whether or not to restart the Plex container when updating the server config')
-    parser.add_argument('-s', '--hostname', default=PLEX_PUBLIC_HOSTNAME, help='The publicly accessible hostname to access the Plex server. Must be in scope of the certificate domain or a SAN')
-    parser.add_argument('-p', '--passphrase', default=PLEX_CERT_PASSPHRASE, help='Passphrase to protect the PKSC12 certificate file')
-    parser.add_argument('-c', '--plex-config', default=f'{PLEX_CONFIG_DIR}/Library/Application Support/Plex Media Server/Preferences.xml', help='Path to the Plex servers Preferences.xml file')
-    parser.add_argument('-m', '--modify-plex-config', choices=[True, False], default=PLEX_MODIFY_CONFIG, help='If True, this will update the Plex config file to point to the converted certificate file')
-    parser.add_argument('-t', '--traefik-cert-file', default=f'{TRAEFIK_CERT_DIR}/acme.json', help='Path to Traefik certificate file')
-    parser.add_argument('-n', '--compose-project', default=COMPOSE_PROJECT, help='Name of the Docker Compose project where the target containers are running')
-    args = parser.parse_args()
-    restart = args.restart_plex
-    compose_project = args.compose_project
-    passphrase = args.passphrase
-    traefik_cert_file_path = args.traefik_cert_file
-    plex_config_path = args.plex_config
+    parser.add_argument('-r', '--restart-plex', type=str_to_bool, nargs='?', const=True, default=env_bool('PLEX_CERT_RESTART'), metavar='BOOL', help='Whether or not to restart the Plex container when the certificate or server config changed')
+    parser.add_argument('-s', '--hostname', default=os.getenv('PLEX_PUBLIC_HOSTNAME', 'plex'), help='The publicly accessible hostname to access the Plex server. Must be in scope of the certificate domain or a SAN')
+    parser.add_argument('-p', '--passphrase', default=os.getenv('PLEX_CERTIFICATE_PASSPHRASE'), help='Passphrase to protect the PKCS12 certificate file')
+    parser.add_argument('-c', '--plex-config', default=f'{plex_config_dir}/Library/Application Support/Plex Media Server/Preferences.xml', help='Path to the Plex servers Preferences.xml file')
+    parser.add_argument('-m', '--modify-plex-config', type=str_to_bool, nargs='?', const=True, default=env_bool('PLEX_CERT_UPDATE_CONFIG'), metavar='BOOL', help='If true, this will update the Plex config file to point to the converted certificate file')
+    parser.add_argument('-t', '--traefik-cert-file', default=f'{apps_path}/traefik/config/certs/acme.json', help='Path to Traefik certificate file')
+    parser.add_argument('-n', '--compose-project', default=os.getenv('COMPOSE_PROJECT', 'hms-docker'), help='Name of the Docker Compose project where the target containers are running')
+    parser.add_argument('-o', '--output-dir', default=plex_config_dir, help='Directory to write the PKCS12 file to. Must be the directory mounted to /config in the Plex container')
+    parser.add_argument('--resolver', default='letsencrypt', help='Name of the Traefik certificate resolver to read certificates from')
+    parser.add_argument('-f', '--force', action='store_true', help='Regenerate the PKCS12 file even if it is already up to date')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable debug logging')
+    return parser.parse_args()
+
+
+def main():
+    load_dotenv(f'{SCRIPT_DIR}/.env')
+    args = parse_args()
+    setup_logging(args.verbose)
+    start_time = datetime.now()
+    logging.info(f'{"=" * 15} Starting Script at {start_time} {"=" * 15}')
+
+    passphrase = args.passphrase or None
     plex_hostname = args.hostname
-    modify_plex_conf = args.modify_plex_config
-
-    if passphrase == "":
-        passphrase = None
-
-    existing_certificate_dir = PLEX_CONFIG_DIR
-    
-    logging.info(f'Using Traefik certificate file: {traefik_cert_file_path}')
-
-    traefik_json_data = get_traefik_cert_store(traefik_cert_file_path)
     try:
-        certificates = traefik_json_data['letsencrypt']['Certificates']
-    except KeyError as e:
-        logging.error(f'Failed to load Certificates from file ({traefik_cert_file_path}), have certificates successfully provisioned yet? (Error: {e})')
+        uid = int(os.getenv('PUID', 1234))
+        gid = int(os.getenv('PGID', 1234))
+    except ValueError as e:
+        logging.error(f'PUID and PGID must be numeric (Error: {e})')
         sys.exit(1)
-    for domain in certificates:
-        domain_data = domain['domain']
-        main_domain = domain_data['main']
+
+    logging.info(f'Using Traefik certificate file: {args.traefik_cert_file}')
+    traefik_json_data = get_traefik_cert_store(args.traefik_cert_file)
+    try:
+        certificates = traefik_json_data[args.resolver]['Certificates'] or []
+    except (KeyError, TypeError) as e:
+        logging.error(f'Failed to load Certificates for resolver "{args.resolver}" from file ({args.traefik_cert_file}), have certificates successfully provisioned yet? (Error: {e})')
+        sys.exit(1)
+
+    selected = select_certificate(certificates, plex_hostname)
+    if selected is None:
+        logging.error(f'Hostname {plex_hostname} is NOT covered by the main domain or SANs of any usable certificate, cannot continue')
+        sys.exit(1)
+    leaf, chain = selected['leaf'], selected['chain']
+    if not chain:
+        logging.warning('Traefik certificate has no intermediate certificates, clients may fail to validate it')
+
+    pkcs12_file_name = f'{"".join(character for character in selected["main_domain"] if character.isalnum())}.pfx'
+    pkcs12_file_path = os.path.join(args.output_dir, pkcs12_file_name)
+
+    cert_changed = args.force or not pkcs12_is_current(pkcs12_file_path, passphrase, leaf, chain)
+    if cert_changed:
+        logging.info(f'Writing certificate (serial {leaf.serial_number}) and {len(chain)} intermediate(s) to {pkcs12_file_path}')
         try:
-            sans = domain_data['sans']
-        except KeyError as e:
-            logging.info(f'Did not find any SANs')
-            sans = None
-        logging.debug(f'Decoding Traefik certificate data')
-        certificate_priv_key = base64.b64decode(domain['key']).decode().strip()
-        certificate = base64.b64decode(domain['certificate']).decode().strip()
-        pkcs12_file_name = f'{"".join(character for character in main_domain if character.isalnum())}.pfx'
-        pkcs12_file_path = f'{existing_certificate_dir}{"/" if not existing_certificate_dir.endswith("/") else ""}{pkcs12_file_name}'
-
-        current_serial = None
-        if os.path.exists(pkcs12_file_path):
-            logging.info(f'Found existing PKCS12 file in path: {pkcs12_file_path}')
-            logging.debug(f'Getting the existing PKCS12 file serial')
-            with open(pkcs12_file_path, 'rb') as f:
-                current_serial = get_pkcs12_serial(f.read())
-            f.close()
-
-        logging.debug(f'Working with main domain: {main_domain}')
-        logging.debug(f'Checking if hostname {plex_hostname} is covered by main domain or SANs')
-        covered = False
-        plex_dns_parent_zone = '.'.join(plex_hostname.split('.')[1:])
-        if sans:
-            for san in sans:
-                logging.debug(f'\t\tFound SAN: {san}')
-                san_dns_parent_zone = '.'.join(san.split('.')[1:])
-                if plex_dns_parent_zone == san_dns_parent_zone or plex_hostname == san:
-                    covered = True
-                    logging.info(f'Hostname {plex_hostname} is covered by SAN: {san}')
-                    break
-
-        if not covered:
-            if plex_hostname == main_domain:
-                covered = True
-                logging.info(f'Hostname {plex_hostname} is covered by main domain: {main_domain}')
-
-        if not covered:
-            logging.error(f'Hostname {plex_hostname} is NOT covered by main domain or SANs, cannot continue')
+            atomic_write(pkcs12_file_path, build_pkcs12(selected['key'], leaf, chain, passphrase), 0o600, uid, gid)
+        except FileNotFoundError as e:
+            logging.error(f'Failed to write PKCS12 file to {pkcs12_file_path}, directory may not exist (Error: {e})')
             sys.exit(1)
+        except PermissionError as e:
+            logging.error(f'Failed to write or change ownership of file {pkcs12_file_path}, try running script with sudo (Error: {e})')
+            sys.exit(1)
+        logging.info(f'PKCS12 data written to {pkcs12_file_path}{" and encrypted" if passphrase else ""}')
+    else:
+        logging.info('PKCS12 file is already up to date')
 
-        logging.debug(f'Getting serial for Traefik certificate')
-        new_serial = get_pem_serial(certificate)
+    desired_config = {
+        'customCertificateDomain': plex_hostname,
+        'customCertificatePath': f'/config/{pkcs12_file_name}',
+        'customCertificateKey': passphrase or '',
+    }
+    config_pending = bool(args.modify_plex_config and sync_plex_config(args.plex_config, desired_config, dry_run=True))
 
-        logging.debug(f'Comparing: {current_serial} to {new_serial}')
-        if current_serial != new_serial:
-            logging.info(f'Serials DO NOT match, updating file')
-            convert_to_pkcs12(pkcs12_file_path, certificate, certificate_priv_key, priv_passphrase=passphrase)
-            if modify_plex_conf:
-                modify_plex_config(plex_config_path, 'customCertificateDomain', f'{plex_hostname}')
-                modify_plex_config(plex_config_path, 'customCertificatePath', f'/config/{pkcs12_file_name}')
-                if passphrase:
-                    modify_plex_config(plex_config_path, 'customCertificateKey', passphrase)
-                if restart:
-                    logging.warning(f'Restarting plex in project: {compose_project}')
-                    restart_plex(compose_project)
+    if cert_changed or config_pending:
+        container = get_plex_container(args.compose_project) if args.restart_plex else None
+        if config_pending and container is not None:
+            # Plex can rewrite Preferences.xml while running, so only edit it while Plex is stopped
+            logging.warning(f'Stopping container ID: {container.short_id} to update the Plex config')
+            container.stop(timeout=PLEX_STOP_TIMEOUT)
+            try:
+                sync_plex_config(args.plex_config, desired_config)
+            finally:
+                logging.warning(f'Starting container ID: {container.short_id}')
+                container.start()
         else:
-            logging.info(f'Certificate serials MATCH, doing nothing')
-            break
+            if config_pending:
+                sync_plex_config(args.plex_config, desired_config)
+            if container is not None:
+                logging.warning(f'Restarting container ID: {container.short_id}')
+                container.restart(timeout=PLEX_STOP_TIMEOUT)
+            else:
+                logging.warning('Plex was not restarted, it will keep using its previous certificate and config until it is')
+    else:
+        logging.info('Nothing changed, doing nothing')
 
     stop_time = datetime.now()
     logging.info(f'{"=" * 15} Finished at {stop_time}, took {stop_time - start_time} {"=" * 15}')
+
 
 if __name__ == '__main__':
     main()
