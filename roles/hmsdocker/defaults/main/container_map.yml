@@ -253,13 +253,13 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: n8n
     traefik: true
-  netdata:
-    enabled: false
-    homepage: true
-    homepage_stats: false
   netbird:
     enabled: false
     homepage: false
+    homepage_stats: false
+  netdata:
+    enabled: false
+    homepage: true
     homepage_stats: false
   nexroll:
     authentik: false
