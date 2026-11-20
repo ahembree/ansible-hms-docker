@@ -207,9 +207,13 @@ migrate-config: $(YQ_LOCAL)
 			printf $(_WARN) "WARN" "$$key is set in both traefik.yml and reverse_proxy.yml, the value in traefik.yml is used (it loads later). Remove it from one of them"; \
 			continue; \
 		fi; \
-		$(YQ_LOCAL) eval -i '."'$$key'" = load("'"$$src"'")."'$$key'"' "$$dst"; \
-		$(YQ_LOCAL) eval -i 'del(."'$$key'")' "$$src"; \
-		echo "  moved $$key"; \
+		if $(YQ_LOCAL) eval -i '."'$$key'" = load("'"$$src"'")."'$$key'"' "$$dst" \
+			&& [ "$$($(YQ_LOCAL) -o=json '."'$$key'"' "$$dst")" = "$$($(YQ_LOCAL) -o=json '."'$$key'"' "$$src")" ]; then \
+			$(YQ_LOCAL) eval -i 'del(."'$$key'")' "$$src"; \
+			echo "  moved $$key"; \
+		else \
+			printf $(_WARN) "WARN" "Could not copy $$key to reverse_proxy.yml, it stays in traefik.yml"; \
+		fi; \
 	done
 
 	@# The per-container `traefik` key of the container map was renamed to `proxy`, in every file that defines the map
