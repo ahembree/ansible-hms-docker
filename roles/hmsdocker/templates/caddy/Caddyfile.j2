@@ -58,9 +58,8 @@
 	}
 {% if ssl %}
 	email {{ traefik_ssl_letsencrypt_email }}
-{% if traefik_ssl_use_letsencrypt_staging_url %}
-	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
-{% endif %}
+	# Only Let's Encrypt, like Traefik. Without this, Caddy falls back to ZeroSSL when Let's Encrypt fails
+	acme_ca https://{{ 'acme-staging-v02' if traefik_ssl_use_letsencrypt_staging_url else 'acme-v02' }}.api.letsencrypt.org/directory
 	acme_dns {{ hmsdocker_caddy_dns_provider }} {{ hmsdocker_caddy_dns_provider_config }}
 	tls_resolvers {{ traefik_ssl_dns_resolver_1 }} {{ traefik_ssl_dns_resolver_2 }}
 {% if traefik_ssl_sans | default([], true) | length > 0 %}

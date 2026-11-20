@@ -184,7 +184,9 @@ hmsdocker_caddy_custom_config_location: "{{ hms_docker_apps_path }}/caddy/custom
 
 ## Troubleshooting
 
-- `docker logs -f caddy` shows certificate requests and errors. Set `hmsdocker_caddy_log_level: DEBUG` for more detail
+- `docker logs -f caddy` shows certificate requests and errors. Set `hmsdocker_caddy_log_level: DEBUG` for more detail. Look for `could not get certificate from issuer` lines, their `error` field says why Let's Encrypt refused or the DNS challenge failed
+- `creating new account because no account for configured email is known to us` with a `no such file or directory` error is not a failure: Caddy registers a new ACME account the first time it uses an email address with a CA
+- Caddy only uses Let's Encrypt, like Traefik. Certificates from an earlier Caddy setup that used another CA (such as ZeroSSL) are not renewed, Caddy gets new ones from Let's Encrypt
 - The generated config is `<apps path>/caddy/config/Caddyfile`. Check it with `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`
 - If Caddy does not start, the playbook stops with a message. The cause is usually a DNS provider setting that does not match the provider's README, or a token the module rejects
 - A `502` means Caddy cannot reach the container: check that it is running and healthy
