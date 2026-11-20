@@ -1,0 +1,16 @@
+---
+# The database lives in a named volume. If it already exists it was initialized with the old fixed password.
+- name: (Prereq - Librariarr) - Check for an existing database volume
+  community.docker.docker_volume_info:
+    name: "{{ project_name }}_librariarr-db"
+  register: prereq_librariarr_db_volume
+  # Docker may not be installed yet in check mode on a new host
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: (Prereq - Librariarr) - Ensure database password
+  ansible.builtin.include_tasks: "generated_secret.yml"
+  vars:
+    secret_name: librariarr_db
+    secret_dest: "{{ hms_docker_apps_path }}/librariarr/config/.librariarr_db_password"
+    secret_legacy_value: librariarr
+    secret_existing_install: "{{ prereq_librariarr_db_volume.exists | default(false) }}"

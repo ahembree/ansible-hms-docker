@@ -529,6 +529,36 @@
     - socket_proxy_uptimekuma_proxied | bool
     - "'/socket-proxy/uptimekuma:' not in (socket_proxy_uptimekuma_compose.content | default('') | b64decode)"
 
+# Logins that still use a well-known default. These are passwords the user signs in with, so they are
+# not generated. Only the variable is compared, nothing secret is printed.
+- name: (preflight) Warn if Tube Archivist uses the default password
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tube Archivist is enabled with the default password. Set hmsdocker_tubearchivist_password in inventory/group_vars/all/service_misc.yml before the first start, or change the password in Tube Archivist if it is already running.'] }}"
+  when:
+    - hms_docker_container_map['tubearchivist']['enabled'] | default(false)
+    - (hmsdocker_tubearchivist_password | default('verysecret', true) | string) == 'verysecret'
+
+- name: (preflight) Warn if tinyMediaManager has no VNC password set
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['tinyMediaManager is enabled without its own VNC password. Set hmsdocker_tinymediamanager_vnc_password in inventory/group_vars/all/service_misc.yml.'] }}"
+  when:
+    - hms_docker_container_map['tinymediamanager']['enabled'] | default(false)
+    - (hmsdocker_tinymediamanager_vnc_password | default('', true) | string) in ['', 'Th1s1SinS3cuR3Pl3@s3cH@Ng']
+
+- name: (preflight) Warn if NZBGet uses the image default password
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['homepage_nzbget_password is the NZBGet image default. Change ControlPassword in NZBGet (Settings > Security), then set homepage_nzbget_password to match.'] }}"
+  when:
+    - hms_docker_container_map['nzbget']['enabled'] | default(false)
+    - (homepage_nzbget_password | default('tegbzn6789', true) | string) == 'tegbzn6789'
+
+- name: (preflight) Warn if Deluge uses the image default password
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_homepage_deluge_pass is the Deluge image default. Change the Web UI password in Deluge (Preferences > Interface), then set hmsdocker_homepage_deluge_pass to match.'] }}"
+  when:
+    - hms_docker_container_map['deluge']['enabled'] | default(false)
+    - (hmsdocker_homepage_deluge_pass | default('deluge', true) | string) == 'deluge'
+
 # ---------------------------------------------------------------------------
 # Print collected warnings
 # ---------------------------------------------------------------------------

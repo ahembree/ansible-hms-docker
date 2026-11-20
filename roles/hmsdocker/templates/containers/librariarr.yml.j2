@@ -21,7 +21,7 @@ services:
       - ${HMSD_APPS_PATH}/librariarr/config/app:/config
       - ${HMSD_MOUNT_PATH}:/data:ro
     environment:
-      - DATABASE_URL=postgresql://librariarr:${LIBRARIARR_DB_PASS:-librariarr}@librariarr-db:5432/librariarr
+      - DATABASE_URL=postgresql://librariarr:${LIBRARIARR_DB_PASS:?database password required}@librariarr-db:5432/librariarr
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
@@ -71,7 +71,7 @@ services:
       driver: json-file
     environment:
       - POSTGRES_USER=librariarr
-      - POSTGRES_PASSWORD=${LIBRARIARR_DB_PASS:-librariarr}
+      - POSTGRES_PASSWORD=${LIBRARIARR_DB_PASS:?database password required}
       - POSTGRES_DB=librariarr
     volumes:
       - librariarr-db:/var/lib/postgresql

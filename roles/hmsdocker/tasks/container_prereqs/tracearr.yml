@@ -1,3 +1,19 @@
+# Must run before the directory is populated: an existing database keeps the old fixed password
+- name: (Prereq - Tracearr) - Check for an existing database
+  ansible.builtin.find:
+    paths: "{{ hms_docker_apps_path }}/tracearr/config/postgres"
+    file_type: any
+    hidden: true
+  register: prereq_tracearr_db_files
+
+- name: (Prereq - Tracearr) - Ensure database password
+  ansible.builtin.include_tasks: "generated_secret.yml"
+  vars:
+    secret_name: tracearr_db
+    secret_dest: "{{ hms_docker_apps_path }}/tracearr/config/.tracearr_db_password"
+    secret_legacy_value: tracearr
+    secret_existing_install: "{{ (prereq_tracearr_db_files.matched | default(0)) > 0 }}"
+
 - name: (Prereq - Tracearr) - Ensure postgres directory with correct ownership
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/tracearr/config/postgres"

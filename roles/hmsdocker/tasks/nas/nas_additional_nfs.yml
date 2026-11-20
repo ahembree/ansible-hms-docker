@@ -21,6 +21,8 @@
     - "{{ nas_client_remote_additional_paths }}"
   loop_control:
     loop_var: mount_path
+    # The list can also hold CIFS entries with cifs_password, keep them out of the output and log
+    label: "{{ mount_path.local_mount_path | default(mount_path.name) }}"
   when:
     - nas_client_remote_additional_paths is defined
     - mount_path.type == "nfs"
@@ -39,6 +41,7 @@
     - "{{ nfs_additional_paths.results }}"
   loop_control:
     loop_var: nfs_mount
+    label: "{{ nfs_mount.path | default('') }}"
   when:
     - nfs_additional_paths is defined
     - nfs_mount.mount_path.type == "nfs"
@@ -59,6 +62,7 @@
     - "{{ hms_docker_library_folders }}"
   loop_control:
     loop_var: library_folders
+    label: "{{ library_folders[0].path | default('') }}/{{ library_folders[1].folder_name }}"
   when:
     - nfs_additional_paths is defined
     - library_folders[0].mount_path.type == "nfs"

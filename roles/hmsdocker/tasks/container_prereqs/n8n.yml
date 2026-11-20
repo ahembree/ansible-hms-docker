@@ -1,3 +1,25 @@
+# Must run before the directory is populated: an existing database keeps the old fixed passwords
+- name: (Prereq - n8n) - Check for an existing database
+  ansible.builtin.find:
+    paths: "{{ hms_docker_apps_path }}/n8n/db"
+    file_type: any
+    hidden: true
+  register: prereq_n8n_db_files
+
+- name: (Prereq - n8n) - Ensure database passwords
+  ansible.builtin.include_tasks: "generated_secret.yml"
+  vars:
+    secret_name: "{{ n8n_db_secret.name }}"
+    secret_dest: "{{ hms_docker_apps_path }}/n8n/config/.{{ n8n_db_secret.name }}_password"
+    secret_legacy_value: "{{ n8n_db_secret.legacy }}"
+    secret_existing_install: "{{ (prereq_n8n_db_files.matched | default(0)) > 0 }}"
+  loop:
+    - { name: n8n_postgres_root, legacy: n8nr00tpassw0rd }
+    - { name: n8n_postgres_nonroot, legacy: n8nnonr00tpassw0rd }
+  loop_control:
+    loop_var: n8n_db_secret
+    label: "{{ n8n_db_secret.name }}"
+
 - name: (Prereq - n8n) - Ensure postgres directory with correct ownership
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/n8n/db"

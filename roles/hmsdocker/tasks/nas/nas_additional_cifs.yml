@@ -15,6 +15,8 @@
     - "{{ nas_client_remote_additional_paths }}"
   loop_control:
     loop_var: mount_path
+    # The loop items contain cifs_password, keep them out of the output and log
+    label: "{{ mount_path.local_mount_path | default(mount_path.name) }}"
   when:
     - nas_client_remote_additional_paths is defined
     - mount_path.type == "cifs"
@@ -31,6 +33,7 @@
     - "{{ nas_client_remote_additional_paths }}"
   loop_control:
     loop_var: cifs_creds
+    label: "{{ cifs_creds.name }}"
   when:
     - nas_client_remote_additional_paths is defined
     - cifs_creds.type == "cifs"
@@ -38,6 +41,8 @@
     username: "{{ cifs_creds.cifs_username }}"
     password: "{{ cifs_creds.cifs_password }}"
   register: cifs_additional_creds
+  # --diff would otherwise print the rendered credentials to the terminal and logs/hms-docker.log
+  no_log: "{{ not debug_mode }}"
 
 - name: NAS - Additional CIFS - Ensure additional CIFS fstab entries if defined
   ansible.builtin.mount:
@@ -52,6 +57,7 @@
   loop: "{{ cifs_additional_paths.results | zip(cifs_additional_creds.results) | list }}"
   loop_control:
     loop_var: cifs_mount
+    label: "{{ cifs_mount[0].path | default('') }}"
   when:
     - cifs_additional_paths is defined
     - cifs_mount[1].dest is defined
@@ -73,6 +79,7 @@
     - "{{ hms_docker_library_folders }}"
   loop_control:
     loop_var: cifs_library_folder
+    label: "{{ cifs_library_folder[0].path | default('') }}/{{ cifs_library_folder[1].folder_name }}"
   when:
     - cifs_additional_paths is defined
     - cifs_library_folder[0].mount_path.type == "cifs"

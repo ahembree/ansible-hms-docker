@@ -1,6 +1,6 @@
 ---
 title: n8n Workflow Automation
-description: "Deploy n8n workflow automation with PostgreSQL backend in HMS-Docker, including setup, access, and default database credentials."
+description: "Deploy n8n workflow automation with PostgreSQL backend in HMS-Docker, including setup, access, and database credentials."
 sidebar:
   label: n8n
 ---
@@ -23,24 +23,37 @@ n8n is enabled through the [Container Map](/docs/container-list/#container-map).
 1. Creates the required directory structure
 2. Generates a 64-character encryption key for n8n
 3. Downloads the PostgreSQL initialization script
-4. Configures PostgreSQL with default credentials
+4. Generates random PostgreSQL passwords for the install
 
 ## Accessing
 
 Once running, n8n is accessible via Traefik at `n8n.<domain>`. The first time you access it, you'll need to create an owner account.
 
-## Default Database Credentials
-
-The PostgreSQL database uses default credentials that are configured in the `.env` file:
+## Database Credentials
 
 - Root user: `n8nroot`
-- Root password: `n8nr00tpassw0rd`
 - Application user: `n8nnonroot`
-- Application password: `n8nnonr00tpassw0rd`
 - Database name: `n8n`
+
+The two passwords are generated on the first run and stored in root-only files next to the encryption key:
+
+- `/opt/hms-docker/apps/n8n/config/.n8n_postgres_root_password`
+- `/opt/hms-docker/apps/n8n/config/.n8n_postgres_nonroot_password`
+
+The playbook writes them to `.env` as `N8N_POSTGRES_PASS` and `N8N_POSTGRES_NON_ROOT_PASSWORD`.
+
+:::note[Existing installs]
+
+PostgreSQL only sets passwords when the database is first created, so a database that already existed keeps the old fixed passwords (`n8nr00tpassw0rd` and `n8nnonr00tpassw0rd`), and the playbook stores those in the files above. To rotate them, change both passwords in PostgreSQL, then put the new values in the files and run the playbook:
+
+```bash
+sudo docker exec -it n8n-postgres psql -U n8nroot -d n8n -c "ALTER USER n8nroot PASSWORD '<new root password>'; ALTER USER n8nnonroot PASSWORD '<new application password>';"
+```
+
+:::
 
 :::caution[Warning]
 
-If you need to change the database credentials, use a [Container Override](/docs/getting-started/container-overrides/) to set the environment variables `N8N_POSTGRES_USER`, `N8N_POSTGRES_PASS`, `N8N_POSTGRES_NON_ROOT_USER`, `N8N_POSTGRES_NON_ROOT_PASSWORD`, and `N8N_POSTGRES_DB`.
+To change the database users or database name, use a [Container Override](/docs/getting-started/container-overrides/) to set the environment variables `N8N_POSTGRES_USER`, `N8N_POSTGRES_NON_ROOT_USER`, and `N8N_POSTGRES_DB`.
 
 :::

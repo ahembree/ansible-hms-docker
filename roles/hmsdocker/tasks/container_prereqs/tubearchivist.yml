@@ -1,0 +1,16 @@
+---
+# Elasticsearch data lives in a named volume. If it already exists, keep the old fixed password.
+- name: (Prereq - Tube Archivist) - Check for an existing Elasticsearch volume
+  community.docker.docker_volume_info:
+    name: "{{ project_name }}_tubearchivist_es"
+  register: prereq_tubearchivist_es_volume
+  # Docker may not be installed yet in check mode on a new host
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: (Prereq - Tube Archivist) - Ensure Elasticsearch password
+  ansible.builtin.include_tasks: "generated_secret.yml"
+  vars:
+    secret_name: tubearchivist_es
+    secret_dest: "{{ hms_docker_apps_path }}/tubearchivist/config/.tubearchivist_es_password"
+    secret_legacy_value: tub3@rch1v1sts00p3rs3cr3tp@ssw0rd
+    secret_existing_install: "{{ prereq_tubearchivist_es_volume.exists | default(false) }}"

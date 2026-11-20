@@ -28,7 +28,7 @@ services:
       - TA_HOST=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if 'tubearchivist' in expose_ports_enabled_containers }}  # set your host name with protocol and port
       - TA_USERNAME=${TUBEARCHIVIST_USERNAME}
       - TA_PASSWORD=${TUBEARCHIVIST_PASSWORD}
-      - ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd
+      - ELASTIC_PASSWORD=${TUBEARCHIVIST_ES_PASSWORD:?Elasticsearch password required}
       - TA_PORT=8001
       - TZ=${TIMEZONE}
     healthcheck:
@@ -95,7 +95,7 @@ services:
     networks:
       - tubearchivist_net
     environment:
-      - "ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd"
+      - "ELASTIC_PASSWORD=${TUBEARCHIVIST_ES_PASSWORD:?Elasticsearch password required}"
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - "xpack.security.enabled=true"
       - "discovery.type=single-node"

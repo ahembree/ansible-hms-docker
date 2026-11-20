@@ -22,7 +22,7 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - TZ=${TIMEZONE}
-      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:-tracearr}@tracearr-db:5432/tracearr
+      - DATABASE_URL=postgres://tracearr:${TRACEARR_DB_PASSWORD:?database password required}@tracearr-db:5432/tracearr
       - REDIS_URL=redis://tracearr-redis:6379
       - JWT_SECRET=${TRACEARR_JWT_SECRET}
       - COOKIE_SECRET=${TRACEARR_COOKIE_SECRET}
@@ -79,7 +79,7 @@ services:
     command: postgres -c timescaledb.license=timescale -c timescaledb.max_tuples_decompressed_per_dml_transaction=100000 -c max_locks_per_transaction=4096 -c timescaledb.telemetry_level=off -c max_connections=150
     environment:
       - POSTGRES_USER=tracearr
-      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
+      - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:?database password required}
       - POSTGRES_DB=tracearr
     volumes:
       - ${HMSD_APPS_PATH}/tracearr/config/postgres:/home/postgres/pgdata/data
