@@ -17,16 +17,31 @@
     - sonarr
     - radarr
 
-- name: Traefik Prereq - Ensure Traefik config.
-  ansible.builtin.template:
-    src: traefik/hmsd_traefik_config.yml.j2
-    dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
-    mode: 0644
-    group: docker
-    backup: yes
-    lstrip_blocks: yes
-    trim_blocks: yes
-  notify: Restart traefik
+# The CrowdSec bouncer (plugin and entrypoint middleware) only goes into Traefik's config once Traefik's container has
+# the plugin mounted. A container created before CrowdSec was enabled does not have it: if this run stopped before
+# Compose recreates Traefik, and Traefik then restarted (e.g. after a reboot), it would load a config whose plugin it
+# cannot find, and every route on ports 80 and 443 would break. In that case the CrowdSec postreqs add the bouncer
+# after Compose has recreated Traefik. Without a Traefik container yet, Compose creates it with the mount
+- name: Traefik Prereq - Get Traefik container
+  community.docker.docker_container_info:
+    name: traefik
+  register: traefik_container_info
+  when: "'crowdsec' in enabled_containers"
+
+- name: Traefik Prereq - Check whether Traefik can load the CrowdSec bouncer
+  ansible.builtin.set_fact:
+    traefik_crowdsec_bouncer_active: >-
+      {{
+        'crowdsec' in enabled_containers
+        and (
+          not (traefik_container_info.exists | default(false))
+          or (traefik_container_info.container.Mounts | default([])
+              | selectattr('Destination', 'equalto', hmsdocker_crowdsec_bouncer_plugin_mount) | list | length > 0)
+        )
+      }}
+
+- name: Traefik Prereq - Ensure Traefik config
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/traefik_config.yml"
 
 - name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:

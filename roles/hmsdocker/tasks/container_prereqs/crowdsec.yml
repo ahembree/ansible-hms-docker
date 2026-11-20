@@ -6,11 +6,12 @@
     mode: '0755'
   loop:
     - data
-    - acquis.d
+    - config/acquis.d
 
+# Written inside the config folder, which is mounted at /etc/crowdsec, so a changed file reaches the container
 - name: (Prereq - CrowdSec) - Ensure Traefik log acquisition
   ansible.builtin.copy:
-    dest: "{{ hms_docker_apps_path }}/crowdsec/acquis.d/traefik.yaml"
+    dest: "{{ hms_docker_apps_path }}/crowdsec/config/acquis.d/traefik.yaml"
     mode: '0644'
     content: |
       source: docker
@@ -18,13 +19,7 @@
         - traefik
       labels:
         type: traefik
-
-# Checked before the key is generated: a new key with an existing database means CrowdSec still has the
-# old key registered for the bouncer, which container_postreqs/crowdsec.yml then replaces
-- name: (Prereq - CrowdSec) - Check for an existing CrowdSec database
-  ansible.builtin.stat:
-    path: "{{ hms_docker_apps_path }}/crowdsec/data/crowdsec.db"
-  register: prereq_crowdsec_db
+  notify: Restart crowdsec
 
 - name: (Prereq - CrowdSec) - Generate bouncer API key
   ansible.builtin.template:
@@ -73,34 +68,54 @@
 
 # Traefik loads the bouncer plugin from this copy (experimental.localPlugins) instead of the Traefik plugin catalog.
 # From the catalog, Traefik downloads the plugin every time its container is created, and when that fails every route
-# on ports 80 and 443 breaks, because the bouncer is applied to the whole entrypoint. Each version is downloaded once,
-# into its own folder, and a new version makes Traefik's container be recreated with it
+# on ports 80 and 443 breaks, because the bouncer is applied to the whole entrypoint. Each version is cloned once, at
+# the pinned commit, into its own folder, and a new folder makes Compose recreate Traefik with it
 - name: (Prereq - CrowdSec) - Ensure Traefik bouncer plugin
   when: "'traefik' in enabled_containers"
   vars:
-    crowdsec_plugin_path: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
+    crowdsec_plugin_path: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_folder }}"
   block:
     - name: (Prereq - CrowdSec) - Ensure bouncer plugin directory
       ansible.builtin.file:
-        path: "{{ crowdsec_plugin_path }}"
+        path: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin"
         state: directory
         mode: '0755'
-      register: prereq_crowdsec_plugin_dir
 
-    # In check mode the directory is not created, so there is nothing to download into yet
-    - name: (Prereq - CrowdSec) - Download bouncer plugin
-      ansible.builtin.get_url:
-        url: "https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/archive/refs/tags/{{ hmsdocker_crowdsec_bouncer_plugin_version }}.tar.gz"
-        dest: "{{ crowdsec_plugin_path }}.tar.gz"
-        mode: '0644'
-      when: not (ansible_check_mode and prereq_crowdsec_plugin_dir is changed)
-
-    - name: (Prereq - CrowdSec) - Extract bouncer plugin
-      ansible.builtin.unarchive:
-        src: "{{ crowdsec_plugin_path }}.tar.gz"
+    # Checking out the commit, not the tag, means Git verifies the content against the pinned commit
+    - name: (Prereq - CrowdSec) - Ensure bouncer plugin source
+      ansible.builtin.git:
+        repo: "https://{{ hmsdocker_crowdsec_bouncer_plugin_module }}.git"
         dest: "{{ crowdsec_plugin_path }}"
-        remote_src: true
-        extra_opts:
-          - --strip-components=1
-        creates: "{{ crowdsec_plugin_path }}/.traefik.yml"
+        version: "{{ hmsdocker_crowdsec_bouncer_plugin_commit }}"
+        update: false
+      diff: false
+
+    - name: (Prereq - CrowdSec) - Get the commit of the bouncer plugin release tag
+      ansible.builtin.command:
+        argv:
+          - git
+          - -C
+          - "{{ crowdsec_plugin_path }}"
+          - rev-parse
+          - --verify
+          - --quiet
+          - "refs/tags/{{ hmsdocker_crowdsec_bouncer_plugin_version }}^{commit}"
+      register: prereq_crowdsec_plugin_tag
+      changed_when: false
+      failed_when: false
+      when: not ansible_check_mode
+
+    - name: (Prereq - CrowdSec) - Ensure the bouncer plugin release tag matches the pinned commit
+      ansible.builtin.assert:
+        that:
+          - prereq_crowdsec_plugin_tag.rc == 0
+          - prereq_crowdsec_plugin_tag.stdout | trim == hmsdocker_crowdsec_bouncer_plugin_commit
+        fail_msg: >-
+          The CrowdSec bouncer plugin tag {{ hmsdocker_crowdsec_bouncer_plugin_version }} points to
+          {{ (prereq_crowdsec_plugin_tag.stdout | default('') | trim) or 'nothing (the tag does not exist)' }},
+          not to hmsdocker_crowdsec_bouncer_plugin_commit ({{ hmsdocker_crowdsec_bouncer_plugin_commit }}).
+          When you change hmsdocker_crowdsec_bouncer_plugin_version, also set hmsdocker_crowdsec_bouncer_plugin_commit
+          in inventory/group_vars/all/crowdsec.yml to the commit of that release. If you did not change either, the
+          upstream tag was moved: check the plugin's releases before trusting it.
+        quiet: true
       when: not ansible_check_mode

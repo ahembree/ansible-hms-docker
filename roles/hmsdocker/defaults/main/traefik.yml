@@ -109,6 +109,7 @@ traefik_subnet_allow_list: "{{ hms_docker_network_subnet }}, 10.0.0.0/8, 172.16.
 
 # IPs or subnets of proxies in front of Traefik (such as a load balancer). Traefik keeps the X-Forwarded-For header
 # they send on the web and websecure entrypoints, so its access log (and CrowdSec, if enabled) shows the real client IP
-# instead of the proxy's IP. Only list proxies you control, any client in these ranges can set its own X-Forwarded-For // default: []
+# instead of the proxy's IP. The proxy must set X-Forwarded-For to the client IP only (replace, not append), because Traefik
+# logs the header as received. Only list proxies you control, any client in these ranges can set its own X-Forwarded-For // default: []
 # Example: ["192.168.1.10"]
 hmsdocker_traefik_trusted_proxies: []

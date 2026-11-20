@@ -1,0 +1,12 @@
+# Traefik's static config. Used by the Traefik prereqs, and by the CrowdSec postreqs to add the bouncer once Traefik's
+# container has the plugin mounted (see traefik_crowdsec_bouncer_active in container_prereqs/traefik.yml)
+- name: Traefik - Ensure Traefik config
+  ansible.builtin.template:
+    src: traefik/hmsd_traefik_config.yml.j2
+    dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
+    mode: 0644
+    group: docker
+    backup: yes
+    lstrip_blocks: yes
+    trim_blocks: yes
+  notify: Restart traefik

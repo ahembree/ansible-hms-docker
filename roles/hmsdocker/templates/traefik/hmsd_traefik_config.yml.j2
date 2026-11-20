@@ -9,12 +9,12 @@ log:
 accessLog: {}
 {% endif %}
 
-{% if 'crowdsec' in enabled_containers %}
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
 # Loaded from the copy the playbook downloads, so Traefik does not need the plugin catalog to start
 experimental:
   localPlugins:
     crowdsec-bouncer:
-      moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      moduleName: {{ hmsdocker_crowdsec_bouncer_plugin_module }}
 
 {% endif %}
 api:
@@ -37,9 +37,9 @@ entryPoints:
         - "{{ ip }}"
       {% endfor %}
 {% endif %}
-{% if traefik_ssl_enabled or 'crowdsec' in enabled_containers %}
+{% if traefik_ssl_enabled or (traefik_crowdsec_bouncer_active | default(false) | bool) %}
     http:
-{% if 'crowdsec' in enabled_containers %}
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
       middlewares:
         - crowdsec@file
 {% endif %}
@@ -65,7 +65,7 @@ entryPoints:
     asDefault: true
     http3: {}
     http:
-{% if 'crowdsec' in enabled_containers %}
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
       middlewares:
         - crowdsec@file
 {% endif %}
