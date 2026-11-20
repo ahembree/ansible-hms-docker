@@ -21,9 +21,9 @@ services:
     {% endif %}
     environment:
       - TZ=${TIMEZONE}
-      - TINYAUTH_APPURL=http{{ 's' if traefik_ssl_enabled and 'tinyauth' in traefik_enabled_containers }}://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}{{ ':3004' if 'tinyauth' not in traefik_enabled_containers and 'tinyauth' in expose_ports_enabled_containers }}
+      - TINYAUTH_APPURL=http{{ 's' if traefik_ssl_enabled and 'tinyauth' in proxy_enabled_containers }}://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}{{ ':3004' if 'tinyauth' not in proxy_enabled_containers and 'tinyauth' in expose_ports_enabled_containers }}
       - TINYAUTH_AUTH_USERS=${TINYAUTH_USERS:-}
-      - TINYAUTH_AUTH_SECURECOOKIE={{ 'true' if traefik_ssl_enabled and 'tinyauth' in traefik_enabled_containers else 'false' }}
+      - TINYAUTH_AUTH_SECURECOOKIE={{ 'true' if traefik_ssl_enabled and 'tinyauth' in proxy_enabled_containers else 'false' }}
       - TINYAUTH_DATABASE_PATH=/data/tinyauth.db
       - TINYAUTH_RESOURCES_PATH=/data/resources
       {% if hmsdocker_tinyauth_oauth_whitelist | default([], true) | length > 0 %}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Ansible playbook that deploys a Docker-based home media server stack (Plex, Sonarr/Radarr/Prowlarr/Bazarr, Transmission + optional VPN, Traefik + Let's Encrypt, Authentik SSO, Homepage, Cloudflare DDNS, optional Tailscale/Unifi DNS) onto a single Linux host. Connection is `local` — the playbook configures the machine it runs on. Tested on Ubuntu 22.04/24.04 in CI.
+Ansible playbook that deploys a Docker-based home media server stack (Plex, Sonarr/Radarr/Prowlarr/Bazarr, Transmission + optional VPN, Traefik or Caddy + Let's Encrypt, Authentik SSO, Homepage, Cloudflare DDNS, optional Tailscale/Unifi DNS) onto a single Linux host. Connection is `local` — the playbook configures the machine it runs on. Tested on Ubuntu 22.04/24.04 in CI.
 
 ## Common commands
 
@@ -57,6 +57,14 @@ Service enablement is **two-stage** — gating happens at task time, not in the 
 4. Per-service templates (e.g. `containers/jellyfin.yml.j2`) then gate feature blocks against the **derived lists**, not the raw map: `{% if 'jellyfin' in traefik_enabled_containers %}`, etc.
 
 Adding a service = adding a map entry in `container_map.yml` + a `templates/containers/{name}.yml.j2` fragment. No edit to the top-level compose template is needed.
+
+### Caddy (alternative reverse proxy)
+
+`caddy` in the container map replaces `traefik` (preflight fails if both are enabled; both bind 80/443). It reuses the per-service `traefik: true` flag and the `traefik_*` SSL/allowlist/hardening/ext-host settings, so switching proxies changes nothing else. Proxy-agnostic logic should use the `proxy_enabled_containers` fact (`traefik_enabled_containers` + `caddy_enabled_containers`), not `traefik_enabled_containers`.
+
+Caddy does **not** read container labels: `templates/caddy/Caddyfile.j2` renders one site per proxied container from `hmsdocker_caddy_upstreams` in `vars/main.yml` (host/port/scheme, mirroring the Traefik labels). `.github/workflows/scripts/check_caddy_upstreams.py` (CI) fails when the two diverge, so a new web-UI service needs an upstream entry. With SSL on, `tasks/container_prereqs/caddy.yml` builds a local `hmsd-caddy` image with the caddy-dns module (xcaddy); Caddyfile changes are applied with the `Reload caddy` handler (graceful `caddy reload`). The Caddyfile lives in a folder per image (`apps/caddy/config/<hmsdocker_caddy_config_name>`, mounted at `/etc/caddy`), so a new image also changes the mount and Compose switches image and config together; an old image never loads a config needing modules it lacks (and vice versa). The postreq removes other images' folders and old `hmsd-caddy` images once Caddy runs the current one.
+
+CrowdSec works with either proxy: `hmsdocker_crowdsec_bouncer_name` (`traefik` or `caddy`) picks the logs CrowdSec reads, its collection and the bouncer registration. For Caddy the bouncer module is built into the image and every route imports the `hmsd_crowdsec` snippet first.
 
 ### Variable rename / compatibility shim
 

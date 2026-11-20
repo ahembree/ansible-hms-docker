@@ -5,6 +5,12 @@ description: "Add external Docker containers and non-Docker services to Traefik 
 
 import { Steps } from '@astrojs/starlight/components';
 
+:::note
+
+Using [Caddy](/docs/services/caddy/) instead of Traefik? External hosts in `traefik_ext_hosts_list` work the same, and other containers are added with a `.caddy` file instead of labels, see [Adding other Containers to Caddy](/docs/services/caddy/#adding-other-containers-to-caddy).
+
+:::
+
 ## Adding other Containers to Traefik
 
 If a container exists outside of this Compose project but on the same host, you can add them to Traefik so they can also have TLS/SSL

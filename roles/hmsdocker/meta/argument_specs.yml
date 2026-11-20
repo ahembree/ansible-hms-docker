@@ -19,7 +19,7 @@ argument_specs:
         description: Base name used for default data, mount, and apps paths.
       hms_docker_domain:
         type: str
-        description: Domain used for Traefik host rules, SSL, and DDNS.
+        description: Domain used for reverse proxy (Traefik/Caddy) host rules, SSL, and DDNS.
       hms_docker_data_path:
         type: str
         description: Path where container data, configs, and compose files live.
@@ -70,7 +70,7 @@ argument_specs:
         description: Stop and remove containers disabled in the container map.
       container_expose_ports:
         type: bool
-        description: Publish individual container ports on the host (forced on if traefik is disabled).
+        description: Publish individual container ports on the host (forced on if neither traefik nor caddy is enabled).
       container_timezone:
         type: str
         description: TZ database timezone applied to all containers (e.g. America/New_York).
@@ -129,6 +129,31 @@ argument_specs:
         type: bool
         description: Enable full request access logging.
 
+      # ---- Caddy (uses the Traefik SSL, allowlist, hardening and external host settings above) ----
+      hmsdocker_caddy_version:
+        type: str
+        description: Caddy release to deploy (2.11.6 or newer).
+      hmsdocker_caddy_log_level:
+        type: str
+        choices: [DEBUG, INFO, WARN, ERROR]
+        description: Caddy log verbosity.
+      hmsdocker_caddy_dns_provider:
+        type: str
+        description: caddy-dns provider module name used for the Let's Encrypt DNS challenge (e.g. cloudflare).
+      hmsdocker_caddy_dns_provider_module:
+        type: str
+        description: Go module path of the DNS provider built into the Caddy image.
+      hmsdocker_caddy_dns_provider_config:
+        type: str
+        description: Settings of the DNS provider, as written after `dns <provider>` in a Caddyfile.
+      hmsdocker_caddy_extra_modules:
+        type: list
+        elements: str
+        description: Additional Caddy modules (Go module paths) to build into the image.
+      hmsdocker_caddy_custom_config_location:
+        type: path
+        description: Directory whose *.caddy files are imported into the Caddyfile.
+
       # ---- Plex ----
       hmsdocker_transcode_tmpfs_enabled:
         type: bool
@@ -138,7 +163,7 @@ argument_specs:
         description: Size cap for the transcode tmpfs mount (docker-compose shorthand, e.g. '4g').
       hms_docker_plex_ssl_enabled:
         type: bool
-        description: Install the script that converts the Traefik cert for use as Plex's custom certificate.
+        description: Install the script that converts the Traefik or Caddy cert for use as Plex's custom certificate.
       hms_docker_plex_ssl_update_config:
         type: bool
         description: Allow the Plex SSL script to update the Plex server config to point at the converted cert.

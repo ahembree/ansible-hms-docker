@@ -34,7 +34,7 @@ docker_daemon_options_base:
 # Most home networks are a "/24" network, so this is the default // default: "24"
 # If you don't know what this means, leave the next 2 lines alone
 # If you know your specific network mask, you can change that here
-# These are used to generate Traefik allow-list rules for the proxy so only internal networks are permitted to access certain containers
+# These are used to generate the Traefik/Caddy allow-list rules for the proxy so only internal networks are permitted to access certain containers
 # Also controls how some containers treat local network traffic (e.g. Plex, transmission)
 hms_docker_subnet_mask: "24"
 hms_docker_network_subnet: "{{ ansible_facts.default_ipv4.network }}/{{ hms_docker_subnet_mask }}"

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-"""Converts a Traefik (ACME) certificate to PKCS12 and applies it to a Plex server.
+"""Converts a Traefik or Caddy (ACME) certificate to PKCS12 and applies it to a Plex server.
 
 Traefik stores each certificate in acme.json as a PEM bundle (leaf + intermediates)
-alongside its private key. Plex wants a single PKCS12 file, which must contain the
-intermediates as well or clients that validate strictly will reject the connection.
+alongside its private key. Caddy stores each one as <issuer>/<name>/<name>.crt (the same
+kind of bundle) and <name>.key in its data directory. Plex wants a single PKCS12 file,
+which must contain the intermediates as well or clients that validate strictly will
+reject the connection.
 """
 import argparse
 import base64
@@ -327,6 +329,65 @@ def select_certificate(entries: list, hostname: str) -> Optional[dict]:
     return selected
 
 
+def select_caddy_certificate(cert_dir: str, hostname: str) -> Optional[dict]:
+    """Picks the Caddy certificate that covers the hostname
+
+    Certificates from a production ACME server are preferred over staging ones, then the one that expires last.
+
+    Args:
+        cert_dir (``str``): Caddy's certificates directory (``<data>/caddy/certificates``)
+        hostname (``str``): The hostname the certificate must cover
+
+    Returns:
+        ``dict``: The selected certificate (main domain, key, leaf, chain), or ``None`` if nothing covers the hostname
+    """
+    try:
+        issuers = sorted(os.listdir(cert_dir))
+    except FileNotFoundError as e:
+        logging.error(f'Failed to find the Caddy certificates directory {cert_dir}, has Caddy successfully created a certificate? (Error: {e})')
+        sys.exit(1)
+    except PermissionError as e:
+        logging.error(f'Permission denied, try running with sudo (Error: {e})')
+        sys.exit(1)
+
+    selected = None
+    selected_rank = None
+    for issuer in issuers:
+        issuer_dir = os.path.join(cert_dir, issuer)
+        if not os.path.isdir(issuer_dir):
+            continue
+        for name in sorted(os.listdir(issuer_dir)):
+            cert_path = os.path.join(issuer_dir, name, f'{name}.crt')
+            key_path = os.path.join(issuer_dir, name, f'{name}.key')
+            if not (os.path.isfile(cert_path) and os.path.isfile(key_path)):
+                continue
+            try:
+                with open(key_path, 'rb') as file:
+                    key = load_pem_private_key(file.read(), None)
+                with open(cert_path, 'rb') as file:
+                    leaf, chain = split_leaf_and_chain(load_cert_bundle(file.read()), key)
+                names = leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(x509.DNSName)
+            except (ValueError, TypeError, x509.ExtensionNotFound) as e:
+                logging.warning(f'Skipping unusable Caddy certificate {cert_path} (Error: {e})')
+                continue
+            except PermissionError as e:
+                logging.error(f'Permission denied, try running with sudo (Error: {e})')
+                sys.exit(1)
+            if not names:
+                continue
+            covered_by = covering_name(hostname, names)
+            if covered_by is None:
+                logging.debug(f'Caddy certificate {cert_path} does not cover {hostname}, skipping')
+                continue
+            rank = ('staging' not in issuer, cert_expiry(leaf))
+            if selected is None or rank > selected_rank:
+                selected = {'main_domain': names[0], 'covered_by': covered_by, 'key': key, 'leaf': leaf, 'chain': chain}
+                selected_rank = rank
+    if selected is not None:
+        logging.info(f'Hostname {hostname} is covered by {selected["covered_by"]} (certificate main domain: {selected["main_domain"]}, expires: {cert_expiry(selected["leaf"])} UTC)')
+    return selected
+
+
 def sync_plex_config(config_path: str, desired: Dict[str, str], dry_run: bool = False) -> List[str]:
     """Ensures the Plex server config XML file has the expected attribute values
 
@@ -407,7 +468,7 @@ def parse_args() -> argparse.Namespace:
     plex_config_dir = f'{apps_path}/plex/config'
     parser = argparse.ArgumentParser(
         prog='traefik-to-plex-pkcs12',
-        description='Converts a Traefik certificate file to PKCS12 format and applies it to a Plex server'
+        description='Converts a Traefik or Caddy certificate to PKCS12 format and applies it to a Plex server'
     )
     parser.add_argument('-r', '--restart-plex', type=str_to_bool, nargs='?', const=True, default=env_bool('PLEX_CERT_RESTART'), metavar='BOOL', help='Whether or not to restart the Plex container when the certificate or server config changed')
     parser.add_argument('-s', '--hostname', default=os.getenv('PLEX_PUBLIC_HOSTNAME', 'plex'), help='The publicly accessible hostname to access the Plex server. Must be in scope of the certificate domain or a SAN')
@@ -415,6 +476,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('-c', '--plex-config', default=f'{plex_config_dir}/Library/Application Support/Plex Media Server/Preferences.xml', help='Path to the Plex servers Preferences.xml file')
     parser.add_argument('-m', '--modify-plex-config', type=str_to_bool, nargs='?', const=True, default=env_bool('PLEX_CERT_UPDATE_CONFIG'), metavar='BOOL', help='If true, this will update the Plex config file to point to the converted certificate file')
     parser.add_argument('-t', '--traefik-cert-file', default=f'{apps_path}/traefik/config/certs/acme.json', help='Path to Traefik certificate file')
+    parser.add_argument('--caddy-cert-dir', default=f'{apps_path}/caddy/data/caddy/certificates', help='Path to the Caddy certificates directory')
+    parser.add_argument('--cert-source', choices=['traefik', 'caddy'], default=os.getenv('PLEX_CERT_SOURCE', 'traefik'), help='The reverse proxy that gets the certificate')
     parser.add_argument('-n', '--compose-project', default=os.getenv('COMPOSE_PROJECT', 'hms-docker'), help='Name of the Docker Compose project where the target containers are running')
     parser.add_argument('-o', '--output-dir', default=plex_config_dir, help='Directory to write the PKCS12 file to. Must be the directory mounted to /config in the Plex container')
     parser.add_argument('--resolver', default='letsencrypt', help='Name of the Traefik certificate resolver to read certificates from')
@@ -439,21 +502,25 @@ def main():
         logging.error(f'PUID and PGID must be numeric (Error: {e})')
         sys.exit(1)
 
-    logging.info(f'Using Traefik certificate file: {args.traefik_cert_file}')
-    traefik_json_data = get_traefik_cert_store(args.traefik_cert_file)
-    try:
-        certificates = traefik_json_data[args.resolver]['Certificates'] or []
-    except (KeyError, TypeError) as e:
-        logging.error(f'Failed to load Certificates for resolver "{args.resolver}" from file ({args.traefik_cert_file}), have certificates successfully provisioned yet? (Error: {e})')
-        sys.exit(1)
+    if args.cert_source == 'caddy':
+        logging.info(f'Using Caddy certificates directory: {args.caddy_cert_dir}')
+        selected = select_caddy_certificate(args.caddy_cert_dir, plex_hostname)
+    else:
+        logging.info(f'Using Traefik certificate file: {args.traefik_cert_file}')
+        traefik_json_data = get_traefik_cert_store(args.traefik_cert_file)
+        try:
+            certificates = traefik_json_data[args.resolver]['Certificates'] or []
+        except (KeyError, TypeError) as e:
+            logging.error(f'Failed to load Certificates for resolver "{args.resolver}" from file ({args.traefik_cert_file}), have certificates successfully provisioned yet? (Error: {e})')
+            sys.exit(1)
+        selected = select_certificate(certificates, plex_hostname)
 
-    selected = select_certificate(certificates, plex_hostname)
     if selected is None:
         logging.error(f'Hostname {plex_hostname} is NOT covered by the main domain or SANs of any usable certificate, cannot continue')
         sys.exit(1)
     leaf, chain = selected['leaf'], selected['chain']
     if not chain:
-        logging.warning('Traefik certificate has no intermediate certificates, clients may fail to validate it')
+        logging.warning(f'{args.cert_source.capitalize()} certificate has no intermediate certificates, clients may fail to validate it')
 
     pkcs12_file_name = f'{"".join(character for character in selected["main_domain"] if character.isalnum())}.pfx'
     pkcs12_file_path = os.path.join(args.output_dir, pkcs12_file_name)
