@@ -71,7 +71,7 @@ Everything else is shared with Traefik and stays in `inventory/group_vars/all/tr
 
 The [Traefik SSL requirements](/docs/services/traefik/ssl/#requirements) apply: a domain Let's Encrypt can issue certificates for, and a DNS provider with an API key. As with Traefik, start with the staging server (`traefik_ssl_use_letsencrypt_staging_url: true`, the default) and switch to production once the staging certificate works.
 
-Caddy uses a DNS provider module from [caddy-dns](https://github.com/caddy-dns) for the DNS challenge. The official Caddy image has none, so when SSL is enabled the playbook builds a Caddy image with the module (named `hmsd-caddy`). The first build takes a few minutes, later runs reuse it until the Caddy version or the modules change.
+Caddy uses a DNS provider module from [caddy-dns](https://github.com/caddy-dns) for the DNS challenge. The official Caddy image has none, so when SSL is enabled the playbook builds a Caddy image with the module (named `hmsd-caddy`). The first build takes a few minutes, later runs reuse it until the Caddy version or the modules change. Images built for an earlier version or module list are removed once Caddy runs the new one. Docker keeps the build cache, which `docker builder prune` removes.
 
 ```yaml
 #inventory/group_vars/all/caddy.yml
@@ -119,7 +119,7 @@ The same rules as [Traefik](/docs/services/traefik/security/) apply:
 
 - Containers only accept requests from `127.0.0.1` and the networks in `traefik_subnet_allow_list` (private RFC1918 ranges by default), other clients get a `403`. `expose_to_public: true` on a container (or `expose_publicly: yes` on an external host) removes this restriction
 - `n8n` is never restricted (like its Traefik router), and handles its own security headers
-- With `traefik_security_hardening`, responses get the `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff` headers. Caddy only accepts TLS 1.2 and newer, and only answers for the hosts it routes, in any case
+- With `traefik_security_hardening`, responses get the `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff` headers. Caddy only accepts TLS 1.2 and newer in any case, and like Traefik, answers requests for any host it does not route (including requests to the server's IP) with a `404`
 - Traffic through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/) bypasses Caddy the same way it bypasses Traefik
 
 Caddy's admin API only listens inside the container. Port `2020` (reachable from the Docker network only) serves the container health check and the read-only upstream status used by the Homepage widget.
@@ -130,9 +130,13 @@ Caddy's admin API only listens inside the container. Port `2020` (reachable from
 
 For Authentik, Caddy forwards to the same outpost containers (`authentik-proxy-<project>-<container>`), so the outpost setup is unchanged. The generated outpost configs in `<apps path>/authentik/outposts` have no Traefik labels while Caddy is enabled.
 
+## Access logs
+
+With `traefik_enable_access_logs` (or CrowdSec) enabled, Caddy logs every request to `docker logs caddy`, independent of `hmsdocker_caddy_log_level`. API keys and tokens that apps send in headers or the URL (`X-Api-Key`, `X-Plex-Token`, `X-Emby-Token`, `apikey`, `api_key`, `token` and similar) are removed from the log, as are cookies and `Authorization` headers.
+
 ## External Services
 
-`traefik_ext_hosts_list` works the same way, see [Adding External Services to Traefik](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik). Caddy sends the external host's own hostname to it and does not verify the certificate of an `https://` backend. Only the scheme, host and port of `backend_url` are used, a path is ignored.
+`traefik_ext_hosts_list` works the same way, see [Adding External Services to Traefik](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik). Caddy sends the external host's own hostname to it (as written in `backend_url`, with the port only if it has one) and does not verify the certificate of an `https://` backend. Only the scheme, host and port of `backend_url` are used, a path is ignored.
 
 If an external host uses the same subdomain as a container, Caddy only routes the container and the playbook prints a warning.
 
@@ -169,7 +173,7 @@ Without SSL, start the site address with `http://` (e.g. `http://myapp.example.c
 
 With `crowdsec` enabled, every route Caddy serves blocks the IPs CrowdSec bans. See [CrowdSec with Caddy](/docs/services/crowdsec/#crowdsec-with-caddy).
 
-If Caddy is already running when a change needs a new Caddy image (enabling CrowdSec or SSL, a new Caddy version or module), the playbook keeps the old Caddyfile until Compose has recreated Caddy with the new image, then writes the new one and reloads Caddy. If the run stops before that, Caddy keeps working with its old config, and the next run finishes the change.
+Each Caddy image has its own Caddyfile folder, `<apps path>/caddy/config/<image tag>/`. When a change needs a new image (enabling or disabling CrowdSec or SSL, a new Caddy version or module), Compose switches the image and the Caddyfile together, so Caddy never loads a config its image can't run. If the run stops before that, Caddy keeps working with its previous image and config, and the next run finishes the change. Folders of earlier images are removed once Caddy runs the new one.
 
 ## Homepage
 
@@ -197,6 +201,6 @@ hmsdocker_caddy_custom_config_location: "{{ hms_docker_apps_path }}/caddy/custom
 - `docker logs -f caddy` shows certificate requests and errors. Set `hmsdocker_caddy_log_level: DEBUG` for more detail. Look for `could not get certificate from issuer` lines, their `error` field says why Let's Encrypt refused or the DNS challenge failed
 - `creating new account because no account for configured email is known to us` with a `no such file or directory` error is not a failure: Caddy registers a new ACME account the first time it uses an email address with a CA
 - Caddy only uses Let's Encrypt, like Traefik. Certificates from an earlier Caddy setup that used another CA (such as ZeroSSL) are not renewed, Caddy gets new ones from Let's Encrypt
-- The generated config is `<apps path>/caddy/config/Caddyfile`. Check it with `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`
+- The generated config is `<apps path>/caddy/config/<image tag>/Caddyfile` (e.g. `2.11.9`, or `2.11.9-<hash>` for an image built with modules). Check it with `docker exec caddy caddy validate --config /etc/caddy/Caddyfile`
 - If Caddy does not start, the playbook stops with a message. The cause is usually a DNS provider setting that does not match the provider's README, or a token the module rejects
 - A `502` means Caddy cannot reach the container: check that it is running and healthy

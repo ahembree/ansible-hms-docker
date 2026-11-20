@@ -11,9 +11,10 @@
 {% set allow_list = ['127.0.0.1/32'] + (traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') | map('trim') | select | list) %}
 {% set seen = namespace(hosts=[]) %}
 {% set crowdsec = 'crowdsec' in enabled_containers %}
-{% macro site(address, upstream, allowlist=true, outpost='', tinyauth=false, headers={}, ext_host=false) %}
+{% set access_logs = (traefik_enable_access_logs | default(false) | bool) or crowdsec %}
+{% macro site(address, upstream, allowlist=true, outpost='', tinyauth=false, headers={}, host_header='') %}
 {{ address }} {
-{% if traefik_enable_access_logs | default(false) or 'crowdsec' in enabled_containers %}
+{% if (traefik_enable_access_logs | default(false) | bool) or 'crowdsec' in enabled_containers %}
 	log
 {% endif %}
 {% if headers | length > 0 %}
@@ -36,16 +37,17 @@
 {% if tinyauth %}
 		import hmsd_tinyauth
 {% endif %}
-{% if upstream is match('https://') %}
+{% if upstream is match('https://') or host_header %}
 		reverse_proxy {{ upstream }} {
+{% if host_header %}
+			# The external host's own hostname, as in backend_url, like Traefik's passHostHeader: false
+			header_up Host {{ host_header }}
+{% endif %}
+{% if upstream is match('https://') %}
 			transport http {
 				tls_insecure_skip_verify
 			}
-		}
-{% elif ext_host %}
-		# Sends the external host's own hostname, like Traefik's passHostHeader: false (default for HTTPS upstreams)
-		reverse_proxy {{ upstream }} {
-			header_up Host {upstream_hostport}
+{% endif %}
 		}
 {% else %}
 		reverse_proxy {{ upstream }}
@@ -60,7 +62,30 @@
 	persist_config off
 	log {
 		level {{ hmsdocker_caddy_log_level | upper }}
+		exclude http.log.access
 	}
+{% if access_logs %}
+	# Access logs (traefik_enable_access_logs, CrowdSec) are written whatever hmsdocker_caddy_log_level is,
+	# without API keys and tokens
+	log access {
+		output stderr
+		format filter {
+			wrap json
+			fields {
+{% for header in hmsdocker_caddy_log_redacted_headers %}
+				request>headers>{{ header }} delete
+{% endfor %}
+				request>uri query {
+{% for param in hmsdocker_caddy_log_redacted_query %}
+					delete {{ param }}
+{% endfor %}
+				}
+			}
+		}
+		include http.log.access
+		level INFO
+	}
+{% endif %}
 {% if ssl %}
 	email {{ traefik_ssl_letsencrypt_email }}
 	# Only Let's Encrypt, like Traefik. Without this, Caddy falls back to ZeroSSL when Let's Encrypt fails
@@ -160,12 +185,25 @@
     outpost=('authentik-proxy-' ~ project_name ~ '-' ~ (item.friendly_name | regex_replace(regex, replace))) if ('authentik' in enabled_containers and ssl and item.authentik | default(false)) else '',
     tinyauth=('tinyauth' in proxy_enabled_containers and item.tinyauth | default(false)),
     headers=(hmsdocker_caddy_security_headers if traefik_security_hardening else {}),
-    ext_host=true
+    host_header=item.backend_url | regex_replace('^[A-Za-z][A-Za-z0-9+.-]*://([^/?#@]*@)?([^/?#]+).*$', '\\2')
 ) }}
 {% endif %}
 {% endif %}
 {% endfor %}
 {% endif %}
+# Any other host gets a 404, like Traefik (CrowdSec also sees and blocks requests to unknown hosts, e.g. scans of the IP)
+{% for catch_all in (['http://', 'https://'] if ssl else ['http://']) %}
+{{ catch_all }} {
+{% if access_logs %}
+	log
+{% endif %}
+	route {
+		import hmsd_crowdsec
+		respond 404
+	}
+}
+
+{% endfor %}
 # Health check of the container, and the read-only upstream status for the Homepage widget.
 # Only reachable on the Docker network, the admin API itself stays on localhost
 http://:2020 {

@@ -201,7 +201,7 @@ Do **not** touch `README.md` unless the service adds a headline capability.
 ## 7. Verify (static — nothing mutates the host)
 
 ```bash
-# map keys and template filenames correspond 1:1 — 67 and 67. Any output is a real break;
+# map keys and template filenames correspond 1:1 — 69 and 69. Any output is a real break;
 # there are no benign exceptions. authentik is not one (it has both a map entry and
 # authentik.yml.j2, it is just rendered outside the generic loop), and neither are the 4k
 # instances (sonarr-4k/radarr-4k are extra compose services *inside* sonarr.yml.j2 and

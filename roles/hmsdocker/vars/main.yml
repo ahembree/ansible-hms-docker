@@ -275,3 +275,27 @@ hmsdocker_caddy_image: >-
     if (hmsdocker_caddy_build_modules | length > 0)
     else ('docker.io/library/caddy:' ~ hmsdocker_caddy_version)
   }}
+
+# Each Caddy image gets its own Caddyfile folder (apps/caddy/config/<image tag>), mounted at /etc/caddy. A new image
+# (Caddy version, SSL, CrowdSec or extra modules changed) therefore also changes the mount, so Compose switches the
+# image and the Caddyfile together. A Caddy container that still runs the previous image keeps its own Caddyfile, which
+# that image can load, even if the run stops before Compose recreates it
+hmsdocker_caddy_config_name: "{{ hmsdocker_caddy_image.split(':')[-1] }}"
+
+# Headers and query parameters removed from Caddy's access logs (traefik_enable_access_logs, CrowdSec), so API keys and
+# tokens that apps send through Caddy are not written to `docker logs caddy`. Cookie and Authorization headers are
+# already removed by Caddy. Header names in their canonical form
+hmsdocker_caddy_log_redacted_headers:
+  - X-Api-Key
+  - X-Plex-Token
+  - X-Emby-Token
+  - X-Emby-Authorization
+  - X-Mediabrowser-Token
+hmsdocker_caddy_log_redacted_query:
+  - apikey
+  - api_key
+  - ApiKey
+  - X-Plex-Token
+  - X-Emby-Token
+  - token
+  - access_token

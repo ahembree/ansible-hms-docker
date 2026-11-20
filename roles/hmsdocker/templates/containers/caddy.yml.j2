@@ -28,7 +28,8 @@ services:
     networks:
       - proxy_net
     volumes:
-      - ${HMSD_APPS_PATH}/caddy/config:/etc/caddy:ro
+      # The Caddyfile folder of this image, see hmsdocker_caddy_config_name
+      - ${HMSD_APPS_PATH}/caddy/config/{{ hmsdocker_caddy_config_name }}:/etc/caddy:ro
       - {{ hmsdocker_caddy_custom_config_location }}:/etc/caddy-custom:ro
       - ${HMSD_APPS_PATH}/caddy/data:/data
     {% if hmsdocker_caddy_build_modules | length > 0 or 'caddy' in homepage_enabled_containers %}

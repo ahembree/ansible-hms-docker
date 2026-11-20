@@ -44,37 +44,29 @@
         | dict2items | selectattr('value', 'gt', 1) | map(attribute='key') | list
       }}
 
+# The Caddyfile goes in a folder for the image Caddy runs (hmsdocker_caddy_config_name in vars/main.yml). A Caddyfile that
+# needs modules of a new image is never loaded by the previous one: Compose switches image and folder together, and a
+# container still on the previous image keeps the folder it was created with
 - name: Caddy Prereq - Ensure Caddy directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: '0755'
   loop:
-    - "{{ hms_docker_apps_path }}/caddy/config"
+    - "{{ hms_docker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}"
     - "{{ hms_docker_apps_path }}/caddy/data"
     - "{{ hmsdocker_caddy_custom_config_location }}"
 
-# The Caddyfile can need modules that only the new image has (DNS provider for SSL, CrowdSec bouncer, extra modules).
-# A Caddy container from another image keeps its current Caddyfile until Compose has recreated it with the new image:
-# if this run stopped before that and the old container restarted (e.g. after a reboot), it could not load the new
-# Caddyfile and every route would break. The Caddy postreqs then write the Caddyfile and reload Caddy.
-# Without a Caddy container yet, Compose creates it with the new image
-- name: Caddy Prereq - Get Caddy container
-  community.docker.docker_container_info:
-    name: caddy
-  register: caddy_prereq_container_info
-
-- name: Caddy Prereq - Check whether Caddy already runs its image
-  ansible.builtin.set_fact:
-    caddy_config_deferred: >-
-      {{
-        caddy_prereq_container_info.exists | default(false)
-        and caddy_prereq_container_info.container.Config.Image != hmsdocker_caddy_image
-      }}
-
 - name: Caddy Prereq - Ensure Caddyfile
-  ansible.builtin.include_tasks: "{{ role_path }}/tasks/caddy_config.yml"
-  when: not (caddy_config_deferred | bool)
+  ansible.builtin.template:
+    src: caddy/Caddyfile.j2
+    dest: "{{ hms_docker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}/Caddyfile"
+    mode: '0640'
+    group: docker
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
+  notify: Reload caddy
 
 # The official image has no DNS provider modules, so Caddy is built with the one needed for SSL (and any extra modules)
 - name: Caddy Prereq - Build Caddy image with modules
