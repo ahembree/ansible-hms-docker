@@ -17,3 +17,4 @@ inventory/hosts-custom.yml
 .vscode/
 bin/
 logs/*.log
+backups/

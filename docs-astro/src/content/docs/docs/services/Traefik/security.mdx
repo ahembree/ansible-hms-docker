@@ -17,7 +17,7 @@ This is controlled on a per-container basis in the `inventory/group_vars/all/con
 
 ## Proxies in front of Traefik
 
-If another proxy sits in front of Traefik, such as a load balancer, Traefik sees that proxy's IP as the client IP. To log the real client IP instead, add the proxy's IP or subnet to `hmsdocker_proxy_trusted_proxies` in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed):
+If another proxy sits in front of Traefik, such as a load balancer, Traefik sees that proxy's IP as the client IP. To log the real client IP instead, add the proxy's IP or subnet to `hmsdocker_proxy_trusted_proxies` in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`):
 
 ```yaml
 hmsdocker_proxy_trusted_proxies:
@@ -36,7 +36,7 @@ To configure SSO (Single Sign-On) for certain containers, see the [Authentik doc
 
 ## Security Hardening
 
-There is a `hmsdocker_proxy_security_hardening` variable in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed) that will do the following if enabled:
+There is a `hmsdocker_proxy_security_hardening` variable in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`) that will do the following if enabled:
 
 - Enforce HTTPS only requests
 - Enforce Traefik dashboard over secure connection

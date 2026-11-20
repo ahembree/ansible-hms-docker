@@ -48,7 +48,7 @@ Only one reverse proxy can run, since both use ports `80` and `443`. The playboo
 
 The Caddy settings are in `roles/hmsdocker/defaults/main/caddy.yml`. Copy the ones you change into `inventory/group_vars/all/caddy.yml` (or run `make config`, which copies every defaults file).
 
-Everything else is shared with Traefik and stays in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed), so switching back and forth does not change how your services are reached:
+Everything else is shared with Traefik and stays in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`), so switching back and forth does not change how your services are reached:
 
 | Setting | Used by Caddy for |
 | ------- | ----------------- |

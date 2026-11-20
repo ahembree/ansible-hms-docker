@@ -34,7 +34,7 @@ cloudflare_api_token: <token>
 
 ## Configuration
 
-The SSL settings shared by Traefik and Caddy are in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed), the Traefik-only ones in `inventory/group_vars/all/traefik.yml`:
+The SSL settings shared by Traefik and Caddy are in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`), the Traefik-only ones in `inventory/group_vars/all/traefik.yml`:
 
 ```yaml
 #inventory/group_vars/all/reverse_proxy.yml
@@ -79,7 +79,7 @@ For HTTP/3 to actually be reachable from the public internet, forward UDP/`443` 
 
 ## Changing SSL Certificate SANs
 
-To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` on installs from before these settings were renamed) modify the `hmsdocker_ssl_sans` variable.
+To change/add the SANs (Subject Alternative Name) used for the certificate, in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`) modify the `hmsdocker_ssl_sans` variable.
 
 By default, it will generate a wildcard certificate for the domain set in `hms_docker_domain`.
 
