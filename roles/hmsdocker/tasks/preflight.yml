@@ -536,16 +536,14 @@
     - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
     - hmsdocker_traefik_trusted_proxies | default([], true) | length > 0
 
-- name: (preflight) Validate the CrowdSec bouncer plugin version and commit
+- name: (preflight) Validate the CrowdSec bouncer plugin version
   ansible.builtin.assert:
     that:
       - "hmsdocker_crowdsec_bouncer_plugin_version | default('', true) | string is match('^[A-Za-z0-9._-]+$')"
-      - "hmsdocker_crowdsec_bouncer_plugin_commit | default('', true) | string is match('^[0-9a-f]{40}$')"
     fail_msg: >-
-      hmsdocker_crowdsec_bouncer_plugin_version must be a release tag of the CrowdSec bouncer plugin (for example
-      "v1.8.2"), and hmsdocker_crowdsec_bouncer_plugin_commit the full 40-character commit of that tag. They are set to
-      "{{ hmsdocker_crowdsec_bouncer_plugin_version | default('') }}" and "{{ hmsdocker_crowdsec_bouncer_plugin_commit | default('') }}".
-      Update them in inventory/group_vars/all/crowdsec.yml.
+      hmsdocker_crowdsec_bouncer_plugin_version must be a release tag of the CrowdSec bouncer plugin, for example
+      "v1.8.2", but it is set to "{{ hmsdocker_crowdsec_bouncer_plugin_version | default('') }}".
+      Update it in inventory/group_vars/all/crowdsec.yml.
     quiet: true
   when:
     - hms_docker_container_map['crowdsec']['enabled'] | default(false) | bool

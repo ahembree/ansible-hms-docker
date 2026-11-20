@@ -159,8 +159,6 @@ hmsdocker_tinyauth_pocketid_local: "{{ (hmsdocker_tinyauth_pocketid_enabled | de
 hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_local | bool) or ((hmsdocker_tinyauth_pocketid_external | bool) and (hmsdocker_tinyauth_pocketid_api_key | default('', true) | length > 0)) }}"
 
 # CrowdSec bouncer Traefik plugin. Traefik loads it as a local plugin from /plugins-local/src/<module>, which is a
-# mount of apps/crowdsec/bouncer-plugin/<folder>. The folder name changes with the version and commit, so a new
-# version changes the mount and Compose recreates Traefik with it
+# mount of apps/crowdsec/bouncer-plugin/<version>. A new version changes the mount, so Compose recreates Traefik with it
 hmsdocker_crowdsec_bouncer_plugin_module: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
 hmsdocker_crowdsec_bouncer_plugin_mount: "/plugins-local/src/{{ hmsdocker_crowdsec_bouncer_plugin_module }}"
-hmsdocker_crowdsec_bouncer_plugin_folder: "{{ hmsdocker_crowdsec_bouncer_plugin_version }}-{{ (hmsdocker_crowdsec_bouncer_plugin_commit | string)[:12] }}"

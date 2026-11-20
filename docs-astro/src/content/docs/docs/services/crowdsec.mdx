@@ -18,7 +18,7 @@ Enable `crowdsec` in the [Container Map](/docs/container-list/#container-map) an
 3. Install the bouncer plugin in Traefik and apply it to the `web` and `websecure` entrypoints (ports `80` and `443`), so every route through those ports is covered
 4. Turn on Traefik access logs, which CrowdSec needs
 
-The playbook downloads the plugin from GitHub into `<hms_docker_apps_path>/crowdsec/bouncer-plugin/` (once per version), at the Git commit set in `hmsdocker_crowdsec_bouncer_plugin_commit`, and Traefik loads it from there. Traefik does not use the Traefik plugin catalog, so it starts without internet access.
+The playbook downloads the plugin from GitHub into `<hms_docker_apps_path>/crowdsec/bouncer-plugin/` (once per version), and Traefik loads it from there. Traefik does not use the Traefik plugin catalog, so it starts without internet access.
 
 When you enable CrowdSec on a server where Traefik is already running, the playbook first recreates Traefik with the plugin, then adds the bouncer to its config and restarts Traefik at the end of the run. If the run stops before that, Traefik keeps working without the bouncer, and the next run adds it.
 
@@ -30,7 +30,6 @@ These are in `inventory/group_vars/all/crowdsec.yml`:
 |-|-|-|
 | `hmsdocker_crowdsec_enroll_key` | `""` | Optional. Enrollment key from the [CrowdSec Console](https://app.crowdsec.net) to see alerts and manage the instance there. |
 | `hmsdocker_crowdsec_bouncer_plugin_version` | `v1.8.2` | Version (release tag) of the Traefik bouncer plugin. |
-| `hmsdocker_crowdsec_bouncer_plugin_commit` | `b0431e2e530cadd629583288909b462c8a6e9669` | Full Git commit of that release. The playbook checks out exactly this commit and stops if the release tag points to a different one. Change it together with the version. |
 
 If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocker_traefik_trusted_proxies` (see [Proxies in front of Traefik](/docs/services/traefik/security/#proxies-in-front-of-traefik)). Otherwise Traefik's access log, which CrowdSec reads, and the bouncer both see the proxy's IP instead of the client's, and a ban would block the proxy.
 

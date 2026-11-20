@@ -11,8 +11,3 @@ hmsdocker_crowdsec_enroll_key: ""
 # Version (release tag) of the CrowdSec bouncer Traefik plugin (https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin)
 # The playbook downloads it from GitHub and Traefik loads it from that local copy // default: "v1.8.2"
 hmsdocker_crowdsec_bouncer_plugin_version: v1.8.2
-
-# Full Git commit (40 characters) that the release tag above points to. The playbook checks out exactly this commit and
-# stops if the tag points elsewhere, so a moved tag or a tampered download cannot change the plugin. Update it together
-# with the version, from the commit shown for the tag on the plugin's GitHub releases page // default: "b0431e2e530cadd629583288909b462c8a6e9669"
-hmsdocker_crowdsec_bouncer_plugin_commit: "b0431e2e530cadd629583288909b462c8a6e9669"

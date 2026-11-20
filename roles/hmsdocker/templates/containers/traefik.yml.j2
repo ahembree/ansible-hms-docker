@@ -39,7 +39,7 @@ services:
       - {{ hmsdocker_traefik_static_config_location }}:/etc/traefik/static_files:ro
     {% if 'crowdsec' in enabled_containers %}
       # CrowdSec bouncer plugin, downloaded by the playbook and loaded as a local plugin
-      - ${HMSD_APPS_PATH}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_folder }}:{{ hmsdocker_crowdsec_bouncer_plugin_mount }}:ro
+      - ${HMSD_APPS_PATH}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}:{{ hmsdocker_crowdsec_bouncer_plugin_mount }}:ro
     {% endif %}
     {% if 'traefik' in traefik_enabled_containers or ('traefik' in homepage_enabled_containers and not traefik_security_hardening) %}
     labels:
