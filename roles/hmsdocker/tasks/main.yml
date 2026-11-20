@@ -162,6 +162,23 @@
   ansible.builtin.set_fact:
     proxy_enabled_containers: "{{ traefik_enabled_containers + caddy_enabled_containers }}"
 
+# Containers whose Traefik router (or Caddy route) gets the Tinyauth forward auth. Tinyauth and Pocket ID are
+# left out (they serve the sign-in itself), as are containers whose routers do not use the shared middlewares.
+# Built before the container prereqs, which render the Caddyfile
+- name: Build Tinyauth protected containers fact
+  ansible.builtin.set_fact:
+    tinyauth_protected_containers: >-
+      {{
+        (
+          hmsdocker_tinyauth_protected_containers | default([], true) |
+          select('in', proxy_enabled_containers) |
+          reject('in', hmsdocker_tinyauth_unsupported_containers) |
+          list
+        )
+        if ('tinyauth' in proxy_enabled_containers)
+        else []
+      }}
+
 - name: Build Docker socket proxy settings
   ansible.builtin.import_tasks: "socket_proxy_settings.yml"
 
@@ -359,22 +376,6 @@
     tdarr_api_key: "{{ (prereq_tdarr_slurped_api_key['content'] | b64decode | trim) if prereq_tdarr_slurped_api_key['content'] is defined else '' }}"
     n8n_encryption_key: "{{ (prereq_n8n_slurped_encryption_key['content'] | b64decode) if prereq_n8n_slurped_encryption_key['content'] is defined else '### Will be obtained during full run ###' }}"
     crowdsec_bouncer_key: "{{ (prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
-
-# Containers whose Traefik router (or Caddy route) gets the Tinyauth forward auth. Tinyauth and Pocket ID are
-# left out (they serve the sign-in itself), as are containers whose routers do not use the shared middlewares
-- name: Build Tinyauth protected containers fact
-  ansible.builtin.set_fact:
-    tinyauth_protected_containers: >-
-      {{
-        (
-          hmsdocker_tinyauth_protected_containers | default([], true) |
-          select('in', proxy_enabled_containers) |
-          reject('in', hmsdocker_tinyauth_unsupported_containers) |
-          list
-        )
-        if ('tinyauth' in proxy_enabled_containers)
-        else []
-      }}
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:
