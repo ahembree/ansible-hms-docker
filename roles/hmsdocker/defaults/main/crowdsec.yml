@@ -6,9 +6,7 @@
 # Optional: enroll this instance in the CrowdSec Console (https://app.crowdsec.net) with this enrollment key // default: ""
 hmsdocker_crowdsec_enroll_key: ""
 
-# IPs or subnets of proxies in front of Traefik (such as a load balancer). Traefik trusts their X-Forwarded-For header on the web/websecure entrypoints, so CrowdSec and the bouncer see the real client IP // default: []
-# Example: ["172.16.0.0/12"]
-hmsdocker_crowdsec_trusted_proxies: []
+# Proxies in front of Traefik (such as a load balancer) are set with `hmsdocker_traefik_trusted_proxies` in traefik.yml
 
 # Version of the CrowdSec bouncer Traefik plugin (https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin) // default: "v1.8.2"
 hmsdocker_crowdsec_bouncer_plugin_version: v1.8.2

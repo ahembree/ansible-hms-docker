@@ -27,8 +27,9 @@ These are in `inventory/group_vars/all/crowdsec.yml`:
 | Variable | Default | Description |
 |-|-|-|
 | `hmsdocker_crowdsec_enroll_key` | `""` | Optional. Enrollment key from the [CrowdSec Console](https://app.crowdsec.net) to see alerts and manage the instance there. |
-| `hmsdocker_crowdsec_trusted_proxies` | `[]` | IPs or subnets of proxies in front of Traefik, such as a load balancer. Traefik then trusts the `X-Forwarded-For` header from them on the `web` and `websecure` entrypoints, so both its access log (which CrowdSec reads) and the bouncer see the real client IP instead of the proxy's IP. |
 | `hmsdocker_crowdsec_bouncer_plugin_version` | `v1.8.2` | Version of the Traefik bouncer plugin. |
+
+If a proxy such as a load balancer sits in front of Traefik, add it to `hmsdocker_traefik_trusted_proxies` (see [Proxies in front of Traefik](/docs/services/traefik/security/#proxies-in-front-of-traefik)). Otherwise Traefik's access log, which CrowdSec reads, and the bouncer both see the proxy's IP instead of the client's, and a ban would block the proxy.
 
 ## How it works
 

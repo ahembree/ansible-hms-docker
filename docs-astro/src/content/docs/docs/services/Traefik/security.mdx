@@ -13,6 +13,19 @@ By default, Traefik is configured with an allowlist that only permits private IP
 
 This is controlled on a per-container basis in the `inventory/group_vars/all/container_map.yml` file as the `expose_to_public` variable for each container. If you set this to `true`, it will allow all IPs (`0.0.0.0/0`) to access them.
 
+## Proxies in front of Traefik
+
+If another proxy sits in front of Traefik, such as a load balancer, Traefik sees that proxy's IP as the client IP. To log the real client IP instead, add the proxy's IP or subnet to `hmsdocker_traefik_trusted_proxies` in `inventory/group_vars/all/traefik.yml`:
+
+```yaml
+hmsdocker_traefik_trusted_proxies:
+  - 192.168.1.10
+```
+
+Traefik then keeps the `X-Forwarded-For` header sent by these proxies on the `web` and `websecure` entrypoints (ports `80` and `443`) and logs the client IP from it. [CrowdSec](/docs/services/crowdsec/) uses the same list. The allowlists above still check the IP that connects to Traefik.
+
+Only list proxies you control. Any client in these ranges can set its own `X-Forwarded-For` header.
+
 ## SSO
 
 To configure SSO (Single Sign-On) for certain containers, see the [Authentik docs](/docs/services/authentik/)

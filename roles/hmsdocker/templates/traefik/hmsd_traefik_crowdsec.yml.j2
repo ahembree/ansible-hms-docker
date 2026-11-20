@@ -15,9 +15,9 @@ http:
           {% for address in traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
             - "{{ address | trim }}"
           {% endfor %}
-        {% if hmsdocker_crowdsec_trusted_proxies | default([], true) | length > 0 %}
+        {% if hmsdocker_traefik_trusted_proxies | default([], true) | length > 0 %}
           forwardedHeadersTrustedIPs:
-          {% for ip in hmsdocker_crowdsec_trusted_proxies %}
+          {% for ip in hmsdocker_traefik_trusted_proxies %}
             - "{{ ip }}"
           {% endfor %}
         {% endif %}
