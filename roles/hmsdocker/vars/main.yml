@@ -81,6 +81,15 @@ hmsdocker_socket_proxy_builtin_clients:
         - '(/v1\.\d+)?/images/.+/json'
       head:
         - '(/v1\.\d+)?/_ping'
+  # CrowdSec: Docker log acquisition (finds the traefik container through the container list and events, then reads its logs)
+  crowdsec:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/(json|logs))'
+      head:
+        - '(/v1\.\d+)?/_ping'
   # Homepage: container discovery, status and stats
   homepage:
     mode: proxy
@@ -148,6 +157,11 @@ hmsdocker_tinyauth_pocketid_external: "{{ (hmsdocker_tinyauth_pocketid_enabled |
 hmsdocker_tinyauth_pocketid_local: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length == 0) }}"
 # The playbook creates the OIDC client itself, unless an external Pocket ID has no API key to do it with
 hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_local | bool) or ((hmsdocker_tinyauth_pocketid_external | bool) and (hmsdocker_tinyauth_pocketid_api_key | default('', true) | length > 0)) }}"
+
+# CrowdSec bouncer Traefik plugin. Traefik loads it as a local plugin from /plugins-local/src/<module>, which is a
+# mount of apps/crowdsec/bouncer-plugin/<version>. A new version changes the mount, so Compose recreates Traefik with it
+hmsdocker_crowdsec_bouncer_plugin_module: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+hmsdocker_crowdsec_bouncer_plugin_mount: "/plugins-local/src/{{ hmsdocker_crowdsec_bouncer_plugin_module }}"
 
 # Caddy (`caddy` in the container map) routes each container with `traefik: true` to the upstream below, the same
 # container and port that its Traefik labels use. Containers with `traefik: true` but no entry here (no web UI,

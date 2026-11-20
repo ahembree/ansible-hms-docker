@@ -5,10 +5,18 @@ global:
 log:
   level: "{{ traefik_log_level }}"
 
-{% if traefik_enable_access_logs %}
+{% if traefik_enable_access_logs or 'crowdsec' in enabled_containers %}
 accessLog: {}
 {% endif %}
 
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
+# Loaded from the copy the playbook downloads, so Traefik does not need the plugin catalog to start
+experimental:
+  localPlugins:
+    crowdsec-bouncer:
+      moduleName: {{ hmsdocker_crowdsec_bouncer_plugin_module }}
+
+{% endif %}
 api:
   dashboard: true
   disabledashboardad: true
@@ -22,19 +30,45 @@ entryPoints:
     address: :8082
   web:
     address: :80
-{% if traefik_ssl_enabled %}
+{% if hmsdocker_traefik_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_traefik_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
+{% if traefik_ssl_enabled or (traefik_crowdsec_bouncer_active | default(false) | bool) %}
     http:
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
+{% if traefik_ssl_enabled %}
       redirections:
         entryPoint:
           to: websecure
           scheme: https
           permanent: true
+{% endif %}
+{% endif %}
+{% if traefik_ssl_enabled %}
 
   websecure:
     address: :443
+{% if hmsdocker_traefik_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_traefik_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
     asDefault: true
     http3: {}
     http:
+{% if traefik_crowdsec_bouncer_active | default(false) | bool %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
       tls:
         certResolver: letsencrypt
         domains:

@@ -116,6 +116,9 @@ hms_docker_container_map:
     directory: true
     enabled: false
     expose_ports: false
+  crowdsec:
+    directory: true
+    enabled: false
   deluge:
     authentik: false
     directory: true
@@ -258,6 +261,10 @@ hms_docker_container_map:
     expose_to_public: false
     proxy_host_rule: n8n
     traefik: true
+  netbird:
+    enabled: false
+    homepage: false
+    homepage_stats: false
   netdata:
     enabled: false
     homepage: true

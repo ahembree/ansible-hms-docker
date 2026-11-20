@@ -21,7 +21,8 @@
       - requests
       - python-dotenv
       - xmltodict
-      - cryptography
+      # traefik_cert_convert.py needs pkcs12.load_pkcs12 (36+); an older system-wide copy would otherwise satisfy pip
+      - cryptography>=36
       - docker
       - defusedxml
 
@@ -49,8 +50,9 @@
         src: scripts/traefik_cert_convert.py
         dest: "{{ scripts_path.path }}"
         mode: '700'
-        owner: "{{ container_uid }}"
-        group: "{{ container_gid }}"
+        # Executed by root's crontab, so it must not be writable by the unprivileged container user
+        owner: root
+        group: root
       register: cert_script
 
     - name: Custom Scripts - Plex SSL - Ensure cron job

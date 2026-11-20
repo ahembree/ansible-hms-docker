@@ -8,7 +8,7 @@
 # Layout:
 #   1. Initialize the warnings list.
 #   2. Hard-fail asserts (always-required vars).
-#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
+#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale/netbird).
 #   4. Soft-warning appends (non-fatal; surfaced at the end).
 #   5. Print warnings if any.
 #
@@ -259,6 +259,23 @@
     - >-
       (tailscale_enabled | default(false))
       or (hms_docker_container_map['tailscale']['enabled'] | default(false))
+    - not is_github_runner
+
+# ---------------------------------------------------------------------------
+# NetBird
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate NetBird setup key when netbird is enabled
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_netbird_setup_key | default('', true) | string) | length > 0
+    fail_msg: >-
+      The netbird container is enabled but hmsdocker_netbird_setup_key is empty.
+      Create a setup key in the NetBird dashboard under Setup Keys and
+      set it in inventory/group_vars/all/netbird.yml.
+    quiet: true
+  when:
+    - hms_docker_container_map['netbird']['enabled'] | default(false)
     - not is_github_runner
 
 # ---------------------------------------------------------------------------
@@ -541,6 +558,44 @@
     - nas_client_use_additional_paths | default(false) | bool
     - ansible_facts['kernel'] is version('5.12', '<')
     - readonly_media_nested_shares | length > 0
+
+- name: (preflight) Warn if CrowdSec is enabled without Traefik
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['crowdsec is enabled but traefik is not. CrowdSec will run, but nothing will block traffic, because the bouncer runs inside Traefik.'] }}"
+  when:
+    - hms_docker_container_map['crowdsec']['enabled'] | default(false)
+    - not (hms_docker_container_map['traefik']['enabled'] | default(false))
+
+# An entry Traefik cannot parse as an IP or subnet stops Traefik from starting, and a single string instead of a list
+# would be read one character at a time
+- name: (preflight) Validate hmsdocker_traefik_trusted_proxies
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_traefik_trusted_proxies is sequence
+      - hmsdocker_traefik_trusted_proxies is not string
+      - hmsdocker_traefik_trusted_proxies is not mapping
+      - "hmsdocker_traefik_trusted_proxies | map('string') | reject('match', '^[0-9A-Fa-f:.]+(/[0-9]{1,3})?$') | list | length == 0"
+    fail_msg: >-
+      hmsdocker_traefik_trusted_proxies must be a list of IP addresses or subnets, for example ["192.168.1.10"]
+      or ["10.0.0.0/24"], but it is set to {{ hmsdocker_traefik_trusted_proxies | to_json }}. Traefik does not
+      start with an invalid entry. Update it in inventory/group_vars/all/traefik.yml.
+    quiet: true
+  when:
+    - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
+    - hmsdocker_traefik_trusted_proxies | default([], true) | length > 0
+
+- name: (preflight) Validate the CrowdSec bouncer plugin version
+  ansible.builtin.assert:
+    that:
+      - "hmsdocker_crowdsec_bouncer_plugin_version | default('', true) | string is match('^[A-Za-z0-9._-]+$')"
+    fail_msg: >-
+      hmsdocker_crowdsec_bouncer_plugin_version must be a release tag of the CrowdSec bouncer plugin, for example
+      "v1.8.2", but it is set to "{{ hmsdocker_crowdsec_bouncer_plugin_version | default('') }}".
+      Update it in inventory/group_vars/all/crowdsec.yml.
+    quiet: true
+  when:
+    - hms_docker_container_map['crowdsec']['enabled'] | default(false) | bool
+    - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
 
 - name: (preflight) Warn if socket proxy overrides are set for unsupported containers
   ansible.builtin.set_fact:
