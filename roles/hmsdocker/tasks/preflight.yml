@@ -479,39 +479,59 @@
     - (hmsdocker_tinyauth_users | default([], true)) | length == 0
     - not (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool)
 
+# The Tinyauth warnings below only apply while the tinyauth container is enabled: with it disabled, nothing is protected
+# on purpose and its settings are not used. Entries for disabled containers are skipped too, as they are not running
 - name: (preflight) Warn if Tinyauth protected containers are not applied
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: >-
-      {{ hmsdocker_preflight_warnings + ['hmsdocker_tinyauth_protected_containers has entries that are not protected: '
-      + (tinyauth_skipped | join(', ')) + '. Tinyauth must be enabled with proxy: true, each entry must be enabled with proxy: true,'
-      + ' and ' + (hmsdocker_tinyauth_unsupported_containers | join(', ')) + ' cannot be protected.'] }}
+      {{
+        hmsdocker_preflight_warnings + [
+          ('Tinyauth is enabled but has proxy: false in the container map, so it cannot sign anyone in, and these '
+           ~ 'hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (tinyauth_skipped | join(', ')) ~ '.')
+          if not tinyauth_proxied
+          else ('These hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (tinyauth_skipped | join(', '))
+           ~ '. Each must be a container map entry with proxy: true, and ' ~ (hmsdocker_tinyauth_unsupported_containers | join(', '))
+           ~ ' cannot be protected.')
+        ]
+      }}
   vars:
+    tinyauth_proxied: "{{ hms_docker_container_map['tinyauth']['proxy'] | default(false) | bool }}"
+    tinyauth_enabled_keys: >-
+      {{ hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
+         | map(attribute='key') | list }}
+    tinyauth_proxied_keys: >-
+      {{ hms_docker_container_map | dict2items | selectattr('key', 'in', tinyauth_enabled_keys)
+         | selectattr('value.proxy', 'defined') | selectattr('value.proxy', 'equalto', true) | map(attribute='key') | list }}
+    # Listed entries, without the containers that are in the map but disabled (unknown names are kept, they are typos)
+    tinyauth_listed: >-
+      {{ hmsdocker_tinyauth_protected_containers | default([], true)
+         | reject('in', hms_docker_container_map | dict2items | rejectattr('key', 'in', tinyauth_enabled_keys) | map(attribute='key') | list)
+         | list }}
     tinyauth_skipped: >-
       {{
-        hmsdocker_tinyauth_protected_containers | default([], true)
-        if not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['proxy'] | default(false)))
+        tinyauth_listed
+        if not tinyauth_proxied
         else (
-          hmsdocker_tinyauth_protected_containers | default([], true)
-          | reject('in', hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
-              | selectattr('value.proxy', 'defined') | selectattr('value.proxy', 'equalto', true) | map(attribute='key') | list)
-          | list
-          + (hmsdocker_tinyauth_protected_containers | default([], true) | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
+          (tinyauth_listed | reject('in', tinyauth_proxied_keys) | list)
+          + (tinyauth_listed | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
         ) | unique
       }}
   when:
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
     - hmsdocker_tinyauth_protected_containers | default([], true) is not string
     - tinyauth_skipped | length > 0
 
 - name: (preflight) Warn if external hosts ask for Tinyauth without it
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These hmsdocker_proxy_ext_hosts_list entries have tinyauth: yes, but the tinyauth container is not enabled with proxy: true, so they are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but has proxy: false in the container map, so these hmsdocker_proxy_ext_hosts_list entries with tinyauth: yes are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
   vars:
     tinyauth_ext_hosts: >-
       {{ hmsdocker_proxy_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
          | selectattr('tinyauth', 'defined') | selectattr('tinyauth') | map(attribute='friendly_name') | list }}
   when:
     - hmsdocker_proxy_ext_hosts_enabled | default(false) | bool
-    - not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['proxy'] | default(false)))
+    - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
+    - not (hms_docker_container_map['tinyauth']['proxy'] | default(false) | bool)
     - tinyauth_ext_hosts | length > 0
 
 - name: (preflight) Warn if containers are protected by both Tinyauth and Authentik
