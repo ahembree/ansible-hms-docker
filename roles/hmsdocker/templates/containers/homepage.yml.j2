@@ -21,12 +21,12 @@ services:
       - ${HMSD_APPS_PATH}/homepage/config:/app/config
     environment:
       - TZ=${TIMEZONE}
-      - HOMEPAGE_ALLOWED_HOSTS={{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN},{{ ansible_facts.default_ipv4.address }}:3000
-    {% if 'homepage' in expose_ports_enabled_containers %}
+      - HOMEPAGE_ALLOWED_HOSTS={{ hmsdocker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN},{{ ansible_facts.default_ipv4.address }}:3000
+    {% if 'homepage' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 3000:3000
     {% endif %}
-    {% if 'homepage' in traefik_enabled_containers %}
+    {% if 'homepage' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('homepage', 3000) | indent(6) }}
     {% endif %}

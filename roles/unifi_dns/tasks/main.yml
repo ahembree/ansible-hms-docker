@@ -5,11 +5,11 @@
       - unifi_dns_controller_url | length > 0
       - unifi_dns_api_key | length > 0
       - unifi_dns_cname_target | length > 0
-      - hms_docker_domain is defined
-      - hms_docker_domain | length > 0
+      - hmsdocker_domain is defined
+      - hmsdocker_domain | length > 0
     fail_msg: >-
       Missing required Unifi DNS configuration. Ensure unifi_dns_controller_url,
-      unifi_dns_api_key, unifi_dns_cname_target, and hms_docker_domain are all
+      unifi_dns_api_key, unifi_dns_cname_target, and hmsdocker_domain are all
       defined and non-empty.
     quiet: true
 
@@ -34,7 +34,7 @@
     status_code: 200
     return_content: true
   register: unifi_dns_sites_response
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  no_log: "{{ not (hmsdocker_debug_mode | default(false) | bool) }}"
   check_mode: false
   delegate_to: localhost
   become: false
@@ -49,16 +49,16 @@
 
 - name: Build desired subdomains from container map
   ansible.builtin.set_fact:
-    unifi_dns_desired_subdomains: "{{ hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true) | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
+    unifi_dns_desired_subdomains: "{{ hmsdocker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true) | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
 
 - name: Extend desired subdomains with 4K instances
   ansible.builtin.set_fact:
     unifi_dns_desired_subdomains: "{{ unifi_dns_desired_subdomains + [item + '-4k'] }}"
   when:
     - unifi_dns_include_4k_instances
-    - separate_4k_instances_enable | default(false)
+    - hmsdocker_separate_4k_instances_enable | default(false)
     - item in (
-        hms_docker_container_map | dict2items |
+        hmsdocker_container_map | dict2items |
         selectattr('value.enabled', 'defined') |
         selectattr('value.enabled', 'equalto', true) |
         selectattr('value.traefik', 'defined') |
@@ -75,28 +75,28 @@
     unifi_dns_desired_subdomains: "{{ unifi_dns_desired_subdomains + [item.subdomain_name] }}"
   when:
     - unifi_dns_include_external_hosts
-    - traefik_ext_hosts_enabled | default(false)
+    - hmsdocker_traefik_ext_hosts_enabled | default(false)
     - item.enabled | default(false)
     - item.subdomain_name is defined
     - item.subdomain_name not in unifi_dns_desired_subdomains
-  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+  loop: "{{ hmsdocker_traefik_ext_hosts_list | default([]) }}"
 
 - name: Build desired FQDN list
   ansible.builtin.set_fact:
-    unifi_dns_desired_fqdns: "{{ unifi_dns_desired_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hms_docker_domain) | list }}"
+    unifi_dns_desired_fqdns: "{{ unifi_dns_desired_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hmsdocker_domain) | list }}"
 
 # Build a list of ALL possible FQDNs this project could manage (enabled or not).
 # This prevents deleting DNS records that exist outside this project.
 - name: Build all manageable subdomains from container map
   ansible.builtin.set_fact:
-    unifi_dns_all_manageable_subdomains: "{{ hms_docker_container_map | dict2items | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
+    unifi_dns_all_manageable_subdomains: "{{ hmsdocker_container_map | dict2items | selectattr('value.proxy_host_rule', 'defined') | map(attribute='value.proxy_host_rule') | list }}"
 
 - name: Extend manageable subdomains with 4K instances
   ansible.builtin.set_fact:
     unifi_dns_all_manageable_subdomains: "{{ unifi_dns_all_manageable_subdomains + [item + '-4k'] }}"
   when:
     - unifi_dns_include_4k_instances
-    - separate_4k_instances_enable | default(false)
+    - hmsdocker_separate_4k_instances_enable | default(false)
   loop:
     - sonarr
     - radarr
@@ -106,19 +106,19 @@
     unifi_dns_all_manageable_subdomains: "{{ unifi_dns_all_manageable_subdomains + [item.subdomain_name] }}"
   when:
     - unifi_dns_include_external_hosts
-    - traefik_ext_hosts_enabled | default(false)
+    - hmsdocker_traefik_ext_hosts_enabled | default(false)
     - item.subdomain_name is defined
     - item.subdomain_name not in unifi_dns_all_manageable_subdomains
-  loop: "{{ traefik_ext_hosts_list | default([]) }}"
+  loop: "{{ hmsdocker_traefik_ext_hosts_list | default([]) }}"
 
 - name: Build all manageable FQDN list
   ansible.builtin.set_fact:
-    unifi_dns_all_manageable_fqdns: "{{ unifi_dns_all_manageable_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hms_docker_domain) | list }}"
+    unifi_dns_all_manageable_fqdns: "{{ unifi_dns_all_manageable_subdomains | map('regex_replace', '^(.*)$', '\\1.' + hmsdocker_domain) | list }}"
 
 - name: Display desired DNS FQDNs
   ansible.builtin.debug:
     var: unifi_dns_desired_fqdns
-  when: debug_mode | default(false) | bool
+  when: hmsdocker_debug_mode | default(false) | bool
 
 # Fetch existing CNAME records from the Unifi controller
 - name: Fetch existing CNAME records from Unifi controller

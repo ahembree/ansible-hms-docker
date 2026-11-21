@@ -6,7 +6,7 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'tinymediamanager' in expose_ports_enabled_containers %}
+    {% if 'tinymediamanager' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5900:5900 # VNC port
       - 4000:4000 # Webinterface
@@ -29,7 +29,7 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/tinymediamanager/config:/data
       - ${HMSD_MOUNT_PATH}:/media
-    {% if 'tinymediamanager' in traefik_enabled_containers %}
+    {% if 'tinymediamanager' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('tinymediamanager', 4000, host_default='tmm') | indent(6) }}
     {% endif %}

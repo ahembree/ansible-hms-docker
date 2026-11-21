@@ -34,21 +34,21 @@ services:
       - VPN_PROV={{ (hmsdocker_vpn_provider | default('', true) | lower) if (hmsdocker_vpn_provider | default('', true) | lower) in ['pia', 'airvpn', 'protonvpn', 'custom'] else 'custom' }}
       - VPN_CLIENT={{ hmsdocker_vpn_type }}
       - ENABLE_PRIVOXY=yes
-      - LAN_NETWORK={{ hms_docker_network_subnet }}
+      - LAN_NETWORK={{ hmsdocker_network_subnet }}
     volumes:
       - ${HMSD_APPS_PATH}/qbittorrent/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'qbittorrent' in expose_ports_enabled_containers %}
+    {% if 'qbittorrent' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8086:8086
       - 8118:8118 # privoxy
     {% endif %}
-    {% if 'qbittorrent' in traefik_enabled_containers or 'qbittorrent' in homepage_enabled_containers %}
+    {% if 'qbittorrent' in hmsdocker_traefik_enabled_containers or 'qbittorrent' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'qbittorrent' in traefik_enabled_containers %}
+      {% if 'qbittorrent' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('qbittorrent', 8086) | indent(6) }}
       {% endif %}
-      {% if 'qbittorrent' in homepage_enabled_containers %}
+      {% if 'qbittorrent' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('qbittorrent', 'Downloads', 'qbittorrent', 'Torrent Management', widget={'type': 'qbittorrent', 'url': 'http://qbittorrent:8086', 'username': '${QBITTORRENT_USER:-admin}', 'password': '${QBITTORRENT_PASS}'}) | indent(6) }}
       {% endif %}
     {% endif %}

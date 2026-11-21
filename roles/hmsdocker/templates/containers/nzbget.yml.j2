@@ -21,16 +21,16 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/nzbget/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'nzbget' in expose_ports_enabled_containers %}
+    {% if 'nzbget' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 6789:6789
     {% endif %}
-    {% if 'nzbget' in traefik_enabled_containers or 'nzbget' in homepage_enabled_containers %}
+    {% if 'nzbget' in hmsdocker_traefik_enabled_containers or 'nzbget' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'nzbget' in traefik_enabled_containers %}
+      {% if 'nzbget' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('nzbget', 6789) | indent(6) }}
       {% endif %}
-      {% if 'nzbget' in homepage_enabled_containers %}
+      {% if 'nzbget' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('nzbget', 'Downloads', 'NZBget', 'NZB Manager', widget={'type': 'nzbget', 'url': 'http://nzbget:6789', 'username': '${NZBGET_USERNAME:-nzbget}', 'password': '${NZBGET_PASSWORD:-tegbzn6789}'}) | indent(6) }}
       {% endif %}
     {% endif %}

@@ -15,19 +15,19 @@ services:
       - proxy_net
     environment:
       - TZ=${TIMEZONE}
-    {% if 'pinchflat' in expose_ports_enabled_containers %}
+    {% if 'pinchflat' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8945:8945
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/pinchflat/config:/config
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/pinchflat:/downloads
-    {% if 'pinchflat' in traefik_enabled_containers or 'pinchflat' in homepage_enabled_containers %}
+      - ${HMSD_MOUNT_PATH}/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_library_folder_name }}/youtube/pinchflat:/downloads
+    {% if 'pinchflat' in hmsdocker_traefik_enabled_containers or 'pinchflat' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'pinchflat' in traefik_enabled_containers %}
+      {% if 'pinchflat' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('pinchflat', 8945) | indent(6) }}
       {% endif %}
-      {% if 'pinchflat' in homepage_enabled_containers %}
+      {% if 'pinchflat' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('pinchflat', 'Managers', 'Pinchflat', 'YouTube Archiver', href='https') | indent(6) }}
       {% endif %}
     {% endif %}

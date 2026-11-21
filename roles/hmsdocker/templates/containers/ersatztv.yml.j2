@@ -15,11 +15,11 @@ services:
     user: ${PUID}:${PGID}
     networks:
       - proxy_net
-    {% if 'ersatztv' in expose_ports_enabled_containers %}
+    {% if 'ersatztv' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8409:8409
     {% endif %}
-    {% if enable_intel_gpu %}
+    {% if hmsdocker_enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
     {% if hmsdocker_ersatztv_render_gid is defined %}
@@ -40,17 +40,17 @@ services:
     {% endif %}
     environment:
       - TZ=${TIMEZONE}
-    {% if enable_nvidia_gpu %}
+    {% if hmsdocker_enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
-    {% if 'ersatztv' in traefik_enabled_containers or 'ersatztv' in homepage_enabled_containers %}
+    {% if 'ersatztv' in hmsdocker_traefik_enabled_containers or 'ersatztv' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'ersatztv' in traefik_enabled_containers %}
+      {% if 'ersatztv' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('ersatztv', 8409) | indent(6) }}
       {% endif %}
-      {% if 'ersatztv' in homepage_enabled_containers %}
+      {% if 'ersatztv' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('ersatztv', 'Media', 'ErsatzTV', 'Live TV Channels') | indent(6) }}
       {% endif %}
     {% endif %}

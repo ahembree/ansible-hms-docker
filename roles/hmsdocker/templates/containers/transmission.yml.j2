@@ -17,18 +17,18 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
-    {% if 'transmission' in expose_ports_enabled_containers %}
+    {% if 'transmission' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 9091:9091
       - 8888:8888
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/transmission/config:/config/transmission-home
-    {% if transmission_ovpn_config_local_dir != "" and hmsdocker_vpn_provider == "custom" %}
+    {% if hmsdocker_transmission_ovpn_config_local_dir != "" and hmsdocker_vpn_provider == "custom" %}
       - ${VPN_CONFIG_LOCAL_DIR}:/etc/openvpn/custom
     {% endif %}
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'transmission' in homepage_enabled_containers %}
+    {% if 'transmission' in hmsdocker_homepage_enabled_containers %}
     labels:
       {{ labels.homepage('transmission', 'Downloads', 'Transmission VPN Route', 'Torrent Traffic Stats', href=none, stats='always') | indent(6) }}
     {% endif %}
@@ -36,18 +36,18 @@ services:
       - OPENVPN_PROVIDER=${VPN_PROVIDER}
       - OPENVPN_USERNAME=${VPN_USER}
       - OPENVPN_PASSWORD=${VPN_PASS}
-      {% if transmission_ovpn_config_source_repo != "" %}
+      {% if hmsdocker_transmission_ovpn_config_source_repo != "" %}
       - GITHUB_CONFIG_SOURCE_REPO=${VPN_REPO}
       {% endif %}
-      {% if transmission_ovpn_config_file != "" %}
+      {% if hmsdocker_transmission_ovpn_config_file != "" %}
       - OPENVPN_CONFIG=${VPN_CONFIG_FILE_NAME}
       {% endif %}
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       # These directories are set so that they are created in the correct path on container startup
       # Without these set, the container will automatically create these by default in /data, which is not preferred
-      - TRANSMISSION_DOWNLOAD_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission
-      - TRANSMISSION_INCOMPLETE_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/incomplete
-      - TRANSMISSION_WATCH_DIR=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/transmission/watch
+      - TRANSMISSION_DOWNLOAD_DIR=/data/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_downloads_folder_name }}/torrents/transmission
+      - TRANSMISSION_INCOMPLETE_DIR=/data/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_downloads_folder_name }}/torrents/transmission/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_downloads_folder_name }}/torrents/transmission/watch
       - TRANSMISSION_INCOMPLETE_DIR_ENABLED=false
       - TRANSMISSION_WATCH_DIR_ENABLED=false
       - TZ=${TIMEZONE}
@@ -56,10 +56,10 @@ services:
       - WEBPROXY_ENABLED=true
       - WEBPROXY_PORT=8888
       - HEALTH_CHECK_HOST=google.com
-      - TRANSMISSION_RATIO_LIMIT={{ transmission_ratio_limit }}
-      - TRANSMISSION_RATIO_LIMIT_ENABLED={{ transmission_ratio_enabled }}
-      - LOCAL_NETWORK={{ hms_docker_network_subnet }}
-    {% for key, value in transmission_additional_env_vars.items() %}
+      - TRANSMISSION_RATIO_LIMIT={{ hmsdocker_transmission_ratio_limit }}
+      - TRANSMISSION_RATIO_LIMIT_ENABLED={{ hmsdocker_transmission_ratio_enabled }}
+      - LOCAL_NETWORK={{ hmsdocker_network_subnet }}
+    {% for key, value in hmsdocker_transmission_additional_env_vars.items() %}
       - {{ key }}={{ value }}
     {% endfor %}
 
@@ -82,19 +82,19 @@ services:
       - transmission
     environment:
       - TZ=${TIMEZONE}
-    {% if 'transmission' in expose_ports_enabled_containers %}
+    {% if 'transmission' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8081:8080
     {% endif %}
-    {% if 'transmission' in traefik_enabled_containers or 'transmission' in homepage_enabled_containers %}
+    {% if 'transmission' in hmsdocker_traefik_enabled_containers or 'transmission' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'transmission' in traefik_enabled_containers %}
+      {% if 'transmission' in hmsdocker_traefik_enabled_containers %}
       - traefik.enable=true
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hmsdocker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'transmission' in tinyauth_protected_containers }}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in hmsdocker_authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'transmission' in hmsdocker_tinyauth_applied_containers }}
       {% endif %}
-      {% if 'transmission' in homepage_enabled_containers %}
+      {% if 'transmission' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('transmission', 'Downloads', 'Transmission', 'Torrent Management', widget={'type': 'transmission', 'url': 'http://transmission-proxy:8080'}, stats=false) | indent(6) }}
       {% endif %}
     {% endif %}

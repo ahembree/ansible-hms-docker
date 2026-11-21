@@ -63,17 +63,17 @@ services:
       - ${HMSD_APPS_PATH}/authentik/data:/data
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
-    {% if 'authentik' in expose_ports_enabled_containers %}
+    {% if 'authentik' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 9001:9000
       - 9443:9443
     {% endif %}
-    {% if 'authentik' in traefik_enabled_containers or 'authentik' in homepage_enabled_containers %}
+    {% if 'authentik' in hmsdocker_traefik_enabled_containers or 'authentik' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'authentik' in traefik_enabled_containers %}
+      {% if 'authentik' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('authentik', 9443, router='authentik-server', host_default='authentik', scheme='https', authentik=false, tinyauth=false) | indent(6) }}
       {% endif %}
-      {% if 'authentik' in homepage_enabled_containers %}
+      {% if 'authentik' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('authentik', 'Infrastructure', 'Authentik', 'Single Sign-On', href='https', widget={'type': 'authentik', 'url': 'http://authentik-server:9000', 'version': '2', 'key': '${AUTHENTIK_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
@@ -114,13 +114,13 @@ services:
       - ${HMSD_APPS_PATH}/authentik/data:/data
       - ${HMSD_APPS_PATH}/authentik/certs:/certs
     {% include 'socket_proxy/client_volume.j2' %}
-    {% if 'authentik' in socket_proxy_enabled_containers %}
+    {% if 'authentik' in hmsdocker_socket_proxy_enabled_containers %}
       - ${HMSD_APPS_PATH}/authentik/blueprints:/blueprints/hmsd:ro
     {% endif %}
       - ${HMSD_APPS_PATH}/authentik/custom-templates:/templates
       - authentik_geoip:/geoip
 
-  {% if authentik_geoip_account_id != '' and authentik_geoip_license_key != '' | default(False) %}
+  {% if hmsdocker_authentik_geoip_account_id != '' and hmsdocker_authentik_geoip_license_key != '' | default(False) %}
   authentik-geoipupdate:
     container_name: authentik-geoipupdate
     image: maxmindinc/geoipupdate:latest

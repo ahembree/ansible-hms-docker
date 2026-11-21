@@ -13,7 +13,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if 'nexroll' in expose_ports_enabled_containers %}
+    {% if 'nexroll' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 9393:9393
     {% endif %}
@@ -22,23 +22,23 @@ services:
       - ${HMSD_APPS_PATH}/nexroll/config:/data
       # Prerolls live on the media share and are mounted at the same path the media servers use,
       # so the path NeXroll sends to Plex is already correct and needs no path mapping
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/prerolls:/data/{{ hms_docker_primary_mount_name }}/prerolls
+      - ${HMSD_MOUNT_PATH}/{{ hmsdocker_primary_mount_name }}/prerolls:/data/{{ hmsdocker_primary_mount_name }}/prerolls
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
       - NEXROLL_RUN_AS_PUID=true
-      - NEXROLL_PREROLL_PATH=/data/{{ hms_docker_primary_mount_name }}/prerolls
-    {% if 'plex' in enabled_containers %}
+      - NEXROLL_PREROLL_PATH=/data/{{ hmsdocker_primary_mount_name }}/prerolls
+    {% if 'plex' in hmsdocker_enabled_containers %}
       - PLEX_URL=http://plex:32400
       - PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if 'nexroll' in traefik_enabled_containers or 'nexroll' in homepage_enabled_containers %}
+    {% if 'nexroll' in hmsdocker_traefik_enabled_containers or 'nexroll' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'nexroll' in traefik_enabled_containers %}
+      {% if 'nexroll' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('nexroll', 9393) | indent(6) }}
       {% endif %}
-      {% if 'nexroll' in homepage_enabled_containers %}
+      {% if 'nexroll' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('nexroll', 'Media', 'NeXroll', 'Preroll Manager', icon='mdi-movie-open-play') | indent(6) }}
       {% endif %}
     {% endif %}

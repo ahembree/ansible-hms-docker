@@ -6,7 +6,7 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'cleanuparr' in expose_ports_enabled_containers %}
+    {% if 'cleanuparr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - "11011:11011"
     {% endif %}
@@ -22,7 +22,7 @@ services:
       - PGID=${PGID}
       - UMASK=022
       - TZ=${TIMEZONE}
-    {% if 'cleanuparr' in traefik_enabled_containers %}
+    {% if 'cleanuparr' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('cleanuparr', 11011) | indent(6) }}
     {% endif %}

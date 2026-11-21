@@ -1,9 +1,9 @@
 ### Plex Settings
 
 # Visit https://plex.tv/claim to obtain this token specific to your account
-plex_claim_token: ""
+hmsdocker_plex_claim_token: ""
 
-# When enabled, mounts the transcode/cache directory as an in-memory tmpfs inside the container instead of bind-mounting plex_transcode_folder from the host.
+# When enabled, mounts the transcode/cache directory as an in-memory tmpfs inside the container instead of bind-mounting hmsdocker_plex_transcode_folder from the host.
 # Affects plex (/transcode), emby (/cache), and jellyfin (/cache).
 # default: no // valid: yes, no
 hmsdocker_transcode_tmpfs_enabled: false
@@ -16,19 +16,19 @@ hmsdocker_transcode_tmpfs_size: "4g"
 # Transcode folder location for Plex/Emby/Jellyfin (host bind mount) if the system does not have the resources available for a tmpfs (above)
 # Only used when hmsdocker_transcode_tmpfs_enabled is "no".
 # For RAM-backed transcoding, enable hmsdocker_transcode_tmpfs_enabled above instead.
-plex_transcode_folder: "/tmp/{{ project_name }}/plex_transcode" # default: "/tmp/{{ project_name }}/plex_transcode"
+hmsdocker_plex_transcode_folder: "/tmp/{{ hmsdocker_project_name }}/plex_transcode" # default: "/tmp/{{ hmsdocker_project_name }}/plex_transcode"
 
 # Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex
 # This script will also automatically update the Plex config file to point to the converted certificate file (if enabled a little further below)
 # This script runs at 5am
-# NOTE: You must also have "traefik_ssl_enabled" set to "yes"
+# NOTE: You must also have `hmsdocker_traefik_ssl_enabled` set to `true`
 # Enables the script and other resources // default: no // valid: yes, no
-hms_docker_plex_ssl_enabled: false
-# The hostname that will be published to Plex and is within scope of the certificates being generated // default: "plex.{{ hms_docker_domain }}"
-hms_docker_plex_ssl_public_hostname: "plex.{{ hms_docker_domain }}"
+hmsdocker_plex_ssl_enabled: false
+# The hostname that will be published to Plex and is within scope of the certificates being generated // default: "plex.{{ hmsdocker_domain }}"
+hmsdocker_plex_ssl_public_hostname: "plex.{{ hmsdocker_domain }}"
 # If the script should update the Plex server config file to point to the newly converted script // default: no // valid: yes, no
-hms_docker_plex_ssl_update_config: false
+hmsdocker_plex_ssl_update_config: false
 # If the script should restart the Plex server after modifying the config // default: no // valid yes, no
-hms_docker_plex_ssl_restart_plex: false
+hmsdocker_plex_ssl_restart_plex: false
 # The passphrase used to protect the certificate, leave as "null" if there should not be one // default: null
-hms_docker_plex_ssl_cert_pass: null
+hmsdocker_plex_ssl_cert_pass: null

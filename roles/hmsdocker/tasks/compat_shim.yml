@@ -7,17 +7,17 @@
 # a notice to hmsdocker_preflight_warnings so the user knows to update their
 # inventory at their leisure.
 #
-# The rename map lives in migrations/variable_renames.yml at the repo root
-# and is shared with the Makefile `update` target — register new renames
-# there, not here. Re-runs are safe: entries whose `old` is unset in the
-# resolved vars are silently skipped.
+# The rename map is the `renames` list of migrations/variable_renames.yml at
+# the repo root, shared with migrations/apply_renames.py (`make update`).
+# Register new renames there, not here. Re-runs are safe: entries whose `old`
+# is unset in the resolved vars are silently skipped.
 
 - name: (compat) Load variable migration map from single source
   ansible.builtin.set_fact:
     hmsdocker_variable_migrations: >-
       {{
         (lookup('file', playbook_dir ~ '/migrations/variable_renames.yml')
-         | from_yaml).variable_renames
+         | from_yaml).renames
       }}
 
 # `q('varnames', '.*')` returns the names of all currently-resolved
@@ -35,7 +35,7 @@
 
 # hostvars holds inventory-sourced vars but not role defaults, so membership
 # means the user explicitly set the new name. Must be snapshotted before
-# aliasing — the aliasing set_fact adds the new names to hostvars.
+# aliasing, because the aliasing set_fact adds the new names to hostvars.
 - name: (compat) Snapshot which new names the user set explicitly
   ansible.builtin.set_fact:
     hmsdocker_user_set_new_names: >-
@@ -46,7 +46,8 @@
         | list
       }}
 
-- name: (compat) Alias deprecated variables to their new names
+# The fact name comes from the migration map, which only maps to hmsdocker_ names
+- name: (compat) Alias deprecated variables to their new names  # noqa: var-naming[no-jinja] var-naming[no-role-prefix]
   ansible.builtin.set_fact:
     "{{ item.new }}": "{{ lookup('vars', item.old) }}"
   loop: "{{ hmsdocker_active_migrations }}"
@@ -60,24 +61,36 @@
     - (lookup('vars', item.old) | default('', true) | string) | length > 0
     - item.new not in hmsdocker_user_set_new_names
   # Old values may include credentials (e.g. transmission_vpn_pass), and
-  # set_fact echoes them in its result, so hide output unless debug_mode.
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  # set_fact echoes them in its result, so hide output unless debug mode is on
+  # (under either its new or its old name, which is only aliased by this task).
+  no_log: "{{ not ((hmsdocker_debug_mode | default(false) | bool) or (debug_mode | default(false) | bool)) }}"
 
+# One warning for all renamed variables that are simply still under their old name (an inventory
+# from before the hmsdocker_ prefix has about a hundred of them), and one per variable that is set
+# under both names, because those need a manual fix.
 - name: (compat) Record deprecation warnings for renamed variables
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: >-
       {{
         hmsdocker_preflight_warnings
-        + [
-            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
-             ~ "'. Both are set in your inventory; the value of '" ~ item.new
-             ~ "' is used and the old name is ignored. Remove '" ~ item.old ~ "'.")
-            if item.new in hmsdocker_user_set_new_names
-            else
-            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
-             ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release.")
-          ]
+        + (
+            [
+              "DEPRECATED: " ~ (hmsdocker_migrations_old_only | length) ~ " variable(s) in your inventory use names that have been renamed: "
+              ~ (hmsdocker_migrations_old_only[:5] | map(attribute='old') | join(', '))
+              ~ ((' and ' ~ ((hmsdocker_migrations_old_only | length) - 5) ~ ' more') if hmsdocker_migrations_old_only | length > 5 else '')
+              ~ ". They still work for now. Run `make update` (or `make migrate-config`) to rewrite your inventory to the new names, listed in migrations/variable_renames.yml."
+            ]
+            if hmsdocker_migrations_old_only | length > 0
+            else []
+          )
+        + (
+            hmsdocker_migrations_both_set
+            | map(attribute='old')
+            | map('regex_replace', '^(.*)$', "DEPRECATED: '\\1' has been renamed and is set in your inventory under both its old and its new name. The new name is used and '\\1' is ignored, remove it.")
+            | list
+          )
       }}
-  loop: "{{ hmsdocker_active_migrations }}"
-  loop_control:
-    label: "{{ item.old }} -> {{ item.new }}"
+  vars:
+    hmsdocker_migrations_both_set: "{{ hmsdocker_active_migrations | selectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+    hmsdocker_migrations_old_only: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+  when: hmsdocker_active_migrations | length > 0

@@ -2,52 +2,52 @@
 - name: Homepage Prereq - Ensure Watchtower API key
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ hms_docker_data_path }}/.watchtower.key"
+    dest: "{{ hmsdocker_data_path }}/.watchtower.key"
     mode: '0600'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     force: false
-  no_log: "{{ not debug_mode }}"
-  register: watchtower_key_output
+  no_log: "{{ not hmsdocker_debug_mode }}"
+  register: hmsdocker_watchtower_key_output
   vars:
-    key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
+    hmsdocker_secret_key: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
 
 - name: Homepage Prereq - Slurp Watchtower key data
   ansible.builtin.slurp:
-    src: "{{ watchtower_key_output.dest }}"
-  register: slurped_watchtower_key_data
+    src: "{{ hmsdocker_watchtower_key_output.dest }}"
+  register: hmsdocker_slurped_watchtower_key_data
   check_mode: false
-  when: watchtower_key_output.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_watchtower_key_output.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: Homepage Prereq - Ensure homepage docker config
   ansible.builtin.copy:
     src: homepage_docker.yaml
-    dest: "{{ hms_docker_apps_path }}/homepage/config/docker.yaml"
+    dest: "{{ hmsdocker_apps_path }}/homepage/config/docker.yaml"
     mode: '0644'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     force: false
-  register: homepage_docker_config
+  register: hmsdocker_homepage_docker_config
 
 # Points the Docker host at the filtered socket when Homepage uses the socket proxy, and back otherwise.
 # Only the two socket paths the playbook manages are changed (quoted or not, with or without a trailing
 # comment), anything else in docker.yaml is left alone.
 - name: Homepage Prereq - Ensure homepage Docker socket path
   ansible.builtin.replace:
-    path: "{{ hms_docker_apps_path }}/homepage/config/docker.yaml"
+    path: "{{ hmsdocker_apps_path }}/homepage/config/docker.yaml"
     regexp: '^([ \t]*socket:[ \t]*)(["'']?)(/var/run/docker\.sock|{{ hmsdocker_socket_proxy_client_dir | regex_escape }}/docker\.sock)\2([ \t]*(#.*)?)$'
-    replace: '\g<1>\g<2>{{ homepage_docker_socket }}\g<2>\g<4>'
+    replace: '\g<1>\g<2>{{ hmsdocker_homepage_docker_socket }}\g<2>\g<4>'
   vars:
-    homepage_docker_socket: "{{ (hmsdocker_socket_proxy_client_dir ~ '/docker.sock') if 'homepage' in socket_proxy_enabled_containers else '/var/run/docker.sock' }}"
+    hmsdocker_homepage_docker_socket: "{{ (hmsdocker_socket_proxy_client_dir ~ '/docker.sock') if 'homepage' in hmsdocker_socket_proxy_enabled_containers else '/var/run/docker.sock' }}"
   # In check mode a new docker.yaml is not written, so there is nothing to change yet
-  when: not (ansible_check_mode and homepage_docker_config is changed)
+  when: not (ansible_check_mode and hmsdocker_homepage_docker_config is changed)
 
 - name: Homepage Prereq - Ensure homepage services config
   ansible.builtin.copy:
     src: homepage_services.yaml
-    dest: "{{ hms_docker_apps_path }}/homepage/config/services.yaml"
+    dest: "{{ hmsdocker_apps_path }}/homepage/config/services.yaml"
     mode: '0644'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     force: false

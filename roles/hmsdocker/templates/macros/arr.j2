@@ -33,12 +33,12 @@
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if app in traefik_enabled_containers or app in homepage_enabled_containers %}
+    {% if app in hmsdocker_traefik_enabled_containers or app in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if app in traefik_enabled_containers %}
+      {% if app in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik(app, port, suffix=suffix) | indent(6) }}
       {% endif %}
-      {% if app in homepage_enabled_containers %}
+      {% if app in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage(app, 'Managers' ~ (' - 4K' if instance_4k else ''), title ~ (' - 4K' if instance_4k else ''), description, icon=app ~ '.png', suffix=suffix, widget={'type': app, 'url': 'http://' ~ service_name ~ ':' ~ port, 'key': '${' ~ key_env ~ ':-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
@@ -49,7 +49,7 @@
       - ${HMSD_APPS_PATH}/{{ service_name }}/custom-services.d:/custom-services.d
       - ${HMSD_APPS_PATH}/{{ service_name }}/custom-cont-init.d:/custom-cont-init.d
     {% endif %}
-    {% if app in expose_ports_enabled_containers %}
+    {% if app in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - {{ port + 1 if instance_4k else port }}:{{ port }}
     {% endif %}

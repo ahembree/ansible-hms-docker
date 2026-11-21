@@ -20,11 +20,11 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/kavita/config:/config
       - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'kavita' in hmsdocker_readonly_media_containers | default([], true) }}
-    {% if 'kavita' in expose_ports_enabled_containers %}
+    {% if 'kavita' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5000:5000
     {% endif %}
-    {% if 'kavita' in traefik_enabled_containers %}
+    {% if 'kavita' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('kavita', 5000) | indent(6) }}
     {% endif %}

@@ -35,7 +35,10 @@ jobs:
       - name: Copy container_map config to site
         run: |
           mkdir -p docs-astro/public/configs
-          cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
+          # Only Makefiles up to v1.20 download this file (their `make update` merges it into the
+          # user's container map), and they look for the map under its old top-level key
+          sed 's/^hmsdocker_container_map:/hms_docker_container_map:/' roles/hmsdocker/defaults/main/container_map.yml > docs-astro/public/configs/container_map.yml
+          grep -q '^hms_docker_container_map:' docs-astro/public/configs/container_map.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

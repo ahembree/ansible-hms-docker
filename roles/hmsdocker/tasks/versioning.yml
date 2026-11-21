@@ -1,63 +1,63 @@
 ---
 - name: Check if data path already exists
   ansible.builtin.stat:
-    path: "{{ hms_docker_data_path }}"
-  register: hmsd_data_dir
+    path: "{{ hmsdocker_data_path }}"
+  register: hmsdocker_data_dir
 
 - name: Ensure data path exists locally.
   ansible.builtin.file:
-    path: "{{ hms_docker_data_path }}"
+    path: "{{ hmsdocker_data_path }}"
     state: directory
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     mode: '0755'
 
 - name: Check if version file exists
   ansible.builtin.stat:
-    path: "{{ hmsd_version_file }}"
-  register: version_file_check
+    path: "{{ hmsdocker_version_file }}"
+  register: hmsdocker_version_file_check
 
 - name: Set last version if file doesn't exist
   ansible.builtin.set_fact:
-    last_version: "0.0.0"
-  when: not version_file_check.stat.exists
+    hmsdocker_last_version: "0.0.0"
+  when: not hmsdocker_version_file_check.stat.exists
 
 - name: Read last version from file
   ansible.builtin.slurp:
-    src: "{{ hmsd_version_file }}"
-  register: last_version_content
-  when: version_file_check.stat.exists
+    src: "{{ hmsdocker_version_file }}"
+  register: hmsdocker_last_version_content
+  when: hmsdocker_version_file_check.stat.exists
 
 # Releases 1.4-1.9 wrote 2-part versions (e.g. "1.9") and an interrupted write
 # can leave the file empty; strict semver rejects both. Pad to X.Y.Z and fall
 # back to 0.0.0 for anything semver would reject (including leading zeros).
 - name: Decode and normalize last version
   ansible.builtin.set_fact:
-    last_version: >-
+    hmsdocker_last_version: >-
       {{
-        (((raw_last_version if raw_last_version is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){0,2}$') else '0.0.0')
+        (((hmsdocker_raw_last_version if hmsdocker_raw_last_version is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){0,2}$') else '0.0.0')
           .split('.')) + ['0', '0'])[:3] | join('.')
       }}
   vars:
-    raw_last_version: "{{ last_version_content.content | b64decode | trim }}"
-  when: version_file_check.stat.exists
+    hmsdocker_raw_last_version: "{{ hmsdocker_last_version_content.content | b64decode | trim }}"
+  when: hmsdocker_version_file_check.stat.exists
 
 - name: Validate current playbook version is 3-part semver
   ansible.builtin.assert:
     that:
-      - hmsd_current_version | string is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$')
+      - hmsdocker_current_version | string is match('^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$')
     fail_msg: >-
-      hmsd_current_version ('{{ hmsd_current_version }}') must be a quoted 3-part
+      hmsdocker_current_version ('{{ hmsdocker_current_version }}') must be a quoted 3-part
       version (X.Y.Z) in hms-docker.yml. Unquoted 2-part values like 1.20 are
       parsed by YAML as the float 1.2 and break semver comparison.
     quiet: true
 
 - name: Compare versions and prompt if newer
-  when: hmsd_current_version is version(last_version, '>', version_type='semver') and hmsd_data_dir.stat.exists and not (is_github_runner | default(false))
+  when: hmsdocker_current_version is version(hmsdocker_last_version, '>', version_type='semver') and hmsdocker_data_dir.stat.exists and not (hmsdocker_is_github_runner | default(false))
   block:
     - name: Display current and last versions
       ansible.builtin.debug:
-        msg: "New version: {{ hmsd_current_version }}, Your version: {{ last_version }}"
+        msg: "New version: {{ hmsdocker_current_version }}, Your version: {{ hmsdocker_last_version }}"
 
     - name: Prompt user if they want to continue
       ansible.builtin.pause:
@@ -65,27 +65,27 @@
 
           A newer version of the playbook is about to be applied.
 
-          New version;  {{ hmsd_current_version }}
-          Your version; {{ last_version }}
+          New version;  {{ hmsdocker_current_version }}
+          Your version; {{ hmsdocker_last_version }}
 
           This may introduce breaking changes, please review all changes at https://hmsdocker.dev/docs/release-notes/ and understand them before applying.
 
           Do you want to continue? (yes/no)
-      register: continue_playbook
+      register: hmsdocker_continue_playbook
 
     - name: Fail if user does not want to continue
       ansible.builtin.fail:
         msg: "Playbook execution aborted."
-      when: continue_playbook.user_input | lower != "yes"
+      when: hmsdocker_continue_playbook.user_input | lower != "yes"
 
     - name: Version v1.12 Authentik upgrade prompt
-      when: last_version is version('1.12.0', '<', version_type='semver')
+      when: hmsdocker_last_version is version('1.12.0', '<', version_type='semver')
       block:
         - name: Prompt user if they want to continue
           ansible.builtin.pause:
             prompt: |
 
-              Version 1.12 (you are on version {{ last_version }}) had major changes and changed the following
+              Version 1.12 (you are on version {{ hmsdocker_last_version }}) had major changes and changed the following
 
               - Authentik was upgraded, requiring MANUAL STEPS if you use Authentik (see release notes for 1.12... https://docs.hmsdocker.dev/release-notes/v1.12)
               - Multiple containers moved to container map (Cloudflare Tunnel, Cloudflare DDNS, Watchtower, Tailscale)
@@ -99,12 +99,12 @@
               - Additional Traefik hardening
 
               Do you want to continue? (yes/no)
-          register: continue_playbook_v1_12_update
+          register: hmsdocker_continue_playbook_v1_12_update
 
         - name: Fail if user does not want to continue
           ansible.builtin.fail:
             msg: "Playbook execution aborted."
-          when: continue_playbook_v1_12_update.user_input | lower != "yes"
+          when: hmsdocker_continue_playbook_v1_12_update.user_input | lower != "yes"
 
 # The version file itself is saved at the end of tasks/main.yml so a failed
 # run re-prompts on retry.

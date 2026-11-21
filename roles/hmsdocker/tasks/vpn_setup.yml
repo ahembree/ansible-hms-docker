@@ -1,9 +1,9 @@
 - name: (VPN Setup) Ensure VPN config type directories exist before start
   ansible.builtin.file:
-    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}'
+    path: '{{ hmsdocker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}'
     state: directory
-    owner: '{{ container_uid }}'
-    group: '{{ container_gid }}'
+    owner: '{{ hmsdocker_container_uid }}'
+    group: '{{ hmsdocker_container_gid }}'
     mode: '0775'
   loop:
     - transmission
@@ -12,20 +12,20 @@
   # Transmission only needs the config dir when the user supplies their own
   # openvpn config; the other clients always get one.
   when: >-
-    item in enabled_containers
+    item in hmsdocker_enabled_containers
     and (item != 'transmission'
          or (hmsdocker_vpn_provider == 'custom' and hmsdocker_vpn_type == 'openvpn'))
 
 # Skip the stub for PIA, which generates its own wg0.conf (an empty one aborts it).
 - name: (VPN Setup) Ensure WireGuard config exists with restricted permissions
   ansible.builtin.file:
-    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+    path: '{{ hmsdocker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
     state: touch
-    owner: '{{ container_uid }}'
-    group: '{{ container_gid }}'
+    owner: '{{ hmsdocker_container_uid }}'
+    group: '{{ hmsdocker_container_gid }}'
     mode: '600'
   when:
-    - item in enabled_containers
+    - item in hmsdocker_enabled_containers
     - hmsdocker_vpn_type == 'wireguard'
     - (hmsdocker_vpn_provider | default('', true)) | lower != 'pia'
   loop:
@@ -36,9 +36,9 @@
 # Remove a leftover empty stub so PIA can generate its own wg0.conf.
 - name: (VPN Setup) Stat wg0.conf for PIA
   ansible.builtin.stat:
-    path: '{{ hms_docker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+    path: '{{ hmsdocker_apps_path }}/{{ item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
   when:
-    - item in enabled_containers
+    - item in hmsdocker_enabled_containers
     - hmsdocker_vpn_type == 'wireguard'
     - (hmsdocker_vpn_provider | default('', true)) | lower == 'pia'
   loop:
@@ -48,7 +48,7 @@
 
 - name: (VPN Setup) Remove empty wg0.conf so PIA can generate its own
   ansible.builtin.file:
-    path: '{{ hms_docker_apps_path }}/{{ item.item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
+    path: '{{ hmsdocker_apps_path }}/{{ item.item }}/config/{{ hmsdocker_vpn_type }}/wg0.conf'
     state: absent
   loop: '{{ hmsdocker_wg_conf_stat.results | default([]) }}'
   loop_control:

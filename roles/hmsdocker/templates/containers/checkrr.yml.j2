@@ -13,19 +13,19 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if 'checkrr' in expose_ports_enabled_containers %}
+    {% if 'checkrr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8585:8585
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/checkrr/config:/etc/checkrr
       - ${HMSD_MOUNT_PATH}:/data:ro
-    {% if 'checkrr' in traefik_enabled_containers or 'checkrr' in homepage_enabled_containers %}
+    {% if 'checkrr' in hmsdocker_traefik_enabled_containers or 'checkrr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'checkrr' in traefik_enabled_containers %}
+      {% if 'checkrr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('checkrr', 8585) | indent(6) }}
       {% endif %}
-      {% if 'checkrr' in homepage_enabled_containers %}
+      {% if 'checkrr' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('checkrr', 'Managers', 'Checkrr', 'Media Integrity Scanner', href='https') | indent(6) }}
       {% endif %}
     {% endif %}

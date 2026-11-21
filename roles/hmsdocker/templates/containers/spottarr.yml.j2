@@ -30,16 +30,16 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/spottarr/config:/data
-    {% if 'spottarr' in expose_ports_enabled_containers %}
+    {% if 'spottarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8383:8383
     {% endif %}
-    {% if 'spottarr' in traefik_enabled_containers or 'spottarr' in homepage_enabled_containers %}
+    {% if 'spottarr' in hmsdocker_traefik_enabled_containers or 'spottarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'spottarr' in traefik_enabled_containers %}
+      {% if 'spottarr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('spottarr', 8383) | indent(6) }}
       {% endif %}
-      {% if 'spottarr' in homepage_enabled_containers %}
+      {% if 'spottarr' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('spottarr', 'Managers', 'Spottarr', 'Spotnet Indexer', icon='mdi-radar') | indent(6) }}
       {% endif %}
     {% endif %}

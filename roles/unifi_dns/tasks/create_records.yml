@@ -22,6 +22,6 @@
   loop_control:
     label: "{{ item }}"
   register: unifi_dns_create_results
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  no_log: "{{ not (hmsdocker_debug_mode | default(false) | bool) }}"
   delegate_to: localhost
   become: false

@@ -1,12 +1,12 @@
 include:
 {# Default functions are here because the ".dest" attribute is only available during non-check mode or if the file already exists (which is an issue when creating for the first time) #}
-{% for file in compose_files_created.results %}
+{% for file in hmsdocker_compose_files_created.results %}
   {% if file.item != 'authentik' %}
-  - {{ file.dest | default(compose_dir.path + '/' + file.item + '.yml') }}
+  - {{ file.dest | default(hmsdocker_compose_dir.path + '/' + file.item + '.yml') }}
   {% endif %}
 {% endfor %}
-{% if 'authentik' in enabled_containers and traefik_ssl_enabled | default(False) and authentik_compose_file_path is defined | default(False) %}
-  - {{ authentik_compose_file_path.dest | default(compose_dir.path + '/authentik.yml') }}
+{% if 'authentik' in hmsdocker_enabled_containers and hmsdocker_traefik_ssl_enabled | default(False) and hmsdocker_authentik_compose_file_path is defined | default(False) %}
+  - {{ hmsdocker_authentik_compose_file_path.dest | default(hmsdocker_compose_dir.path + '/authentik.yml') }}
 {% endif %}
 
 networks:

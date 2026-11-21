@@ -1,6 +1,6 @@
 ---
-# Sets up one media share: the primary share (hms_docker_media_share_type) or one entry of
-# nas_client_remote_additional_paths. Included once per share from tasks/main.yml.
+# Sets up one media share: the primary share (hmsdocker_media_share_type) or one entry of
+# hmsdocker_nas_client_remote_additional_paths. Included once per share from tasks/main.yml.
 #
 # hmsdocker_nas_share:
 #   label:               name used in error messages
@@ -11,7 +11,7 @@
 #   cifs_username:       CIFS credentials (cifs)
 #   cifs_password:
 #   creds_file:          where the CIFS credentials file is written (cifs)
-#   additional:          true for an entry of nas_client_remote_additional_paths
+#   additional:          true for an entry of hmsdocker_nas_client_remote_additional_paths
 #   mount_in_check_mode: also run the mount task with --check (primary NFS share only)
 #   library_folders:     create the library folders on the share (additional shares only,
 #                        the primary share gets them in tasks/main.yml)
@@ -36,14 +36,14 @@
       - cifs-utils
       - samba-client
       - samba-common
-    state: "{{ nas_client_package_state }}"
+    state: "{{ hmsdocker_nas_client_package_state }}"
   when: hmsdocker_nas_share.type | lower == 'cifs'
 
 - name: NAS - Ensure RedHat NFS packages.
   ansible.builtin.package:
     name:
       - nfs-utils
-    state: "{{ nas_client_package_state }}"
+    state: "{{ hmsdocker_nas_client_package_state }}"
   when:
     - hmsdocker_nas_share.type | lower == 'nfs'
     - hmsdocker_family_override | lower == "redhat"
@@ -52,7 +52,7 @@
   ansible.builtin.package:
     name:
       - nfs-common
-    state: "{{ nas_client_package_state }}"
+    state: "{{ hmsdocker_nas_client_package_state }}"
   when:
     - hmsdocker_nas_share.type | lower == 'nfs'
     - ansible_facts['os_family'] | lower == "debian"
@@ -75,21 +75,21 @@
     group: root
     mode: '0600'
   vars:
-    username: "{{ hmsdocker_nas_share.cifs_username }}"
-    password: "{{ hmsdocker_nas_share.cifs_password }}"
+    hmsdocker_cifs_username: "{{ hmsdocker_nas_share.cifs_username }}"
+    hmsdocker_cifs_password: "{{ hmsdocker_nas_share.cifs_password }}"
   when: hmsdocker_nas_share.type == 'cifs'
   register: hmsdocker_nas_share_creds
-  no_log: "{{ not debug_mode }}"
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: NAS - Ensure fstab entry and mount.
   ansible.posix.mount:
     backup: true
-    boot: "{{ nas_client_mount_on_boot }}"
+    boot: "{{ hmsdocker_nas_client_mount_on_boot }}"
     path: "{{ hmsdocker_nas_share.path }}"
     src: "{{ hmsdocker_nas_share.src }}"
     fstype: "{{ hmsdocker_nas_share.type }}"
     opts: "{{ ('credentials=' ~ hmsdocker_nas_share_creds.dest ~ ',' ~ hmsdocker_nas_share.opts) if hmsdocker_nas_share.type == 'cifs' else hmsdocker_nas_share.opts }}"
-    state: "{{ nas_client_mount_state }}"
+    state: "{{ hmsdocker_nas_client_mount_state }}"
   when:
     - hmsdocker_nas_share.type in ['cifs', 'nfs']
     - (hmsdocker_nas_share.mount_in_check_mode | default(false) | bool) or not ansible_check_mode
@@ -105,9 +105,9 @@
 # No `mode`, same reason as the share path above: these folders live on the share.
 - name: NAS - Ensure library folders for additional share  # noqa: risky-file-permissions
   ansible.builtin.file:
-    path: "{{ hmsdocker_nas_share.path }}/{{ hms_docker_library_folder_name }}/{{ item.folder_name }}"
+    path: "{{ hmsdocker_nas_share.path }}/{{ hmsdocker_library_folder_name }}/{{ item.folder_name }}"
     state: directory
-  loop: "{{ hms_docker_library_folders }}"
+  loop: "{{ hmsdocker_library_folders }}"
   when:
     - hmsdocker_nas_share.additional
     - hmsdocker_nas_share.type in ['local', 'cifs', 'nfs']

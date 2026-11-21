@@ -20,7 +20,7 @@ services:
     {% for key, value in hmsdocker_unpackerr_additional_env_vars.items() %}
       - {{ key }}={{ value }}
     {% endfor %}
-    {% if 'sonarr' in enabled_containers %}
+    {% if 'sonarr' in hmsdocker_enabled_containers %}
       ## Sonarr Settings
       - UN_SONARR_0_URL=http://sonarr:8989
       - UN_SONARR_0_API_KEY=${SONARR_KEY}
@@ -31,7 +31,7 @@ services:
       - UN_SONARR_0_DELETE_ORIG=false
       - UN_SONARR_0_SYNCTHING=false
     {% endif %}
-    {% if 'radarr' in enabled_containers %}
+    {% if 'radarr' in hmsdocker_enabled_containers %}
       ## Radarr Settings
       - UN_RADARR_0_URL=http://radarr:7878
       - UN_RADARR_0_API_KEY=${RADARR_KEY}
@@ -42,7 +42,7 @@ services:
       - UN_RADARR_0_DELETE_ORIG=false
       - UN_RADARR_0_SYNCTHING=false
     {% endif %}
-    {% if 'lidarr' in enabled_containers %}
+    {% if 'lidarr' in hmsdocker_enabled_containers %}
       ## Lidarr Settings
       - UN_LIDARR_0_URL=http://lidarr:8686
       - UN_LIDARR_0_API_KEY=${LIDARR_KEY}

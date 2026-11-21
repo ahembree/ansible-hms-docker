@@ -17,7 +17,7 @@ services:
       - ${HMSD_APPS_PATH}/scrutiny/config/config:/opt/scrutiny/config
       - ${HMSD_APPS_PATH}/scrutiny/config/influxdb:/opt/scrutiny/influxdb
       - /run/udev:/run/udev:ro
-    {% if 'scrutiny' in expose_ports_enabled_containers %}
+    {% if 'scrutiny' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8087:8080
     {% endif %}
@@ -28,12 +28,12 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
+    {% if 'scrutiny' in hmsdocker_traefik_enabled_containers or 'scrutiny' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'scrutiny' in traefik_enabled_containers %}
+      {% if 'scrutiny' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('scrutiny', 8080) | indent(6) }}
       {% endif %}
-      {% if 'scrutiny' in homepage_enabled_containers %}
+      {% if 'scrutiny' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('scrutiny', 'Infrastructure', 'Scrutiny', 'Disk Health', widget={'type': 'scrutiny', 'url': 'http://scrutiny:8080'}) | indent(6) }}
       {% endif %}
     {% endif %}

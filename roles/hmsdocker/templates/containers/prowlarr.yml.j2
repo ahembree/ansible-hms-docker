@@ -20,25 +20,25 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/prowlarr/config:/config
-    {% if 'prowlarr' in expose_ports_enabled_containers %}
+    {% if 'prowlarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 9696:9696
     {% endif %}
-    {% if 'prowlarr' in traefik_enabled_containers or 'prowlarr' in homepage_enabled_containers %}
+    {% if 'prowlarr' in hmsdocker_traefik_enabled_containers or 'prowlarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'prowlarr' in traefik_enabled_containers %}
+      {% if 'prowlarr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('prowlarr', 9696) | indent(6) }}
       {% endif %}
-      {% if 'prowlarr' in homepage_enabled_containers %}
+      {% if 'prowlarr' in hmsdocker_homepage_enabled_containers %}
       - homepage.group=Managers
       - homepage.name=Prowlarr
       - homepage.icon=prowlarr.png
-      - homepage.href=http://{{ hms_docker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr')}}.${HMSD_DOMAIN}
+      - homepage.href=http://{{ hmsdocker_container_map['prowlarr']['proxy_host_rule'] | default('prowlarr')}}.${HMSD_DOMAIN}
       - homepage.description=Indexer Manager
       - homepage.widget.type=prowlarr
       - homepage.widget.url=http://prowlarr:9696
       - homepage.widget.key=${PROWLARR_KEY:-apikeyapikeyapikey}
-      {% if 'prowlarr' in homepage_stats_enabled_containers %}
+      {% if 'prowlarr' in hmsdocker_homepage_stats_enabled_containers %}
       - homepage.showStats=true
       {% endif %}
       {% endif %}

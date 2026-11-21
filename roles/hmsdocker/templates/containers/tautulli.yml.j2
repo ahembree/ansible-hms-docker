@@ -17,16 +17,16 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'tautulli' in traefik_enabled_containers or 'tautulli' in homepage_enabled_containers %}
+    {% if 'tautulli' in hmsdocker_traefik_enabled_containers or 'tautulli' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'tautulli' in traefik_enabled_containers %}
+      {% if 'tautulli' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('tautulli', 8181) | indent(6) }}
       {% endif %}
-      {% if 'tautulli' in homepage_enabled_containers %}
+      {% if 'tautulli' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('tautulli', 'Media', 'Tautulli', 'Media Analytics', widget={'type': 'tautulli', 'url': 'http://tautulli:8181', 'key': '${TAUTULLI_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
-    {% if 'tautulli' in expose_ports_enabled_containers %}
+    {% if 'tautulli' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8181:8181
     {% endif %}

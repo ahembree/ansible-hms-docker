@@ -14,7 +14,7 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if 'lidarr' in expose_ports_enabled_containers %}
+    {% if 'lidarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8686:8686
     {% endif %}
@@ -29,12 +29,12 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'lidarr' in traefik_enabled_containers or 'lidarr' in homepage_enabled_containers %}
+    {% if 'lidarr' in hmsdocker_traefik_enabled_containers or 'lidarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'lidarr' in traefik_enabled_containers %}
+      {% if 'lidarr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('lidarr', 8686) | indent(6) }}
       {% endif %}
-      {% if 'lidarr' in homepage_enabled_containers %}
+      {% if 'lidarr' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('lidarr', 'Managers', 'Lidarr', 'Music Manager', widget={'type': 'lidarr', 'url': 'http://lidarr:8686', 'key': '${LIDARR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

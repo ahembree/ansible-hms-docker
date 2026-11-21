@@ -1,19 +1,19 @@
-# The `project_name` controls the name of the base folders created (e.g. /opt/<project_name>/ and /mnt/<project_name>/) // default: "hms-docker"
-project_name: hms-docker
+# The `hmsdocker_project_name` controls the name of the base folders created (e.g. /opt/<hmsdocker_project_name>/ and /mnt/<hmsdocker_project_name>/) // default: "hms-docker"
+hmsdocker_project_name: hms-docker
 
-# Where container data and configs are stored // default: "/opt/{{ project_name }}"
-hms_docker_data_path: "/opt/{{ project_name }}"
+# Where container data and configs are stored // default: "/opt/{{ hmsdocker_project_name }}"
+hmsdocker_data_path: "/opt/{{ hmsdocker_project_name }}"
 
-# Where the container data is stored // default: "{{ hms_docker_data_path }}/apps"
-hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
+# Where the container data is stored // default: "{{ hmsdocker_data_path }}/apps"
+hmsdocker_apps_path: "{{ hmsdocker_data_path }}/apps"
 
-# Where the media library folders are created, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
-hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hms_docker_library_folder_name }}"
+# Where the media library folders are created, recommended to leave this alone // default: "{{ hmsdocker_primary_mount_path }}/{{ hmsdocker_library_folder_name }}"
+hmsdocker_library_path: "{{ hmsdocker_primary_mount_path }}/{{ hmsdocker_library_folder_name }}"
 
 # Ownership of the secrets (.env) file
-secrets_env_user: root
-secrets_env_group: root
-secrets_env_mode: "0600"
+hmsdocker_secrets_env_user: root
+hmsdocker_secrets_env_group: root
+hmsdocker_secrets_env_mode: "0600"
 
 # Docker daemon network settings
 hmsdocker_docker_network_base_subnet: "172.27.0.0/16"
@@ -21,8 +21,8 @@ hmsdocker_docker_network_base_subnet: "172.27.0.0/16"
 # Base Docker daemon settings, rendered into /etc/docker/daemon.json by the geerlingguy.docker role.
 # Override the whole dict to customize — keys are not deep-merged with this default, so copy any
 # entries you want to keep. GPU runtime settings are merged in separately at play level when
-# `enable_nvidia_gpu` is true and are not user-controllable.
-docker_daemon_options_base:
+# `hmsdocker_enable_nvidia_gpu` is true and are not user-controllable.
+hmsdocker_docker_daemon_options_base:
   default-address-pools:
     - base: '{{ hmsdocker_docker_network_base_subnet }}'
       size: 24
@@ -36,5 +36,5 @@ docker_daemon_options_base:
 # If you know your specific network mask, you can change that here
 # These are used to generate Traefik allow-list rules for the proxy so only internal networks are permitted to access certain containers
 # Also controls how some containers treat local network traffic (e.g. Plex, transmission)
-hms_docker_subnet_mask: "24"
-hms_docker_network_subnet: "{{ ansible_facts.default_ipv4.network }}/{{ hms_docker_subnet_mask }}"
+hmsdocker_subnet_mask: "24"
+hmsdocker_network_subnet: "{{ ansible_facts.default_ipv4.network }}/{{ hmsdocker_subnet_mask }}"

@@ -14,7 +14,7 @@ services:
         max-file: "5"
       driver: json-file
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    {% if 'cloudflare-tunnel' in homepage_enabled_containers %}
+    {% if 'cloudflare-tunnel' in hmsdocker_homepage_enabled_containers %}
     labels:
       {{ labels.homepage('cloudflare-tunnel', 'Infrastructure', 'Cloudflare Tunnel', 'Cloudflare Tunnel', icon='cloudflare.png', href=none, widget={'type': 'cloudflared', 'accountid': '${CFTUNNEL_ACCT_ID:-apikeyapikeyapikey}', 'tunnelid': '${CFTUNNEL_TUNNEL_ID:-apikeyapikeyapikey}', 'key': '${CFTUNNEL_API_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
     {% endif %}

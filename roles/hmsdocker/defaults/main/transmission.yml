@@ -1,11 +1,11 @@
 # Transmission-specific settings
 
 # Transmission seed ratio settings
-transmission_ratio_limit: "1" # default: "1"
-transmission_ratio_enabled: "true" # default: "true"
+hmsdocker_transmission_ratio_limit: "1" # default: "1"
+hmsdocker_transmission_ratio_enabled: "true" # default: "true"
 
 # Additional environment variables for Transmission (can be found at link above)
-transmission_additional_env_vars:
+hmsdocker_transmission_additional_env_vars:
   {
     "TRANSMISSION_DOWNLOAD_QUEUE_SIZE": "25",
     "TRANSMISSION_MAX_PEERS_GLOBAL": "3000",
@@ -18,11 +18,11 @@ transmission_additional_env_vars:
 # For help with these variables, see the docs located in `docs/Transmission.md`
 
 # default: ""
-transmission_ovpn_config_file: ""
+hmsdocker_transmission_ovpn_config_file: ""
 
 # default: ""
-transmission_ovpn_config_local_dir: ""
+hmsdocker_transmission_ovpn_config_local_dir: ""
 
 # The git repo where the .ovpn file is stored, see: https://github.com/haugene/vpn-configs-contrib/blob/main/CONTRIBUTING.md
 # If this is left blank, it will use the default that comes with the container # default: ""
-transmission_ovpn_config_source_repo: ""
+hmsdocker_transmission_ovpn_config_source_repo: ""

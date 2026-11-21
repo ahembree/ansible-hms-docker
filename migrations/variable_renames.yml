@@ -1,27 +1,147 @@
 ---
 # Single source of truth for deprecated -> new inventory variable renames.
 #
-# Consumed by:
+# `renames` is consumed by:
 #   - roles/hmsdocker/tasks/compat_shim.yml
 #       Aliases old -> new in-memory during a playbook run so users who
 #       have not yet rewritten their inventory still get a working apply.
-#   - Makefile `update` target
-#       Rewrites the on-disk inventory files under inventory/group_vars/all
-#       so the rename is persisted at upgrade time. Renames are anchored to
-#       the start of a line so they only match YAML keys, not occurrences
-#       of the same string inside values or comments.
+#   - migrations/apply_renames.py (run by `make update` / `make migrate-config`)
+#       Rewrites the inventory files under inventory/group_vars/all so the
+#       rename is persisted at upgrade time: top-level keys, and references
+#       to them inside {{ ... }}.
 #
-# To register a new rename, append an entry to `variable_renames` below.
-# Both consumers pick it up automatically — no other file edits required.
+# To register a new rename, append an entry to `renames` below, one per line
+# and in exactly this form:
+#   - { old: old_name, new: new_name }
+# Both consumers pick it up automatically, no other file edits required.
+# Always point `old` at the name the variable has now, never at another
+# `old` name: when a variable is renamed a second time, update the `new` of
+# its earlier entries too.
 #
-# Entries should describe top-level YAML keys. Nested-key renames need
-# bespoke handling and are not covered by this file.
+# Entries describe top-level YAML keys. Nested-key renames need bespoke
+# handling and are not covered by this file.
 
+# DO NOT EDIT OR REMOVE. Makefiles up to v1.20 keep running their own
+# 'make update' recipe after 'git pull' and rename the keys listed here with
+# sed, without updating references to them. It is frozen at the renames those
+# releases shipped with; everything newer belongs in `renames`.
 variable_renames:
-  - { old: traefik_ext_hosts_configs_path,      new: hmsdocker_traefik_static_config_location }
-  - { old: hms_docker_library_path,             new: hmsdocker_library_path }
-  - { old: transmission_vpn_provider,           new: hmsdocker_vpn_provider }
-  - { old: transmission_vpn_user,               new: hmsdocker_vpn_user }
-  - { old: transmission_vpn_pass,               new: hmsdocker_vpn_pass }
+  - { old: traefik_ext_hosts_configs_path, new: hmsdocker_traefik_static_config_location }
+  - { old: hms_docker_library_path, new: hmsdocker_library_path }
+  - { old: transmission_vpn_provider, new: hmsdocker_vpn_provider }
+  - { old: transmission_vpn_user, new: hmsdocker_vpn_user }
+  - { old: transmission_vpn_pass, new: hmsdocker_vpn_pass }
   - { old: transmission_ovpn_config_local_path, new: transmission_ovpn_config_local_dir }
-  - { old: hms_docker_plex_ssl_subdomain,       new: hms_docker_plex_ssl_public_hostname }
+  - { old: hms_docker_plex_ssl_subdomain, new: hms_docker_plex_ssl_public_hostname }
+
+renames:
+  - { old: authentik_external_host, new: hmsdocker_authentik_external_host }
+  - { old: authentik_geoip_account_id, new: hmsdocker_authentik_geoip_account_id }
+  - { old: authentik_geoip_license_key, new: hmsdocker_authentik_geoip_license_key }
+  - { old: authentik_key_path, new: hmsdocker_authentik_key_path }
+  - { old: authentik_pg_db, new: hmsdocker_authentik_pg_db }
+  - { old: authentik_pg_user, new: hmsdocker_authentik_pg_user }
+  - { old: authentik_pgpass_path, new: hmsdocker_authentik_pgpass_path }
+  - { old: cloudflare_api_token, new: hmsdocker_cloudflare_api_token }
+  - { old: cloudflare_ddns_create_ipv6_aaaa_record, new: hmsdocker_cloudflare_ddns_create_ipv6_aaaa_record }
+  - { old: cloudflare_ddns_delete_record_on_stop, new: hmsdocker_cloudflare_ddns_delete_record_on_stop }
+  - { old: cloudflare_ddns_domain, new: hmsdocker_cloudflare_ddns_domain }
+  - { old: cloudflare_ddns_proxied, new: hmsdocker_cloudflare_ddns_proxied }
+  - { old: cloudflare_ddns_subdomain, new: hmsdocker_cloudflare_ddns_subdomain }
+  - { old: cloudflare_ddns_zone, new: hmsdocker_cloudflare_ddns_zone }
+  - { old: cloudflare_tunnel_token, new: hmsdocker_cloudflare_tunnel_token }
+  - { old: container_auto_update_schedule, new: hmsdocker_container_auto_update_schedule }
+  - { old: container_expose_ports, new: hmsdocker_container_expose_ports }
+  - { old: container_gid, new: hmsdocker_container_gid }
+  - { old: container_remove_orphans, new: hmsdocker_container_remove_orphans }
+  - { old: container_restart_policy, new: hmsdocker_container_restart_policy }
+  - { old: container_timezone, new: hmsdocker_container_timezone }
+  - { old: container_uid, new: hmsdocker_container_uid }
+  - { old: custom_scripts_enabled, new: hmsdocker_custom_scripts_enabled }
+  - { old: debug_mode, new: hmsdocker_debug_mode }
+  - { old: docker_daemon_options_base, new: hmsdocker_docker_daemon_options_base }
+  - { old: enable_intel_gpu, new: hmsdocker_enable_intel_gpu }
+  - { old: enable_nvidia_gpu, new: hmsdocker_enable_nvidia_gpu }
+  - { old: hms_docker_apps_path, new: hmsdocker_apps_path }
+  - { old: hms_docker_compose_container_state, new: hmsdocker_compose_container_state }
+  - { old: hms_docker_container_map, new: hmsdocker_container_map }
+  - { old: hms_docker_data_path, new: hmsdocker_data_path }
+  - { old: hms_docker_domain, new: hmsdocker_domain }
+  - { old: hms_docker_downloads_folder_name, new: hmsdocker_downloads_folder_name }
+  - { old: hms_docker_library_folder_name, new: hmsdocker_library_folder_name }
+  - { old: hms_docker_library_folders, new: hmsdocker_library_folders }
+  - { old: hms_docker_library_path, new: hmsdocker_library_path }
+  - { old: hms_docker_media_share_type, new: hmsdocker_media_share_type }
+  - { old: hms_docker_mount_path, new: hmsdocker_mount_path }
+  - { old: hms_docker_network_subnet, new: hmsdocker_network_subnet }
+  - { old: hms_docker_plex_ssl_cert_pass, new: hmsdocker_plex_ssl_cert_pass }
+  - { old: hms_docker_plex_ssl_enabled, new: hmsdocker_plex_ssl_enabled }
+  - { old: hms_docker_plex_ssl_public_hostname, new: hmsdocker_plex_ssl_public_hostname }
+  - { old: hms_docker_plex_ssl_restart_plex, new: hmsdocker_plex_ssl_restart_plex }
+  - { old: hms_docker_plex_ssl_subdomain, new: hmsdocker_plex_ssl_public_hostname }
+  - { old: hms_docker_plex_ssl_update_config, new: hmsdocker_plex_ssl_update_config }
+  - { old: hms_docker_primary_mount_name, new: hmsdocker_primary_mount_name }
+  - { old: hms_docker_subnet_mask, new: hmsdocker_subnet_mask }
+  - { old: homepage_authentik_key, new: hmsdocker_homepage_authentik_key }
+  - { old: homepage_autobrr_key, new: hmsdocker_homepage_autobrr_key }
+  - { old: homepage_emby_key, new: hmsdocker_homepage_emby_key }
+  - { old: homepage_jellyfin_key, new: hmsdocker_homepage_jellyfin_key }
+  - { old: homepage_nzbget_password, new: hmsdocker_homepage_nzbget_password }
+  - { old: homepage_nzbget_username, new: hmsdocker_homepage_nzbget_username }
+  - { old: homepage_portainer_key, new: hmsdocker_homepage_portainer_key }
+  - { old: is_github_runner, new: hmsdocker_is_github_runner }
+  - { old: media_avail_kuma_push_url, new: hmsdocker_media_avail_kuma_push_url }
+  - { old: media_avail_script_enabled, new: hmsdocker_media_avail_script_enabled }
+  - { old: monitoring_scripts_enabled, new: hmsdocker_monitoring_scripts_enabled }
+  - { old: nas_client_cifs_opts, new: hmsdocker_nas_client_cifs_opts }
+  - { old: nas_client_cifs_password, new: hmsdocker_nas_client_cifs_password }
+  - { old: nas_client_cifs_username, new: hmsdocker_nas_client_cifs_username }
+  - { old: nas_client_mount_on_boot, new: hmsdocker_nas_client_mount_on_boot }
+  - { old: nas_client_mount_state, new: hmsdocker_nas_client_mount_state }
+  - { old: nas_client_nfs_opts, new: hmsdocker_nas_client_nfs_opts }
+  - { old: nas_client_package_state, new: hmsdocker_nas_client_package_state }
+  - { old: nas_client_remote_additional_paths, new: hmsdocker_nas_client_remote_additional_paths }
+  - { old: nas_client_remote_cifs_path, new: hmsdocker_nas_client_remote_cifs_path }
+  - { old: nas_client_remote_nfs_path, new: hmsdocker_nas_client_remote_nfs_path }
+  - { old: nas_client_use_additional_paths, new: hmsdocker_nas_client_use_additional_paths }
+  - { old: plex_claim_token, new: hmsdocker_plex_claim_token }
+  - { old: plex_transcode_folder, new: hmsdocker_plex_transcode_folder }
+  - { old: project_name, new: hmsdocker_project_name }
+  - { old: secrets_env_group, new: hmsdocker_secrets_env_group }
+  - { old: secrets_env_mode, new: hmsdocker_secrets_env_mode }
+  - { old: secrets_env_user, new: hmsdocker_secrets_env_user }
+  - { old: separate_4k_instances_enable, new: hmsdocker_separate_4k_instances_enable }
+  - { old: tailscale_advertise_exit_node, new: hmsdocker_tailscale_advertise_exit_node }
+  - { old: tailscale_auth_key, new: hmsdocker_tailscale_auth_key }
+  - { old: tailscale_enable_subnet_routes, new: hmsdocker_tailscale_enable_subnet_routes }
+  - { old: tailscale_subnet_routes, new: hmsdocker_tailscale_subnet_routes }
+  - { old: tautulli_include_jbops, new: hmsdocker_tautulli_include_jbops }
+  - { old: tautulli_jbops_install_path, new: hmsdocker_tautulli_jbops_install_path }
+  - { old: tdarr_enable_node_server, new: hmsdocker_tdarr_enable_node_server }
+  - { old: traefik_enable_access_logs, new: hmsdocker_traefik_enable_access_logs }
+  - { old: traefik_ext_hosts_configs_path, new: hmsdocker_traefik_static_config_location }
+  - { old: traefik_ext_hosts_enabled, new: hmsdocker_traefik_ext_hosts_enabled }
+  - { old: traefik_ext_hosts_list, new: hmsdocker_traefik_ext_hosts_list }
+  - { old: traefik_log_level, new: hmsdocker_traefik_log_level }
+  - { old: traefik_security_hardening, new: hmsdocker_traefik_security_hardening }
+  - { old: traefik_ssl_dns_provider_code, new: hmsdocker_traefik_ssl_dns_provider_code }
+  - { old: traefik_ssl_dns_provider_environment_vars, new: hmsdocker_traefik_ssl_dns_provider_environment_vars }
+  - { old: traefik_ssl_dns_provider_zone, new: hmsdocker_traefik_ssl_dns_provider_zone }
+  - { old: traefik_ssl_dns_resolver_1, new: hmsdocker_traefik_ssl_dns_resolver_1 }
+  - { old: traefik_ssl_dns_resolver_2, new: hmsdocker_traefik_ssl_dns_resolver_2 }
+  - { old: traefik_ssl_enabled, new: hmsdocker_traefik_ssl_enabled }
+  - { old: traefik_ssl_letsencrypt_email, new: hmsdocker_traefik_ssl_letsencrypt_email }
+  - { old: traefik_ssl_sans, new: hmsdocker_traefik_ssl_sans }
+  - { old: traefik_ssl_use_letsencrypt_staging_url, new: hmsdocker_traefik_ssl_use_letsencrypt_staging_url }
+  - { old: traefik_subnet_allow_list, new: hmsdocker_traefik_subnet_allow_list }
+  - { old: traefik_verify_endpoints, new: hmsdocker_traefik_verify_endpoints }
+  - { old: transmission_additional_env_vars, new: hmsdocker_transmission_additional_env_vars }
+  - { old: transmission_ovpn_config_file, new: hmsdocker_transmission_ovpn_config_file }
+  - { old: transmission_ovpn_config_local_dir, new: hmsdocker_transmission_ovpn_config_local_dir }
+  - { old: transmission_ovpn_config_local_path, new: hmsdocker_transmission_ovpn_config_local_dir }
+  - { old: transmission_ovpn_config_source_repo, new: hmsdocker_transmission_ovpn_config_source_repo }
+  - { old: transmission_ratio_enabled, new: hmsdocker_transmission_ratio_enabled }
+  - { old: transmission_ratio_limit, new: hmsdocker_transmission_ratio_limit }
+  - { old: transmission_vpn_pass, new: hmsdocker_vpn_pass }
+  - { old: transmission_vpn_provider, new: hmsdocker_vpn_provider }
+  - { old: transmission_vpn_user, new: hmsdocker_vpn_user }

@@ -19,16 +19,16 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/autobrr/config:/config
-    {% if 'autobrr' in expose_ports_enabled_containers %}
+    {% if 'autobrr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 7474:7474
     {% endif %}
-    {% if 'autobrr' in traefik_enabled_containers or 'autobrr' in homepage_enabled_containers %}
+    {% if 'autobrr' in hmsdocker_traefik_enabled_containers or 'autobrr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'autobrr' in traefik_enabled_containers %}
+      {% if 'autobrr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('autobrr', 7474) | indent(6) }}
       {% endif %}
-      {% if 'autobrr' in homepage_enabled_containers %}
+      {% if 'autobrr' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('autobrr', 'Downloads', 'Autobrr', 'Torrent Automation', widget={'type': 'autobrr', 'url': 'http://autobrr:7474', 'key': '${AUTOBRR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

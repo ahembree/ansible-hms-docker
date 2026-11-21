@@ -18,18 +18,18 @@ services:
     environment:
       - LOG_LEVEL=info
       - TZ=${TIMEZONE}
-    {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
+    {% if 'jellyseerr' in hmsdocker_traefik_enabled_containers or 'jellyseerr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'jellyseerr' in traefik_enabled_containers %}
+      {% if 'jellyseerr' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('jellyseerr', 5055) | indent(6) }}
       {% endif %}
-      {% if 'jellyseerr' in homepage_enabled_containers %}
+      {% if 'jellyseerr' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('jellyseerr', 'Managers', 'Jellyseerr', 'Request Manager', widget={'type': 'seerr', 'url': 'http://jellyseerr:5055', 'key': '${JELLYSEERR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/jellyseerr/config:/app/config
-    {% if 'jellyseerr' in expose_ports_enabled_containers %}
+    {% if 'jellyseerr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5056:5055
     {% endif %}

@@ -2,6 +2,6 @@
 services:
 {{ arr.service('sonarr', 'Sonarr', 'TV Show Manager', 8989, '30s') }}
 
-{% if separate_4k_instances_enable | default(False) %}
+{% if hmsdocker_separate_4k_instances_enable | default(False) %}
 {{ arr.service('sonarr', 'Sonarr', 'TV Show Manager', 8989, '30s', instance_4k=true) }}
 {% endif %}

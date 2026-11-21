@@ -17,3 +17,6 @@ inventory/hosts-custom.yml
 .vscode/
 bin/
 logs/*.log
+
+# inventory copies saved by migrations/apply_renames.py before it rewrites variable names
+inventory/backups/

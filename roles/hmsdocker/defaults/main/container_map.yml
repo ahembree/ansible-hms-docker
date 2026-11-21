@@ -12,7 +12,7 @@
 #  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
 #  `traefik`: Enables or disables accessing the container via Traefik
 
-hms_docker_container_map:
+hmsdocker_container_map:
   audiobookshelf:
     authentik: false
     directory: true

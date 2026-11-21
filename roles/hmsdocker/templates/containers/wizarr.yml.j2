@@ -19,11 +19,11 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if 'wizarr' in expose_ports_enabled_containers %}
+    {% if 'wizarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5690:5690
     {% endif %}
-    {% if 'wizarr' in traefik_enabled_containers %}
+    {% if 'wizarr' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('wizarr', 5690) | indent(6) }}
     {% endif %}

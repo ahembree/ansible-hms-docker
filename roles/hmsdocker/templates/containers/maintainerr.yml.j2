@@ -18,11 +18,11 @@ services:
       - ${HMSD_APPS_PATH}/maintainerr/config:/opt/data
     environment:
       - TZ=${TIMEZONE}
-    {% if 'maintainerr' in expose_ports_enabled_containers %}
+    {% if 'maintainerr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 6246:6246
     {% endif %}
-    {% if 'maintainerr' in traefik_enabled_containers %}
+    {% if 'maintainerr' in hmsdocker_traefik_enabled_containers %}
     labels:
       {{ labels.traefik('maintainerr', 6246) | indent(6) }}
     {% endif %}

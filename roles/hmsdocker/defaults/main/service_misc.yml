@@ -1,6 +1,6 @@
 #######################################################################
 ### Sonarr and Radarr settings
-separate_4k_instances_enable: false
+hmsdocker_separate_4k_instances_enable: false
 
 ## Adds the Arr-Scripts from https://github.com/RandomNinjaAtk/arr-scripts
 hmsdocker_svc_misc_arr_scripts_enabled: false
@@ -8,10 +8,9 @@ hmsdocker_svc_misc_arr_scripts_enabled: false
 #######################################################################
 
 
-
 #######################################################################
 ### Tdarr settings
-tdarr_enable_node_server: false
+hmsdocker_tdarr_enable_node_server: false
 ### End Tdarr
 #######################################################################
 
@@ -32,10 +31,10 @@ hmsdocker_notifiarr_api_key:
 #######################################################################
 ### Tautulli settings
 # Downloads and includes the JBOPS scripts from https://github.com/blacktwin/JBOPS to the Tautulli container
-tautulli_include_jbops: false
+hmsdocker_tautulli_include_jbops: false
 
 # This path will automatically mount the JBOPS scripts to Tautulli, recommended to leave as-is
-tautulli_jbops_install_path: "{{ hms_docker_apps_path }}/tautulli/config/jbops"
+hmsdocker_tautulli_jbops_install_path: "{{ hmsdocker_apps_path }}/tautulli/config/jbops"
 ### End Tautulli settings
 #######################################################################
 
@@ -73,7 +72,7 @@ hmsdocker_checkrr_enable_arr_processing: false
 # If the Backrest container should have write access to the data directory (default: /opt/hms-docker)
 hmsdocker_backrest_allow_write: false
 hmsdocker_backrest_enable_restore_path: false
-hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
+hmsdocker_backrest_restore_path: "{{ hmsdocker_data_path }}-restore"
 
 # Temp path used by Tdarr, Fileflows, Unmanic
 hmsdocker_transcode_temp_path: "/tmp/hmsd_transcode"

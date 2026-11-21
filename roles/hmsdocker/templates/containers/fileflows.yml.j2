@@ -12,13 +12,13 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if 'fileflows' in expose_ports_enabled_containers %}
+    {% if 'fileflows' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - "19200:5000"
     {% endif %}
     networks:
       - proxy_net
-    {% if enable_intel_gpu %}
+    {% if hmsdocker_enable_intel_gpu %}
     devices:
       - "/dev/dri:/dev/dri"
     {% endif %}
@@ -26,7 +26,7 @@ services:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    {% if enable_nvidia_gpu %}
+    {% if hmsdocker_enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
@@ -39,12 +39,12 @@ services:
       - ${HMSD_APPS_PATH}/fileflows/common:/app/common
       - ${HMSD_MOUNT_PATH}:/data
       - {{ hmsdocker_transcode_temp_path }}/fileflows:/temp
-    {% if 'fileflows' in traefik_enabled_containers or 'fileflows' in homepage_enabled_containers %}
+    {% if 'fileflows' in hmsdocker_traefik_enabled_containers or 'fileflows' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'fileflows' in traefik_enabled_containers %}
+      {% if 'fileflows' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('fileflows', 5000) | indent(6) }}
       {% endif %}
-      {% if 'fileflows' in homepage_enabled_containers %}
+      {% if 'fileflows' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('fileflows', 'Media', 'Fileflows', 'Media Transcoder', widget={'type': 'fileflows', 'url': 'http://fileflows:5000', 'version': '2', 'key': '${FILEFLOWS_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

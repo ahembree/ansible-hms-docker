@@ -3,7 +3,7 @@
 
 # Enables Nvidia GPU hardware accelleration within the Plex container // default: "no"
 # Requires the Nvidia drivers to already be installed and working
-enable_nvidia_gpu: false
+hmsdocker_enable_nvidia_gpu: false
 
 # Enables Intel GPU hardware accelleration within the Plex container // default: "no"
-enable_intel_gpu: false
+hmsdocker_enable_intel_gpu: false

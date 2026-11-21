@@ -1,18 +1,18 @@
 ---
 - name: Traefik Prereq - Extend Traefik subdomain hosts list
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [item.subdomain_name] }}"
   when:
     - item.enabled
-    - item.subdomain_name not in traefik_enabled_subdomains
-  loop: '{{ traefik_ext_hosts_list }}'
+    - item.subdomain_name not in hmsdocker_traefik_enabled_subdomains
+  loop: '{{ hmsdocker_traefik_ext_hosts_list }}'
 
 - name: Traefik Prereq - Extend Traefik subdomain hosts list if 4K instances are enabled
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item + '-4k'] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [item + '-4k'] }}"
   when:
-    - separate_4k_instances_enable
-    - item in traefik_enabled_containers
+    - hmsdocker_separate_4k_instances_enable
+    - item in hmsdocker_traefik_enabled_containers
   loop:
     - sonarr
     - radarr
@@ -20,7 +20,7 @@
 - name: Traefik Prereq - Ensure Traefik config.
   ansible.builtin.template:
     src: traefik/hmsd_traefik_config.yml.j2
-    dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
+    dest: "{{ hmsdocker_apps_path }}/traefik/config/traefik.yml"
     mode: '0644'
     group: docker
     backup: true
@@ -30,10 +30,10 @@
 
 - name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/traefik/config/certs"
+    path: "{{ hmsdocker_apps_path }}/traefik/config/certs"
     state: directory
     mode: '0755'
-  register: traefik_certs_dir
+  register: hmsdocker_traefik_certs_dir
 
 - name: Traefik Prereq - Ensure Traefik Static file dir
   ansible.builtin.file:
@@ -41,12 +41,12 @@
     state: directory
     mode: '0755'
     group: docker
-  register: traefik_static_config_dir
+  register: hmsdocker_traefik_static_config_dir
 
 - name: Traefik Prereq - Ensure Traefik static config file
   ansible.builtin.template:
     src: traefik/hmsd_traefik_middlewares.yml.j2
-    dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
+    dest: "{{ hmsdocker_traefik_static_config_dir.path }}/hmsd_middlewares.yml"
     mode: '0644'
     group: docker
     lstrip_blocks: true
@@ -55,14 +55,14 @@
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:
     src: traefik/hmsd_traefik_additional_routes.yml.j2
-    dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    dest: "{{ hmsdocker_traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}.yml"
     mode: '0644'
     group: docker
     lstrip_blocks: true
     trim_blocks: true
-  loop: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ hmsdocker_traefik_ext_hosts_list }}"
   when:
-    - traefik_ext_hosts_enabled
+    - hmsdocker_traefik_ext_hosts_enabled
     - item.friendly_name is defined and item.friendly_name != ''
     - item.subdomain_name is defined and item.subdomain_name != ''
     - item.backend_url is defined and item.backend_url != ''
@@ -70,8 +70,8 @@
 
 - name: Traefik Prereq - Ensure disabled Traefik static external host configs are removed
   ansible.builtin.file:
-    path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    path: "{{ hmsdocker_traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}.yml"
     state: absent
-  loop: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ hmsdocker_traefik_ext_hosts_list }}"
   when:
-    - not item.enabled or not traefik_ext_hosts_enabled
+    - not item.enabled or not hmsdocker_traefik_ext_hosts_enabled

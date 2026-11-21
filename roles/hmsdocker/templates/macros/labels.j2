@@ -24,8 +24,8 @@
 {% if scheme %}
 - traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme={{ scheme }}
 {% endif %}
-- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map[name]['proxy_host_rule'] | default(host_default or router or name) }}{{ suffix }}.${HMSD_DOMAIN}`)
-- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ router_name ~ '-midware@docker') if authentik and name in authentik_enabled_containers else '' }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if tinyauth and name in tinyauth_protected_containers else '' }}
+- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ hmsdocker_container_map[name]['proxy_host_rule'] | default(host_default or router or name) }}{{ suffix }}.${HMSD_DOMAIN}`)
+- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_traefik_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ router_name ~ '-midware@docker') if authentik and name in hmsdocker_authentik_enabled_containers else '' }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if tinyauth and name in hmsdocker_tinyauth_applied_containers else '' }}
 {% endfilter %}
 {% endmacro %}
 
@@ -46,13 +46,13 @@
 - homepage.name={{ title }}
 - homepage.icon={{ icon or (name ~ '.png') }}
 {% if href %}
-- homepage.href={{ href }}://{{ hms_docker_container_map[name]['proxy_host_rule'] | default(host_default or name) }}{{ suffix }}.${HMSD_DOMAIN}
+- homepage.href={{ href }}://{{ hmsdocker_container_map[name]['proxy_host_rule'] | default(host_default or name) }}{{ suffix }}.${HMSD_DOMAIN}
 {% endif %}
 - homepage.description={{ description }}
 {% for setting, value in widget.items() %}
 - homepage.widget.{{ setting }}={{ value }}
 {% endfor %}
-{% if stats == 'always' or (stats and name in homepage_stats_enabled_containers) %}
+{% if stats == 'always' or (stats and name in hmsdocker_homepage_stats_enabled_containers) %}
 - homepage.showStats=true
 {% endif %}
 {% endfilter %}

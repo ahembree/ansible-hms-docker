@@ -15,7 +15,7 @@ services:
     user: ${PUID}:${PGID}
     networks:
       - proxy_net
-    {% if 'audiobookshelf' in expose_ports_enabled_containers %}
+    {% if 'audiobookshelf' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 13378:80
     {% endif %}
@@ -28,12 +28,12 @@ services:
       - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'audiobookshelf' in hmsdocker_readonly_media_containers | default([], true) }}
     environment:
       - TZ=${TIMEZONE}
-    {% if 'audiobookshelf' in traefik_enabled_containers or 'audiobookshelf' in homepage_enabled_containers %}
+    {% if 'audiobookshelf' in hmsdocker_traefik_enabled_containers or 'audiobookshelf' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'audiobookshelf' in traefik_enabled_containers %}
+      {% if 'audiobookshelf' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('audiobookshelf', 80) | indent(6) }}
       {% endif %}
-      {% if 'audiobookshelf' in homepage_enabled_containers %}
+      {% if 'audiobookshelf' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('audiobookshelf', 'Media', 'Audiobookshelf', 'Audiobook and Podcast Server', widget={'type': 'audiobookshelf', 'url': 'http://audiobookshelf:80', 'key': '${AUDIOBOOKSHELF_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

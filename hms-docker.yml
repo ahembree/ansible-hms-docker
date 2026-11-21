@@ -6,15 +6,15 @@
   vars:
     # Must be a QUOTED 3-part semver (X.Y.Z) — unquoted values like 1.20 parse
     # as the YAML float 1.2 and break the version comparison.
-    hmsd_current_version: "1.21.0"
-    hmsd_version_file: "{{ hms_docker_data_path }}/.hmsd-version"
-    is_github_runner: false
-    regex: '[^A-Za-z0-9._-]'
-    replace: '_'
-    debug_mode: false
+    hmsdocker_current_version: "1.21.0"
+    hmsdocker_version_file: "{{ hmsdocker_data_path }}/.hmsd-version"
+    hmsdocker_is_github_runner: false
+    hmsdocker_sanitize_regex: '[^A-Za-z0-9._-]'
+    hmsdocker_sanitize_replace: '_'
+    hmsdocker_debug_mode: false
 
     # GPU-specific Docker daemon settings (not user-overridable — required for the GPU integration)
-    docker_daemon_options_gpu:
+    hmsdocker_docker_daemon_options_gpu:
       runtimes:
         nvidia:
           args: []
@@ -23,8 +23,8 @@
     # Merge Docker daemon settings
     docker_daemon_options: >-
       {{
-        docker_daemon_options_base
-        | combine(docker_daemon_options_gpu if enable_nvidia_gpu | default(false) else {}, recursive=True)
+        hmsdocker_docker_daemon_options_base
+        | combine(hmsdocker_docker_daemon_options_gpu if hmsdocker_enable_nvidia_gpu | default(false) else {}, recursive=True)
       }}
 
   # Preflight runs first so misconfigurations fail before any host mutation
@@ -38,7 +38,7 @@
     - name: Ensure Nvidia GPU role if enabled
       ansible.builtin.import_role:
         name: gpu
-      when: enable_nvidia_gpu | default(false)
+      when: hmsdocker_enable_nvidia_gpu | default(false)
 
   roles:
     # Docker role automatically flushes handlers (restarts Docker service) after configuring daemon.json
@@ -46,7 +46,7 @@
 
   tasks:
     - name: (GPU Validation) Verify CUDA container works
-      when: enable_nvidia_gpu | default(false)
+      when: hmsdocker_enable_nvidia_gpu | default(false)
       block:
         - name: Run CUDA container
           community.docker.docker_container:

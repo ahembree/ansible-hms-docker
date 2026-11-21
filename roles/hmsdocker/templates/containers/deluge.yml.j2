@@ -32,21 +32,21 @@ services:
       - VPN_PROV={{ (hmsdocker_vpn_provider | default('', true) | lower) if (hmsdocker_vpn_provider | default('', true) | lower) in ['pia', 'airvpn', 'protonvpn', 'custom'] else 'custom' }}
       - VPN_CLIENT={{ hmsdocker_vpn_type }}
       - ENABLE_PRIVOXY=yes
-      - LAN_NETWORK={{ hms_docker_network_subnet }}
+      - LAN_NETWORK={{ hmsdocker_network_subnet }}
     volumes:
       - ${HMSD_APPS_PATH}/deluge/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'deluge' in expose_ports_enabled_containers %}
+    {% if 'deluge' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8112:8112
       - 8119:8118 # privoxy
     {% endif %}
-    {% if 'deluge' in traefik_enabled_containers or 'deluge' in homepage_enabled_containers %}
+    {% if 'deluge' in hmsdocker_traefik_enabled_containers or 'deluge' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'deluge' in traefik_enabled_containers %}
+      {% if 'deluge' in hmsdocker_traefik_enabled_containers %}
       {{ labels.traefik('deluge', 8112) | indent(6) }}
       {% endif %}
-      {% if 'deluge' in homepage_enabled_containers %}
+      {% if 'deluge' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('deluge', 'Downloads', 'deluge', 'Torrent Management', widget={'type': 'deluge', 'url': 'http://deluge:8112', 'password': '${DELUGE_PASS:-deluge}'}) | indent(6) }}
       {% endif %}
     {% endif %}
