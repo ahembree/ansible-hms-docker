@@ -1,4 +1,4 @@
-- name: (Prereq - NeXroll) - Ensure prerolls folder on the media share
+- name: (Prereq - NeXroll) - Ensure prerolls folder on the media share  # noqa: risky-file-permissions
   ansible.builtin.file:
     path: "{{ hmsdocker_primary_mount_path }}/prerolls"
     state: directory

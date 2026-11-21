@@ -5,52 +5,45 @@
 # All these facts do is process data from the container map to reduce text output during playbook runs
 - name: Build initial facts of enabled containers to slim play output
   ansible.builtin.set_fact:
-    enabled_containers: >-
-          {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            map(attribute='key') |
-            list
-          }}
-    enabled_containers_config_dirs: >-
-          {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.directory', 'defined') |
-            selectattr('value.directory', 'equalto', true) |
-            map(attribute='key') |
-            list
-          }}
+    enabled_containers: "{{ hmsdocker_enabled_map_items | map(attribute='key') | list }}"
+    hmsdocker_containers_with: {}
+  vars:
+    hmsdocker_enabled_map_items: >-
+      {{
+        hms_docker_container_map | dict2items |
+        selectattr('value.enabled', 'defined') |
+        selectattr('value.enabled', 'equalto', true) |
+        list
+      }}
 
-# Run these after the task above so that they are aware of the previous facts being set
+# For each container map setting, the enabled containers that have it set to `true`
+- name: Build lists of enabled containers per container map setting
+  ansible.builtin.set_fact:
+    hmsdocker_containers_with: >-
+      {{
+        hmsdocker_containers_with | default({}) | combine({
+          item: hms_docker_container_map | dict2items |
+                selectattr('key', 'in', enabled_containers) |
+                selectattr('value.' ~ item, 'defined') |
+                selectattr('value.' ~ item, 'equalto', true) |
+                map(attribute='key') | list
+        })
+      }}
+  loop:
+    - directory
+    - traefik
+    - authentik
+    - homepage
+    - homepage_stats
+    - expose_to_public
+    - expose_ports
+
+# Run these after the tasks above so that they are aware of the previous facts being set
 - name: Build additional facts of enabled containers to slim play output
   ansible.builtin.set_fact:
-    traefik_enabled_containers: >-
-          {{
-            (
-              hms_docker_container_map | dict2items |
-              selectattr('value.enabled', 'defined') |
-              selectattr('value.enabled', 'equalto', true) |
-              selectattr('value.traefik', 'defined') |
-              selectattr('value.traefik', 'equalto', true) |
-              map(attribute='key') |
-              list
-            )
-            if ('traefik' in enabled_containers)
-            else []
-          }}
-    traefik_enabled_subdomains: >-
-          {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.traefik', 'defined') |
-            selectattr('value.traefik', 'equalto', true) |
-            map(attribute='value.proxy_host_rule') |
-            list
-          }}
+    enabled_containers_config_dirs: "{{ hmsdocker_containers_with.directory }}"
+    traefik_enabled_containers: "{{ hmsdocker_containers_with.traefik if 'traefik' in enabled_containers else [] }}"
+    traefik_enabled_subdomains: "{{ hmsdocker_containers_with.traefik | map('extract', hms_docker_container_map, 'proxy_host_rule') | list }}"
     traefik_enabled_external_hosts: >-
           {{
             traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
@@ -62,84 +55,32 @@
               if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in enabled_containers and traefik_ssl_enabled
               else
               (
-                hms_docker_container_map
-                | dict2items
-                | selectattr('value.enabled', 'defined')
-                | selectattr('value.enabled', 'equalto', true)
-                | selectattr('value.authentik', 'defined')
-                | selectattr('value.authentik', 'equalto', true)
-                | map(attribute='key')
-                | list
+                hmsdocker_containers_with.authentik
                 if ('authentik' in enabled_containers and traefik_ssl_enabled)
                 else []
               )
             )
           }}
 
-
-    # This is what ChatGPT said would be best and it accomplishes what I want. It's ugly I know
     # This is ONLY for building the Authentik Outpost templates
-    authentik_proxy_enabled_containers: "{{ hms_docker_container_map
-      | dict2items
-      | selectattr('value.enabled', 'defined')
-      | selectattr('value.enabled', 'equalto', true)
-      | selectattr('value.traefik', 'defined')
-      | selectattr('value.traefik', 'equalto', true)
-      | selectattr('value.authentik', 'defined')
-      | selectattr('value.authentik', 'equalto', true)
-      | selectattr('value.proxy_host_rule', 'defined')
-      | map('community.general.json_query', '{name: key, proxy_host_rule: value.proxy_host_rule}')
-      | list }}"
+    authentik_proxy_enabled_containers: >-
+          {{
+            hms_docker_container_map | dict2items |
+            selectattr('key', 'in', hmsdocker_containers_with.traefik) |
+            selectattr('key', 'in', hmsdocker_containers_with.authentik) |
+            selectattr('value.proxy_host_rule', 'defined') |
+            map('community.general.json_query', '{name: key, proxy_host_rule: value.proxy_host_rule}') |
+            list
+          }}
 
-    homepage_enabled_containers: >-
-          {{
-            (
-              hms_docker_container_map | dict2items |
-              selectattr('value.enabled', 'defined') |
-              selectattr('value.enabled', 'equalto', true) |
-              selectattr('value.homepage', 'defined') |
-              selectattr('value.homepage', 'equalto', true) |
-              map(attribute='key') |
-              list
-            )
-            if ('homepage' in enabled_containers)
-            else []
-          }}
-    homepage_stats_enabled_containers: >-
-          {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.homepage', 'defined') |
-            selectattr('value.homepage', 'equalto', true) |
-            selectattr('value.homepage_stats', 'defined') |
-            selectattr('value.homepage_stats', 'equalto', true) |
-            map(attribute='key') |
-            list
-          }}
-    expose_public_enabled_containers: >-
-          {{
-            hms_docker_container_map | dict2items |
-            selectattr('value.enabled', 'defined') |
-            selectattr('value.enabled', 'equalto', true) |
-            selectattr('value.expose_to_public', 'defined') |
-            selectattr('value.expose_to_public', 'equalto', true) |
-            map(attribute='key') |
-            list
-          }}
+    homepage_enabled_containers: "{{ hmsdocker_containers_with.homepage if 'homepage' in enabled_containers else [] }}"
+    homepage_stats_enabled_containers: "{{ hmsdocker_containers_with.homepage | select('in', hmsdocker_containers_with.homepage_stats) | list }}"
+    expose_public_enabled_containers: "{{ hmsdocker_containers_with.expose_to_public }}"
     expose_ports_enabled_containers: >-
           {{
             enabled_containers
             if ('traefik' not in enabled_containers or container_expose_ports)
-            else (
-              hms_docker_container_map | dict2items |
-              selectattr('value.enabled', 'defined') |
-              selectattr('value.enabled', 'equalto', true) |
-              selectattr('value.expose_ports', 'defined') |
-              selectattr('value.expose_ports', 'equalto', true) |
-              map(attribute='key') |
-              list
-            )
+            else hmsdocker_containers_with.expose_ports
           }}
 
 - name: Build Docker socket proxy settings
@@ -236,7 +177,8 @@
     enabled_containers: "{{ enabled_containers + ['cloudflare-ddns'] }}"
   when: (cloudflare_ddns_enabled | default(false) or hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false)) and 'cloudflare-ddns' not in enabled_containers
 
-- name: Ensure data, apps, and mount paths exists locally.
+# No `mode`: these paths can be existing directories or the media share itself, and their permissions are left as they are
+- name: Ensure data, apps, and mount paths exists locally.  # noqa: risky-file-permissions
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -247,11 +189,37 @@
   when: item is defined and item != ''
 
 - name: NAS base configuration tasks.
-  ansible.builtin.include_tasks: "nas/nas_{{ hms_docker_media_share_type | lower }}.yml"
+  ansible.builtin.include_tasks: "nas/share.yml"
+  vars:
+    hmsdocker_nas_share:
+      label: the primary media share (hms_docker_media_share_type)
+      type: "{{ hms_docker_media_share_type | lower }}"
+      path: "{{ hmsdocker_primary_mount_path }}"
+      src: "{{ nas_client_remote_cifs_path if hms_docker_media_share_type | lower == 'cifs' else (nas_client_remote_nfs_path if hms_docker_media_share_type | lower == 'nfs' else '') }}"
+      opts: "{{ nas_client_cifs_opts if hms_docker_media_share_type | lower == 'cifs' else (nas_client_nfs_opts if hms_docker_media_share_type | lower == 'nfs' else '') }}"
+      cifs_username: "{{ nas_client_cifs_username if hms_docker_media_share_type | lower == 'cifs' else '' }}"
+      cifs_password: "{{ nas_client_cifs_password if hms_docker_media_share_type | lower == 'cifs' else '' }}"
+      creds_file: "{{ hms_docker_data_path }}/.{{ project_name }}.cifs_creds"
+      additional: false
+      mount_in_check_mode: "{{ hms_docker_media_share_type | lower == 'nfs' }}"
 
 - name: Ensure additional NAS configuration
-  ansible.builtin.include_tasks: "nas/nas_additional_{{ item.type | lower }}.yml"
-  with_items: "{{ nas_client_remote_additional_paths }}"
+  ansible.builtin.include_tasks: "nas/share.yml"
+  loop: "{{ nas_client_remote_additional_paths }}"
+  loop_control:
+    loop_var: hmsdocker_nas_additional_path
+  vars:
+    hmsdocker_nas_share:
+      label: "the additional media share mounted at '{{ hmsdocker_nas_additional_path.local_mount_path }}'"
+      type: "{{ hmsdocker_nas_additional_path.type }}"
+      path: "{{ hmsdocker_nas_additional_path.local_mount_path }}"
+      src: "{{ hmsdocker_nas_additional_path.remote_path if hmsdocker_nas_additional_path.type in ['cifs', 'nfs'] else '' }}"
+      opts: "{{ hmsdocker_nas_additional_path.cifs_opts if hmsdocker_nas_additional_path.type == 'cifs' else (hmsdocker_nas_additional_path.nfs_opts if hmsdocker_nas_additional_path.type == 'nfs' else '') }}"
+      cifs_username: "{{ hmsdocker_nas_additional_path.cifs_username if hmsdocker_nas_additional_path.type == 'cifs' else '' }}"
+      cifs_password: "{{ hmsdocker_nas_additional_path.cifs_password if hmsdocker_nas_additional_path.type == 'cifs' else '' }}"
+      creds_file: "{{ hms_docker_data_path }}/.{{ project_name }}.{{ (hmsdocker_nas_additional_path.name | map('regex_replace', regex, replace) | list | join) if hmsdocker_nas_additional_path.type == 'cifs' else '' }}.cifs_creds"
+      additional: true
+      library_folders: "{{ hmsdocker_nas_additional_path.create_library_folders | default(false) }}"
   when:
     - nas_client_remote_additional_paths is defined
     - nas_client_use_additional_paths is defined and nas_client_use_additional_paths
@@ -260,18 +228,18 @@
 - name: Check for existing library folders.
   ansible.builtin.stat:
     path: "{{ hmsdocker_library_path }}/{{ item.folder_name }}"
-  with_items: "{{ hms_docker_library_folders }}"
+  loop: "{{ hms_docker_library_folders }}"
   register: library_folders_stat
 
 # New folders on a local share are owned by the container user so the apps can write to them.
 # Existing folders and NAS shares (where chown can fail, e.g. NFS root_squash or CIFS) are left as they are.
-- name: Ensure library folders.
+- name: Ensure library folders.  # noqa: risky-file-permissions
   ansible.builtin.file:
     path: "{{ hmsdocker_library_path }}/{{ item.item.folder_name }}"
     state: directory
     owner: "{{ container_uid if library_folder_new | bool else omit }}"
     group: "{{ container_gid if library_folder_new | bool else omit }}"
-  with_items: "{{ library_folders_stat.results }}"
+  loop: "{{ library_folders_stat.results }}"
   loop_control:
     label: "{{ item.item.folder_name }}"
   vars:
@@ -283,7 +251,7 @@
     state: directory
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    mode: 0755
+    mode: '0755'
   loop: "{{ enabled_containers_config_dirs }}"
 
 - name: Ensure separate 4K container config directories exist if enabled
@@ -331,8 +299,6 @@
   vars:
     authentik_key: "{{ (slurped_key_data['content'] | b64decode) if slurped_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
     authentik_pgpass: "{{ (slurped_pg_pass_data['content'] | b64decode) if slurped_pg_pass_data['content'] is defined else '### Will be obtained during full run ###' }}"
-    authentik_pgu: "{{ authentik_old_pg_user | default(authentik_pg_user) }}"
-    authentik_pgdb: "{{ authentik_old_pg_db | default(authentik_pg_db) }}"
     watchtower_key: "{{ (slurped_watchtower_key_data['content'] | b64decode) if slurped_watchtower_key_data['content'] is defined else '### Will be obtained during full run ###' }}"
     tracearr_jwt_secret: "{{ (prereq_tracearr_slurped_jwt_secret['content'] | b64decode) if prereq_tracearr_slurped_jwt_secret['content'] is defined else '### Will be obtained during full run ###' }}"
     tracearr_cookie_secret: "{{ (prereq_tracearr_slurped_cookie_secret['content'] | b64decode) if prereq_tracearr_slurped_cookie_secret['content'] is defined else '### Will be obtained during full run ###' }}"
@@ -359,7 +325,7 @@
   ansible.builtin.file:
     dest: "{{ hms_docker_data_path }}/compose_files"
     state: directory
-    mode: 0755
+    mode: '0755'
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
   register: compose_dir
@@ -367,15 +333,15 @@
 - name: Ensure App Compose Files that are not in map
   ansible.builtin.import_tasks: "generate_compose_files.yml"
 
-- name: Generate Docker Compose files for enabled containers 
+- name: Generate Docker Compose files for enabled containers
   ansible.builtin.template:
     src: containers/{{ item }}.yml.j2
     dest: "{{ compose_dir.dest | default(hms_docker_data_path + '/compose_files') }}/{{ item }}.yml"
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    mode: 0644
-    trim_blocks: yes
-    lstrip_blocks: yes
+    mode: '0644'
+    trim_blocks: true
+    lstrip_blocks: true
   loop: "{{ enabled_containers }}"
   when: item != 'authentik'
   register: compose_files_created
@@ -385,10 +351,10 @@
     src: docker-compose.yml.j2
     dest: "{{ hms_docker_data_path }}/docker-compose.yml"
     group: docker
-    mode: 0644
-    backup: yes
-    lstrip_blocks: yes
-    trim_blocks: yes
+    mode: '0644'
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
 
 # The proxies use a floating tag (`:1`) and Watchtower must not update its own proxy, so pull the
 # image on every run. Compose then recreates any proxy whose image changed. A failed pull (e.g. offline)

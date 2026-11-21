@@ -3,10 +3,10 @@
   ansible.builtin.template:
     src: secret_key_file.j2
     dest: "{{ hms_docker_data_path }}/.watchtower.key"
-    mode: 0600
+    mode: '0600'
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    force: no
+    force: false
   no_log: "{{ not debug_mode }}"
   register: watchtower_key_output
   vars:
@@ -24,10 +24,10 @@
   ansible.builtin.copy:
     src: homepage_docker.yaml
     dest: "{{ hms_docker_apps_path }}/homepage/config/docker.yaml"
-    mode: 0644
+    mode: '0644'
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    force: no
+    force: false
   register: homepage_docker_config
 
 # Points the Docker host at the filtered socket when Homepage uses the socket proxy, and back otherwise.
@@ -47,7 +47,7 @@
   ansible.builtin.copy:
     src: homepage_services.yaml
     dest: "{{ hms_docker_apps_path }}/homepage/config/services.yaml"
-    mode: 0644
+    mode: '0644'
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
-    force: no
+    force: false

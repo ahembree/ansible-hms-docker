@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   cloudflare-tunnel:
     image: cloudflare/cloudflared:latest
@@ -15,15 +16,5 @@ services:
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     {% if 'cloudflare-tunnel' in homepage_enabled_containers %}
     labels:
-      - homepage.group=Infrastructure
-      - homepage.name=Cloudflare Tunnel
-      - homepage.icon=cloudflare.png
-      - homepage.description=Cloudflare Tunnel
-      - homepage.widget.type=cloudflared
-      - homepage.widget.accountid=${CFTUNNEL_ACCT_ID:-apikeyapikeyapikey}
-      - homepage.widget.tunnelid=${CFTUNNEL_TUNNEL_ID:-apikeyapikeyapikey}
-      - homepage.widget.key=${CFTUNNEL_API_KEY:-apikeyapikeyapikey}
-      {% if 'cloudflare-tunnel' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-      {% endif %}
+      {{ labels.homepage('cloudflare-tunnel', 'Infrastructure', 'Cloudflare Tunnel', 'Cloudflare Tunnel', icon='cloudflare.png', href=none, widget={'type': 'cloudflared', 'accountid': '${CFTUNNEL_ACCT_ID:-apikeyapikeyapikey}', 'tunnelid': '${CFTUNNEL_TUNNEL_ID:-apikeyapikeyapikey}', 'key': '${CFTUNNEL_API_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
     {% endif %}

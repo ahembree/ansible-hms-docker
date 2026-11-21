@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   audiobookshelf:
     image: ghcr.io/advplyr/audiobookshelf:latest
@@ -30,23 +31,10 @@ services:
     {% if 'audiobookshelf' in traefik_enabled_containers or 'audiobookshelf' in homepage_enabled_containers %}
     labels:
       {% if 'audiobookshelf' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.audiobookshelf-${COMPOSE_PROJECT}.loadbalancer.server.port=80
-      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['audiobookshelf']['proxy_host_rule'] | default('audiobookshelf') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.audiobookshelf-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'audiobookshelf' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-audiobookshelf-midware@docker' if 'audiobookshelf' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'audiobookshelf' in tinyauth_protected_containers }}
+      {{ labels.traefik('audiobookshelf', 80) | indent(6) }}
       {% endif %}
       {% if 'audiobookshelf' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Audiobookshelf
-      - homepage.icon=audiobookshelf.png
-      - homepage.href=http://{{ hms_docker_container_map['audiobookshelf']['proxy_host_rule'] | default('audiobookshelf') }}.${HMSD_DOMAIN}
-      - homepage.description=Audiobook and Podcast Server
-      - homepage.widget.type=audiobookshelf
-      - homepage.widget.url=http://audiobookshelf:80
-      - homepage.widget.key=${AUDIOBOOKSHELF_KEY:-apikeyapikeyapikey}
-        {% if 'audiobookshelf' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('audiobookshelf', 'Media', 'Audiobookshelf', 'Audiobook and Podcast Server', widget={'type': 'audiobookshelf', 'url': 'http://audiobookshelf:80', 'key': '${AUDIOBOOKSHELF_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

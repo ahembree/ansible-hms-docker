@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'traefik' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
@@ -46,16 +47,7 @@ services:
       - traefik.http.routers.traefik-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'traefik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-traefik-midware@docker' if 'traefik' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'traefik' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'traefik' in homepage_enabled_containers and not traefik_security_hardening %}
-      - homepage.group=Infrastructure
-      - homepage.name=Traefik
-      - homepage.icon=traefik.png
-      - homepage.href=http://{{ hms_docker_container_map['traefik']['proxy_host_rule'] | default('traefik') }}.${HMSD_DOMAIN}
-      - homepage.description=Reverse Proxy
-      - homepage.widget.type=traefik
-      - homepage.widget.url=http://traefik:8080
-        {% if 'traefik' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('traefik', 'Infrastructure', 'Traefik', 'Reverse Proxy', widget={'type': 'traefik', 'url': 'http://traefik:8080'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

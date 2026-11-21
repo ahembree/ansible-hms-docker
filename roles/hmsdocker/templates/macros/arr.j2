@@ -1,0 +1,62 @@
+{# Compose service of a Sonarr/Radarr instance, shared by containers/sonarr.yml.j2 and
+   containers/radarr.yml.j2 for their regular and 4K instances.
+
+   Import:  {% import 'macros/arr.j2' as arr with context %}
+   Use:     {{ arr.service('sonarr', 'Sonarr', 'TV Show Manager', 8989, '30s') }}
+
+   app:          container map key, also the image name (linuxserver/<app>)
+   title:        name shown in Homepage
+   description:  text shown in Homepage
+   port:         port the app listens on inside the container
+   start_period: healthcheck start period
+   instance_4k:  true for the separate 4K instance (<app>-4k, published on port + 1) #}
+{% import 'macros/labels.j2' as labels with context %}
+{% macro service(app, title, description, port, start_period, instance_4k=false) %}
+{% set suffix = '-4k' if instance_4k else '' %}
+{% set service_name = app ~ suffix %}
+{% set key_env = (app | upper) ~ ('_4K' if instance_4k else '') ~ '_KEY' %}
+  {{ service_name }}:
+    image: linuxserver/{{ app }}:latest
+    container_name: {{ service_name }}
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - download_net
+      - proxy_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    {% if app in traefik_enabled_containers or app in homepage_enabled_containers %}
+    labels:
+      {% if app in traefik_enabled_containers %}
+      {{ labels.traefik(app, port, suffix=suffix) | indent(6) }}
+      {% endif %}
+      {% if app in homepage_enabled_containers %}
+      {{ labels.homepage(app, 'Managers' ~ (' - 4K' if instance_4k else ''), title ~ (' - 4K' if instance_4k else ''), description, icon=app ~ '.png', suffix=suffix, widget={'type': app, 'url': 'http://' ~ service_name ~ ':' ~ port, 'key': '${' ~ key_env ~ ':-apikeyapikeyapikey}'}) | indent(6) }}
+      {% endif %}
+    {% endif %}
+    volumes:
+      - ${HMSD_APPS_PATH}/{{ service_name }}/config:/config
+      - ${HMSD_MOUNT_PATH}:/data
+    {% if hmsdocker_svc_misc_arr_scripts_enabled | default(false) %}
+      - ${HMSD_APPS_PATH}/{{ service_name }}/custom-services.d:/custom-services.d
+      - ${HMSD_APPS_PATH}/{{ service_name }}/custom-cont-init.d:/custom-cont-init.d
+    {% endif %}
+    {% if app in expose_ports_enabled_containers %}
+    ports:
+      - {{ port + 1 if instance_4k else port }}:{{ port }}
+    {% endif %}
+    healthcheck:
+      test: curl -f http://127.0.0.1:{{ port }}/health || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: {{ start_period }}
+{%- endmacro %}

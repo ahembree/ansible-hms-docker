@@ -5,4 +5,5 @@ skip_list:
 
 exclude_paths:
   - ./galaxy-roles
-  - ./gen-docs
+  - ./.github
+  - ./docs-astro

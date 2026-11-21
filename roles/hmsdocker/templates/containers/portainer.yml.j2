@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   portainer:
     image: portainer/portainer-ce:latest
@@ -23,23 +24,9 @@ services:
     {% if 'portainer' in traefik_enabled_containers or 'portainer' in homepage_enabled_containers %}
     labels:
       {% if 'portainer' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.portainer-${COMPOSE_PROJECT}.loadbalancer.server.port=9000
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.portainer-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'portainer' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-portainer-midware@docker' if 'portainer' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'portainer' in tinyauth_protected_containers }}
+      {{ labels.traefik('portainer', 9000) | indent(6) }}
       {% endif %}
       {% if 'portainer' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=Portainer
-      - homepage.icon=portainer.png
-      - homepage.href=http://{{ hms_docker_container_map['portainer']['proxy_host_rule'] | default('portainer') }}.${HMSD_DOMAIN}
-      - homepage.description=Container Management
-      - homepage.widget.type=portainer
-      - homepage.widget.url=https://portainer:9443
-      - homepage.widget.env=1
-      - homepage.widget.key=${PORTAINER_KEY:-apikeyapikeyapikey}
-        {% if 'portainer' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('portainer', 'Infrastructure', 'Portainer', 'Container Management', widget={'type': 'portainer', 'url': 'https://portainer:9443', 'env': '1', 'key': '${PORTAINER_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

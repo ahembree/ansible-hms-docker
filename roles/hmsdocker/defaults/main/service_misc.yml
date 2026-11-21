@@ -1,9 +1,9 @@
 #######################################################################
 ### Sonarr and Radarr settings
-separate_4k_instances_enable: no
+separate_4k_instances_enable: false
 
 ## Adds the Arr-Scripts from https://github.com/RandomNinjaAtk/arr-scripts
-hmsdocker_svc_misc_arr_scripts_enabled: no
+hmsdocker_svc_misc_arr_scripts_enabled: false
 ### End of Sonarr and Radarr settings
 #######################################################################
 
@@ -11,12 +11,12 @@ hmsdocker_svc_misc_arr_scripts_enabled: no
 
 #######################################################################
 ### Tdarr settings
-tdarr_enable_node_server: no
+tdarr_enable_node_server: false
 ### End Tdarr
 #######################################################################
 
 
-hmsdocker_speedtest_api_key: 
+hmsdocker_speedtest_api_key:
 hmsdocker_speedtest_schedule: 0 0 * * *
 
 hmsdocker_netdata_claim_token:
@@ -25,7 +25,7 @@ hmsdocker_netdata_claim_rooms:
 
 #######################################################################
 ### Notifiarr settings
-hmsdocker_notifiarr_api_key: 
+hmsdocker_notifiarr_api_key:
 ### End Notifiarr settings
 #######################################################################
 
@@ -84,11 +84,11 @@ hmsdocker_monitor_disk_devices: [
   "/dev/nvme0"
 ]
 
-hmsdocker_beszel_key: 
-hmsdocker_beszel_token: 
-hmsdocker_beszel_email: 
-hmsdocker_beszel_password: 
-hmsdocker_beszel_heartbeat_url: 
+hmsdocker_beszel_key:
+hmsdocker_beszel_token:
+hmsdocker_beszel_email:
+hmsdocker_beszel_password:
+hmsdocker_beszel_heartbeat_url:
 
 hmsdocker_spottarr_usenet_hostname: ""
 hmsdocker_spottarr_usenet_username: ""

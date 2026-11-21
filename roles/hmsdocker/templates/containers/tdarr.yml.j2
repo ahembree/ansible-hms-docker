@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   tdarr:
     container_name: tdarr
@@ -47,23 +48,10 @@ services:
     {% if 'tdarr' in traefik_enabled_containers or 'tdarr' in homepage_enabled_containers %}
     labels:
       {% if 'tdarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.tdarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8265
-      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tdarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tdarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tdarr-midware@docker' if 'tdarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'tdarr' in tinyauth_protected_containers }}
+      {{ labels.traefik('tdarr', 8265) | indent(6) }}
       {% endif %}
       {% if 'tdarr' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Tdarr
-      - homepage.icon=tdarr.png
-      - homepage.href=http://{{ hms_docker_container_map['tdarr']['proxy_host_rule'] | default('tdarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Transcoder
-      - homepage.widget.type=tdarr
-      - homepage.widget.url=http://tdarr:8265
-      - homepage.widget.key=${TDARR_API_KEY}
-      {% if 'tdarr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-      {% endif %}
+      {{ labels.homepage('tdarr', 'Media', 'Tdarr', 'Media Transcoder', widget={'type': 'tdarr', 'url': 'http://tdarr:8265', 'key': '${TDARR_API_KEY}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     volumes:

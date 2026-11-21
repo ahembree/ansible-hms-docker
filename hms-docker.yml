@@ -19,7 +19,7 @@
         nvidia:
           args: []
           path: nvidia-container-runtime
-    
+
     # Merge Docker daemon settings
     docker_daemon_options: >-
       {{
@@ -48,27 +48,27 @@
     - name: (GPU Validation) Verify CUDA container works
       when: enable_nvidia_gpu | default(false)
       block:
-      - name: Run CUDA container
-        community.docker.docker_container:
-          name: nvidia-gpu-validation
-          image: ubuntu
-          command: nvidia-smi
-          runtime: nvidia
-          state: started
-          device_requests:
-            - driver: nvidia
-              count: -1
-              capabilities:
-                - gpu
-        ignore_errors: '{{ ansible_check_mode }}'
-        changed_when: false
+        - name: Run CUDA container
+          community.docker.docker_container:
+            name: nvidia-gpu-validation
+            image: ubuntu
+            command: nvidia-smi
+            runtime: nvidia
+            state: started
+            device_requests:
+              - driver: nvidia
+                count: -1
+                capabilities:
+                  - gpu
+          ignore_errors: '{{ ansible_check_mode }}'
+          changed_when: false
 
-      - name: (GPU Validation) Remove CUDA container
-        community.docker.docker_container:
-          name: nvidia-gpu-validation
-          state: absent
-        ignore_errors: '{{ ansible_check_mode }}'
-        changed_when: false
+        - name: (GPU Validation) Remove CUDA container
+          community.docker.docker_container:
+            name: nvidia-gpu-validation
+            state: absent
+          ignore_errors: '{{ ansible_check_mode }}'
+          changed_when: false
 
     - name: Ensure Unifi DNS role to manage records before theyre used in playbook
       ansible.builtin.import_role:

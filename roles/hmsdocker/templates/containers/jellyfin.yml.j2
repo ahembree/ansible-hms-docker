@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
@@ -44,24 +45,10 @@ services:
     {% if 'jellyfin' in traefik_enabled_containers or 'jellyfin' in homepage_enabled_containers %}
     labels:
       {% if 'jellyfin' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.jellyfin-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyfin-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyfin' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyfin-midware@docker' if 'jellyfin' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'jellyfin' in tinyauth_protected_containers }}
+      {{ labels.traefik('jellyfin', 8096) | indent(6) }}
       {% endif %}
       {% if 'jellyfin' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Jellyfin
-      - homepage.icon=jellyfin.png
-      - homepage.href=http://{{ hms_docker_container_map['jellyfin']['proxy_host_rule'] | default('jellyfin') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Server
-      - homepage.widget.type=jellyfin
-      - homepage.widget.url=http://jellyfin:8096
-      - homepage.widget.version=2
-      - homepage.widget.key=${JELLYFIN_KEY:-apikeyapikeyapikey}
-        {% if 'jellyfin' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('jellyfin', 'Media', 'Jellyfin', 'Media Server', widget={'type': 'jellyfin', 'url': 'http://jellyfin:8096', 'version': '2', 'key': '${JELLYFIN_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

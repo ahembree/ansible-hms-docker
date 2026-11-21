@@ -9,7 +9,7 @@ container_restart_policy: unless-stopped
 container_auto_update_schedule: "0 0 9 * * *"
 
 # Will stop and remove containers that you disable within the container map (defined below) // default: "yes"
-container_remove_orphans: yes
+container_remove_orphans: true
 
 # The timezone to use for the containers // default: "America/New_York"
 container_timezone: America/New_York
@@ -21,7 +21,7 @@ container_gid: 1234
 
 # This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
 # If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
-container_expose_ports: no
+container_expose_ports: false
 
 # Containers that get the media share (hms_docker_mount_path) mounted read-only, so they can read the library but cannot change or delete it // default: []
 # Supported: plex, emby, jellyfin, kavita, calibre, ersatztv, tunarr, audiobookshelf (checkrr and librariarr are always read-only)

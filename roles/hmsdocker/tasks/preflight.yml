@@ -60,6 +60,18 @@
       container_uid, container_gid, hms_docker_container_map.
     quiet: true
 
+# Removed fallbacks: fail with instructions instead of silently pointing Authentik at another database
+- name: (preflight) Validate removed variables are no longer set
+  ansible.builtin.assert:
+    that:
+      - authentik_old_pg_user is not defined
+      - authentik_old_pg_db is not defined
+    fail_msg: >-
+      authentik_old_pg_user and authentik_old_pg_db are no longer supported. Move their values to
+      authentik_pg_user and authentik_pg_db in inventory/group_vars/all/sso.yml and remove the old
+      variables.
+    quiet: true
+
 - name: (preflight) Validate Spottarr Usenet configuration when enabled
   ansible.builtin.assert:
     that:
@@ -126,7 +138,7 @@
       Visit https://plex.tv/claim to obtain a token, then set plex_claim_token
       in inventory/group_vars/all/plex.yml.
     quiet: true
-  when: 
+  when:
     - hms_docker_container_map['plex']['enabled'] | default(false)
     - not is_github_runner
 
@@ -405,6 +417,14 @@
       or (hms_docker_container_map['deluge']['enabled'] | default(false))
     - ((hmsdocker_vpn_user | default('', true) | string) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true) | string) | length == 0)
+
+- name: (preflight) Warn if a container that is pending removal is enabled
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + [item | capitalize + ' is pending removal, it was merged into Seerr. Enable seerr in the container map and move your data to it (steps: https://hmsdocker.dev/docs/release-notes/v1.16/), then disable ' + item + '.'] }}"
+  loop:
+    - overseerr
+    - jellyseerr
+  when: hms_docker_container_map[item]['enabled'] | default(false) | bool
 
 - name: (preflight) Warn if Tinyauth is enabled without users
   ansible.builtin.set_fact:

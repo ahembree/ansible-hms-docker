@@ -14,7 +14,8 @@
     state: "{{ gpu_prereq_packages_state }}"
   ignore_errors: '{{ ansible_check_mode }}'
 
-- name: Verify nvidia-container-runtime-hook is in $PATH
+# `which` is a shell builtin on some distributions, so this stays a shell task
+- name: Verify nvidia-container-runtime-hook is in $PATH  # noqa: command-instead-of-shell
   ansible.builtin.shell: "which nvidia-container-runtime-hook"
   register: nvidia_container_runtime_hook_path
   changed_when: false
@@ -23,4 +24,3 @@
   ansible.builtin.fail:
     msg: "nvidia-container-runtime-hook not found in $PATH"
   when: nvidia_container_runtime_hook_path.rc != 0
-

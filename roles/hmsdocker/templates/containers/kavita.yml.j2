@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   kavita:
     image: lscr.io/linuxserver/kavita:latest
@@ -25,10 +26,7 @@ services:
     {% endif %}
     {% if 'kavita' in traefik_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.kavita-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['kavita']['proxy_host_rule'] | default('kavita') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.kavita-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'kavita' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-kavita-midware@docker' if 'kavita' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'kavita' in tinyauth_protected_containers }}
+      {{ labels.traefik('kavita', 5000) | indent(6) }}
     {% endif %}
     healthcheck:
       test: curl -f http://127.0.0.1:5000/ || exit 1

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -50,24 +51,10 @@ services:
     {% if 'plex' in traefik_enabled_containers or 'plex' in homepage_enabled_containers %}
     labels:
       {% if 'plex' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.port=32400
-      - traefik.http.services.plex-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.plex-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'plex' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-plex-midware@docker' if 'plex' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'plex' in tinyauth_protected_containers }}
+      {{ labels.traefik('plex', 32400, scheme='https') | indent(6) }}
       {% endif %}
       {% if 'plex' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Plex
-      - homepage.icon=plex.png
-      - homepage.href=http://{{ hms_docker_container_map['plex']['proxy_host_rule'] | default('plex') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Server
-      - homepage.widget.type=plex
-      - homepage.widget.url=https://plex:32400
-      - homepage.widget.key=${PLEX_KEY:-apikeyapikeyapikey}
-        {% if 'plex' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('plex', 'Media', 'Plex', 'Media Server', widget={'type': 'plex', 'url': 'https://plex:32400', 'key': '${PLEX_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

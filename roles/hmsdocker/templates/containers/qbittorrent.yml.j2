@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   qbittorrent:
     image: binhex/arch-qbittorrentvpn
@@ -45,24 +46,10 @@ services:
     {% if 'qbittorrent' in traefik_enabled_containers or 'qbittorrent' in homepage_enabled_containers %}
     labels:
       {% if 'qbittorrent' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.qbittorrent-${COMPOSE_PROJECT}.loadbalancer.server.port=8086
-      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.qbittorrent-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'qbittorrent' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-qbittorrent-midware@docker' if 'qbittorrent' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'qbittorrent' in tinyauth_protected_containers }}
+      {{ labels.traefik('qbittorrent', 8086) | indent(6) }}
       {% endif %}
       {% if 'qbittorrent' in homepage_enabled_containers %}
-      - homepage.group=Downloads
-      - homepage.name=qbittorrent
-      - homepage.icon=qbittorrent.png
-      - homepage.href=http://{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.${HMSD_DOMAIN}
-      - homepage.description=Torrent Management
-      - homepage.widget.type=qbittorrent
-      - homepage.widget.url=http://qbittorrent:8086
-      - homepage.widget.username=${QBITTORRENT_USER:-admin}
-      - homepage.widget.password=${QBITTORRENT_PASS}
-        {% if 'qbittorrent' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('qbittorrent', 'Downloads', 'qbittorrent', 'Torrent Management', widget={'type': 'qbittorrent', 'url': 'http://qbittorrent:8086', 'username': '${QBITTORRENT_USER:-admin}', 'password': '${QBITTORRENT_PASS}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

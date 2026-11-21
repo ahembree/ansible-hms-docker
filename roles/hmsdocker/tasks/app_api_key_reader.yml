@@ -10,7 +10,7 @@
       ansible.builtin.slurp:
         src: "{{ sonarr_conf_path.stat.path }}"
       register: slurped_config_sonarr
-      when: 
+      when:
         - sonarr_conf_path.stat.exists
 
     - name: Check for Sonarr 4K config file
@@ -47,7 +47,7 @@
       ansible.builtin.slurp:
         src: "{{ radarr_4k_conf_path.stat.path }}"
       register: slurped_config_radarr_4k
-      when: 
+      when:
         - separate_4k_instances_enable
         - radarr_4k_conf_path.stat.exists
 
@@ -201,7 +201,6 @@
 - name: (API Key Reader) Parse and normalize all service configs
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
-    ansible_fact_cachable: false
     service_configs: "{{ result | trim | from_json }}"
   vars:
     configs:
@@ -249,13 +248,11 @@
 - name: (API Key Reader) Initialize empty API keys dict
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
-    ansible_fact_cachable: false
     api_keys: {}
 
 - name: (API Key Reader) Set all service API keys
   no_log: "{{ not debug_mode }}"
   ansible.builtin.set_fact:
-    ansible_fact_cachable: false
     api_keys: >-
       {{
         {

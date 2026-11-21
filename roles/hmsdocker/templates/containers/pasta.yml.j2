@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   pasta:
     image: cglatot/pasta:latest
@@ -18,10 +19,7 @@ services:
     {% endif %}
     {% if 'pasta' in traefik_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.pasta-${COMPOSE_PROJECT}.loadbalancer.server.port=80
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pasta']['proxy_host_rule'] | default('pasta') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.pasta-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pasta' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pasta-midware@docker' if 'pasta' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'pasta' in tinyauth_protected_containers }}
+      {{ labels.traefik('pasta', 80) | indent(6) }}
     {% endif %}
     # Image is httpd:2.4-alpine based: no bash, but busybox wget is available
     healthcheck:

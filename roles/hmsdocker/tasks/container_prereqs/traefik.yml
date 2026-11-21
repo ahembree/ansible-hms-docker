@@ -21,25 +21,25 @@
   ansible.builtin.template:
     src: traefik/hmsd_traefik_config.yml.j2
     dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
-    mode: 0644
+    mode: '0644'
     group: docker
-    backup: yes
-    lstrip_blocks: yes
-    trim_blocks: yes
+    backup: true
+    lstrip_blocks: true
+    trim_blocks: true
   notify: Restart traefik
 
 - name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/traefik/config/certs"
     state: directory
-    mode: 0755
+    mode: '0755'
   register: traefik_certs_dir
 
 - name: Traefik Prereq - Ensure Traefik Static file dir
   ansible.builtin.file:
     path: "{{ hmsdocker_traefik_static_config_location }}"
     state: directory
-    mode: 0755
+    mode: '0755'
     group: docker
   register: traefik_static_config_dir
 
@@ -47,20 +47,20 @@
   ansible.builtin.template:
     src: traefik/hmsd_traefik_middlewares.yml.j2
     dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
-    mode: 0644
+    mode: '0644'
     group: docker
-    lstrip_blocks: yes
-    trim_blocks: yes
+    lstrip_blocks: true
+    trim_blocks: true
 
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:
     src: traefik/hmsd_traefik_additional_routes.yml.j2
     dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
-    mode: 0644
+    mode: '0644'
     group: docker
     lstrip_blocks: true
     trim_blocks: true
-  with_items: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ traefik_ext_hosts_list }}"
   when:
     - traefik_ext_hosts_enabled
     - item.friendly_name is defined and item.friendly_name != ''
@@ -72,6 +72,6 @@
   ansible.builtin.file:
     path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
     state: absent
-  with_items: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ traefik_ext_hosts_list }}"
   when:
     - not item.enabled or not traefik_ext_hosts_enabled

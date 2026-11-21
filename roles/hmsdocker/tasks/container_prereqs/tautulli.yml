@@ -7,7 +7,8 @@
         scope: global
         value: "{{ tautulli_jbops_install_path }}"
 
-    - name: Ensure JBOPS repo
+    # JBOPS has no releases, so this follows its default branch
+    - name: Ensure JBOPS repo  # noqa: latest[git]
       ansible.builtin.git:
         repo: https://github.com/blacktwin/JBOPS
         clone: true

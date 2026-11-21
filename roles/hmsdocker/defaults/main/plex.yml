@@ -6,7 +6,7 @@ plex_claim_token: ""
 # When enabled, mounts the transcode/cache directory as an in-memory tmpfs inside the container instead of bind-mounting plex_transcode_folder from the host.
 # Affects plex (/transcode), emby (/cache), and jellyfin (/cache).
 # default: no // valid: yes, no
-hmsdocker_transcode_tmpfs_enabled: no
+hmsdocker_transcode_tmpfs_enabled: false
 
 # Size cap for the tmpfs mount. Accepts docker-compose tmpfs shorthand (e.g. "2g", "4g", "8g").
 # Budget ~1-2GB per concurrent 1080p transcode, more for 4K. Only consumed when transcoding.
@@ -23,12 +23,12 @@ plex_transcode_folder: "/tmp/{{ project_name }}/plex_transcode" # default: "/tmp
 # This script runs at 5am
 # NOTE: You must also have "traefik_ssl_enabled" set to "yes"
 # Enables the script and other resources // default: no // valid: yes, no
-hms_docker_plex_ssl_enabled: no
+hms_docker_plex_ssl_enabled: false
 # The hostname that will be published to Plex and is within scope of the certificates being generated // default: "plex.{{ hms_docker_domain }}"
 hms_docker_plex_ssl_public_hostname: "plex.{{ hms_docker_domain }}"
 # If the script should update the Plex server config file to point to the newly converted script // default: no // valid: yes, no
-hms_docker_plex_ssl_update_config: no
+hms_docker_plex_ssl_update_config: false
 # If the script should restart the Plex server after modifying the config // default: no // valid yes, no
-hms_docker_plex_ssl_restart_plex: no
+hms_docker_plex_ssl_restart_plex: false
 # The passphrase used to protect the certificate, leave as "null" if there should not be one // default: null
 hms_docker_plex_ssl_cert_pass: null

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   ersatztv:
     image: ghcr.io/ersatztv/legacy:latest
@@ -47,20 +48,10 @@ services:
     {% if 'ersatztv' in traefik_enabled_containers or 'ersatztv' in homepage_enabled_containers %}
     labels:
       {% if 'ersatztv' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.ersatztv-${COMPOSE_PROJECT}.loadbalancer.server.port=8409
-      - traefik.http.routers.ersatztv-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['ersatztv']['proxy_host_rule'] | default('ersatztv') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.ersatztv-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'ersatztv' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-ersatztv-midware@docker' if 'ersatztv' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'ersatztv' in tinyauth_protected_containers }}
+      {{ labels.traefik('ersatztv', 8409) | indent(6) }}
       {% endif %}
       {% if 'ersatztv' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=ErsatzTV
-      - homepage.icon=ersatztv.png
-      - homepage.href=http://{{ hms_docker_container_map['ersatztv']['proxy_host_rule'] | default('ersatztv') }}.${HMSD_DOMAIN}
-      - homepage.description=Live TV Channels
-        {% if 'ersatztv' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('ersatztv', 'Media', 'ErsatzTV', 'Live TV Channels') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

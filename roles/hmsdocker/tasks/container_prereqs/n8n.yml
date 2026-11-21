@@ -23,7 +23,7 @@
     group: "{{ container_gid }}"
   register: n8n_dbinit_dir
 
-- name: (Prereq - n8n) - Ensure db-init script
+- name: (Prereq - n8n) - Ensure db-init script  # noqa: ignore-errors
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/n8n-io/n8n-hosting/refs/heads/main/docker-compose/withPostgres/init-data.sh
     dest: "{{ hms_docker_apps_path }}/n8n/db-init/init-data.sh"
@@ -31,15 +31,15 @@
     owner: "{{ container_uid }}"
     group: "{{ container_gid }}"
   # Ignore error when in check mode if the parent directory does not exist yet
-  ignore_errors: '{{ ansible_check_mode and ((n8n_dbinit_dir.diff.before.state is defined and n8n_dbinit_dir.diff.before.state == "absent") | default(false) ) }}'
+  ignore_errors: '{{ ansible_check_mode and ((n8n_dbinit_dir.diff.before.state is defined and n8n_dbinit_dir.diff.before.state == "absent") | default(false)) }}'
 
 - name: (Prereq - n8n) - Generate Encryption Key
   ansible.builtin.template:
     src: secret_key_file.j2
     dest: "{{ hms_docker_apps_path + '/n8n/config/.n8n_encryption_key' }}"
-    mode: 0600
-    backup: yes
-    force: no
+    mode: '0600'
+    backup: true
+    force: false
   no_log: "{{ not debug_mode }}"
   register: prereq_n8n_encryption_key
   vars:

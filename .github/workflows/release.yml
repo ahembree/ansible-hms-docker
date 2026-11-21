@@ -2,7 +2,7 @@ name: Automate Release
 
 on:
   push:
-    branches: 
+    branches:
       - master
     paths:
       - 'hms-docker.yml'

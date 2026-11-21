@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   emby:
     image: lscr.io/linuxserver/emby:latest
@@ -48,23 +49,10 @@ services:
     {% if 'emby' in traefik_enabled_containers or 'emby' in homepage_enabled_containers %}
     labels:
       {% if 'emby' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.emby-${COMPOSE_PROJECT}.loadbalancer.server.port=8096
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.emby-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'emby' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-emby-midware@docker' if 'emby' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'emby' in tinyauth_protected_containers }}
+      {{ labels.traefik('emby', 8096) | indent(6) }}
       {% endif %}
       {% if 'emby' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Emby
-      - homepage.icon=emby.png
-      - homepage.href=http://{{ hms_docker_container_map['emby']['proxy_host_rule'] | default('emby') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Server
-      - homepage.widget.type=emby
-      - homepage.widget.url=http://emby:8096
-      - homepage.widget.key=${EMBY_KEY:-apikeyapikeyapikey}
-        {% if 'emby' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('emby', 'Media', 'Emby', 'Media Server', widget={'type': 'emby', 'url': 'http://emby:8096', 'key': '${EMBY_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

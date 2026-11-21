@@ -17,7 +17,7 @@
 # Audiobookshelf runs as container_uid and nothing in the image fixes ownership, so new folders on a local share
 # are owned by that user (podcast downloads fail on root:root folders). Existing folders and NAS shares, where
 # chown can fail (e.g. NFS root_squash or CIFS), are left as they are.
-- name: (Prereq - Audiobookshelf) - Ensure Audiobooks and Podcasts library folders
+- name: (Prereq - Audiobookshelf) - Ensure Audiobooks and Podcasts library folders  # noqa: risky-file-permissions
   ansible.builtin.file:
     path: "{{ hmsdocker_library_path }}/{{ item.item }}"
     state: directory

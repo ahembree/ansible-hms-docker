@@ -1,5 +1,5 @@
 # If you have more than one remote share path to use, you can enable this setting and define them below, please be sure to read the required values for each share type (CIFS, NFS, local)
-nas_client_use_additional_paths: no
+nas_client_use_additional_paths: false
 
 ### Follow the example template after these required values
 # Required values for `local` folder type:
@@ -39,7 +39,7 @@ nas_client_remote_additional_paths:
       type: nfs,
       nfs_opts: defaults,
     },
-    #{
+    # {
     #  name: "Media NAS 3",
     #  remote_path: "//nas.example.com/media_3",
     #  local_mount_path: "{{ hms_docker_mount_path }}/nas_share_3",
@@ -48,5 +48,5 @@ nas_client_remote_additional_paths:
     #  cifs_username: "",
     #  cifs_password: "",
     #  cifs_opts: "rw,soft",
-    #},
+    # },
   ]

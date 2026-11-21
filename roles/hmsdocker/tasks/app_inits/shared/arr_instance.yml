@@ -1,0 +1,341 @@
+---
+# Bootstraps one Sonarr, Radarr or Lidarr instance through its API: root folders and download clients.
+# Included by app_inits/sonarr.yml, radarr.yml and lidarr.yml, which set:
+#   hmsdocker_arr_label:          name shown in task output, e.g. "Sonarr 4K"
+#   hmsdocker_arr_app:            container map key, e.g. sonarr
+#   hmsdocker_arr_container:      container name, e.g. sonarr-4k
+#   hmsdocker_arr_host_suffix:    added to the app's subdomain, "-4k" for a 4K instance
+#   hmsdocker_arr_published_port: host port of the instance when container ports are exposed
+#   hmsdocker_arr_api_key:        API key of the instance
+#   hmsdocker_arr_api_version:    API version in the URL, e.g. v3
+#   hmsdocker_arr_media:          prefix of the app's download client fields: tv, movie or music
+#   hmsdocker_arr_category:       download client category, e.g. tv-sonarr
+#   hmsdocker_arr_library_type:   `type` of the library folders added as root folders,
+#                                 leave unset to not manage root folders
+
+- name: Arr bootstrap - Set facts ({{ hmsdocker_arr_label }})
+  ansible.builtin.set_fact:
+    hmsdocker_arr_url: "http{{ 's' if traefik_ssl_enabled and not hmsdocker_arr_app in expose_ports_enabled_containers }}://{{ hms_docker_container_map[hmsdocker_arr_app]['proxy_host_rule'] }}{{ hmsdocker_arr_host_suffix }}.{{ hms_docker_domain }}{{ (':' ~ hmsdocker_arr_published_port) if hmsdocker_arr_app in expose_ports_enabled_containers }}/api"
+
+- name: Arr bootstrap - Precheck API Key ({{ hmsdocker_arr_label }})
+  ansible.builtin.uri:
+    url: "{{ hmsdocker_arr_url }}"
+    method: GET
+    status_code: 200
+    body_format: json
+    return_content: true
+    headers:
+      X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+  register: hmsdocker_arr_api_key_precheck
+  ignore_errors: true
+
+- name: Arr bootstrap - Ensure Bootstrap after API key precheck ({{ hmsdocker_arr_label }})
+  when: hmsdocker_arr_api_key_precheck.status == 200
+  block:
+    - name: Arr bootstrap - Ensure root folders ({{ hmsdocker_arr_label }})
+      when: hmsdocker_arr_library_type | default('') | length > 0
+      block:
+        - name: Arr bootstrap - Get container info ({{ hmsdocker_arr_label }})
+          community.docker.docker_container_info:
+            name: "{{ hmsdocker_arr_container }}"
+          register: hmsdocker_arr_container_info
+
+        - name: Arr bootstrap - Get root folders ({{ hmsdocker_arr_label }})
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/rootfolder"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_root_folders
+
+        - name: Arr bootstrap - Set root folder variables ({{ hmsdocker_arr_label }})
+          ansible.builtin.set_fact:
+            hmsdocker_arr_accessible_root_folders: "{{ hmsdocker_arr_root_folders.json | json_query('[?accessible==`true`].path') }}"
+            hmsdocker_arr_mount_list: "{{ hmsdocker_arr_container_info.container.Mounts | json_query(hmsdocker_arr_mount_query) }}"
+            hmsdocker_arr_library_folders: "{{ hms_docker_library_folders | json_query(hmsdocker_arr_library_query) }}"
+          vars:
+            hmsdocker_arr_mount_query: "[?Source=='{{ hms_docker_mount_path }}'].Destination"
+            hmsdocker_arr_library_query: "[?type==`{{ hmsdocker_arr_library_type }}`].folder_name"
+
+        - name: Arr bootstrap - Ensure root folder is configured ({{ hmsdocker_arr_label }})
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/rootfolder"
+            method: POST
+            status_code:
+              - 201
+            body_format: json
+            return_content: true
+            body:
+              path: "{{ hmsdocker_arr_root_dir[0] }}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/{{ hmsdocker_arr_root_dir[1] }}"
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          when: (hmsdocker_arr_root_dir[0] + '/' + hms_docker_primary_mount_name + '/' + hms_docker_library_folder_name + '/' + hmsdocker_arr_root_dir[1]) not in hmsdocker_arr_accessible_root_folders
+          loop: "{{ hmsdocker_arr_mount_list | product(hmsdocker_arr_library_folders) | list }}"
+          loop_control:
+            loop_var: hmsdocker_arr_root_dir
+          register: hmsdocker_arr_req_add_root
+          changed_when: hmsdocker_arr_req_add_root.status == 201
+
+    - name: Arr bootstrap - Ensure download clients ({{ hmsdocker_arr_label }})
+      block:
+        - name: Arr bootstrap - Get download clients ({{ hmsdocker_arr_label }})
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/downloadclient"
+            method: GET
+            status_code: 200
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_downloaders
+
+        - name: Arr bootstrap - Set download client Facts ({{ hmsdocker_arr_label }})
+          ansible.builtin.set_fact:
+            hmsdocker_arr_download_clients: "{{ hmsdocker_arr_downloaders.json | items2dict(key_name='name', value_name='id') }}"
+
+        - name: Arr bootstrap - Configure Transmission download client ({{ hmsdocker_arr_label }})
+          when:
+            - hmsd_app_init_config_prefix + 'Transmission' not in hmsdocker_arr_download_clients
+            - "'transmission' in enabled_containers"
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}Transmission",
+              implementation: "Transmission",
+              configContract: "TransmissionSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              priority: 1,
+              enable: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "transmission"
+                },
+                {
+                  name: "port",
+                  value: 9091
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase",
+                  value: "/transmission/"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password"
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}Category",
+                  value: "{{ hmsdocker_arr_category }}"
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}Directory"
+                },
+                {
+                  name: "recent{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "older{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "addPaused",
+                  value: false
+                }
+              ]
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_req_add_download_client
+          changed_when: hmsdocker_arr_req_add_download_client.status == 201
+
+        - name: Arr bootstrap - Configure qBittorrent download client ({{ hmsdocker_arr_label }})
+          when:
+            - hmsd_app_init_config_prefix + 'qBittorrent' not in hmsdocker_arr_download_clients
+            - "'qbittorrent' in enabled_containers"
+            # Do not run in GitHub Actions. qBittorrent required to be on for postreqs, but does not start fully due to no actual VPN connection, so this will fail in Actions run
+            - not is_github_runner
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}qBittorrent",
+              enable: true,
+              priority: 1,
+              implementation: "QBittorrent",
+              configContract: "QBittorrentSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "qbittorrent"
+                },
+                {
+                  name: "port",
+                  value: 8086
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password"
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}Category",
+                  value: "{{ hmsdocker_arr_category }}"
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}ImportedCategory"
+                },
+                {
+                  name: "recent{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "older{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "initialState",
+                  value: 0
+                },
+                {
+                  name: "sequentialOrder",
+                  value: false
+                },
+                {
+                  name: "firstAndLast",
+                  value: false
+                },
+                {
+                  name: "contentLayout",
+                  value: 0
+                }
+              ],
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_req_add_download_client
+          changed_when: hmsdocker_arr_req_add_download_client.status == 201
+
+        - name: Arr bootstrap - Configure Deluge download client ({{ hmsdocker_arr_label }})
+          when:
+            - hmsd_app_init_config_prefix + 'Deluge' not in hmsdocker_arr_download_clients
+            - "'deluge' in enabled_containers"
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/downloadclient"
+            method: POST
+            body: {
+              name: "{{ hmsd_app_init_config_prefix }}Deluge",
+              enable: true,
+              priority: 1,
+              implementation: "Deluge",
+              configContract: "DelugeSettings",
+              removeCompletedDownloads: true,
+              removeFailedDownloads: true,
+              fields: [
+                {
+                  name: "host",
+                  value: "deluge"
+                },
+                {
+                  name: "port",
+                  value: 8112
+                },
+                {
+                  name: "useSsl",
+                  value: false
+                },
+                {
+                  name: "urlBase"
+                },
+                {
+                  name: "username"
+                },
+                {
+                  name: "password",
+                  value: "deluge"
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}Category",
+                  value: ""
+                },
+                {
+                  name: "{{ hmsdocker_arr_media }}ImportedCategory"
+                },
+                {
+                  name: "recent{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "older{{ hmsdocker_arr_media | capitalize }}Priority",
+                  value: 0
+                },
+                {
+                  name: "initialState",
+                  value: 0
+                },
+                {
+                  name: "sequentialOrder",
+                  value: false
+                },
+                {
+                  name: "firstAndLast",
+                  value: false
+                },
+                {
+                  name: "contentLayout",
+                  value: 0
+                }
+              ],
+            }
+            status_code: 201
+            body_format: json
+            return_content: true
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_req_add_download_client
+          changed_when: hmsdocker_arr_req_add_download_client.status == 201
+
+        - name: Arr bootstrap - Remove download clients if not enabled ({{ hmsdocker_arr_label }})
+          when:
+            - hmsd_app_init_config_prefix + item in hmsdocker_arr_download_clients.keys()
+            - item | lower not in enabled_containers
+            - hmsdocker_app_bootstrap_delete_unused
+          ansible.builtin.uri:
+            url: "{{ hmsdocker_arr_url }}/{{ hmsdocker_arr_api_version }}/downloadclient/{{ hmsdocker_arr_download_clients[hmsd_app_init_config_prefix + item] }}"
+            method: DELETE
+            status_code: 200
+            headers:
+              X-Api-Key: "{{ hmsdocker_arr_api_key }}"
+          register: hmsdocker_arr_req_del_download_client
+          changed_when: hmsdocker_arr_req_del_download_client.status == 200
+          loop:
+            - Transmission
+            - qBittorrent
+            - Deluge

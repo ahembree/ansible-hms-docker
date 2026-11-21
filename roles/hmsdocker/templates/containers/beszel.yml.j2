@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'beszel' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 {% set socket_proxy_env_map = true %}
@@ -28,25 +29,10 @@ services:
     {% if 'beszel' in traefik_enabled_containers or 'beszel' in homepage_enabled_containers %}
     labels:
       {% if 'beszel' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.beszel-${COMPOSE_PROJECT}.loadbalancer.server.port=8090
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.beszel-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'beszel' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-beszel-midware@docker' if 'beszel' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'beszel' in tinyauth_protected_containers }}
+      {{ labels.traefik('beszel', 8090) | indent(6) }}
       {% endif %}
       {% if 'beszel' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=beszel
-      - homepage.icon=beszel.png
-      - homepage.href=http://{{ hms_docker_container_map['beszel']['proxy_host_rule'] | default('beszel') }}.${HMSD_DOMAIN}
-      - homepage.description=Monitoring
-      - homepage.widget.type=beszel
-      - homepage.widget.url=http://beszel:8090
-      - homepage.widget.username=${BESZEL_EMAIL:-}
-      - homepage.widget.password=${BESZEL_PASSWORD:-}
-      - homepage.widget.version=2
-        {% if 'beszel' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('beszel', 'Infrastructure', 'beszel', 'Monitoring', widget={'type': 'beszel', 'url': 'http://beszel:8090', 'username': '${BESZEL_EMAIL:-}', 'password': '${BESZEL_PASSWORD:-}', 'version': '2'}) | indent(6) }}
       {% endif %}
     {% endif %}
     # Image is distroless — no shell, curl, or wget. The beszel binary ships

@@ -5,7 +5,7 @@
       - python3-venv
     state: present
 
-- name: Custom Scripts - Ensure pip is updated first
+- name: Custom Scripts - Ensure pip is updated first  # noqa: package-latest
   ansible.builtin.pip:
     virtualenv: "{{ hms_docker_data_path }}/.venv"
     virtualenv_command: "{{ ansible_python_interpreter }} -m venv"
@@ -31,7 +31,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
   register: scripts_path
 
 - name: Custom Scripts - Ensure env symlink
@@ -70,7 +70,7 @@
         state: directory
         owner: root
         group: root
-        mode: 0755
+        mode: '0755'
       register: monitoring_scripts_path
 
     - name: Custom Scripts - Ensure env symlink
@@ -84,7 +84,7 @@
       ansible.builtin.copy:
         src: scripts/monitoring
         dest: "{{ scripts_path.path }}"
-        mode: 0700
+        mode: '0700'
 
     - name: Custom Scripts - Ensure media availability cron
       ansible.builtin.cron:

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'tinyauth' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
@@ -61,22 +62,12 @@ services:
     {% if 'tinyauth' in traefik_enabled_containers or 'tinyauth' in homepage_enabled_containers %}
     labels:
       {% if 'tinyauth' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.tinyauth-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.tinyauth-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tinyauth-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tinyauth' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tinyauth-midware@docker' if 'tinyauth' in authentik_enabled_containers }}
+      {{ labels.traefik('tinyauth', 3000, tinyauth=false) | indent(6) }}
       # Forward-auth middleware, add `tinyauth-${COMPOSE_PROJECT}@docker` to another router's middlewares to protect it
       - traefik.http.middlewares.tinyauth-${COMPOSE_PROJECT}.forwardauth.address=http://tinyauth:3000/api/auth/traefik
       {% endif %}
       {% if 'tinyauth' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=Tinyauth
-      - homepage.icon=tinyauth.png
-      - homepage.href=http://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.${HMSD_DOMAIN}
-      - homepage.description=Authentication Middleware
-        {% if 'tinyauth' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('tinyauth', 'Infrastructure', 'Tinyauth', 'Authentication Middleware') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

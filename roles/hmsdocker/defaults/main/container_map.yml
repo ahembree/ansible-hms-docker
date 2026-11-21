@@ -288,7 +288,7 @@ hms_docker_container_map:
   overseerr:
     authentik: false
     directory: true
-    enabled: true
+    enabled: false
     expose_ports: false
     expose_to_public: false
     homepage: true
@@ -409,7 +409,7 @@ hms_docker_container_map:
   seerr:
     authentik: false
     directory: true
-    enabled: false
+    enabled: true
     expose_ports: false
     expose_to_public: false
     homepage: true

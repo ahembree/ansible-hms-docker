@@ -31,11 +31,11 @@
   ansible.builtin.template:
     src: secret_key_file.j2
     dest: "{{ authentik_key_path }}"
-    mode: 0600
+    mode: '0600'
     owner: root
     group: root
-    backup: yes
-    force: no
+    backup: true
+    force: false
   register: authentik_key_template_output
   no_log: "{{ not debug_mode }}"
   vars:
@@ -45,11 +45,11 @@
   ansible.builtin.template:
     src: secret_key_file.j2
     dest: "{{ authentik_pgpass_path }}"
-    mode: 0600
+    mode: '0600'
     owner: root
     group: root
-    backup: yes
-    force: no
+    backup: true
+    force: false
   register: authentik_pgpass_template_output
   no_log: "{{ not debug_mode }}"
   vars:
@@ -75,7 +75,7 @@
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/authentik/outposts"
     state: directory
-    mode: 0755
+    mode: '0755'
     owner: root
     group: root
 
@@ -87,28 +87,37 @@
 - name: Authentik Prereq - Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik/authentik_outpost.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}.outpost.yml"
-    mode: 0644
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
   loop: "{{ authentik_proxy_enabled_containers }}"
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.name }}"
+    hmsdocker_authentik_outpost_host: "{{ item.proxy_host_rule }}"
 
 - name: Authentik Prereq - Ensure authentik Outpost configs for static traefik configs
   ansible.builtin.template:
-    src: authentik/authentik_outpost_ext_host.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.outpost.yml"
-    mode: 0644
-  with_items: "{{ traefik_ext_hosts_list }}"
+    src: authentik/authentik_outpost.j2
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
+  loop: "{{ traefik_ext_hosts_list }}"
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}"
+    hmsdocker_authentik_outpost_host: "{{ item.subdomain_name }}"
   when:
     - item.enabled | default(false)
-    - item.authentik | default(false) 
+    - item.authentik | default(false)
     - item.authentik_provider_type | default('proxy') == 'proxy'
 
 - name: Authentik Prereq - Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
-    src: authentik/authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-4k.outpost.yml"
-    mode: 0644
+    src: authentik/authentik_outpost.j2
+    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
   loop: "{{ authentik_proxy_enabled_containers }}"
-  when: 
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.name }}-4k"
+    hmsdocker_authentik_outpost_host: "{{ item.proxy_host_rule }}-4k"
+  when:
     - item.name in ['sonarr', 'radarr']
     - separate_4k_instances_enable | default(false)
 
@@ -118,14 +127,14 @@
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/authentik/blueprints"
     state: directory
-    mode: 0755
+    mode: '0755'
   when: "'authentik' in socket_proxy_enabled_containers"
 
 - name: Authentik Prereq - Ensure Docker connection blueprint for the socket proxy
   ansible.builtin.template:
     src: authentik/hmsd_docker_connection.yaml.j2
     dest: "{{ hms_docker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
-    mode: 0644
+    mode: '0644'
   when: "'authentik' in socket_proxy_enabled_containers"
 
 - name: Authentik Prereq - Remove Docker connection blueprint when the socket proxy is not used
@@ -146,7 +155,7 @@
   ansible.builtin.file:
     path: "{{ hms_docker_apps_path }}/authentik/data"
     state: directory
-    mode: 0755
+    mode: '0755'
 
 - name: Authentik Prereq - Move legacy media directory into data directory
   ansible.builtin.command:

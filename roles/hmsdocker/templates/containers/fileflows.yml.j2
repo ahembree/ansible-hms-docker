@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   fileflows:
     image: revenz/fileflows
@@ -41,24 +42,10 @@ services:
     {% if 'fileflows' in traefik_enabled_containers or 'fileflows' in homepage_enabled_containers %}
     labels:
       {% if 'fileflows' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.fileflows-${COMPOSE_PROJECT}.loadbalancer.server.port=5000
-      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.fileflows-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'fileflows' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-fileflows-midware@docker' if 'fileflows' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'fileflows' in tinyauth_protected_containers }}
+      {{ labels.traefik('fileflows', 5000) | indent(6) }}
       {% endif %}
       {% if 'fileflows' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=Fileflows
-      - homepage.icon=fileflows.png
-      - homepage.href=http://{{ hms_docker_container_map['fileflows']['proxy_host_rule'] | default('fileflows') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Transcoder
-      - homepage.widget.type=fileflows
-      - homepage.widget.url=http://fileflows:5000
-      - homepage.widget.version=2
-      - homepage.widget.key=${FILEFLOWS_KEY:-apikeyapikeyapikey}
-        {% if 'fileflows' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('fileflows', 'Media', 'Fileflows', 'Media Transcoder', widget={'type': 'fileflows', 'url': 'http://fileflows:5000', 'version': '2', 'key': '${FILEFLOWS_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

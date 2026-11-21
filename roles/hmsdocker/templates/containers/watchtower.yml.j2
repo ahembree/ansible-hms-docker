@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'watchtower' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock' %}
 services:
@@ -28,11 +29,5 @@ services:
     networks:
       - proxy_net
     labels:
-      - homepage.group=Infrastructure
-      - homepage.name=Watchtower
-      - homepage.icon=watchtower.png
-      - homepage.description=Container Updates
-      - homepage.widget.type=watchtower
-      - homepage.widget.url=http://watchtower:8080
-      - homepage.widget.key=${WATCHTOWER_KEY:-apikeyapikeyapikey}
+      {{ labels.homepage('watchtower', 'Infrastructure', 'Watchtower', 'Container Updates', href=none, widget={'type': 'watchtower', 'url': 'http://watchtower:8080', 'key': '${WATCHTOWER_KEY:-apikeyapikeyapikey}'}, stats=false) | indent(6) }}
     {% endif %}

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   scrutiny:
     image: ghcr.io/analogj/scrutiny:latest-omnibus
@@ -30,22 +31,10 @@ services:
     {% if 'scrutiny' in traefik_enabled_containers or 'scrutiny' in homepage_enabled_containers %}
     labels:
       {% if 'scrutiny' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.scrutiny-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['scrutiny']['proxy_host_rule'] | default('scrutiny') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.scrutiny-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'scrutiny' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-scrutiny-midware@docker' if 'scrutiny' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'scrutiny' in tinyauth_protected_containers }}
+      {{ labels.traefik('scrutiny', 8080) | indent(6) }}
       {% endif %}
       {% if 'scrutiny' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=Scrutiny
-      - homepage.icon=scrutiny.png
-      - homepage.href=http://{{ hms_docker_container_map['scrutiny']['proxy_host_rule'] | default('scrutiny') }}.${HMSD_DOMAIN}
-      - homepage.description=Disk Health
-      - homepage.widget.type=scrutiny
-      - homepage.widget.url=http://scrutiny:8080
-        {% if 'scrutiny' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('scrutiny', 'Infrastructure', 'Scrutiny', 'Disk Health', widget={'type': 'scrutiny', 'url': 'http://scrutiny:8080'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

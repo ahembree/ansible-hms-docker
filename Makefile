@@ -4,7 +4,6 @@ SHELL := /bin/bash
 
 .PHONY: confirm config check apply install-reqs verify-containers manager update migrate-config _switch-branch switch-develop switch-stable branch help
 
-DEFAULT_CONFS = vars/default/*.yml
 ADVANCED_CONFS = roles/hmsdocker/defaults/main/*.yml
 
 BASEDIR=$(shell pwd)
@@ -91,7 +90,7 @@ apply: install-reqs
 
 install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
-	@ansible-galaxy collection install community.docker community.general
+	@ansible-galaxy collection install community.docker community.general ansible.posix ansible.utils
 
 verify-containers:
 	@sudo python3 .github/workflows/scripts/check_containers.py

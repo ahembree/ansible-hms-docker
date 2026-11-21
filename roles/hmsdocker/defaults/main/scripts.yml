@@ -1,15 +1,14 @@
 # Enable custom scripts
-custom_scripts_enabled: no
+custom_scripts_enabled: false
 
 
 ##### Monitoring scripts
-monitoring_scripts_enabled: no
+monitoring_scripts_enabled: false
 
 ### Media Availability script settings
 ## Useful for when there is an issue with a network share that causes media to show as unavailable, but the plex service is still online
-media_avail_script_enabled: no
+media_avail_script_enabled: false
 
 # The URL from Uptime Kuma for a "Push" notification
 # Remove the "?status=up&msg=OK&ping=" from the end, that is added by the script
-media_avail_kuma_push_url: 
-
+media_avail_kuma_push_url:

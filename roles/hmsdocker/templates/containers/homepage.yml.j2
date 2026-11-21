@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'homepage' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
 services:
@@ -27,10 +28,7 @@ services:
     {% endif %}
     {% if 'homepage' in traefik_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.homepage-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['homepage']['proxy_host_rule'] | default('homepage') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.homepage-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'homepage' in expose_public_enabled_containers else 'internal'}}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-homepage-midware@docker' if 'homepage' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'homepage' in tinyauth_protected_containers }}
+      {{ labels.traefik('homepage', 3000) | indent(6) }}
     {% endif %}
     healthcheck:
       test: wget --spider -q http://127.0.0.1:3000/ || exit 1

@@ -6,9 +6,9 @@
   ansible.builtin.template:
     src: secret_key_file.j2
     dest: "{{ hms_docker_apps_path + '/tdarr/config/.tdarr_api_key' }}"
-    mode: 0600
-    backup: yes
-    force: no
+    mode: '0600'
+    backup: true
+    force: false
   no_log: "{{ not debug_mode }}"
   register: prereq_tdarr_api_key
   vars:

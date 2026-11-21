@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'authentik' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock' %}
 {% set socket_proxy_env_map = true %}
@@ -70,25 +71,10 @@ services:
     {% if 'authentik' in traefik_enabled_containers or 'authentik' in homepage_enabled_containers %}
     labels:
       {% if 'authentik' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.port=9443
-      - traefik.http.services.authentik-server-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.authentik-server-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'authentik' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file
+      {{ labels.traefik('authentik', 9443, router='authentik-server', host_default='authentik', scheme='https', authentik=false, tinyauth=false) | indent(6) }}
       {% endif %}
       {% if 'authentik' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=Authentik
-      - homepage.icon=authentik.png
-      - homepage.href=https://{{ hms_docker_container_map['authentik']['proxy_host_rule'] | default('authentik') }}.${HMSD_DOMAIN}
-      - homepage.description=Single Sign-On
-      - homepage.widget.type=authentik
-      - homepage.widget.url=http://authentik-server:9000
-      - homepage.widget.version=2
-      - homepage.widget.key=${AUTHENTIK_KEY:-apikeyapikeyapikey}
-        {% if 'authentik' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('authentik', 'Infrastructure', 'Authentik', 'Single Sign-On', href='https', widget={'type': 'authentik', 'url': 'http://authentik-server:9000', 'version': '2', 'key': '${AUTHENTIK_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
 

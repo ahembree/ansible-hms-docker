@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   tailscale:
     image: tailscale/tailscale:latest
@@ -28,11 +29,5 @@ services:
     {% endif %}
     {% if 'tailscale' in homepage_enabled_containers %}
     labels:
-      - homepage.group=Infrastructure
-      - homepage.name=Tailscale
-      - homepage.icon=tailscale.png
-      - homepage.description=VPN
-      - homepage.widget.type=tailscale
-      - homepage.widget.deviceid=${TAILSCALE_DEVICE_ID}
-      - homepage.widget.key=${TAILSCALE_API_KEY}
+      {{ labels.homepage('tailscale', 'Infrastructure', 'Tailscale', 'VPN', href=none, widget={'type': 'tailscale', 'deviceid': '${TAILSCALE_DEVICE_ID}', 'key': '${TAILSCALE_API_KEY}'}, stats=false) | indent(6) }}
     {% endif %}

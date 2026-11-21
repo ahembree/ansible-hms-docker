@@ -9,4 +9,4 @@ nas_client_package_state: present
 nas_client_mount_state: mounted
 
 # Controls if the mount will be enabled on boot // default: "yes"
-nas_client_mount_on_boot: yes
+nas_client_mount_on_boot: true

@@ -1,0 +1,59 @@
+{# Label blocks shared by the compose templates in templates/containers/.
+
+   Import:  {% import 'macros/labels.j2' as labels with context %}
+   Use:     {{ labels.traefik('sonarr', 8989) | indent(6) }}
+
+   Each macro returns its lines without indentation and without a trailing newline, so the
+   call site decides the indentation: put the call at the indentation of the first label
+   and pass the same width to `indent`. #}
+
+{# Traefik router and service labels of a container.
+   name:         container map key
+   port:         port the app listens on inside the container
+   router:       name of the Traefik router and service, default: name
+   host_default: subdomain used when the container map entry has no proxy_host_rule, default: router
+   suffix:       added to the router name and the subdomain, e.g. '-4k'
+   scheme:       'https' when the app only answers HTTPS on that port
+   authentik:    false if the router never gets the Authentik middleware
+   tinyauth:     false if the router never gets the Tinyauth middleware #}
+{% macro traefik(name, port, router=none, host_default=none, suffix='', scheme=none, authentik=true, tinyauth=true) %}
+{% filter trim %}
+{% set router_name = (router or name) ~ suffix %}
+- traefik.enable=true
+- traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port }}
+{% if scheme %}
+- traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme={{ scheme }}
+{% endif %}
+- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map[name]['proxy_host_rule'] | default(host_default or router or name) }}{{ suffix }}.${HMSD_DOMAIN}`)
+- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ router_name ~ '-midware@docker') if authentik and name in authentik_enabled_containers else '' }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if tinyauth and name in tinyauth_protected_containers else '' }}
+{% endfilter %}
+{% endmacro %}
+
+{# Homepage labels of a container.
+   name:         container map key
+   group:        Homepage group the tile is shown in
+   title:        name shown on the tile
+   description:  text shown under the name
+   icon:         default: <name>.png
+   href:         scheme of the link to the app ('http' or 'https'), none for a tile without a link
+   host_default: subdomain used when the container map entry has no proxy_host_rule, default: name
+   suffix:       added to the subdomain, e.g. '-4k'
+   widget:       homepage.widget.* settings, written in the order given
+   stats:        true = showStats when homepage_stats is on for the container, 'always', or false #}
+{% macro homepage(name, group, title, description, icon=none, href='http', host_default=none, suffix='', widget={}, stats=true) %}
+{% filter trim %}
+- homepage.group={{ group }}
+- homepage.name={{ title }}
+- homepage.icon={{ icon or (name ~ '.png') }}
+{% if href %}
+- homepage.href={{ href }}://{{ hms_docker_container_map[name]['proxy_host_rule'] | default(host_default or name) }}{{ suffix }}.${HMSD_DOMAIN}
+{% endif %}
+- homepage.description={{ description }}
+{% for setting, value in widget.items() %}
+- homepage.widget.{{ setting }}={{ value }}
+{% endfor %}
+{% if stats == 'always' or (stats and name in homepage_stats_enabled_containers) %}
+- homepage.showStats=true
+{% endif %}
+{% endfilter %}
+{% endmacro %}

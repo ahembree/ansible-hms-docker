@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   deluge:
     image: binhex/arch-delugevpn
@@ -43,23 +44,10 @@ services:
     {% if 'deluge' in traefik_enabled_containers or 'deluge' in homepage_enabled_containers %}
     labels:
       {% if 'deluge' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.deluge-${COMPOSE_PROJECT}.loadbalancer.server.port=8112
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.deluge-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'deluge' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-deluge-midware@docker' if 'deluge' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'deluge' in tinyauth_protected_containers }}
+      {{ labels.traefik('deluge', 8112) | indent(6) }}
       {% endif %}
       {% if 'deluge' in homepage_enabled_containers %}
-      - homepage.group=Downloads
-      - homepage.name=deluge
-      - homepage.icon=deluge.png
-      - homepage.href=http://{{ hms_docker_container_map['deluge']['proxy_host_rule'] | default('deluge') }}.${HMSD_DOMAIN}
-      - homepage.description=Torrent Management
-      - homepage.widget.type=deluge
-      - homepage.widget.url=http://deluge:8112
-      - homepage.widget.password=${DELUGE_PASS:-deluge}
-        {% if 'deluge' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('deluge', 'Downloads', 'deluge', 'Torrent Management', widget={'type': 'deluge', 'url': 'http://deluge:8112', 'password': '${DELUGE_PASS:-deluge}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   transmission:
     image: haugene/transmission-openvpn:latest
@@ -29,11 +30,7 @@ services:
       - ${HMSD_MOUNT_PATH}:/data
     {% if 'transmission' in homepage_enabled_containers %}
     labels:
-      - homepage.group=Downloads
-      - homepage.name=Transmission VPN Route
-      - homepage.icon=transmission.png
-      - homepage.description=Torrent Traffic Stats
-      - homepage.showStats=true
+      {{ labels.homepage('transmission', 'Downloads', 'Transmission VPN Route', 'Torrent Traffic Stats', href=none, stats='always') | indent(6) }}
     {% endif %}
     environment:
       - OPENVPN_PROVIDER=${VPN_PROVIDER}
@@ -98,13 +95,7 @@ services:
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'transmission' in tinyauth_protected_containers }}
       {% endif %}
       {% if 'transmission' in homepage_enabled_containers %}
-      - homepage.group=Downloads
-      - homepage.name=Transmission
-      - homepage.icon=transmission.png
-      - homepage.href=http://{{ hms_docker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}
-      - homepage.description=Torrent Management
-      - homepage.widget.type=transmission
-      - homepage.widget.url=http://transmission-proxy:8080
+      {{ labels.homepage('transmission', 'Downloads', 'Transmission', 'Torrent Management', widget={'type': 'transmission', 'url': 'http://transmission-proxy:8080'}, stats=false) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
@@ -31,23 +32,10 @@ services:
     {% if 'lidarr' in traefik_enabled_containers or 'lidarr' in homepage_enabled_containers %}
     labels:
       {% if 'lidarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.lidarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8686
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.lidarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'lidarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-lidarr-midware@docker' if 'lidarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'lidarr' in tinyauth_protected_containers }}
+      {{ labels.traefik('lidarr', 8686) | indent(6) }}
       {% endif %}
       {% if 'lidarr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Lidarr
-      - homepage.icon=lidarr.png
-      - homepage.href=http://{{ hms_docker_container_map['lidarr']['proxy_host_rule'] | default('lidarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Music Manager
-      - homepage.widget.type=lidarr
-      - homepage.widget.url=http://lidarr:8686
-      - homepage.widget.key=${LIDARR_KEY:-apikeyapikeyapikey}
-        {% if 'lidarr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {{ labels.homepage('lidarr', 'Managers', 'Lidarr', 'Music Manager', widget={'type': 'lidarr', 'url': 'http://lidarr:8686', 'key': '${LIDARR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:
