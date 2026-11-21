@@ -18,7 +18,7 @@ The temporary directory on the host used by transcoding containers (Tdarr, FileF
 ### Tdarr Node Mode
 
 ```yaml
-tdarr_enable_node_server: no
+hmsdocker_tdarr_enable_node_server: no
 ```
 
 When enabled, Tdarr runs as both a server and a node on the same host, enabling distributed transcoding capabilities.
@@ -59,7 +59,7 @@ When enabled, Checkrr will automatically request replacement copies through Sona
 ```yaml
 hmsdocker_backrest_allow_write: false
 hmsdocker_backrest_enable_restore_path: false
-hmsdocker_backrest_restore_path: "{{ hms_docker_data_path }}-restore"
+hmsdocker_backrest_restore_path: "{{ hmsdocker_data_path }}-restore"
 ```
 
 - `hmsdocker_backrest_allow_write` — Grants the Backrest container write access to the data directory (default: `/opt/hms-docker`). Required for restore operations.
@@ -139,7 +139,7 @@ hmsdocker_beszel_heartbeat_url:
 ### Tautulli
 
 ```yaml
-tautulli_include_jbops: false
+hmsdocker_tautulli_include_jbops: false
 ```
 
 When enabled, downloads and mounts the [JBOPS](https://github.com/blacktwin/JBOPS) scripts into the Tautulli container for additional Plex automation capabilities.

@@ -19,13 +19,13 @@ NeXroll is then available at `nexroll.<domain>` through Traefik, or on port `939
 
 ## Where the prerolls live
 
-NeXroll keeps its own database, settings, logs, and thumbnails in `/data` inside its container. That is mapped to the usual app folder, `<hms_docker_apps_path>/nexroll/config`.
+NeXroll keeps its own database, settings, logs, and thumbnails in `/data` inside its container. That is mapped to the usual app folder, `<hmsdocker_apps_path>/nexroll/config`.
 
 The preroll videos are stored on the media share instead, so that Plex, Jellyfin, and Emby can read them through the media mount they already have:
 
 | | Path |
 |-|-|
-| On the host | `<hms_docker_mount_path>/<hms_docker_primary_mount_name>/prerolls` (by default `/mnt/hms-docker/media_data/prerolls`) |
+| On the host | `<hmsdocker_mount_path>/<hmsdocker_primary_mount_name>/prerolls` (by default `/mnt/hms-docker/media_data/prerolls`) |
 | Inside Plex, Jellyfin, and Emby | `/data/media_data/prerolls` |
 | Inside NeXroll | `/data/media_data/prerolls` (this is also set as `NEXROLL_PREROLL_PATH`) |
 
@@ -35,11 +35,11 @@ When NeXroll sets a preroll in Plex, it writes the file path into Plex's "Movie 
 
 You do not need to add anything under NeXroll's **Settings > Path Mappings**. If you ever enter or check a path by hand, use `/data/media_data/prerolls/...`.
 
-If you changed `hms_docker_primary_mount_name`, replace `media_data` in these paths with your value.
+If you changed `hmsdocker_primary_mount_name`, replace `media_data` in these paths with your value.
 
 :::
 
-NeXroll needs write access to the prerolls folder, because it saves uploads, downloads, and thumbnails there and moves files into category folders. Make sure the folder is writable by the `container_uid`/`container_gid` user, as with the rest of your media share. NeXroll runs as that user (`NEXROLL_RUN_AS_PUID=true`).
+NeXroll needs write access to the prerolls folder, because it saves uploads, downloads, and thumbnails there and moves files into category folders. Make sure the folder is writable by the `hmsdocker_container_uid`/`hmsdocker_container_gid` user, as with the rest of your media share. NeXroll runs as that user (`NEXROLL_RUN_AS_PUID=true`).
 
 ## Connecting your media servers
 

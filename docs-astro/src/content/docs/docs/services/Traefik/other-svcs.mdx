@@ -27,7 +27,7 @@ If a container exists outside of this Compose project but on the same host, you 
           - traefik.enable=true
           - traefik.http.services.<container name>.loadbalancer.server.port=<web UI port for container>
           - traefik.http.routers.<container name>.rule=Host(`<subdomain name>.${HMSD_DOMAIN}`)
-          # The following restricts it to only internal IP addresses. If you want to add additional security controls and have traefik_security_hardening enabled, you can change this to `internal-secured@file`
+          # The following restricts it to only internal IP addresses. If you want to add additional security controls and have hmsdocker_traefik_security_hardening enabled, you can change this to `internal-secured@file`
           # See the 'Middlewares' section in the 'Services and Integrations/Traefik/Security' documentation
           - traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file
           # To also require a Tinyauth sign-in, add its middleware after the allowlist instead:
@@ -41,7 +41,7 @@ If a container exists outside of this Compose project but on the same host, you 
 
     :::note
 
-      If you changed the `project_name` in the `hmsd_advanced.yml` config file, use that `project_name` instead of `hms-docker`
+      If you changed the `hmsdocker_project_name` in the `hmsd_advanced.yml` config file, use that `hmsdocker_project_name` instead of `hms-docker`
 
     :::
 
@@ -57,7 +57,7 @@ If a container exists outside of this Compose project but on the same host, you 
 
 You can add external services (such as services running on another host/server, like an external grafana server) to this projects Traefik config.
 
-In `inventory/group_vars/all/traefik.yml` you _must_ set `traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `traefik_ext_hosts_list` array.
+In `inventory/group_vars/all/traefik.yml` you _must_ set `hmsdocker_traefik_ext_hosts_enabled` to `yes`, and add the correct items to the `hmsdocker_traefik_ext_hosts_list` array.
 
 Set `tinyauth: yes` on an item to require a [Tinyauth](/docs/services/tinyauth/) sign-in for it. This needs the `tinyauth` container enabled with `traefik: true`.
 

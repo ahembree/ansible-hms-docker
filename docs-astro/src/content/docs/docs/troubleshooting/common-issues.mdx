@@ -22,8 +22,8 @@ If containers cannot read or write files, this is typically a UID/GID mismatch.
 **Check your current settings** in `inventory/group_vars/all/container_settings.yml`:
 
 ```yaml
-container_uid: 1234
-container_gid: 1234
+hmsdocker_container_uid: 1234
+hmsdocker_container_gid: 1234
 ```
 
 These should match the owner of your media files. To check file ownership:
@@ -62,12 +62,12 @@ If VPN-enabled containers (Transmission, qBittorrent, Deluge) fail to start or c
 
 If you see SSL/TLS certificate errors:
 
-1. **Start with staging:** Set `traefik_ssl_use_letsencrypt_staging_url: true` in `inventory/group_vars/all/traefik.yml` to test without hitting rate limits
+1. **Start with staging:** Set `hmsdocker_traefik_ssl_use_letsencrypt_staging_url: true` in `inventory/group_vars/all/traefik.yml` to test without hitting rate limits
 2. **Check Traefik logs:** `docker logs -f traefik` — look for ACME/Let's Encrypt errors
-3. **Verify DNS provider credentials** are correct in `traefik_ssl_dns_provider_environment_vars`
+3. **Verify DNS provider credentials** are correct in `hmsdocker_traefik_ssl_dns_provider_environment_vars`
 4. **Check DNS propagation:** The DNS challenge requires your DNS provider API to be accessible and the records to propagate
 
-Once staging certificates work correctly, switch to production by setting `traefik_ssl_use_letsencrypt_staging_url: false`.
+Once staging certificates work correctly, switch to production by setting `hmsdocker_traefik_ssl_use_letsencrypt_staging_url: false`.
 
 ## Container Override Errors
 
