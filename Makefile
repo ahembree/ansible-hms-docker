@@ -27,8 +27,9 @@ CONF_BACKUP_DIR = backups
 # No longer used by this Makefile, but DO NOT REMOVE: older Makefiles' 'make update'
 # recipe keeps running after 'git pull' and greps this line out of the freshly
 # pulled Makefile. Without it their first update silently skips the container map merge.
-# The docs workflows publish the container map there under its old top-level key
-# (hms_docker_container_map), which is the one those Makefiles look for.
+# The docs workflows publish the container map there the way those Makefiles know it: under its
+# old top-level key (hms_docker_container_map) and with the per-container `proxy` key still named
+# `traefik`, so their merge keeps the user's value instead of replacing it with the default.
 REMOTE_CONFIG_URL = https://hmsdocker.dev/configs
 
 VENV_DIR = .venv
