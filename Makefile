@@ -97,7 +97,7 @@ install-reqs:
 	@ansible-galaxy install -r galaxy-requirements.yml -p ./galaxy-roles
 	@ansible-galaxy collection install community.docker community.general ansible.posix ansible.utils
 
-# Needs ansible-lint installed (e.g. 'pipx install --include-deps ansible-lint'), rules are in .ansible-lint
+# Needs ansible-lint installed (e.g. 'pipx install ansible-lint'), rules are in .ansible-lint
 lint: install-reqs
 	@ansible-lint
 

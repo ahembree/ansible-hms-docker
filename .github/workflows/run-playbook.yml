@@ -57,7 +57,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install ansible-lint
-        run: pipx install --include-deps ansible-lint
+        # A venv of its own, so that ansible-lint and the ansible-galaxy that `make lint` calls
+        # come from the same install, whatever Ansible the runner image ships with
+        run: |
+          python3 -m venv "$HOME/ansible-lint-venv"
+          "$HOME/ansible-lint-venv/bin/pip" install ansible-lint
+          echo "$HOME/ansible-lint-venv/bin" >> "$GITHUB_PATH"
 
       - name: Run ansible-lint
         run: make lint
