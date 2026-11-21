@@ -4,7 +4,7 @@
 Usage: python3 migrations/apply_renames.py <inventory dir> [--check]
 
 Reads the `renames` list of migrations/variable_renames.yml and, for every
-*.yml file in <inventory dir>:
+*.yml and *.yaml file in <inventory dir>:
   - renames top-level keys (the variable definitions), and
   - renames references to those variables inside {{ ... }} and {% ... %}.
 Everything else (values, comments, formatting) is left as it is.
@@ -61,7 +61,7 @@ def migrate(text, renames, taken):
         renamed.append(old)
 
     names = sorted(renames, key=len, reverse=True)
-    reference = re.compile(r"(?<![\w.'\"])(" + "|".join(map(re.escape, names)) + r")(?![\w'\"(])")
+    reference = re.compile(r"(?<![\w.])(" + "|".join(map(re.escape, names)) + r")(?![\w(])")
 
     # References are rewritten one top-level variable at a time, so that a variable whose value
     # falls back to its own old name ("{{ old_name | default(...) }}") is not turned into a
@@ -87,7 +87,7 @@ def main(argv):
         return 2
     inventory = args[0]
     renames = load_renames()
-    files = sorted(glob.glob(os.path.join(inventory, "*.yml")))
+    files = sorted(glob.glob(os.path.join(inventory, "*.yml")) + glob.glob(os.path.join(inventory, "*.yaml")))
     if not files:
         print("No inventory files in %s, nothing to rename (run 'make config' first)" % inventory)
         return 0

@@ -35,7 +35,7 @@
 
 # hostvars holds inventory-sourced vars but not role defaults, so membership
 # means the user explicitly set the new name. Must be snapshotted before
-# aliasing, because the aliasing set_fact adds the new names to hostvars.
+# aliasing, because the aliases add the new names to hostvars.
 - name: (compat) Snapshot which new names the user set explicitly
   ansible.builtin.set_fact:
     hmsdocker_user_set_new_names: >-
@@ -46,24 +46,53 @@
         | list
       }}
 
-# The fact name comes from the migration map, which only maps to hmsdocker_ names
-- name: (compat) Alias deprecated variables to their new names  # noqa: var-naming[no-jinja] var-naming[no-role-prefix]
-  ansible.builtin.set_fact:
-    "{{ item.new }}": "{{ lookup('vars', item.old) }}"
-  loop: "{{ hmsdocker_active_migrations }}"
-  loop_control:
-    label: "{{ item.old }} -> {{ item.new }}"
-  # Skip null / empty old values: Jinja stringifies None as the literal
-  # "None", which would silently bypass downstream length-based asserts.
-  # Skip names the user already set: set_fact outranks group_vars and would
-  # clobber their value with the stale old one.
-  when:
-    - (lookup('vars', item.old) | default('', true) | string) | length > 0
-    - item.new not in hmsdocker_user_set_new_names
-  # Old values may include credentials (e.g. transmission_vpn_pass), and
-  # set_fact echoes them in its result, so hide output unless debug mode is on
-  # (under either its new or its old name, which is only aliased by this task).
-  no_log: "{{ not ((hmsdocker_debug_mode | default(false) | bool) or (debug_mode | default(false) | bool)) }}"
+# Each alias is a variable `new_name: "{{ old_name }}"`, loaded with include_vars from a temporary
+# file on the controller. It is a reference, not a copy, so the new name always has exactly the
+# value and type of the old one (false, "", [], null, a string "true", ...) on every Ansible
+# version. set_fact cannot do this: it evaluates the value once, and before Ansible 2.19 it turns
+# numbers into text and the strings "true"/"false"/"yes"/"no" into booleans.
+# Names the user already set are not aliased, their own value wins.
+- name: (compat) Alias deprecated variables to their new names
+  when: hmsdocker_alias_migrations | length > 0
+  vars:
+    hmsdocker_alias_migrations: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+  block:
+    - name: (compat) Create a temporary file for the aliases
+      ansible.builtin.tempfile:
+        suffix: .hmsdocker-aliases.yml
+      register: hmsdocker_alias_file
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+
+    - name: (compat) Write the aliases
+      ansible.builtin.copy:
+        dest: "{{ hmsdocker_alias_file.path }}"
+        mode: '0600'
+        content: |
+          {% for hmsdocker_alias in hmsdocker_alias_migrations %}
+          {{ hmsdocker_alias.new }}: "{% raw %}{{ {% endraw %}{{ hmsdocker_alias.old }}{% raw %} }}{% endraw %}"
+          {% endfor %}
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      diff: false
+
+    - name: (compat) Load the aliases
+      ansible.builtin.include_vars:
+        file: "{{ hmsdocker_alias_file.path }}"
+  always:
+    - name: (compat) Remove the temporary file
+      ansible.builtin.file:
+        path: "{{ hmsdocker_alias_file.path }}"
+        state: absent
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      when: hmsdocker_alias_file.path is defined
 
 # One warning for all renamed variables that are simply still under their old name (an inventory
 # from before the hmsdocker_ prefix has about a hundred of them), and one per variable that is set
@@ -86,7 +115,9 @@
         + (
             hmsdocker_migrations_both_set
             | map(attribute='old')
-            | map('regex_replace', '^(.*)$', "DEPRECATED: '\\1' has been renamed and is set in your inventory under both its old and its new name. The new name is used and '\\1' is ignored, remove it.")
+            | zip(hmsdocker_migrations_both_set | map(attribute='new'))
+            | map('join', ' ')
+            | map('regex_replace', '^(\S+) (\S+)$', "DEPRECATED: '\1' has been renamed to '\2' and both are set (in your inventory, or '\1' with -e). '\2' is used and '\1' is ignored. Remove '\1' from your inventory, or pass '\2' with -e instead.")
             | list
           )
       }}
@@ -94,3 +125,13 @@
     hmsdocker_migrations_both_set: "{{ hmsdocker_active_migrations | selectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
     hmsdocker_migrations_old_only: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
   when: hmsdocker_active_migrations | length > 0
+
+# debug_mode and is_github_runner are play variables in hms-docker.yml that default to false, so
+# they are only true here when they were passed with -e under their old name.
+- name: (compat) Record deprecation warnings for renamed command line switches
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['DEPRECATED: -e ' ~ item ~ ' has been renamed, use -e hmsdocker_' ~ item ~ ' instead. The old name still works for now.'] }}"
+  loop:
+    - debug_mode
+    - is_github_runner
+  when: lookup('vars', item, default=false) | bool

@@ -8,10 +8,17 @@
     # as the YAML float 1.2 and break the version comparison.
     hmsdocker_current_version: "1.21.0"
     hmsdocker_version_file: "{{ hmsdocker_data_path }}/.hmsd-version"
-    hmsdocker_is_github_runner: false
     hmsdocker_sanitize_regex: '[^A-Za-z0-9._-]'
     hmsdocker_sanitize_replace: '_'
-    hmsdocker_debug_mode: false
+
+    # Switches that are only meant to be set on the command line (-e hmsdocker_debug_mode=true).
+    # debug_mode and is_github_runner are their old names. They stay play variables, and are not
+    # in migrations/variable_renames.yml, so that they keep behaving as they always did: -e sets
+    # them, and a value in the inventory is ignored because play variables outrank it.
+    debug_mode: false
+    is_github_runner: false
+    hmsdocker_debug_mode: "{{ debug_mode }}"
+    hmsdocker_is_github_runner: "{{ is_github_runner }}"
 
     # GPU-specific Docker daemon settings (not user-overridable — required for the GPU integration)
     hmsdocker_docker_daemon_options_gpu:

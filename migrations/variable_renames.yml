@@ -58,7 +58,6 @@ renames:
   - { old: container_timezone, new: hmsdocker_container_timezone }
   - { old: container_uid, new: hmsdocker_container_uid }
   - { old: custom_scripts_enabled, new: hmsdocker_custom_scripts_enabled }
-  - { old: debug_mode, new: hmsdocker_debug_mode }
   - { old: docker_daemon_options_base, new: hmsdocker_docker_daemon_options_base }
   - { old: enable_intel_gpu, new: hmsdocker_enable_intel_gpu }
   - { old: enable_nvidia_gpu, new: hmsdocker_enable_nvidia_gpu }
@@ -89,7 +88,6 @@ renames:
   - { old: homepage_nzbget_password, new: hmsdocker_homepage_nzbget_password }
   - { old: homepage_nzbget_username, new: hmsdocker_homepage_nzbget_username }
   - { old: homepage_portainer_key, new: hmsdocker_homepage_portainer_key }
-  - { old: is_github_runner, new: hmsdocker_is_github_runner }
   - { old: media_avail_kuma_push_url, new: hmsdocker_media_avail_kuma_push_url }
   - { old: media_avail_script_enabled, new: hmsdocker_media_avail_script_enabled }
   - { old: monitoring_scripts_enabled, new: hmsdocker_monitoring_scripts_enabled }
