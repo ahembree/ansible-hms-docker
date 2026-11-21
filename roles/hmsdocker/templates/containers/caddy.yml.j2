@@ -1,0 +1,51 @@
+{% import 'macros/labels.j2' as labels with context %}
+services:
+  caddy:
+    image: ${CADDY_IMAGE:-docker.io/library/caddy:2.11.9}
+    container_name: caddy
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    environment:
+      - TZ=${TIMEZONE}
+    {% if 'crowdsec' in hmsdocker_enabled_containers %}
+      # CrowdSec bouncer API key, read by the Caddyfile as {env.CROWDSEC_BOUNCER_KEY}
+      - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY}
+    {% endif %}
+    {% if hmsdocker_ssl_enabled and hmsdocker_ssl_dns_provider_environment_vars %}
+        {% for key, value in hmsdocker_ssl_dns_provider_environment_vars.items() %}
+      - {{ key }}={% raw %}${{% endraw %}{{ key }}{% raw %}}{% endraw +%}
+        {% endfor %}
+    {% endif %}
+    networks:
+      - proxy_net
+    volumes:
+      # The Caddyfile folder of this image, see hmsdocker_caddy_config_name
+      - ${HMSD_APPS_PATH}/caddy/config/{{ hmsdocker_caddy_config_name }}:/etc/caddy:ro
+      - {{ hmsdocker_caddy_custom_config_location }}:/etc/caddy-custom:ro
+      - ${HMSD_APPS_PATH}/caddy/data:/data
+    {% if hmsdocker_caddy_build_modules | length > 0 or 'caddy' in hmsdocker_homepage_enabled_containers %}
+    labels:
+      {% if hmsdocker_caddy_build_modules | length > 0 %}
+      # Built locally by the playbook, there is no registry image for Watchtower to update it from
+      - com.centurylinklabs.watchtower.enable=false
+      {% endif %}
+      {% if 'caddy' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('caddy', 'Infrastructure', 'Caddy', 'Reverse Proxy', href=none, widget={'type': 'caddy', 'url': 'http://caddy:2020'}) | indent(6) }}
+      {% endif %}
+    {% endif %}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2020/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s

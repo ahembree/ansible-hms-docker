@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   unmanic:
     image: josh5/unmanic:latest
@@ -10,11 +11,11 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if enable_intel_gpu %}
+    {% if hmsdocker_enable_intel_gpu %}
     devices:
       - "/dev/dri:/dev/dri"
     {% endif %}
-    {% if 'unmanic' in expose_ports_enabled_containers %}
+    {% if 'unmanic' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8889:8888
     {% endif %}
@@ -24,7 +25,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TIMEZONE}
-    {% if enable_nvidia_gpu %}
+    {% if hmsdocker_enable_nvidia_gpu %}
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
@@ -33,25 +34,13 @@ services:
       - ${HMSD_APPS_PATH}/unmanic/config:/config
       - ${HMSD_MOUNT_PATH}:/library
       - {{ hmsdocker_transcode_temp_path }}/unmanic:/tmp/unmanic
-    {% if 'unmanic' in traefik_enabled_containers or 'unmanic' in homepage_enabled_containers %}
+    {% if 'unmanic' in hmsdocker_traefik_enabled_containers or 'unmanic' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'unmanic' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.unmanic-${COMPOSE_PROJECT}.loadbalancer.server.port=8888
-      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['unmanic']['proxy_host_rule'] | default('unmanic') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.unmanic-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'unmanic' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-unmanic-midware@docker' if 'unmanic' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'unmanic' in tinyauth_protected_containers }}
+      {% if 'unmanic' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('unmanic', 8888) | indent(6) }}
       {% endif %}
-      {% if 'unmanic' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=unmanic
-      - homepage.icon=unmanic.png
-      - homepage.href=https://{{ hms_docker_container_map['unmanic']['proxy_host_rule'] | default('unmanic') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Transcoder
-      - homepage.widget.type=unmanic
-      - homepage.widget.url=http://unmanic:8888
-        {% if 'unmanic' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'unmanic' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('unmanic', 'Media', 'unmanic', 'Media Transcoder', href='https', widget={'type': 'unmanic', 'url': 'http://unmanic:8888'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

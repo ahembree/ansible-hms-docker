@@ -70,7 +70,10 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 ## Networking
 
 - [Traefik](https://hub.docker.com/_/traefik): reverse proxy (with SSL support from Let's Encrypt if configured)
+- [Caddy](https://caddyserver.com/): reverse proxy, an alternative to Traefik with the same routes and SSL support, [see here](/docs/services/caddy/) <Badge text="New" variant="success"/>
 - [Tailscale](https://hub.docker.com/r/tailscale/tailscale): mesh VPN
+- [CrowdSec](https://github.com/crowdsecurity/crowdsec): blocks abusive IPs at Traefik or Caddy <Badge text="New" variant="success"/>
+- [NetBird](https://github.com/netbirdio/netbird): mesh VPN client <Badge text="New" variant="success"/>
 - [Cloudflare-DDNS](https://github.com/favonia/cloudflare-ddns): dynamic dns (if enabled)
 - [Cloudflare Tunnel](https://hub.docker.com/r/cloudflare/cloudflared): Allows you to expose HTTP services without port-forwarding on your router, [see here](https://www.cloudflare.com/products/tunnel/) for more info
 
@@ -80,7 +83,7 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Dockhand](https://github.com/Finsys/dockhand): container management GUI
 - [Watchtower](https://github.com/containrrr/watchtower): automatic container updates
 - [Socket Proxy](https://github.com/wollomatic/socket-proxy): gives each container that uses the Docker socket a filtered socket with only the access it needs, [see here](/docs/services/socket-proxy/) <Badge text="New" variant="success"/>
-- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik
+- [Authentik](https://github.com/goauthentik/authentik): SSO (Single Sign-On), requires TLS/SSL with Traefik or Caddy
 - [Uptime Kuma](https://github.com/louislam/uptime-kuma): service status monitoring
 - [Notifiarr](https://github.com/Notifiarr/notifiarr): notification system
 - [Speedtest-Tracker](https://github.com/alexjustesen/speedtest-tracker): internet speed monitoring
@@ -92,11 +95,11 @@ Have one you want to add? Submit an [Issue](https://github.com/ahembree/ansible-
 - [Scrutiny](https://github.com/analogj/scrutiny): drive health monitoring
 - [Beszel](https://github.com/henrygd/beszel): observability
 - [Pocket ID](https://github.com/pocket-id/pocket-id): passkey-only OIDC provider <Badge text="New" variant="success"/>
-- [Tinyauth](https://github.com/steveiliop56/tinyauth): lightweight authentication middleware for Traefik, see [Tinyauth and Pocket ID](/docs/services/tinyauth/) <Badge text="New" variant="success"/>
+- [Tinyauth](https://github.com/steveiliop56/tinyauth): lightweight authentication middleware for Traefik or Caddy, see [Tinyauth and Pocket ID](/docs/services/tinyauth/) <Badge text="New" variant="success"/>
 
 ## Container Map
 
-The container map controls which containers are enabled, if they are accessible via Traefik, protected by Authentik, integrated with Homepage, and the proxy rule used to access the container if behind Traefik.
+The container map controls which containers are enabled, if they are accessible via the reverse proxy (Traefik or [Caddy](/docs/services/caddy/)), protected by Authentik, integrated with Homepage, and the proxy rule used to access the container if behind the reverse proxy.
 
 By default, the container map is in `inventory/group_vars/all/container_map.yml`
 
@@ -112,7 +115,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 
 ### Map
 
-| Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik | Homepage Integration |
+| Service Name                             | Enabled by Default | Container Name       | Host Port (if enabled)         | Container Port                 | Accessible via Traefik/Caddy | Homepage Integration |
 | ---------------------------------------- | ------------------ | -------------------- | ------------------------------ | ------------------------------ | ---------------------- | -------------------- |
 | Watchtower                               | &#9745;            | `watchtower`         |                                |                                | &#9744;                | &#9745;              |
 | Plex                                     | &#9745;            | `plex`               | `32400`                        | `32400`                        | &#9745;                | &#9745;              |
@@ -122,9 +125,9 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Radarr (Separate 4K instance)            | &#9744;            | `radarr-4k`          | `7879`                         | `7878`                         | &#9745;                | &#9745;              |
 | Prowlarr                                 | &#9745;            | `prowlarr`           | `9696`                         | `9696`                         | &#9745;                | &#9745;              |
 | Spottarr                                 | &#9744;            | `spottarr`            | `8383`                         | `8383`                         | &#9745;                | &#9745;              |
-| Overseerr                                | &#9745;            | `overseerr`          | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
+| Overseerr                                | &#9744;            | `overseerr`          | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
 | Jellyseerr                               | &#9744;            | `jellyseerr`         | `5056`                         | `5055`                         | &#9745;                | &#9745;              |
-| Seerr                                    | &#9744;            | `seerr`              | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
+| Seerr                                    | &#9745;            | `seerr`              | `5055`                         | `5055`                         | &#9745;                | &#9745;              |
 | Requestrr                                | &#9745;            | `requestrr`          | `4545`                         | `4545`                         | &#9745;                | &#9745;              |
 | Transmission UI Proxy                    | &#9745;            | `transmission-proxy` | `8081`                         | `8080`                         | &#9745;                | &#9745;              |
 | Transmission (HTTP Proxy)                | &#9745;            | `transmission`       | `8888`                         | `8888`                         | &#9744;                | &#9744;              |
@@ -133,6 +136,7 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Bazarr                                   | &#9745;            | `bazarr`             | `6767`                         | `6767`                         | &#9745;                | &#9745;              |
 | Tautulli                                 | &#9745;            | `tautulli`           | `8181`                         | `8181`                         | &#9745;                | &#9745;              |
 | Traefik                                  | &#9745;            | `traefik`            | `80`, `8080`, `443`            | `80`, `8080`, `443`            | &#9745;                | &#9745;              |
+| Caddy                                    | &#9744;            | `caddy`              | `80`, `443`                    | `80`, `443`                    | &#9744;                | &#9745;              |
 | Nzbget                                   | &#9744;            | `nzbget`             | `6789`                         | `6789`                         | &#9745;                | &#9745;              |
 | Sabnzbd                                  | &#9744;            | `sabnzbd`            | `8082`                         | `8080`                         | &#9745;                | &#9745;              |
 | Authentik                                | &#9744;            | `authentik-server`   | `9001`, `9443`                 | `9000`, `9443`                 | &#9745;                | &#9745;              |
@@ -182,6 +186,8 @@ If both Jellyfin and Emby are enabled, then Emby will be available on ports `809
 | Pocket ID                                | &#9744;            | `pocketid`           | `1411`                         | `1411`                         | &#9745;                | &#9745;              |
 | Tinyauth                                 | &#9744;            | `tinyauth`           | `3004`                         | `3000`                         | &#9745;                | &#9745;              |
 | Socket Proxy                             | &#9744;            | `socket-proxy-<name>` |                                |                                | &#9744;                | &#9744;              |
+| CrowdSec                                 | &#9744;            | `crowdsec`           |                                |                                | &#9744;                | &#9744;              |
+| NetBird                                  | &#9744;            | `netbird`            |                                |                                | &#9744;                | &#9745;              |
 
 ### Container Map Entry Example
 
@@ -195,11 +201,11 @@ Here is an example of a container map entry for Sonarr:
     directory: true                 # Do **NOT** modify, controls if a container "app" folder is created
     enabled: true                   # Enables or disables the container named above
     expose_ports: false             # If the container ports should be open on the host
-    expose_to_public: false         # If the container should be exposed to public (0.0.0.0/0) traffic through Traefik IP allowlist rules
+    expose_to_public: false         # If the container should be exposed to public (0.0.0.0/0) traffic through the reverse proxy IP allowlist rules
     homepage: true                  # If the integration with the Homepage container should be enabled
     homepage_stats: false           # Enables advanced stats for the container within Homepage (CPU, RAM, RX/TX)
+    proxy: true                     # If container should be accessible via the reverse proxy (Traefik or Caddy)
     proxy_host_rule: sonarr         # The subdomain that will route to the container
-    traefik: true                   # If container should be accessible via Traefik
 ...
 ```
 
@@ -235,6 +241,7 @@ A list of the locations where items will need to be updated:
 
 ```yml
 #roles/hmsdocker/templates/containers/container_name.yml
+{% import 'macros/labels.j2' as labels with context %}
 services:
   <container name>:
     image: <container image>
@@ -250,10 +257,10 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    # Depends on the network access it needs, proxy_net is required for Traefik
+    # Depends on the network access it needs, proxy_net is required for Traefik and Caddy
     networks:
       - proxy_net
-    {% if '<container name>' in expose_ports_enabled_containers %}
+    {% if '<container name>' in hmsdocker_expose_ports_enabled_containers %}
     # Check the container map to see if any existing containers will cause an overlap
     # If so, the host port (left side) will need to be changed to no longer overlap
     ports:
@@ -269,28 +276,17 @@ services:
       - ${HMSD_APPS_PATH}/<container name>/config:/config
       # If the container needs access to your media data, add the below
       - ${HMSD_MOUNT_PATH}:/data
-    {% if '<container name>' in traefik_enabled_containers or '<container name>' in homepage_enabled_containers %}
+    {% if '<container name>' in hmsdocker_traefik_enabled_containers or '<container name>' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if '<container name>' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.<container name>-${COMPOSE_PROJECT}.loadbalancer.server.port=<container UI port>
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.<container name>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<container name>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<container name>-midware@docker' if '<container name>' in authentik_enabled_containers }}
+      {% if '<container name>' in hmsdocker_traefik_enabled_containers %}
+      # Writes the Traefik labels (see `roles/hmsdocker/templates/macros/labels.j2` for the options)
+      {{ labels.traefik('<container name>', <container UI port>) | indent(6) }}
       {% endif %}
       # Below is only for Homepage
-      {% if '<container name>' in homepage_enabled_containers %}
-      - homepage.group=<Homepage group name>
-      - homepage.name=<container name>
-      - homepage.icon=<container name>.png
-      - homepage.href=http://{{ hms_docker_container_map['<container name>']['proxy_host_rule'] | default('<container name>') }}.${HMSD_DOMAIN}
-      - homepage.description=<homepage description>
+      {% if '<container name>' in hmsdocker_homepage_enabled_containers %}
       # If the container supports a widget, there is an additional task that runs to "slurp" the API key from a file automatically (if supported) in `tasks/app_api_key_reader.yml` that is then inserted into the `.env` file template
-      - homepage.widget.type=<container name>
-      - homepage.widget.url=http://<container name>:<container UI port>
-      - homepage.widget.key=${<CONTAINER NAME>_KEY:-apikeyapikeyapikey}
-        {% if '<container name>' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      # Leave out `widget=` if the container has no Homepage widget
+      {{ labels.homepage('<container name>', '<Homepage group name>', '<container name>', '<homepage description>', widget={'type': '<container name>', 'url': 'http://<container name>:<container UI port>', 'key': '${<CONTAINER NAME>_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:
@@ -300,3 +296,13 @@ services:
       retries: 3
       start_period: 30s
 ```
+
+Caddy does not read container labels. For a container with a web UI, also add its upstream (the container name and UI port from the labels above) to `hmsdocker_caddy_upstreams` in `roles/hmsdocker/vars/main.yml`:
+
+```yaml
+hmsdocker_caddy_upstreams:
+  ...
+  <container name>: { port: <container UI port> }
+```
+
+CI fails if the two do not match.

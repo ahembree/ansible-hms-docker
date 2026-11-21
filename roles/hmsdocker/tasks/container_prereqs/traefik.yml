@@ -1,68 +1,101 @@
 ---
 - name: Traefik Prereq - Extend Traefik subdomain hosts list
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [item.subdomain_name] }}"
   when:
     - item.enabled
-    - item.subdomain_name not in traefik_enabled_subdomains
-  loop: '{{ traefik_ext_hosts_list }}'
+    - item.subdomain_name not in hmsdocker_traefik_enabled_subdomains
+  loop: '{{ hmsdocker_proxy_ext_hosts_list }}'
 
 - name: Traefik Prereq - Extend Traefik subdomain hosts list if 4K instances are enabled
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item + '-4k'] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [item + '-4k'] }}"
   when:
-    - separate_4k_instances_enable
-    - item in traefik_enabled_containers
+    - hmsdocker_separate_4k_instances_enable
+    - item in hmsdocker_traefik_enabled_containers
   loop:
     - sonarr
     - radarr
 
-- name: Traefik Prereq - Ensure Traefik config.
-  ansible.builtin.template:
-    src: traefik/hmsd_traefik_config.yml.j2
-    dest: "{{ hms_docker_apps_path }}/traefik/config/traefik.yml"
-    mode: 0644
-    group: docker
-    backup: yes
-    lstrip_blocks: yes
-    trim_blocks: yes
-  notify: Restart traefik
+# The CrowdSec bouncer (plugin and entrypoint middleware) only goes into Traefik's config once Traefik's container has
+# the plugin mounted. A container created before CrowdSec was enabled does not have it: if this run stopped before
+# Compose recreates Traefik, and Traefik then restarted (e.g. after a reboot), it would load a config whose plugin it
+# cannot find, and every route on ports 80 and 443 would break. In that case the CrowdSec postreqs add the bouncer
+# after Compose has recreated Traefik. Without a Traefik container yet, Compose creates it with the mount
+- name: Traefik Prereq - Get Traefik container
+  community.docker.docker_container_info:
+    name: traefik
+  register: hmsdocker_traefik_container_info
+  when: "'crowdsec' in hmsdocker_enabled_containers"
+
+- name: Traefik Prereq - Check whether Traefik can load the CrowdSec bouncer
+  ansible.builtin.set_fact:
+    hmsdocker_traefik_crowdsec_bouncer_active: >-
+      {{
+        'crowdsec' in hmsdocker_enabled_containers
+        and (
+          not (hmsdocker_traefik_container_info.exists | default(false))
+          or (hmsdocker_traefik_container_info.container.Mounts | default([])
+              | selectattr('Destination', 'equalto', hmsdocker_crowdsec_bouncer_plugin_mount) | list | length > 0)
+        )
+      }}
+
+- name: Traefik Prereq - Ensure Traefik config
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/traefik_config.yml"
 
 - name: Traefik Prereq - Ensure Traefik certs directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/traefik/config/certs"
+    path: "{{ hmsdocker_apps_path }}/traefik/config/certs"
     state: directory
-    mode: 0755
-  register: traefik_certs_dir
+    mode: '0755'
+  register: hmsdocker_traefik_certs_dir
 
 - name: Traefik Prereq - Ensure Traefik Static file dir
   ansible.builtin.file:
     path: "{{ hmsdocker_traefik_static_config_location }}"
     state: directory
-    mode: 0755
+    mode: '0755'
     group: docker
-  register: traefik_static_config_dir
+  register: hmsdocker_traefik_static_config_dir
 
 - name: Traefik Prereq - Ensure Traefik static config file
   ansible.builtin.template:
     src: traefik/hmsd_traefik_middlewares.yml.j2
-    dest: "{{ traefik_static_config_dir.path }}/hmsd_middlewares.yml"
-    mode: 0644
+    dest: "{{ hmsdocker_traefik_static_config_dir.path }}/hmsd_middlewares.yml"
+    mode: '0644'
     group: docker
-    lstrip_blocks: yes
-    trim_blocks: yes
+    lstrip_blocks: true
+    trim_blocks: true
+
+- name: Traefik Prereq - Check for a leftover CrowdSec bouncer middleware
+  ansible.builtin.stat:
+    path: "{{ hmsdocker_traefik_static_config_dir.path }}/hmsd_crowdsec.yml"
+  register: hmsdocker_traefik_crowdsec_middleware
+  when: "'crowdsec' not in hmsdocker_enabled_containers"
+
+# Traefik keeps referencing the middleware until it restarts, so it's removed by a handler that runs after the restart
+- name: Traefik Prereq - Remove CrowdSec bouncer middleware after Traefik restarts
+  ansible.builtin.debug:
+    msg: CrowdSec is disabled, its Traefik middleware will be removed after Traefik restarts
+  changed_when: true
+  notify:
+    - Restart traefik
+    - Remove CrowdSec bouncer middleware
+  when:
+    - "'crowdsec' not in hmsdocker_enabled_containers"
+    - hmsdocker_traefik_crowdsec_middleware.stat.exists | default(false)
 
 - name: Traefik Prereq - Ensure Traefik static external host configs
   ansible.builtin.template:
     src: traefik/hmsd_traefik_additional_routes.yml.j2
-    dest: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
-    mode: 0644
+    dest: "{{ hmsdocker_traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}.yml"
+    mode: '0644'
     group: docker
     lstrip_blocks: true
     trim_blocks: true
-  with_items: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - traefik_ext_hosts_enabled
+    - hmsdocker_proxy_ext_hosts_enabled
     - item.friendly_name is defined and item.friendly_name != ''
     - item.subdomain_name is defined and item.subdomain_name != ''
     - item.backend_url is defined and item.backend_url != ''
@@ -70,8 +103,8 @@
 
 - name: Traefik Prereq - Ensure disabled Traefik static external host configs are removed
   ansible.builtin.file:
-    path: "{{ traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.yml"
+    path: "{{ hmsdocker_traefik_static_config_dir.path }}/{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}.yml"
     state: absent
-  with_items: "{{ traefik_ext_hosts_list }}"
+  loop: "{{ hmsdocker_proxy_ext_hosts_list }}"
   when:
-    - not item.enabled or not traefik_ext_hosts_enabled
+    - not item.enabled or not hmsdocker_proxy_ext_hosts_enabled

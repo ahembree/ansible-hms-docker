@@ -11,9 +11,9 @@ sidebar:
 
 Enable `audiobookshelf` in the [Container Map](/docs/container-list/#container-map). The playbook will:
 
-1. Create the config and metadata folders in `<hms_docker_apps_path>/audiobookshelf/`
+1. Create the config and metadata folders in `<hmsdocker_apps_path>/audiobookshelf/`
 2. Create `Audiobooks` and `Podcasts` folders in your library folder, next to `Movies` and `TV_Shows`
-3. Run Audiobookshelf as the `container_uid`/`container_gid` user
+3. Run Audiobookshelf as the `hmsdocker_container_uid`/`hmsdocker_container_gid` user
 
 Audiobookshelf is then available at `audiobookshelf.<domain>` through Traefik, or on port `13378` if ports are exposed. The first time you open it, you create the root (admin) user.
 
@@ -21,24 +21,24 @@ Audiobookshelf is then available at `audiobookshelf.<domain>` through Traefik, o
 
 | Folder | Path on the host | Path inside the container |
 |-|-|-|
-| Database | `<hms_docker_apps_path>/audiobookshelf/config` | `/config` |
-| Covers, cache, logs, backups | `<hms_docker_apps_path>/audiobookshelf/metadata` | `/metadata` |
-| Media share | `<hms_docker_mount_path>` | `/data` |
+| Database | `<hmsdocker_apps_path>/audiobookshelf/config` | `/config` |
+| Covers, cache, logs, backups | `<hmsdocker_apps_path>/audiobookshelf/metadata` | `/metadata` |
+| Media share | `<hmsdocker_mount_path>` | `/data` |
 
 :::caution[Warning]
 
-Audiobookshelf keeps its database (SQLite) in `/config`. It must be on a local disk, not on a network share, or the database can become corrupted. The default `hms_docker_apps_path` is local, so this only matters if you have moved it.
+Audiobookshelf keeps its database (SQLite) in `/config`. It must be on a local disk, not on a network share, or the database can become corrupted. The default `hmsdocker_apps_path` is local, so this only matters if you have moved it.
 
 :::
 
 ## Adding libraries
 
-Libraries are added in the web UI under **Settings > Libraries**. Use these folders (replace `media_data` and `_library` if you changed `hms_docker_primary_mount_name` or `hms_docker_library_folder_name`):
+Libraries are added in the web UI under **Settings > Libraries**. Use these folders (replace `media_data` and `_library` if you changed `hmsdocker_primary_mount_name` or `hmsdocker_library_folder_name`):
 
 - Audiobooks: `/data/media_data/_library/Audiobooks`
 - Podcasts: `/data/media_data/_library/Podcasts`
 
-Audiobookshelf needs write access to these folders to download podcast episodes, and for features such as embedding metadata, merging files into an `.m4b`, and saving covers next to the media. On a local media share, the playbook creates them owned by the `container_uid`/`container_gid` user. On a NAS share, or if the folders already existed, make sure they are writable by that user, as with the rest of your media share. If you add `audiobookshelf` to [`hmsdocker_readonly_media_containers`](/docs/other/container-settings/#read-only-media-mounts), these features stop working.
+Audiobookshelf needs write access to these folders to download podcast episodes, and for features such as embedding metadata, merging files into an `.m4b`, and saving covers next to the media. On a local media share, the playbook creates them owned by the `hmsdocker_container_uid`/`hmsdocker_container_gid` user. On a NAS share, or if the folders already existed, make sure they are writable by that user, as with the rest of your media share. If you add `audiobookshelf` to [`hmsdocker_readonly_media_containers`](/docs/other/container-settings/#read-only-media-mounts), these features stop working.
 
 ## Homepage widget
 

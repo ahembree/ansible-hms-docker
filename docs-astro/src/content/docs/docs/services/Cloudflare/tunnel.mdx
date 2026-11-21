@@ -10,7 +10,7 @@ import cf_tunnel_disable_tls_verify from '../../../static/img/cloudflare/cloudfl
 
 :::danger[Security Notice]
 
-Traffic routed through Cloudflare Tunnel goes directly from the Tunnel container to the target container via the internal Docker network. It does **NOT** pass through Traefik, so no Traefik security controls (IP allowlists, middlewares) are applied.
+Traffic routed through Cloudflare Tunnel goes directly from the Tunnel container to the target container via the internal Docker network. It does **NOT** pass through Traefik (or [Caddy](/docs/services/caddy/)), so no reverse proxy security controls (IP allowlists, middlewares, sign-ins) are applied.
 
 It is your responsibility to understand and accept the risks and implement security controls where possible.
 
@@ -36,7 +36,7 @@ It is your responsibility to understand and accept the risks and implement secur
 
     ```yaml
     #inventory/group_vars/all/cloudflare.yml
-    cloudflare_tunnel_token: <token>
+    hmsdocker_cloudflare_tunnel_token: <token>
     ```
 
 3. Enable the container in `inventory/group_vars/all/container_map.yml`

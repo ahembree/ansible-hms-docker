@@ -3,10 +3,10 @@
 - name: (Postreq - Cross-Seed) - Init config file
   ansible.builtin.template:
     src: container_configs/cross-seed.js.j2
-    dest: "{{ hms_docker_apps_path }}/cross-seed/config/config.js"
+    dest: "{{ hmsdocker_apps_path }}/cross-seed/config/config.js"
     mode: '0644'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     lstrip_blocks: true
     trim_blocks: true
     force: false

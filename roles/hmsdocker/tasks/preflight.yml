@@ -8,7 +8,7 @@
 # Layout:
 #   1. Initialize the warnings list.
 #   2. Hard-fail asserts (always-required vars).
-#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale).
+#   3. Hard-fail asserts gated on a feature flag (cifs/nfs/plex/ssl/cf/vpn/tailscale/netbird).
 #   4. Soft-warning appends (non-fatal; surfaced at the end).
 #   5. Print warnings if any.
 #
@@ -37,27 +37,39 @@
 - name: (preflight) Validate foundational variables are defined and non-empty
   ansible.builtin.assert:
     that:
-      - project_name is defined
-      - (project_name | default('', true) | string) | length > 0
-      - hms_docker_domain is defined
-      - (hms_docker_domain | default('', true) | string) | length > 0
-      - hms_docker_data_path is defined
-      - (hms_docker_data_path | default('', true) | string) | length > 0
-      - hms_docker_apps_path is defined
-      - (hms_docker_apps_path | default('', true) | string) | length > 0
-      - hms_docker_mount_path is defined
-      - (hms_docker_mount_path | default('', true) | string) | length > 0
+      - hmsdocker_project_name is defined
+      - (hmsdocker_project_name | default('', true) | string) | length > 0
+      - hmsdocker_domain is defined
+      - (hmsdocker_domain | default('', true) | string) | length > 0
+      - hmsdocker_data_path is defined
+      - (hmsdocker_data_path | default('', true) | string) | length > 0
+      - hmsdocker_apps_path is defined
+      - (hmsdocker_apps_path | default('', true) | string) | length > 0
+      - hmsdocker_mount_path is defined
+      - (hmsdocker_mount_path | default('', true) | string) | length > 0
       - hmsdocker_docker_network_base_subnet is defined
       - (hmsdocker_docker_network_base_subnet | default('', true) | string) | length > 0
-      - container_uid is defined
-      - container_gid is defined
-      - hms_docker_container_map is defined
-      - hms_docker_container_map | length > 0
+      - hmsdocker_container_uid is defined
+      - hmsdocker_container_gid is defined
+      - hmsdocker_container_map is defined
+      - hmsdocker_container_map | length > 0
     fail_msg: >-
       Missing required foundational variables. The following must all be defined
-      and non-empty: project_name, hms_docker_domain, hms_docker_data_path,
-      hms_docker_apps_path, hms_docker_mount_path, hmsdocker_docker_network_base_subnet,
-      container_uid, container_gid, hms_docker_container_map.
+      and non-empty: hmsdocker_project_name, hmsdocker_domain, hmsdocker_data_path,
+      hmsdocker_apps_path, hmsdocker_mount_path, hmsdocker_docker_network_base_subnet,
+      hmsdocker_container_uid, hmsdocker_container_gid, hmsdocker_container_map.
+    quiet: true
+
+# Removed fallbacks: fail with instructions instead of silently pointing Authentik at another database
+- name: (preflight) Validate removed variables are no longer set
+  ansible.builtin.assert:
+    that:
+      - authentik_old_pg_user is not defined
+      - authentik_old_pg_db is not defined
+    fail_msg: >-
+      authentik_old_pg_user and authentik_old_pg_db are no longer supported. Move their values to
+      hmsdocker_authentik_pg_user and hmsdocker_authentik_pg_db in inventory/group_vars/all/sso.yml and remove the old
+      variables.
     quiet: true
 
 - name: (preflight) Validate Spottarr Usenet configuration when enabled
@@ -72,7 +84,7 @@
       and hmsdocker_spottarr_usenet_password in
       inventory/group_vars/all/service_misc.yml.
     quiet: true
-  when: hms_docker_container_map['spottarr']['enabled'] | default(false) | bool
+  when: hmsdocker_container_map['spottarr']['enabled'] | default(false) | bool
 
 # ---------------------------------------------------------------------------
 # NAS — CIFS
@@ -81,19 +93,19 @@
 - name: (preflight) Validate CIFS share configuration
   ansible.builtin.assert:
     that:
-      - (nas_client_remote_cifs_path | default('', true) | string) | length > 0
-      - "'nas.example.com' not in (nas_client_remote_cifs_path | default(''))"
-      - (nas_client_cifs_username | default('', true) | string) | length > 0
-      - (nas_client_cifs_password | default('', true) | string) | length > 0
+      - (hmsdocker_nas_client_remote_cifs_path | default('', true) | string) | length > 0
+      - "'nas.example.com' not in (hmsdocker_nas_client_remote_cifs_path | default(''))"
+      - (hmsdocker_nas_client_cifs_username | default('', true) | string) | length > 0
+      - (hmsdocker_nas_client_cifs_password | default('', true) | string) | length > 0
     fail_msg: >-
-      hms_docker_media_share_type is set to 'cifs' but CIFS configuration is
-      incomplete. Set nas_client_remote_cifs_path (must not be the placeholder
-      '//nas.example.com/share'), nas_client_cifs_username, and
-      nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
+      hmsdocker_media_share_type is set to 'cifs' but CIFS configuration is
+      incomplete. Set hmsdocker_nas_client_remote_cifs_path (must not be the placeholder
+      '//nas.example.com/share'), hmsdocker_nas_client_cifs_username, and
+      hmsdocker_nas_client_cifs_password in inventory/group_vars/all/nas_cifs.yml.
     quiet: true
   when:
-    - hms_docker_media_share_type | default('local') == 'cifs'
-    - not is_github_runner
+    - hmsdocker_media_share_type | default('local') == 'cifs'
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # NAS — NFS
@@ -102,16 +114,16 @@
 - name: (preflight) Validate NFS share configuration
   ansible.builtin.assert:
     that:
-      - (nas_client_remote_nfs_path | default('', true) | string) | length > 0
-      - "'nas.example.com' not in (nas_client_remote_nfs_path | default(''))"
+      - (hmsdocker_nas_client_remote_nfs_path | default('', true) | string) | length > 0
+      - "'nas.example.com' not in (hmsdocker_nas_client_remote_nfs_path | default(''))"
     fail_msg: >-
-      hms_docker_media_share_type is set to 'nfs' but nas_client_remote_nfs_path
+      hmsdocker_media_share_type is set to 'nfs' but hmsdocker_nas_client_remote_nfs_path
       is empty or still set to the placeholder 'nas.example.com:/share'.
       Set it in inventory/group_vars/all/nas_nfs.yml.
     quiet: true
   when:
-    - hms_docker_media_share_type | default('local') == 'nfs'
-    - not is_github_runner
+    - hmsdocker_media_share_type | default('local') == 'nfs'
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # Plex
@@ -120,46 +132,95 @@
 - name: (preflight) Validate Plex claim token when Plex is enabled
   ansible.builtin.assert:
     that:
-      - (plex_claim_token | default('', true) | string) | length > 0
+      - (hmsdocker_plex_claim_token | default('', true) | string) | length > 0
     fail_msg: >-
-      Plex is enabled in the container map but plex_claim_token is empty.
-      Visit https://plex.tv/claim to obtain a token, then set plex_claim_token
+      Plex is enabled in the container map but hmsdocker_plex_claim_token is empty.
+      Visit https://plex.tv/claim to obtain a token, then set hmsdocker_plex_claim_token
       in inventory/group_vars/all/plex.yml.
     quiet: true
-  when: 
-    - hms_docker_container_map['plex']['enabled'] | default(false)
-    - not is_github_runner
+  when:
+    - hmsdocker_container_map['plex']['enabled'] | default(false)
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
-# Traefik / SSL
+# Reverse proxy (Traefik or Caddy) / SSL
 # ---------------------------------------------------------------------------
+
+# Both bind ports 80 and 443 on the host
+- name: (preflight) Validate only one reverse proxy is enabled
+  ansible.builtin.assert:
+    that:
+      - not ((hmsdocker_container_map['traefik']['enabled'] | default(false) | bool) and (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool))
+    fail_msg: >-
+      traefik and caddy are both enabled in the container map, but only one reverse proxy can run.
+      Set `enabled: false` on one of them in inventory/group_vars/all/container_map.yml.
+    quiet: true
 
 - name: (preflight) Validate Traefik SSL configuration
   ansible.builtin.assert:
     that:
-      - (traefik_ssl_letsencrypt_email | default('', true) | string) | length > 0
-      - (traefik_ssl_dns_provider_code | default('', true) | string) | length > 0
+      - (hmsdocker_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (hmsdocker_traefik_ssl_dns_provider_code | default('', true) | string) | length > 0
     fail_msg: >-
-      traefik_ssl_enabled is true but Let's Encrypt configuration is incomplete.
-      Set traefik_ssl_letsencrypt_email and traefik_ssl_dns_provider_code
-      in inventory/group_vars/all/traefik.yml.
+      hmsdocker_ssl_enabled is true but Let's Encrypt configuration is incomplete.
+      Set hmsdocker_ssl_letsencrypt_email in inventory/group_vars/all/reverse_proxy.yml and
+      hmsdocker_traefik_ssl_dns_provider_code in inventory/group_vars/all/traefik.yml.
     quiet: true
   when:
-    - traefik_ssl_enabled | default(false) | bool
-    - not is_github_runner
+    - hmsdocker_ssl_enabled | default(false) | bool
+    - not (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool)
+    - not hmsdocker_is_github_runner
 
-- name: (preflight) Validate Cloudflare API token when used as Traefik DNS provider
+- name: (preflight) Validate Caddy configuration
   ansible.builtin.assert:
     that:
-      - (cloudflare_api_token | default('', true) | string) | length > 0
+      - (hmsdocker_caddy_version | default('', true) | string) is match('^[0-9]+[.][0-9]+[.][0-9]+$')
+      - (hmsdocker_caddy_version | string) is version('2.11.6', '>=')
+      - (hmsdocker_caddy_log_level | default('', true) | string | upper) in ['DEBUG', 'INFO', 'WARN', 'ERROR']
+      - hmsdocker_caddy_extra_modules | default([], true) is iterable
+      - hmsdocker_caddy_extra_modules | default([], true) is not string
+      - hmsdocker_caddy_extra_modules | default([], true) is not mapping
     fail_msg: >-
-      Traefik SSL is using Cloudflare as the DNS provider but cloudflare_api_token
+      hmsdocker_caddy_version must be a quoted Caddy release of 2.11.6 or newer (e.g. "2.11.9"),
+      hmsdocker_caddy_log_level one of DEBUG, INFO, WARN or ERROR, and hmsdocker_caddy_extra_modules a list
+      of Go module paths. Update them in inventory/group_vars/all/caddy.yml.
+    quiet: true
+  when: hmsdocker_container_map['caddy']['enabled'] | default(false) | bool
+
+- name: (preflight) Validate Caddy SSL configuration
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_ssl_letsencrypt_email | default('', true) | string) | length > 0
+      - (hmsdocker_caddy_dns_provider | default('', true) | string) is match('^[A-Za-z0-9_.-]+$')
+      - (hmsdocker_caddy_dns_provider_module | default('', true) | string) | length > 0
+      - (hmsdocker_caddy_dns_provider_config | default('', true) | string) | length > 0
+    fail_msg: >-
+      hmsdocker_ssl_enabled is true but the Caddy SSL configuration is incomplete. Set hmsdocker_ssl_letsencrypt_email
+      in inventory/group_vars/all/reverse_proxy.yml, and hmsdocker_caddy_dns_provider (e.g. cloudflare) and
+      hmsdocker_caddy_dns_provider_config in inventory/group_vars/all/caddy.yml. Providers and their settings
+      are listed at https://github.com/caddy-dns.
+    quiet: true
+  when:
+    - hmsdocker_ssl_enabled | default(false) | bool
+    - hmsdocker_container_map['caddy']['enabled'] | default(false) | bool
+    - not hmsdocker_is_github_runner
+
+- name: (preflight) Validate Cloudflare API token when used as the SSL DNS provider
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_cloudflare_api_token | default('', true) | string) | length > 0
+    fail_msg: >-
+      SSL is using Cloudflare as the DNS provider but hmsdocker_cloudflare_api_token
       is empty. Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   when:
-    - traefik_ssl_enabled | default(false) | bool
-    - (traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
-    - not is_github_runner
+    - hmsdocker_ssl_enabled | default(false) | bool
+    # In parentheses: Ansible before 2.19 cannot parse a bare `a if b else c` condition
+    - >-
+      ((hmsdocker_caddy_dns_provider | default('', true)) == 'cloudflare'
+      if (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool)
+      else (hmsdocker_traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare')
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # Cloudflare DDNS / Tunnel
@@ -168,31 +229,31 @@
 - name: (preflight) Validate Cloudflare API token when cloudflare-ddns container is enabled
   ansible.builtin.assert:
     that:
-      - (cloudflare_api_token | default('', true) | string) | length > 0
+      - (hmsdocker_cloudflare_api_token | default('', true) | string) | length > 0
     fail_msg: >-
-      The cloudflare-ddns container is enabled but cloudflare_api_token is empty.
+      The cloudflare-ddns container is enabled but hmsdocker_cloudflare_api_token is empty.
       Set it in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   when:
     - >-
       (cloudflare_ddns_enabled | default(false))
-      or (hms_docker_container_map['cloudflare-ddns']['enabled'] | default(false))
-    - not is_github_runner
+      or (hmsdocker_container_map['cloudflare-ddns']['enabled'] | default(false))
+    - not hmsdocker_is_github_runner
 
 - name: (preflight) Validate Cloudflare tunnel token when cloudflare-tunnel container is enabled
   ansible.builtin.assert:
     that:
-      - (cloudflare_tunnel_token | default('', true) | string) | length > 0
+      - (hmsdocker_cloudflare_tunnel_token | default('', true) | string) | length > 0
     fail_msg: >-
-      The cloudflare-tunnel container is enabled but cloudflare_tunnel_token is empty.
+      The cloudflare-tunnel container is enabled but hmsdocker_cloudflare_tunnel_token is empty.
       See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
-      and set cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
+      and set hmsdocker_cloudflare_tunnel_token in inventory/group_vars/all/cloudflare.yml.
     quiet: true
   when:
     - >-
       (cloudflare_tunnel_enabled | default(false))
-      or (hms_docker_container_map['cloudflare-tunnel']['enabled'] | default(false))
-    - not is_github_runner
+      or (hmsdocker_container_map['cloudflare-tunnel']['enabled'] | default(false))
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # Tailscale
@@ -201,17 +262,34 @@
 - name: (preflight) Validate Tailscale auth key when tailscale is enabled
   ansible.builtin.assert:
     that:
-      - (tailscale_auth_key | default('', true) | string) | length > 0
+      - (hmsdocker_tailscale_auth_key | default('', true) | string) | length > 0
     fail_msg: >-
-      The tailscale container is enabled but tailscale_auth_key is empty.
+      The tailscale container is enabled but hmsdocker_tailscale_auth_key is empty.
       Generate one at https://login.tailscale.com/admin/settings/keys and
       set it in inventory/group_vars/all/tailscale.yml.
     quiet: true
   when:
     - >-
       (tailscale_enabled | default(false))
-      or (hms_docker_container_map['tailscale']['enabled'] | default(false))
-    - not is_github_runner
+      or (hmsdocker_container_map['tailscale']['enabled'] | default(false))
+    - not hmsdocker_is_github_runner
+
+# ---------------------------------------------------------------------------
+# NetBird
+# ---------------------------------------------------------------------------
+
+- name: (preflight) Validate NetBird setup key when netbird is enabled
+  ansible.builtin.assert:
+    that:
+      - (hmsdocker_netbird_setup_key | default('', true) | string) | length > 0
+    fail_msg: >-
+      The netbird container is enabled but hmsdocker_netbird_setup_key is empty.
+      Create a setup key in the NetBird dashboard under Setup Keys and
+      set it in inventory/group_vars/all/netbird.yml.
+    quiet: true
+  when:
+    - hmsdocker_container_map['netbird']['enabled'] | default(false)
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # VPN-using download clients
@@ -233,9 +311,9 @@
       via transmission_ovpn_config_* variables.
     quiet: true
   when:
-    - hms_docker_container_map['transmission']['enabled'] | default(false)
+    - hmsdocker_container_map['transmission']['enabled'] | default(false)
     - (hmsdocker_vpn_type | default('openvpn', true)) != 'custom'
-    - not is_github_runner
+    - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
 # Read-only media mounts
@@ -272,25 +350,25 @@
     - { key: hmsdocker_tinyauth_oauth_whitelist, value: "{{ hmsdocker_tinyauth_oauth_whitelist | default([]) }}", example: '["you@example.com"]' }
   loop_control:
     label: "{{ item.key }}"
-  when: hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
+  when: hmsdocker_container_map['tinyauth']['enabled'] | default(false) | bool
 
 - name: (preflight) Validate Tinyauth Pocket ID sign-in requirements
   ansible.builtin.assert:
     that:
-      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['enabled'] | default(false) | bool)
-      - (hmsdocker_tinyauth_pocketid_external | bool) or (hms_docker_container_map['pocketid']['traefik'] | default(false) | bool)
-      - hms_docker_container_map['tinyauth']['enabled'] | default(false) | bool
-      - hms_docker_container_map['tinyauth']['traefik'] | default(false) | bool
-      - hms_docker_container_map['traefik']['enabled'] | default(false) | bool
-      - traefik_ssl_enabled | default(false) | bool
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hmsdocker_container_map['pocketid']['enabled'] | default(false) | bool)
+      - (hmsdocker_tinyauth_pocketid_external | bool) or (hmsdocker_container_map['pocketid']['proxy'] | default(false) | bool)
+      - hmsdocker_container_map['tinyauth']['enabled'] | default(false) | bool
+      - hmsdocker_container_map['tinyauth']['proxy'] | default(false) | bool
+      - (hmsdocker_container_map['traefik']['enabled'] | default(false) | bool) or (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool)
+      - hmsdocker_ssl_enabled | default(false) | bool
       - (hmsdocker_tinyauth_pocketid_client_id | default('', true) | string) is match('^[A-Za-z0-9_-]{2,128}$')
       - (not (hmsdocker_tinyauth_pocketid_manage_client | bool))
         or (hmsdocker_tinyauth_pocketid_client_secret | default('', true) | string | length == 0)
         or (hmsdocker_tinyauth_pocketid_client_secret | string | length >= 16)
     fail_msg: >-
-      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and traefik enabled in the container map with
-      traefik: true on tinyauth, and traefik_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
-      pocketid must also be enabled with traefik: true. The client ID must be 2-128 letters, digits, _ or -,
+      hmsdocker_tinyauth_pocketid_enabled requires tinyauth and a reverse proxy (traefik or caddy) enabled in the
+      container map with proxy: true on tinyauth, and hmsdocker_ssl_enabled. Unless hmsdocker_tinyauth_pocketid_url is set,
+      pocketid must also be enabled with proxy: true. The client ID must be 2-128 letters, digits, _ or -,
       and a client secret the playbook registers in Pocket ID, if set, at least 16 characters.
     quiet: true
   when: hmsdocker_tinyauth_pocketid_enabled | default(false) | bool
@@ -305,7 +383,7 @@
       hmsdocker_tinyauth_pocketid_url must be the https:// URL of your Pocket ID (e.g. https://id.example.com).
       Without hmsdocker_tinyauth_pocketid_api_key the playbook cannot create the OIDC client: create it in
       Pocket ID with the callback URL
-      https://{{ hms_docker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.{{ hms_docker_domain }}/api/oauth/callback/pocketid
+      https://{{ hmsdocker_container_map['tinyauth']['proxy_host_rule'] | default('tinyauth') }}.{{ hmsdocker_domain }}/api/oauth/callback/pocketid
       and set hmsdocker_tinyauth_pocketid_client_id and hmsdocker_tinyauth_pocketid_client_secret to its values.
     quiet: true
   when: hmsdocker_tinyauth_pocketid_external | bool
@@ -315,7 +393,7 @@
 # ---------------------------------------------------------------------------
 
 - name: (preflight) Validate Docker socket proxy settings
-  when: hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool
+  when: hmsdocker_container_map['socket-proxy']['enabled'] | default(false) | bool
   block:
     # socket-proxy refuses to start with any other log level, and every proxied container waits for it
     - name: (preflight) Validate hmsdocker_socket_proxy_log_level
@@ -342,23 +420,23 @@
       ansible.builtin.assert:
         that:
           - item.value is mapping
-          - item.value.mode is not defined or item.value.mode in socket_proxy_modes
-          - socket_proxy_allow is mapping
-          - socket_proxy_allow.keys() | list | difference(hmsdocker_socket_proxy_methods) | length == 0
-          - socket_proxy_allow.values() | reject('iterable') | list | length == 0
-          - socket_proxy_allow.values() | select('string') | list | length == 0
-          - socket_proxy_allow.values() | select('mapping') | list | length == 0
-          - socket_proxy_allow.values() | flatten(levels=1) | reject('string') | list | length == 0
-          - socket_proxy_allow.values() | flatten(levels=1) | select('equalto', '') | list | length == 0
-          - socket_proxy_bind_mounts is iterable
-          - socket_proxy_bind_mounts is not string
-          - socket_proxy_bind_mounts is not mapping
-          - socket_proxy_bind_mounts | reject('string') | list | length == 0
-          - socket_proxy_bind_mounts | reject('match', '/') | list | length == 0
-          - socket_proxy_bind_mounts | select('search', ',') | list | length == 0
+          - item.value.mode is not defined or item.value.mode in hmsdocker_socket_proxy_modes
+          - hmsdocker_socket_proxy_allow is mapping
+          - hmsdocker_socket_proxy_allow.keys() | list | difference(hmsdocker_socket_proxy_methods) | length == 0
+          - hmsdocker_socket_proxy_allow.values() | reject('iterable') | list | length == 0
+          - hmsdocker_socket_proxy_allow.values() | select('string') | list | length == 0
+          - hmsdocker_socket_proxy_allow.values() | select('mapping') | list | length == 0
+          - hmsdocker_socket_proxy_allow.values() | flatten(levels=1) | reject('string') | list | length == 0
+          - hmsdocker_socket_proxy_allow.values() | flatten(levels=1) | select('equalto', '') | list | length == 0
+          - hmsdocker_socket_proxy_bind_mounts is iterable
+          - hmsdocker_socket_proxy_bind_mounts is not string
+          - hmsdocker_socket_proxy_bind_mounts is not mapping
+          - hmsdocker_socket_proxy_bind_mounts | reject('string') | list | length == 0
+          - hmsdocker_socket_proxy_bind_mounts | reject('match', '/') | list | length == 0
+          - hmsdocker_socket_proxy_bind_mounts | select('search', ',') | list | length == 0
         fail_msg: >-
           hmsdocker_socket_proxy_overrides.{{ item.key }} is not valid. `mode` must be one of:
-          {{ socket_proxy_modes | join(', ') }}. `allow` must map HTTP methods
+          {{ hmsdocker_socket_proxy_modes | join(', ') }}. `allow` must map HTTP methods
           ({{ hmsdocker_socket_proxy_methods | join(', ') }}) to lists of regexes, e.g. get: ['(/v1\.\d+)?/_ping'].
           `bind_mount_from` must be a list of absolute paths.
           Update it in inventory/group_vars/all/container_settings.yml.
@@ -373,9 +451,9 @@
       loop_control:
         label: "{{ item.key }}"
       vars:
-        socket_proxy_modes: "{{ hmsdocker_socket_proxy_builtin_clients[item.key]['modes'] }}"
-        socket_proxy_allow: "{{ (item.value.allow | default({}, true)) if item.value is mapping else {} }}"
-        socket_proxy_bind_mounts: "{{ (item.value.bind_mount_from | default([], true)) if item.value is mapping else [] }}"
+        hmsdocker_socket_proxy_modes: "{{ hmsdocker_socket_proxy_builtin_clients[item.key]['modes'] }}"
+        hmsdocker_socket_proxy_allow: "{{ (item.value.allow | default({}, true)) if item.value is mapping else {} }}"
+        hmsdocker_socket_proxy_bind_mounts: "{{ (item.value.bind_mount_from | default([], true)) if item.value is mapping else [] }}"
 
 - name: (preflight) Build Docker socket proxy settings
   ansible.builtin.import_tasks: "socket_proxy_settings.yml"
@@ -385,149 +463,229 @@
 # printed at the end of preflight if non-empty.
 # ---------------------------------------------------------------------------
 
-- name: (preflight) Warn if debug_mode is enabled
+- name: (preflight) Warn if hmsdocker_debug_mode is enabled
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['debug_mode is enabled - secrets (passwords, API keys) may appear in playbook output.'] }}"
-  when: debug_mode | default(false) | bool
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_debug_mode is enabled - secrets (passwords, API keys) may appear in playbook output.'] }}"
+  when: hmsdocker_debug_mode | default(false) | bool
 
-- name: (preflight) Warn if hms_docker_domain is the default placeholder
+- name: (preflight) Warn if hmsdocker_domain is the default placeholder
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hms_docker_domain is still set to the default \"home.local\". Set it to your real local domain in inventory/group_vars/all/main.yml.'] }}"
-  when: (hms_docker_domain | default('')) == 'home.local'
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_domain is still set to the default \"home.local\". Set it to your real local domain in inventory/group_vars/all/main.yml.'] }}"
+  when: (hmsdocker_domain | default('')) == 'home.local'
 
 - name: (preflight) Warn if VPN-using download client has empty user/pass
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_vpn_user and/or hmsdocker_vpn_pass are empty. If your VPN config does not embed credentials, the connection will fail.'] }}"
   when:
     - >-
-      (hms_docker_container_map['transmission']['enabled'] | default(false))
-      or (hms_docker_container_map['qbittorrent']['enabled'] | default(false))
-      or (hms_docker_container_map['deluge']['enabled'] | default(false))
+      (hmsdocker_container_map['transmission']['enabled'] | default(false))
+      or (hmsdocker_container_map['qbittorrent']['enabled'] | default(false))
+      or (hmsdocker_container_map['deluge']['enabled'] | default(false))
     - ((hmsdocker_vpn_user | default('', true) | string) | length == 0)
       or ((hmsdocker_vpn_pass | default('', true) | string) | length == 0)
+
+- name: (preflight) Warn if a container that is pending removal is enabled
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + [item | capitalize + ' is pending removal, it was merged into Seerr. Enable seerr in the container map and move your data to it (steps: https://hmsdocker.dev/docs/release-notes/v1.16/), then disable ' + item + '.'] }}"
+  loop:
+    - overseerr
+    - jellyseerr
+  when: hmsdocker_container_map[item]['enabled'] | default(false) | bool
 
 - name: (preflight) Warn if Tinyauth is enabled without users
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but hmsdocker_tinyauth_users is empty. Add at least one user in inventory/group_vars/all/sso.yml or nobody can sign in.'] }}"
   when:
-    - hms_docker_container_map['tinyauth']['enabled'] | default(false)
+    - hmsdocker_container_map['tinyauth']['enabled'] | default(false)
     - (hmsdocker_tinyauth_users | default([], true)) | length == 0
     - not (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool)
 
+# The Tinyauth warnings below only apply while the tinyauth container is enabled: with it disabled, nothing is protected
+# on purpose and its settings are not used. Entries for disabled containers are skipped too, as they are not running
 - name: (preflight) Warn if Tinyauth protected containers are not applied
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: >-
-      {{ hmsdocker_preflight_warnings + ['hmsdocker_tinyauth_protected_containers has entries that are not protected: '
-      + (tinyauth_skipped | join(', ')) + '. Tinyauth must be enabled with traefik: true, each entry must be enabled with traefik: true,'
-      + ' and ' + (hmsdocker_tinyauth_unsupported_containers | join(', ')) + ' cannot be protected.'] }}
-  vars:
-    tinyauth_skipped: >-
       {{
-        hmsdocker_tinyauth_protected_containers | default([], true)
-        if not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
+        hmsdocker_preflight_warnings + [
+          ('Tinyauth is enabled but has proxy: false in the container map, so it cannot sign anyone in, and these '
+           ~ 'hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (hmsdocker_tinyauth_skipped | join(', ')) ~ '.')
+          if not hmsdocker_tinyauth_proxied
+          else ('These hmsdocker_tinyauth_protected_containers entries are not protected: ' ~ (hmsdocker_tinyauth_skipped | join(', '))
+           ~ '. Each must be a container map entry with proxy: true, and ' ~ (hmsdocker_tinyauth_unsupported_containers | join(', '))
+           ~ ' cannot be protected.')
+        ]
+      }}
+  vars:
+    hmsdocker_tinyauth_proxied: "{{ hmsdocker_container_map['tinyauth']['proxy'] | default(false) | bool }}"
+    hmsdocker_tinyauth_enabled_keys: >-
+      {{ hmsdocker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
+         | map(attribute='key') | list }}
+    hmsdocker_tinyauth_proxied_keys: >-
+      {{ hmsdocker_container_map | dict2items | selectattr('key', 'in', hmsdocker_tinyauth_enabled_keys)
+         | selectattr('value.proxy', 'defined') | selectattr('value.proxy', 'equalto', true) | map(attribute='key') | list }}
+    # Listed entries, without the containers that are in the map but disabled (unknown names are kept, they are typos)
+    hmsdocker_tinyauth_listed: >-
+      {{ hmsdocker_tinyauth_protected_containers | default([], true)
+         | reject('in', hmsdocker_container_map | dict2items | rejectattr('key', 'in', hmsdocker_tinyauth_enabled_keys) | map(attribute='key') | list)
+         | list }}
+    hmsdocker_tinyauth_skipped: >-
+      {{
+        hmsdocker_tinyauth_listed
+        if not hmsdocker_tinyauth_proxied
         else (
-          hmsdocker_tinyauth_protected_containers | default([], true)
-          | reject('in', hms_docker_container_map | dict2items | selectattr('value.enabled', 'defined') | selectattr('value.enabled', 'equalto', true)
-              | selectattr('value.traefik', 'defined') | selectattr('value.traefik', 'equalto', true) | map(attribute='key') | list)
-          | list
-          + (hmsdocker_tinyauth_protected_containers | default([], true) | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
+          (hmsdocker_tinyauth_listed | reject('in', hmsdocker_tinyauth_proxied_keys) | list)
+          + (hmsdocker_tinyauth_listed | select('in', hmsdocker_tinyauth_unsupported_containers) | list)
         ) | unique
       }}
   when:
+    - hmsdocker_container_map['tinyauth']['enabled'] | default(false) | bool
     - hmsdocker_tinyauth_protected_containers | default([], true) is not string
-    - tinyauth_skipped | length > 0
+    - hmsdocker_tinyauth_skipped | length > 0
 
 - name: (preflight) Warn if external hosts ask for Tinyauth without it
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These traefik_ext_hosts_list entries have tinyauth: yes, but the tinyauth container is not enabled with traefik: true, so they are not protected: ' + (tinyauth_ext_hosts | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Tinyauth is enabled but has proxy: false in the container map, so these hmsdocker_proxy_ext_hosts_list entries with tinyauth: yes are not protected: ' + (hmsdocker_tinyauth_ext_hosts | join(', ')) + '.'] }}"
   vars:
-    tinyauth_ext_hosts: >-
-      {{ traefik_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
+    hmsdocker_tinyauth_ext_hosts: >-
+      {{ hmsdocker_proxy_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
          | selectattr('tinyauth', 'defined') | selectattr('tinyauth') | map(attribute='friendly_name') | list }}
   when:
-    - traefik_ext_hosts_enabled | default(false) | bool
-    - not ((hms_docker_container_map['tinyauth']['enabled'] | default(false)) and (hms_docker_container_map['tinyauth']['traefik'] | default(false)))
-    - tinyauth_ext_hosts | length > 0
+    - hmsdocker_proxy_ext_hosts_enabled | default(false) | bool
+    - hmsdocker_container_map['tinyauth']['enabled'] | default(false) | bool
+    - not (hmsdocker_container_map['tinyauth']['proxy'] | default(false) | bool)
+    - hmsdocker_tinyauth_ext_hosts | length > 0
 
 - name: (preflight) Warn if containers are protected by both Tinyauth and Authentik
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These containers are in hmsdocker_tinyauth_protected_containers and have authentik: true, so users must sign in to both: ' + (tinyauth_and_authentik | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['These containers are in hmsdocker_tinyauth_protected_containers and have authentik: true, so users must sign in to both: ' + (hmsdocker_tinyauth_and_authentik | join(', ')) + '.'] }}"
   vars:
-    tinyauth_and_authentik: >-
+    hmsdocker_tinyauth_and_authentik: >-
       {{ hmsdocker_tinyauth_protected_containers | default([], true)
-         | select('in', hms_docker_container_map | dict2items | selectattr('value.authentik', 'defined')
+         | select('in', hmsdocker_container_map | dict2items | selectattr('value.authentik', 'defined')
              | selectattr('value.authentik', 'equalto', true) | map(attribute='key') | list)
          | list }}
   when:
-    - hms_docker_container_map['tinyauth']['enabled'] | default(false)
-    - hms_docker_container_map['authentik']['enabled'] | default(false)
+    - hmsdocker_container_map['tinyauth']['enabled'] | default(false)
+    - hmsdocker_container_map['authentik']['enabled'] | default(false)
     - hmsdocker_tinyauth_protected_containers | default([], true) is not string
-    - tinyauth_and_authentik | length > 0
+    - hmsdocker_tinyauth_and_authentik | length > 0
 
 - name: (preflight) Warn if Pocket ID is enabled without SSL
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Pocket ID is enabled without HTTPS (traefik_ssl_enabled is off or Pocket ID has traefik: false). Pocket ID signs in with passkeys, which browsers only allow over HTTPS, so sign-in will not work.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Pocket ID is enabled without HTTPS (hmsdocker_ssl_enabled is off or Pocket ID has proxy: false). Pocket ID signs in with passkeys, which browsers only allow over HTTPS, so sign-in will not work.'] }}"
   when:
-    - hms_docker_container_map['pocketid']['enabled'] | default(false)
-    - (not (traefik_ssl_enabled | default(false) | bool)) or (not (hms_docker_container_map['pocketid']['traefik'] | default(false)))
+    - hmsdocker_container_map['pocketid']['enabled'] | default(false)
+    - (not (hmsdocker_ssl_enabled | default(false) | bool)) or (not (hmsdocker_container_map['pocketid']['proxy'] | default(false)))
 
 - name: (preflight) Warn if read-only media is set for unsupported containers
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains containers that do not support a read-only media share: ' + (readonly_media_unsupported | join(', ')) + '. The media share stays writable for them. Supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_readonly_media_containers contains containers that do not support a read-only media share: ' + (hmsdocker_readonly_media_unsupported | join(', ')) + '. The media share stays writable for them. Supported: ' + (hmsdocker_readonly_media_supported_containers | join(', ')) + '.'] }}"
   vars:
-    readonly_media_unsupported: "{{ hmsdocker_readonly_media_containers | default([], true) | difference(hmsdocker_readonly_media_supported_containers) }}"
-  when: readonly_media_unsupported | length > 0
+    hmsdocker_readonly_media_unsupported: "{{ hmsdocker_readonly_media_containers | default([], true) | difference(hmsdocker_readonly_media_supported_containers) }}"
+  when: hmsdocker_readonly_media_unsupported | length > 0
 
 - name: (preflight) Warn if read-only media does not cover additional NAS shares on this kernel
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Kernel ' + ansible_facts['kernel'] + ' is older than 5.12, so read-only media mounts do not apply to the additional NAS shares mounted inside ' + hms_docker_mount_path + ' (' + (readonly_media_nested_shares | join(', ')) + '). Containers in hmsdocker_readonly_media_containers can still write to them.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Kernel ' + ansible_facts['kernel'] + ' is older than 5.12, so read-only media mounts do not apply to the additional NAS shares mounted inside ' + hmsdocker_mount_path + ' (' + (hmsdocker_readonly_media_nested_shares | join(', ')) + '). Containers in hmsdocker_readonly_media_containers can still write to them.'] }}"
   vars:
-    readonly_media_nested_shares: >-
-      {{ nas_client_remote_additional_paths | default([], true)
+    hmsdocker_readonly_media_nested_shares: >-
+      {{ hmsdocker_nas_client_remote_additional_paths | default([], true)
          | selectattr('type', 'defined') | selectattr('type', 'in', ['nfs', 'cifs'])
          | selectattr('local_mount_path', 'defined')
-         | selectattr('local_mount_path', 'match', (hms_docker_mount_path | regex_replace('/+$', '') | regex_escape) ~ '/')
+         | selectattr('local_mount_path', 'match', (hmsdocker_mount_path | regex_replace('/+$', '') | regex_escape) ~ '/')
          | map(attribute='local_mount_path') | list }}
   when:
     - hmsdocker_readonly_media_containers | default([], true) | intersect(hmsdocker_readonly_media_supported_containers) | length > 0
-    - nas_client_use_additional_paths | default(false) | bool
+    - hmsdocker_nas_client_use_additional_paths | default(false) | bool
     - ansible_facts['kernel'] is version('5.12', '<')
-    - readonly_media_nested_shares | length > 0
+    - hmsdocker_readonly_media_nested_shares | length > 0
+
+- name: (preflight) Warn if CrowdSec is enabled without a reverse proxy
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['crowdsec is enabled but neither traefik nor caddy is. CrowdSec will run, but nothing will block traffic, because the bouncer runs inside the reverse proxy.'] }}"
+  when:
+    - hmsdocker_container_map['crowdsec']['enabled'] | default(false)
+    - not (hmsdocker_container_map['traefik']['enabled'] | default(false))
+    - not (hmsdocker_container_map['caddy']['enabled'] | default(false))
+
+# An entry Traefik or Caddy cannot parse as an IP or subnet stops it from starting, and a single string instead of a list
+# would be read one character at a time
+- name: (preflight) Validate hmsdocker_proxy_trusted_proxies
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_proxy_trusted_proxies is sequence
+      - hmsdocker_proxy_trusted_proxies is not string
+      - hmsdocker_proxy_trusted_proxies is not mapping
+      - "hmsdocker_proxy_trusted_proxies | map('string') | reject('match', '^[0-9A-Fa-f:.]+(/[0-9]{1,3})?$') | list | length == 0"
+    fail_msg: >-
+      hmsdocker_proxy_trusted_proxies must be a list of IP addresses or subnets, for example ["192.168.1.10"]
+      or ["10.0.0.0/24"], but it is set to {{ hmsdocker_proxy_trusted_proxies | to_json }}. Traefik and Caddy do not
+      start with an invalid entry. Update it in inventory/group_vars/all/reverse_proxy.yml.
+    quiet: true
+  when:
+    - (hmsdocker_container_map['traefik']['enabled'] | default(false) | bool) or (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool)
+    - hmsdocker_proxy_trusted_proxies | default([], true) | length > 0
+
+- name: (preflight) Validate the CrowdSec bouncer plugin version
+  ansible.builtin.assert:
+    that:
+      - "hmsdocker_crowdsec_bouncer_plugin_version | default('', true) | string is match('^[A-Za-z0-9._-]+$')"
+    fail_msg: >-
+      hmsdocker_crowdsec_bouncer_plugin_version must be a release tag of the CrowdSec bouncer plugin, for example
+      "v1.8.2", but it is set to "{{ hmsdocker_crowdsec_bouncer_plugin_version | default('') }}".
+      Update it in inventory/group_vars/all/crowdsec.yml.
+    quiet: true
+  when:
+    - hmsdocker_container_map['crowdsec']['enabled'] | default(false) | bool
+    - hmsdocker_container_map['traefik']['enabled'] | default(false) | bool
+
+- name: (preflight) Validate the CrowdSec bouncer Caddy module version
+  ansible.builtin.assert:
+    that:
+      - "hmsdocker_crowdsec_caddy_bouncer_version | default('', true) | string is match('^v[0-9]+[.][0-9]+[.][0-9]+([-+][A-Za-z0-9.-]+)?$')"
+    fail_msg: >-
+      hmsdocker_crowdsec_caddy_bouncer_version must be a release tag of the CrowdSec bouncer Caddy module, for example
+      "v0.15.0", but it is set to "{{ hmsdocker_crowdsec_caddy_bouncer_version | default('') }}".
+      Update it in inventory/group_vars/all/crowdsec.yml.
+    quiet: true
+  when:
+    - hmsdocker_container_map['crowdsec']['enabled'] | default(false) | bool
+    - hmsdocker_container_map['caddy']['enabled'] | default(false) | bool
 
 - name: (preflight) Warn if socket proxy overrides are set for unsupported containers
   ansible.builtin.set_fact:
-    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_socket_proxy_overrides contains containers without socket proxy support: ' + (socket_proxy_unsupported | join(', ')) + '. They are ignored. Supported: ' + (hmsdocker_socket_proxy_builtin_clients.keys() | list | join(', ')) + '.'] }}"
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['hmsdocker_socket_proxy_overrides contains containers without socket proxy support: ' + (hmsdocker_socket_proxy_unsupported | join(', ')) + '. They are ignored. Supported: ' + (hmsdocker_socket_proxy_builtin_clients.keys() | list | join(', ')) + '.'] }}"
   vars:
-    socket_proxy_unsupported: "{{ hmsdocker_socket_proxy_overrides | default({}, true) | list | difference(hmsdocker_socket_proxy_builtin_clients.keys() | list) }}"
+    hmsdocker_socket_proxy_unsupported: "{{ hmsdocker_socket_proxy_overrides | default({}, true) | list | difference(hmsdocker_socket_proxy_builtin_clients.keys() | list) }}"
   when:
-    - hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool
-    - socket_proxy_unsupported | length > 0
+    - hmsdocker_container_map['socket-proxy']['enabled'] | default(false) | bool
+    - hmsdocker_socket_proxy_unsupported | length > 0
 
 # Uptime Kuma keeps its Docker hosts in its own database, so the playbook cannot point them at the filtered
 # socket. Warn on the run that switches Uptime Kuma to the socket proxy, i.e. while its current compose file
 # does not mount the proxy yet (also after the proxy was turned off and on again).
 - name: (preflight) Check whether Uptime Kuma uses the socket proxy
   ansible.builtin.set_fact:
-    socket_proxy_uptimekuma_proxied: >-
+    hmsdocker_socket_proxy_uptimekuma_proxied: >-
       {{
-        (hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool)
-        and (hms_docker_container_map['uptimekuma']['enabled'] | default(false) | bool)
+        (hmsdocker_container_map['socket-proxy']['enabled'] | default(false) | bool)
+        and (hmsdocker_container_map['uptimekuma']['enabled'] | default(false) | bool)
         and hmsdocker_socket_proxy_clients['uptimekuma']['mode'] == 'proxy'
       }}
 
 - name: (preflight) Read the current Uptime Kuma compose file
   ansible.builtin.slurp:
-    src: "{{ hms_docker_data_path }}/compose_files/uptimekuma.yml"
-  register: socket_proxy_uptimekuma_compose
+    src: "{{ hmsdocker_data_path }}/compose_files/uptimekuma.yml"
+  register: hmsdocker_socket_proxy_uptimekuma_compose
   failed_when: false
-  when: socket_proxy_uptimekuma_proxied | bool
+  when: hmsdocker_socket_proxy_uptimekuma_proxied | bool
 
 - name: (preflight) Warn that Uptime Kuma Docker hosts must be updated for the socket proxy
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['Uptime Kuma now reaches Docker through the socket proxy. In Uptime Kuma, go to Settings > Docker Hosts and change the socket path of existing Docker hosts from /var/run/docker.sock to ' + hmsdocker_socket_proxy_client_dir + '/docker.sock.'] }}"
   when:
-    - socket_proxy_uptimekuma_proxied | bool
-    - "'/socket-proxy/uptimekuma:' not in (socket_proxy_uptimekuma_compose.content | default('') | b64decode)"
+    - hmsdocker_socket_proxy_uptimekuma_proxied | bool
+    - "'/socket-proxy/uptimekuma:' not in (hmsdocker_socket_proxy_uptimekuma_compose.content | default('') | b64decode)"
 
 # ---------------------------------------------------------------------------
 # Print collected warnings

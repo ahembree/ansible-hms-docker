@@ -11,6 +11,15 @@ on:
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
+      - 'Makefile'
+      - 'migrations/**'
+      - 'inventory/hosts.yml'
+      - 'ansible.cfg'
+      - '.ansible-lint'
+      - 'galaxy-requirements.yml'
+      - '.github/extra-vars.yml'
+      - '.github/workflows/run-playbook.yml'
+      - '.github/workflows/scripts/**'
   pull_request:
     branches:
       - master
@@ -19,6 +28,15 @@ on:
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
+      - 'Makefile'
+      - 'migrations/**'
+      - 'inventory/hosts.yml'
+      - 'ansible.cfg'
+      - '.ansible-lint'
+      - 'galaxy-requirements.yml'
+      - '.github/extra-vars.yml'
+      - '.github/workflows/run-playbook.yml'
+      - '.github/workflows/scripts/**'
   schedule:
     - cron:  '23 9 * * 0'
 
@@ -30,25 +48,69 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repo code
+        uses: actions/checkout@v6
+
+      - name: Install ansible-lint
+        # A venv of its own, so that ansible-lint and the ansible-galaxy that `make lint` calls
+        # come from the same install, whatever Ansible the runner image ships with
+        run: |
+          python3 -m venv "$HOME/ansible-lint-venv"
+          "$HOME/ansible-lint-venv/bin/pip" install ansible-lint
+          echo "$HOME/ansible-lint-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Run ansible-lint
+        run: make lint
+
+  # Caddy is configured from hmsdocker_caddy_upstreams instead of container labels, so it must match the Traefik labels
+  caddy-upstreams:
+    name: Check Caddy upstreams
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repo code
+        uses: actions/checkout@v6
+
+      - name: Compare Caddy upstreams with Traefik labels
+        run: |
+          python3 -c "import yaml" || sudo apt-get install -y python3-yaml
+          python3 .github/workflows/scripts/check_caddy_upstreams.py
+
   playbook-run:
-    name: Test ${{ matrix.os-version }}
+    name: Test ${{ matrix.os-version }}${{ matrix.proxy == 'caddy' && ' (caddy)' || '' }}
     runs-on: ${{ matrix.os-version }}
     strategy:
       matrix:
         os-version: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04"]
+        proxy: ["traefik"]
+        include:
+          # Same run with Caddy as the reverse proxy instead of Traefik
+          - os-version: "ubuntu-24.04"
+            proxy: "caddy"
+    env:
+      EXTRA_VARS: ${{ github.workspace }}/.github/extra-vars-run.yml
 
     steps:
       - name: Check out repo code
         uses: actions/checkout@v6
 
       - name: Add hosts to /etc/hosts
+        # One entry per subdomain in the CI container map (plus the 4K instances), so a container
+        # added to .github/extra-vars.yml needs no change here
         run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr spottarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr tunarr nexroll audiobookshelf ersatztv pocketid tinyauth; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
+            domain=$(yq -r '.hmsdocker_domain' .github/extra-vars.yml)
+            names=$(yq -r '.hmsdocker_container_map[].proxy_host_rule | select(. != null)' .github/extra-vars.yml)
+            test -n "$names"
+            for name in $names sonarr-4k radarr-4k; do echo "127.0.0.1 $name.$domain" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
         run: |
           sudo apt update
-          sudo sudo apt install software-properties-common
+          sudo apt install software-properties-common
           sudo add-apt-repository --yes --update ppa:ansible/ansible
           sudo apt install ansible
 
@@ -60,6 +122,24 @@ jobs:
           chmod 0600 ./inventory/group_vars/all/*.yml
           make install-reqs
 
+      - name: Check the variable migrations leave the current defaults alone
+        # The inventory above is a copy of the current defaults, so a rename that fires here
+        # has an `old` name that is still in use
+        run: |
+          python3 migrations/apply_renames.py inventory/group_vars/all --check | tee /tmp/renames.txt
+          grep -q 'already up to date' /tmp/renames.txt
+
+      - name: Build extra vars for the reverse proxy
+        run: |
+          python3 - "${{ matrix.proxy }}" <<'PY'
+          import sys, yaml
+          extra_vars = yaml.safe_load(open('.github/extra-vars.yml'))
+          container_map = extra_vars['hmsdocker_container_map']
+          container_map['traefik']['enabled'] = sys.argv[1] == 'traefik'
+          container_map['caddy'] = {'enabled': sys.argv[1] == 'caddy', 'directory': True, 'homepage': True, 'homepage_stats': False}
+          yaml.safe_dump(extra_vars, open('.github/extra-vars-run.yml', 'w'))
+          PY
+
       - name: Run playbook in check mode
         run: >-
           sudo ansible-playbook
@@ -67,7 +147,7 @@ jobs:
           hms-docker.yml
           --diff
           --check
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"
 
       - name: Run playbook
         run: >-
@@ -75,7 +155,7 @@ jobs:
           -i inventory/hosts.yml
           hms-docker.yml
           --diff
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"
 
       - name: Check containers
         run: |
@@ -89,4 +169,45 @@ jobs:
           -i inventory/hosts.yml
           hms-docker.yml
           --diff
-          --extra-vars "@.github/extra-vars.yml"
+          --extra-vars "@${{ env.EXTRA_VARS }}"
+
+      - name: Check CrowdSec and its ${{ matrix.proxy }} bouncer
+        env:
+          PROXY: ${{ matrix.proxy }}
+        run: |
+          if [ "${PROXY}" = "traefik" ]; then
+            # Traefik must load the bouncer plugin, otherwise every route on ports 80 and 443 fails
+            if ! sudo docker logs traefik 2>&1 | grep -q "Plugins loaded"; then
+              echo "Traefik did not load the CrowdSec bouncer plugin"
+              sudo docker logs traefik 2>&1 | tail -50
+              exit 1
+            fi
+            host="traefik.home.local"
+          else
+            # Caddy must run the image built with the bouncer module, and have it in its config
+            if ! sudo docker exec caddy caddy list-modules | grep -qx "http.handlers.crowdsec"; then
+              echo "Caddy does not have the CrowdSec bouncer module"
+              exit 1
+            fi
+            if ! sudo docker exec caddy caddy adapt --config /etc/caddy/Caddyfile 2>/dev/null | grep -q '"handler":"crowdsec"'; then
+              echo "The Caddyfile does not use the CrowdSec bouncer"
+              exit 1
+            fi
+            host="homepage.home.local"
+          fi
+          # Send requests through the proxy so its access log has lines for CrowdSec to read
+          for i in 1 2 3 4 5; do curl -s -o /dev/null -H "Host: ${host}" http://127.0.0.1/ || true; done
+          # The bouncer must authenticate and pull decisions (every 60 seconds), and CrowdSec must read the proxy's logs
+          for attempt in $(seq 1 24); do
+            pulled=$(sudo docker exec crowdsec cscli bouncers list -o json | jq --arg proxy "${PROXY}" '[(. // [])[] | select((.name | startswith($proxy)) and .last_pull != null)] | length')
+            reads=$(sudo docker exec crowdsec cscli metrics show acquisition -o json | jq '[.acquisition // {} | .[] | .reads // 0] | add // 0')
+            echo "Bouncers that pulled decisions: ${pulled}, ${PROXY} log lines read: ${reads}"
+            if [ "${pulled}" -gt 0 ] && [ "${reads}" -gt 0 ]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          sudo docker exec crowdsec cscli bouncers list
+          sudo docker exec crowdsec cscli metrics show acquisition
+          sudo docker logs crowdsec 2>&1 | tail -50
+          exit 1

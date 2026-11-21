@@ -7,17 +7,17 @@
 # a notice to hmsdocker_preflight_warnings so the user knows to update their
 # inventory at their leisure.
 #
-# The rename map lives in migrations/variable_renames.yml at the repo root
-# and is shared with the Makefile `update` target — register new renames
-# there, not here. Re-runs are safe: entries whose `old` is unset in the
-# resolved vars are silently skipped.
+# The rename map is the `renames` list of migrations/variable_renames.yml at
+# the repo root, shared with migrations/apply_renames.py (`make update`).
+# Register new renames there, not here. Re-runs are safe: entries whose `old`
+# is unset in the resolved vars are silently skipped.
 
 - name: (compat) Load variable migration map from single source
   ansible.builtin.set_fact:
     hmsdocker_variable_migrations: >-
       {{
         (lookup('file', playbook_dir ~ '/migrations/variable_renames.yml')
-         | from_yaml).variable_renames
+         | from_yaml).renames
       }}
 
 # `q('varnames', '.*')` returns the names of all currently-resolved
@@ -35,7 +35,7 @@
 
 # hostvars holds inventory-sourced vars but not role defaults, so membership
 # means the user explicitly set the new name. Must be snapshotted before
-# aliasing — the aliasing set_fact adds the new names to hostvars.
+# aliasing, because the aliases add the new names to hostvars.
 - name: (compat) Snapshot which new names the user set explicitly
   ansible.builtin.set_fact:
     hmsdocker_user_set_new_names: >-
@@ -46,38 +46,155 @@
         | list
       }}
 
+# Each alias is a variable `new_name: "{{ old_name }}"`, loaded with include_vars from a temporary
+# file on the controller. It is a reference, not a copy, so the new name always has exactly the
+# value and type of the old one (false, "", [], null, a string "true", ...) on every Ansible
+# version. set_fact cannot do this: it evaluates the value once, and before Ansible 2.19 it turns
+# numbers into text and the strings "true"/"false"/"yes"/"no" into booleans.
+# Names the user already set are not aliased, their own value wins.
 - name: (compat) Alias deprecated variables to their new names
-  ansible.builtin.set_fact:
-    "{{ item.new }}": "{{ lookup('vars', item.old) }}"
-  loop: "{{ hmsdocker_active_migrations }}"
-  loop_control:
-    label: "{{ item.old }} -> {{ item.new }}"
-  # Skip null / empty old values: Jinja stringifies None as the literal
-  # "None", which would silently bypass downstream length-based asserts.
-  # Skip names the user already set: set_fact outranks group_vars and would
-  # clobber their value with the stale old one.
-  when:
-    - (lookup('vars', item.old) | default('', true) | string) | length > 0
-    - item.new not in hmsdocker_user_set_new_names
-  # Old values may include credentials (e.g. transmission_vpn_pass), and
-  # set_fact echoes them in its result, so hide output unless debug_mode.
-  no_log: "{{ not (debug_mode | default(false) | bool) }}"
+  when: hmsdocker_alias_migrations | length > 0
+  vars:
+    hmsdocker_alias_migrations: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+  block:
+    - name: (compat) Create a temporary file for the aliases
+      ansible.builtin.tempfile:
+        suffix: .hmsdocker-aliases.yml
+      register: hmsdocker_alias_file
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
 
+    - name: (compat) Write the aliases
+      ansible.builtin.copy:
+        dest: "{{ hmsdocker_alias_file.path }}"
+        mode: '0600'
+        content: |
+          {% for hmsdocker_alias in hmsdocker_alias_migrations %}
+          {{ hmsdocker_alias.new }}: "{% raw %}{{ {% endraw %}{{ hmsdocker_alias.old }}{% raw %} }}{% endraw %}"
+          {% endfor %}
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      diff: false
+
+    - name: (compat) Load the aliases
+      ansible.builtin.include_vars:
+        file: "{{ hmsdocker_alias_file.path }}"
+  always:
+    - name: (compat) Remove the temporary file
+      ansible.builtin.file:
+        path: "{{ hmsdocker_alias_file.path }}"
+        state: absent
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      when: hmsdocker_alias_file.path is defined
+
+# One warning for all renamed variables that are simply still under their old name (an inventory
+# from before the hmsdocker_ prefix has about a hundred of them), and one per variable that is set
+# under both names, because those need a manual fix.
 - name: (compat) Record deprecation warnings for renamed variables
   ansible.builtin.set_fact:
     hmsdocker_preflight_warnings: >-
       {{
         hmsdocker_preflight_warnings
-        + [
-            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
-             ~ "'. Both are set in your inventory; the value of '" ~ item.new
-             ~ "' is used and the old name is ignored. Remove '" ~ item.old ~ "'.")
-            if item.new in hmsdocker_user_set_new_names
-            else
-            ("DEPRECATED: '" ~ item.old ~ "' has been renamed to '" ~ item.new
-             ~ "'. Update your inventory (or run `make update`) - the old name will be removed in a future release.")
-          ]
+        + (
+            [
+              "DEPRECATED: " ~ (hmsdocker_migrations_old_only | length) ~ " variable(s) in your inventory use names that have been renamed: "
+              ~ (hmsdocker_migrations_old_only[:5] | map(attribute='old') | join(', '))
+              ~ ((' and ' ~ ((hmsdocker_migrations_old_only | length) - 5) ~ ' more') if hmsdocker_migrations_old_only | length > 5 else '')
+              ~ ". They still work for now. Run `make update` (or `make migrate-config`) to rewrite your inventory to the new names, listed in migrations/variable_renames.yml."
+            ]
+            if hmsdocker_migrations_old_only | length > 0
+            else []
+          )
+        + (
+            hmsdocker_migrations_both_set
+            | map(attribute='old')
+            | zip(hmsdocker_migrations_both_set | map(attribute='new'))
+            | map('join', ' ')
+            | map('regex_replace', '^(\S+) (\S+)$', "DEPRECATED: '\1' has been renamed to '\2' and both are set (in your inventory, or '\1' with -e). '\2' is used and '\1' is ignored. Remove '\1' from your inventory, or pass '\2' with -e instead.")
+            | list
+          )
       }}
-  loop: "{{ hmsdocker_active_migrations }}"
-  loop_control:
-    label: "{{ item.old }} -> {{ item.new }}"
+  vars:
+    hmsdocker_migrations_both_set: "{{ hmsdocker_active_migrations | selectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+    hmsdocker_migrations_old_only: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
+  when: hmsdocker_active_migrations | length > 0
+
+# The per-container `traefik` key of the container map was renamed to `proxy`. Nested keys are not covered by
+# migrations/variable_renames.yml, so entries that still use `traefik` get a `proxy` key with its value here
+# (an entry that already has `proxy` keeps it). `make update` renames the key in the inventory files.
+- name: (compat) Find container map entries that still use the traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_container_map_traefik_key: >-
+      {{
+        hmsdocker_container_map | default({}, true) | dict2items
+        | selectattr('value', 'mapping') | selectattr('value.traefik', 'defined')
+        | map(attribute='key') | list
+      }}
+
+- name: (compat) Rename the traefik key of container map entries to proxy
+  ansible.builtin.set_fact:
+    hmsdocker_container_map: "{{ hmsdocker_container_map | combine(hmsdocker_compat_proxy_keys, recursive=True) }}"
+  vars:
+    hmsdocker_compat_entries: >-
+      {{
+        hmsdocker_container_map | dict2items
+        | selectattr('key', 'in', hmsdocker_container_map_traefik_key)
+        | rejectattr('value.proxy', 'defined') | list
+      }}
+    hmsdocker_compat_proxy_keys: >-
+      {{
+        dict(hmsdocker_compat_entries | map(attribute='key')
+          | zip(hmsdocker_compat_entries | map(attribute='value.traefik') | map('community.general.dict_kv', 'proxy')))
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+# Extra vars outrank set_fact, so the rename above has no effect on a container map passed with -e. Without `proxy`,
+# none of those containers would be routed, so stop here instead
+- name: (compat) Check that the container map traefik key was renamed
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_compat_unrenamed | length == 0
+    fail_msg: >-
+      The `traefik` key of container map entries has been renamed to `proxy`, and these entries still use it:
+      {{ hmsdocker_compat_unrenamed | join(', ') }}. The container map comes from extra vars (-e / --extra-vars), which the
+      playbook cannot change, so rename `traefik` to `proxy` in the file or value you pass with -e.
+    quiet: true
+  vars:
+    hmsdocker_compat_unrenamed: >-
+      {{
+        hmsdocker_container_map | dict2items
+        | selectattr('key', 'in', hmsdocker_container_map_traefik_key)
+        | rejectattr('value.proxy', 'defined')
+        | map(attribute='key') | list
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+- name: (compat) Record deprecation warning for the container map traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{
+        hmsdocker_preflight_warnings
+        + ["DEPRECATED: the `traefik` key of container map entries has been renamed to `proxy` (reachable through "
+           ~ "Traefik or Caddy). These entries still use it: " ~ (hmsdocker_container_map_traefik_key | join(', '))
+           ~ ". Run `make update` to rename it in your inventory (inventory/group_vars/all/*.yml; an entry that has "
+           ~ "both keys uses `proxy`), or rename it by hand wherever else you define hmsdocker_container_map"
+           ~ " - the old key will be removed in a future release."]
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+# debug_mode and is_github_runner are play variables in hms-docker.yml that default to false, so
+# they are only true here when they were passed with -e under their old name.
+- name: (compat) Record deprecation warnings for renamed command line switches
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: "{{ hmsdocker_preflight_warnings + ['DEPRECATED: -e ' ~ item ~ ' has been renamed, use -e hmsdocker_' ~ item ~ ' instead. The old name still works for now.'] }}"
+  loop:
+    - debug_mode
+    - is_github_runner
+  when: lookup('vars', item, default=false) | bool

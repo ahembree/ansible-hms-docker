@@ -1,29 +1,29 @@
 ### Container settings
 # The "state" of all containers // default: "present" // valid: "present" // "absent"
-hms_docker_compose_container_state: present
+hmsdocker_compose_container_state: present
 
 # Controls how the containers are restarted upon server or docker restart // default: "unless-stopped" // valid: "always", "unless-stopped", "on-failure"
-container_restart_policy: unless-stopped
+hmsdocker_container_restart_policy: unless-stopped
 
 # The cron-style schedule for the watchtower container to check for updates in UTC time // default: "0 0 9 * * *"
-container_auto_update_schedule: "0 0 9 * * *"
+hmsdocker_container_auto_update_schedule: "0 0 9 * * *"
 
 # Will stop and remove containers that you disable within the container map (defined below) // default: "yes"
-container_remove_orphans: yes
+hmsdocker_container_remove_orphans: true
 
 # The timezone to use for the containers // default: "America/New_York"
-container_timezone: America/New_York
+hmsdocker_container_timezone: America/New_York
 
 # User and Group ID's to use for the running processes in the containers (may cause or be the cause of permissions issues)
 #  default: "1234"
-container_uid: 1234
-container_gid: 1234
+hmsdocker_container_uid: 1234
+hmsdocker_container_gid: 1234
 
 # This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
-# If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
-container_expose_ports: no
+# If neither traefik nor caddy is enabled in the container map, the playbook will automatically override this setting and expose the ports
+hmsdocker_container_expose_ports: false
 
-# Containers that get the media share (hms_docker_mount_path) mounted read-only, so they can read the library but cannot change or delete it // default: []
+# Containers that get the media share (hmsdocker_mount_path) mounted read-only, so they can read the library but cannot change or delete it // default: []
 # Supported: plex, emby, jellyfin, kavita, calibre, ersatztv, tunarr, audiobookshelf (checkrr and librariarr are always read-only)
 # Some features stop working when the media share is read-only (e.g. saving NFO files or artwork into media folders), see the docs before enabling
 # Example: hmsdocker_readonly_media_containers: ["plex", "jellyfin"]

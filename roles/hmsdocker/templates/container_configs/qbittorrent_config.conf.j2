@@ -1,16 +1,16 @@
 [BitTorrent]
-Session\DefaultSavePath=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/qbittorrent
-Session\TempPath=/data/{{ hms_docker_primary_mount_name }}/{{ hms_docker_downloads_folder_name }}/torrents/qbittorrent/incomplete
+Session\DefaultSavePath=/data/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_downloads_folder_name }}/torrents/qbittorrent
+Session\TempPath=/data/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_downloads_folder_name }}/torrents/qbittorrent/incomplete
 
 [Preferences]
 WebUI\Address=*
-{% if 'qbittorrent' in traefik_enabled_containers %}
+{% if 'qbittorrent' in hmsdocker_traefik_enabled_containers %}
 WebUI\AuthSubnetWhitelist=172.16.0.0/12
 WebUI\AuthSubnetWhitelistEnabled=true
 WebUI\ReverseProxySupportEnabled=true
 WebUI\TrustedReverseProxiesList=traefik
 WebUI\HostHeaderValidation=true
-WebUI\ServerDomains="localhost;qbittorrent;{{ hms_docker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.{{ hms_docker_domain }}"
+WebUI\ServerDomains="localhost;qbittorrent;{{ hmsdocker_container_map['qbittorrent']['proxy_host_rule'] | default('qbittorrent') }}.{{ hmsdocker_domain }}"
 {% else %}
 WebUI\AuthSubnetWhitelist=10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
 WebUI\AuthSubnetWhitelistEnabled=true

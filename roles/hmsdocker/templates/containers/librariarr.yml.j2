@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   librariarr:
     image: ahembree/librariarr:latest
@@ -13,7 +14,7 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    {% if 'librariarr' in expose_ports_enabled_containers %}
+    {% if 'librariarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 3100:3000
     {% endif %}
@@ -28,23 +29,13 @@ services:
     depends_on:
       librariarr-db:
         condition: service_healthy
-    {% if 'librariarr' in traefik_enabled_containers or 'librariarr' in homepage_enabled_containers %}
+    {% if 'librariarr' in hmsdocker_traefik_enabled_containers or 'librariarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'librariarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.librariarr-${COMPOSE_PROJECT}.loadbalancer.server.port=3000
-      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['librariarr']['proxy_host_rule'] | default('librariarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.librariarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'librariarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-librariarr-midware@docker' if 'librariarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'librariarr' in tinyauth_protected_containers }}
+      {% if 'librariarr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('librariarr', 3000) | indent(6) }}
       {% endif %}
-      {% if 'librariarr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Librariarr
-      - homepage.icon=librariarr.png
-      - homepage.href=http://{{ hms_docker_container_map['librariarr']['proxy_host_rule'] | default('librariarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Library Manager
-        {% if 'librariarr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'librariarr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('librariarr', 'Managers', 'Librariarr', 'Media Library Manager') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

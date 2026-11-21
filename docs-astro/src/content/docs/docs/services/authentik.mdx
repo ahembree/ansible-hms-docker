@@ -11,7 +11,7 @@ import cf_tunnel_disable_tls_verify from '../../static/img/cloudflare/cloudflare
 
 :::note[Note]
 
-In order to use Authentik, you must be using [SSL](/docs/services/traefik/ssl/) as outlined in this project.
+In order to use Authentik, you must be using [SSL](/docs/services/traefik/ssl/) as outlined in this project. It works with Traefik and with [Caddy](/docs/services/caddy/#single-sign-on).
 
 :::
 
@@ -45,7 +45,7 @@ However, any containers configured to be accessible through the Cloudflare Tunne
 
       ```yaml
       #inventory/group_vars/all/container_map.yml
-      hms_docker_container_map:
+      hmsdocker_container_map:
         sonarr:
           authentik: true
       ...

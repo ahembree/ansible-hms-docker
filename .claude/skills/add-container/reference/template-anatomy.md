@@ -4,6 +4,7 @@ The canonical skeleton for `roles/hmsdocker/templates/containers/<key>.yml.j2`. 
 every `<key>`, `<uiport>`, `<hostport>` below.
 
 ```jinja
+{% import 'macros/labels.j2' as labels with context %}
 services:
   <key>:
     image: <registry>/<image>:latest
@@ -18,7 +19,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if '<key>' in expose_ports_enabled_containers %}
+    {% if '<key>' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - <hostport>:<uiport>
     {% endif %}
@@ -29,26 +30,13 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/<key>/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if '<key>' in traefik_enabled_containers or '<key>' in homepage_enabled_containers %}
+    {% if '<key>' in hmsdocker_traefik_enabled_containers or '<key>' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if '<key>' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.<key>-${COMPOSE_PROJECT}.loadbalancer.server.port=<uiport>
-      - traefik.http.routers.<key>-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['<key>']['proxy_host_rule'] | default('<key>') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.<key>-${COMPOSE_PROJECT}.middlewares={{ 'external' if '<key>' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-<key>-midware@docker' if '<key>' in authentik_enabled_containers }}
+      {% if '<key>' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('<key>', <uiport>) | indent(6) }}
       {% endif %}
-      {% if '<key>' in homepage_enabled_containers %}
-      - homepage.group=<group>
-      - homepage.name=<Display Name>
-      - homepage.icon=<key>.png
-      - homepage.href=http://{{ hms_docker_container_map['<key>']['proxy_host_rule'] | default('<key>') }}.${HMSD_DOMAIN}
-      - homepage.description=<short description>
-      - homepage.widget.type=<homepage widget type>
-      - homepage.widget.url=http://<key>:<uiport>
-      - homepage.widget.key=${<KEY>_KEY:-apikeyapikeyapikey}
-        {% if '<key>' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if '<key>' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('<key>', '<group>', '<Display Name>', '<short description>', widget={'type': '<homepage widget type>', 'url': 'http://<key>:<uiport>', 'key': '${<KEY>_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:
@@ -90,7 +78,7 @@ re-adding it:
 ```
 
 Removing it from a shipped container is a user-visible behaviour change: `6f93080` (tdarr)
-bumped `hmsd_current_version` and added a release-note line for exactly this. Today that
+bumped `hmsdocker_current_version` and added a release-note line for exactly this. Today that
 is a bullet under `## Unreleased` in the newest release-notes file, with no version bump
 (the version is bumped only when a release is cut).
 
@@ -111,7 +99,7 @@ Both `proxy_net` and `download_net` are defined in
 `user: ${PUID}:${PGID}` at the service level instead (autobrr, n8n).
 
 Env values can be computed from Ansible vars — beszel builds its `APP_URL` from
-`traefik_ssl_enabled`, the map's `proxy_host_rule`, and `expose_ports_enabled_containers`.
+`hmsdocker_ssl_enabled`, the map's `proxy_host_rule`, and `hmsdocker_expose_ports_enabled_containers`.
 
 Compose interpolation defaults work and are used for optional secrets:
 `${BESZEL_TOKEN:-}`, `${CAPTCHA_SOLVER:-none}`.
@@ -127,7 +115,7 @@ Compose interpolation defaults work and are used for optional secrets:
 ### `ports` — always gated
 
 ```jinja
-    {% if '<key>' in expose_ports_enabled_containers %}
+    {% if '<key>' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - <hostport>:<uiport>
     {% endif %}
@@ -138,14 +126,30 @@ Never emit an unguarded `ports:`. Annotate optional/UDP ports inline the way jel
 
 ### `labels` — the whole block is gated
 
-The outer `{% if ... in traefik_enabled_containers or ... in homepage_enabled_containers %}`
+The outer `{% if ... in hmsdocker_traefik_enabled_containers or ... in hmsdocker_homepage_enabled_containers %}`
 prevents emitting an empty `labels:` key when both are off.
 
-The middlewares label resolves to one of four file-provider middlewares —
-`internal-ipallowlist@file`, `internal-secured@file`, `external-ipallowlist@file`,
-`external-secured@file` — defined in
-`roles/hmsdocker/templates/traefik/hmsd_traefik_middlewares.yml.j2`, plus the optional
-Authentik forward-auth suffix. Copy the line verbatim and change only the service key.
+The label lines themselves come from two macros in
+`roles/hmsdocker/templates/macros/labels.j2`, imported on the first line of the template.
+Call them at the indentation of the labels and pass the same width to `indent`:
+
+- `labels.traefik('<key>', <uiport>)` writes the four Traefik labels (enable, service port,
+  `Host` rule, middlewares). The middlewares label resolves to one of four file-provider
+  middlewares (`internal-ipallowlist@file`, `internal-secured@file`,
+  `external-ipallowlist@file`, `external-secured@file`, defined in
+  `roles/hmsdocker/templates/traefik/hmsd_traefik_middlewares.yml.j2`) plus the optional
+  Authentik and Tinyauth forward-auth suffixes. Options: `router=` (router name differs from
+  the key), `host_default=` (fallback subdomain differs from the router name), `suffix=`,
+  `scheme='https'` (the app only answers HTTPS), `authentik=false`, `tinyauth=false`.
+- `labels.homepage('<key>', '<group>', '<Display Name>', '<short description>', ...)` writes
+  the Homepage labels. Options: `icon=` (default `<key>.png`), `href='https'` or `href=none`,
+  `host_default=`, `suffix=`, `widget={...}` (written as `homepage.widget.*` in the order
+  given), `stats=` (`true`: `showStats` when `homepage_stats` is on, `'always'`, or `false`).
+
+Labels a macro does not cover (extra Traefik middlewares, a second router) are written as
+plain lines next to the macro call, see `n8n.yml.j2`, `traefik.yml.j2` and
+`transmission.yml.j2`. A widget value that needs a Jinja expression cannot go through the
+macro either, see `netdata.yml.j2`, `prowlarr.yml.j2` and `uptimekuma.yml.j2`.
 
 Homepage groups already in use, with usage counts: `Managers` (12 — the *arr stack, the
 seerr family, checkrr, librariarr, pinchflat, tubearchivist), `Infrastructure` (12),
@@ -155,13 +159,9 @@ match the string exactly: `homepage_services.yaml` ships empty, so Homepage buil
 group from these labels and a near-miss silently creates a new one-service group.
 
 Widget types and their required credentials come from
-[the Homepage widget docs](https://gethomepage.dev/widgets/) — if the app has no widget,
-omit the three `homepage.widget.*` lines and keep the rest.
+[the Homepage widget docs](https://gethomepage.dev/widgets/). If the app has no widget,
+leave out the `widget=` argument.
 
-`homepage.showStats` is conventionally nested one level deeper (8 spaces on the `{% if %}`)
-in 28 of the 37 gates that guard it; the other 9 (radarr, sabnzbd, prowlarr, tdarr,
-tautulli, netdata, cloudflare-tunnel, sonarr's 4k block) leave it flush at 6. It is purely
-visual — `lstrip_blocks` makes both forms render identically. Use 8 in new templates.
 
 ### `healthcheck`
 

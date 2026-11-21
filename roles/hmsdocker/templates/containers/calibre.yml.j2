@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   calibre:
     image: lscr.io/linuxserver/calibre:latest
@@ -19,19 +20,15 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/calibre/config:/config
       - ${HMSD_MOUNT_PATH}:/data{{ ':ro' if 'calibre' in hmsdocker_readonly_media_containers | default([], true) }}
-    {% if 'calibre' in expose_ports_enabled_containers %}
+    {% if 'calibre' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8083:8080 # remote desktop http
       - 8182:8181 # remote desktop https
       - 8084:8081 # webserver (must be enabled in settings using remote desktop)
     {% endif %}
-    {% if 'calibre' in traefik_enabled_containers %}
+    {% if 'calibre' in hmsdocker_traefik_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.port=8181
-      - traefik.http.services.calibre-${COMPOSE_PROJECT}.loadbalancer.server.scheme=https
-      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['calibre']['proxy_host_rule'] | default('calibre') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.calibre-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'calibre' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-calibre-midware@docker' if 'calibre' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'calibre' in tinyauth_protected_containers }}
+      {{ labels.traefik('calibre', 8181, scheme='https') | indent(6) }}
     {% endif %}
     healthcheck:
       test: curl -fk https://127.0.0.1:8181/ || exit 1

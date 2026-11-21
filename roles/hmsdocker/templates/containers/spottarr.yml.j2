@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   spottarr:
     image: ghcr.io/spottarr/spottarr:latest
@@ -29,27 +30,17 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/spottarr/config:/data
-    {% if 'spottarr' in expose_ports_enabled_containers %}
+    {% if 'spottarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8383:8383
     {% endif %}
-    {% if 'spottarr' in traefik_enabled_containers or 'spottarr' in homepage_enabled_containers %}
+    {% if 'spottarr' in hmsdocker_traefik_enabled_containers or 'spottarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'spottarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.spottarr-${COMPOSE_PROJECT}.loadbalancer.server.port=8383
-      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['spottarr']['proxy_host_rule'] | default('spottarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.spottarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'spottarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-spottarr-midware@docker' if 'spottarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'spottarr' in tinyauth_protected_containers }}
+      {% if 'spottarr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('spottarr', 8383) | indent(6) }}
       {% endif %}
-      {% if 'spottarr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Spottarr
-      - homepage.icon=mdi-radar
-      - homepage.href=http://{{ hms_docker_container_map['spottarr']['proxy_host_rule'] | default('spottarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Spotnet Indexer
-        {% if 'spottarr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'spottarr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('spottarr', 'Managers', 'Spottarr', 'Spotnet Indexer', icon='mdi-radar') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

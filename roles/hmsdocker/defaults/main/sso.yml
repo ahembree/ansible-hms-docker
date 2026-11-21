@@ -14,15 +14,15 @@ hmsdocker_authentik_enabled_through_cftunnel: false
 hmsdocker_authentik_version: "2026.8"
 
 # Advanced Authentik settings
-authentik_pg_user: authentik
-authentik_pg_db: authentik
-authentik_key_path: "{{ hms_docker_data_path }}/.authentik.key"
-authentik_pgpass_path: "{{ hms_docker_data_path }}/.authentik.pgpass"
-authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+hmsdocker_authentik_pg_user: authentik
+hmsdocker_authentik_pg_db: authentik
+hmsdocker_authentik_key_path: "{{ hmsdocker_data_path }}/.authentik.key"
+hmsdocker_authentik_pgpass_path: "{{ hmsdocker_data_path }}/.authentik.pgpass"
+hmsdocker_authentik_external_host: 'https://{{ hmsdocker_container_map["authentik"]["proxy_host_rule"] }}.{{ hmsdocker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
 
 # These are not required if not using GeoIP
-authentik_geoip_account_id: ""
-authentik_geoip_license_key: ""
+hmsdocker_authentik_geoip_account_id: ""
+hmsdocker_authentik_geoip_license_key: ""
 ### End Authentik settings
 #######################################################################
 
@@ -35,7 +35,7 @@ authentik_geoip_license_key: ""
 #   - 'user:$2a$10$UdLYoJ5lgPsC0RKqYH/jMua7zIn0g9kPqWmhYayJYLaZQ/FTmH2/u'
 hmsdocker_tinyauth_users: []
 
-# Containers (container map keys) that require a Tinyauth sign-in. Each must have `traefik: true` in the container map
+# Containers (container map keys) that require a Tinyauth sign-in. Each must have `proxy: true` in the container map
 # Example: hmsdocker_tinyauth_protected_containers: [sonarr, radarr, prowlarr]
 hmsdocker_tinyauth_protected_containers: []
 
@@ -43,10 +43,10 @@ hmsdocker_tinyauth_protected_containers: []
 # A value wrapped in slashes is a regex, e.g. '/@example\.com$/'
 hmsdocker_tinyauth_oauth_whitelist: []
 
-# Sign in to Tinyauth with Pocket ID. Requires `tinyauth` enabled with `traefik: true`, and traefik_ssl_enabled
+# Sign in to Tinyauth with Pocket ID. Requires `tinyauth` enabled with `proxy: true`, and hmsdocker_ssl_enabled
 # The playbook creates the OIDC client in Pocket ID and configures Tinyauth for it
 hmsdocker_tinyauth_pocketid_enabled: false
-# Pocket ID to use. Empty uses the `pocketid` container (it must be enabled with `traefik: true`)
+# Pocket ID to use. Empty uses the `pocketid` container (it must be enabled with `proxy: true`)
 # Set to the URL of a Pocket ID running elsewhere to use that instead, e.g. https://id.example.com
 hmsdocker_tinyauth_pocketid_url: ""
 # Only for a Pocket ID set with hmsdocker_tinyauth_pocketid_url: an API key from it (Settings > Admin > API Keys) with the

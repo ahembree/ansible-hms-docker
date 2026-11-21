@@ -2,30 +2,30 @@
 
 ## DDNS
 # Your Cloudflare API token that has read/write permissions for your DNS zone
-# This will also be provided to Traefik if using SSL (assuming Cloudflare is your DNS provider)
-cloudflare_api_token: ""
+# This will also be provided to Traefik or Caddy if using SSL (assuming Cloudflare is your DNS provider)
+hmsdocker_cloudflare_api_token: ""
 
-# The domain that will be used for the Cloudflare DDNS container // default: "{{ hms_docker_domain }}"
+# The domain that will be used for the Cloudflare DDNS container // default: "{{ hmsdocker_domain }}"
 # Automatically uses the same domain defined in `main.yml`
-cloudflare_ddns_domain: "{{ hms_docker_domain }}"
+hmsdocker_cloudflare_ddns_domain: "{{ hmsdocker_domain }}"
 
-# The DNS zone (registered domain) the DDNS record lives in // default: last two labels of cloudflare_ddns_domain
+# The DNS zone (registered domain) the DDNS record lives in // default: last two labels of hmsdocker_cloudflare_ddns_domain
 # Set explicitly for multi-label public suffixes (e.g. "example.co.uk" would otherwise become "co.uk")
-cloudflare_ddns_zone: "{{ cloudflare_ddns_domain.split('.')[-2:] | join('.') }}"
+hmsdocker_cloudflare_ddns_zone: "{{ hmsdocker_cloudflare_ddns_domain.split('.')[-2:] | join('.') }}"
 
 # The A (or AAAA) record to be created // default: "hmsdpublic"
-cloudflare_ddns_subdomain: hmsdpublic
+hmsdocker_cloudflare_ddns_subdomain: hmsdpublic
 
 # Whether to proxy the above record through Cloudflare // default: "true"
-cloudflare_ddns_proxied: "true"
+hmsdocker_cloudflare_ddns_proxied: "true"
 
 # Deletes the record when the container is stopped // default: "false"
-cloudflare_ddns_delete_record_on_stop: "false"
+hmsdocker_cloudflare_ddns_delete_record_on_stop: "false"
 
 # Creates an AAAA record for IPv6 // default: "no"
-cloudflare_ddns_create_ipv6_aaaa_record: no
+hmsdocker_cloudflare_ddns_create_ipv6_aaaa_record: false
 
 
 # Your Cloudflare Tunnel token, see https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/remote
 # Be sure to only add the actual token, it will be a very long string of random characters
-cloudflare_tunnel_token: ""
+hmsdocker_cloudflare_tunnel_token: ""

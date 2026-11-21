@@ -24,15 +24,15 @@ http:
         frameDeny: true
         contentTypeNosniff: true
         allowedHosts: 
-        {% for host in traefik_enabled_subdomains %}
-          - "{{ host }}.{{ hms_docker_domain }}"
+        {% for host in hmsdocker_traefik_enabled_subdomains %}
+          - "{{ host }}.{{ hmsdocker_domain }}"
         {% endfor %}
 
     internal-ipallowlist:
       ipAllowList:
         sourceRange:
           - "127.0.0.1/32"
-        {% for address in traefik_subnet_allow_list | regex_replace(', ', ',') | split(',') %}
+        {% for address in hmsdocker_proxy_allow_list | regex_replace(', ', ',') | split(',') %}
           - "{{ address }}"
         {% endfor %}
 

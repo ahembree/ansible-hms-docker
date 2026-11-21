@@ -1,4 +1,0 @@
----
-- name: NAS - Local - Using local path
-  ansible.builtin.debug:
-    msg: Using local path "{{ hmsdocker_primary_mount_path }}" for media files

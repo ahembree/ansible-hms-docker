@@ -3,23 +3,23 @@
 
 - name: App init - Get list of app bootstrap task files in the role
   ansible.builtin.set_fact:
-    container_init_task_files: "{{ lookup('fileglob', role_path + '/tasks/app_inits/*.yml', wantlist=True) }}"
+    hmsdocker_container_init_task_files: "{{ lookup('fileglob', role_path + '/tasks/app_inits/*.yml', wantlist=True) }}"
 
 - name: App init - Get names of available app bootstrap files
   ansible.builtin.set_fact:
-    container_init_task_names: >-
-      {{ container_init_task_files
+    hmsdocker_container_init_task_names: >-
+      {{ hmsdocker_container_init_task_files
         | map('basename')
         | map('regex_replace', '\.yml$', '')
         | list }}
 
 - name: App init - Slim variables and set global app variables
   ansible.builtin.set_fact:
-    app_inits: "{{ enabled_containers | intersect(container_init_task_names) }}"
-    hmsd_app_init_config_prefix: "HMSD - "
+    hmsdocker_app_inits: "{{ hmsdocker_enabled_containers | intersect(hmsdocker_container_init_task_names) }}"
+    hmsdocker_app_init_config_prefix: "HMSD - "
 
 - name: App init - Run app inits
-  ansible.builtin.include_tasks: "app_inits/{{ container_init_name }}.yml"
-  loop: '{{ app_inits }}'
+  ansible.builtin.include_tasks: "app_inits/{{ hmsdocker_container_init_name }}.yml"
+  loop: '{{ hmsdocker_app_inits }}'
   loop_control:
-    loop_var: container_init_name
+    loop_var: hmsdocker_container_init_name

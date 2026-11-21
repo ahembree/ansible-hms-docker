@@ -3,16 +3,24 @@ global:
   sendAnonymousUsage: false
 
 log:
-  level: "{{ traefik_log_level }}"
+  level: "{{ hmsdocker_traefik_log_level }}"
 
-{% if traefik_enable_access_logs %}
+{% if hmsdocker_proxy_access_logs or 'crowdsec' in hmsdocker_enabled_containers %}
 accessLog: {}
 {% endif %}
 
+{% if hmsdocker_traefik_crowdsec_bouncer_active | default(false) | bool %}
+# Loaded from the copy the playbook downloads, so Traefik does not need the plugin catalog to start
+experimental:
+  localPlugins:
+    crowdsec-bouncer:
+      moduleName: {{ hmsdocker_crowdsec_bouncer_plugin_module }}
+
+{% endif %}
 api:
   dashboard: true
   disabledashboardad: true
-  insecure: {{ "false" if traefik_security_hardening else "true" }}
+  insecure: {{ "false" if hmsdocker_proxy_security_hardening else "true" }}
 
 ping:
   entryPoint: traefik-ping
@@ -22,46 +30,72 @@ entryPoints:
     address: :8082
   web:
     address: :80
-{% if traefik_ssl_enabled %}
+{% if hmsdocker_proxy_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_proxy_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
+{% if hmsdocker_ssl_enabled or (hmsdocker_traefik_crowdsec_bouncer_active | default(false) | bool) %}
     http:
+{% if hmsdocker_traefik_crowdsec_bouncer_active | default(false) | bool %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
+{% if hmsdocker_ssl_enabled %}
       redirections:
         entryPoint:
           to: websecure
           scheme: https
           permanent: true
+{% endif %}
+{% endif %}
+{% if hmsdocker_ssl_enabled %}
 
   websecure:
     address: :443
+{% if hmsdocker_proxy_trusted_proxies | default([], true) | length > 0 %}
+    forwardedHeaders:
+      trustedIPs:
+      {% for ip in hmsdocker_proxy_trusted_proxies %}
+        - "{{ ip }}"
+      {% endfor %}
+{% endif %}
     asDefault: true
     http3: {}
     http:
+{% if hmsdocker_traefik_crowdsec_bouncer_active | default(false) | bool %}
+      middlewares:
+        - crowdsec@file
+{% endif %}
       tls:
         certResolver: letsencrypt
         domains:
-          - main: "{{ traefik_ssl_dns_provider_zone }}"
+          - main: "{{ hmsdocker_traefik_ssl_dns_provider_zone }}"
             sans:
-            {% for san in traefik_ssl_sans %}
+            {% for san in hmsdocker_ssl_sans %}
               - "{{- san -}}"
             {% endfor %}
 
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: "{{ traefik_ssl_letsencrypt_email }}"
-    {% if traefik_ssl_use_letsencrypt_staging_url %}
+      email: "{{ hmsdocker_ssl_letsencrypt_email }}"
+    {% if hmsdocker_ssl_letsencrypt_staging %}
       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       storage: /certs/acme_staging.json
     {% else %}
       storage: /certs/acme.json
     {% endif %}
       dnsChallenge:
-        provider: "{{ traefik_ssl_dns_provider_code }}"
+        provider: "{{ hmsdocker_traefik_ssl_dns_provider_code }}"
         resolvers:
-          - "{{ traefik_ssl_dns_resolver_1 }}"
-          - "{{ traefik_ssl_dns_resolver_2 }}"
+          - "{{ hmsdocker_ssl_dns_resolver_1 }}"
+          - "{{ hmsdocker_ssl_dns_resolver_2 }}"
 {% endif %}
 
-{% if traefik_security_hardening and traefik_ssl_enabled %}
+{% if hmsdocker_proxy_security_hardening and hmsdocker_ssl_enabled %}
 tls:
   options:
     default:
@@ -76,10 +110,10 @@ serversTransport:
 
 providers:
   docker:
-    network: "{{ project_name }}_proxy_net"
-    endpoint: unix://{{ (hmsdocker_socket_proxy_client_dir ~ '/docker.sock') if 'traefik' in socket_proxy_enabled_containers else '/var/run/docker.sock' }}
+    network: "{{ hmsdocker_project_name }}_proxy_net"
+    endpoint: unix://{{ (hmsdocker_socket_proxy_client_dir ~ '/docker.sock') if 'traefik' in hmsdocker_socket_proxy_enabled_containers else '/var/run/docker.sock' }}
     exposedByDefault: false
-    defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hms_docker_domain }}{% raw %}{{end}}`){% endraw +%}
+    defaultRule: {% raw %}Host(`{{if index .Labels "com.docker.compose.service" }}{{ index .Labels "com.docker.compose.service" }}{% endraw %}.{{ hmsdocker_domain }}{% raw %}{{else}}{{ trimPrefix `/` .Name }}{% endraw %}.{{ hmsdocker_domain }}{% raw %}{{end}}`){% endraw +%}
   file:
     directory: /etc/traefik/static_files
     watch: true

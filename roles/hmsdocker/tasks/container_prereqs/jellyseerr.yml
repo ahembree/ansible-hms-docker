@@ -4,8 +4,8 @@
 # existing config written by the old root-run image to that user.
 - name: Jellyseerr Prereq - Ensure config ownership for non-root Seerr image
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/jellyseerr/config"
+    path: "{{ hmsdocker_apps_path }}/jellyseerr/config"
     state: directory
     recurse: true
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"

@@ -1,48 +1,52 @@
 # Other keys not listed here may be retrieved during a playbook run from the apps config file
 
 # NZBGet
-homepage_nzbget_username: nzbget
-homepage_nzbget_password: tegbzn6789
+hmsdocker_homepage_nzbget_username: nzbget
+hmsdocker_homepage_nzbget_password: tegbzn6789
 
 # Authentik
 # See: https://gethomepage.dev/widgets/services/authentik/
-homepage_authentik_key: 
+hmsdocker_homepage_authentik_key:
 
 # Portainer
-homepage_portainer_key: 
+hmsdocker_homepage_portainer_key:
 
 # Jellyfin
-homepage_jellyfin_key: 
+hmsdocker_homepage_jellyfin_key:
 
 # Emby
-homepage_emby_key: 
+hmsdocker_homepage_emby_key:
 
 # Autobrr
-homepage_autobrr_key: 
+hmsdocker_homepage_autobrr_key:
 
 # Backrest
-hmsdocker_homepage_backrest_user: 
-hmsdocker_homepage_backrest_pass: 
+hmsdocker_homepage_backrest_user:
+hmsdocker_homepage_backrest_pass:
 
 # Cloudflare Tunnel
 # API key requires permissions: Account.Cloudflare Tunnel:Read
-hmsdocker_homepage_cftunnel_key: 
-hmsdocker_homepage_cftunnel_accountid: 
-hmsdocker_homepage_cftunnel_tunnelid: 
+hmsdocker_homepage_cftunnel_key:
+hmsdocker_homepage_cftunnel_accountid:
+hmsdocker_homepage_cftunnel_tunnelid:
 
 # Tailscale
-hmsdocker_homepage_tailscale_api_key: 
-hmsdocker_homepage_tailscale_device_id: 
+hmsdocker_homepage_tailscale_api_key:
+hmsdocker_homepage_tailscale_device_id:
+
+# NetBird
+# Personal access token from a user with the Admin role (a service user is recommended)
+hmsdocker_homepage_netbird_key:
 
 # Speedtest Tracker
 hmsdocker_homepage_speedtest_api_key:
 
 # Tubearchivist
-hmsdocker_homepage_tubearchivist_api_key: 
+hmsdocker_homepage_tubearchivist_api_key:
 
 # Uptime Kuma
 # Input the "slug" for the status page you want to monitor (example: `uptimekuma.example.com/status/hmsdocker` you would input `hmsdocker`)
-hmsdocker_homepage_uptimekuma_statuspage_slug: 
+hmsdocker_homepage_uptimekuma_statuspage_slug:
 
 # qBittorrent web UI credentials
 hmsdocker_homepage_qbittorrent_user: admin
@@ -61,4 +65,4 @@ hmsdocker_homepage_audiobookshelf_key:
 
 # Dockhand credentials
 hmsdocker_homepage_dockhand_user:
-hmsdocker_homepage_dockhand_pass: 
+hmsdocker_homepage_dockhand_pass:

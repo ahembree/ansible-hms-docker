@@ -12,7 +12,7 @@ services:
       driver: json-file
     networks:
       - download_net
-    {% if 'cross-seed' in expose_ports_enabled_containers %}
+    {% if 'cross-seed' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - "2468:2468"
     {% endif %}

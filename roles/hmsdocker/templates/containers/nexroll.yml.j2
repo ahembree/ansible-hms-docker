@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   nexroll:
     image: jbrns/nexroll:latest
@@ -12,7 +13,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if 'nexroll' in expose_ports_enabled_containers %}
+    {% if 'nexroll' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 9393:9393
     {% endif %}
@@ -21,34 +22,24 @@ services:
       - ${HMSD_APPS_PATH}/nexroll/config:/data
       # Prerolls live on the media share and are mounted at the same path the media servers use,
       # so the path NeXroll sends to Plex is already correct and needs no path mapping
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/prerolls:/data/{{ hms_docker_primary_mount_name }}/prerolls
+      - ${HMSD_MOUNT_PATH}/{{ hmsdocker_primary_mount_name }}/prerolls:/data/{{ hmsdocker_primary_mount_name }}/prerolls
     environment:
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
       - NEXROLL_RUN_AS_PUID=true
-      - NEXROLL_PREROLL_PATH=/data/{{ hms_docker_primary_mount_name }}/prerolls
-    {% if 'plex' in enabled_containers %}
+      - NEXROLL_PREROLL_PATH=/data/{{ hmsdocker_primary_mount_name }}/prerolls
+    {% if 'plex' in hmsdocker_enabled_containers %}
       - PLEX_URL=http://plex:32400
       - PLEX_TOKEN=${PLEX_KEY}
     {% endif %}
-    {% if 'nexroll' in traefik_enabled_containers or 'nexroll' in homepage_enabled_containers %}
+    {% if 'nexroll' in hmsdocker_traefik_enabled_containers or 'nexroll' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'nexroll' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.nexroll-${COMPOSE_PROJECT}.loadbalancer.server.port=9393
-      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.nexroll-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'nexroll' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-nexroll-midware@docker' if 'nexroll' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'nexroll' in tinyauth_protected_containers }}
+      {% if 'nexroll' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('nexroll', 9393) | indent(6) }}
       {% endif %}
-      {% if 'nexroll' in homepage_enabled_containers %}
-      - homepage.group=Media
-      - homepage.name=NeXroll
-      - homepage.icon=mdi-movie-open-play
-      - homepage.href=http://{{ hms_docker_container_map['nexroll']['proxy_host_rule'] | default('nexroll') }}.${HMSD_DOMAIN}
-      - homepage.description=Preroll Manager
-        {% if 'nexroll' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'nexroll' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('nexroll', 'Media', 'NeXroll', 'Preroll Manager', icon='mdi-movie-open-play') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

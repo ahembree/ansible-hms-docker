@@ -35,11 +35,11 @@ module.exports = {
      * You should order these in most likely to match -> the least likely order.
      * They are searched sequentially as they are listed.
      */
-    {% if 'sonarr' in enabled_containers %}
+    {% if 'sonarr' in hmsdocker_enabled_containers %}
     sonarr: [
-      "http://sonarr:8989/?apikey={{ api_keys.sonarr_key | default('') }}",
-      {% if separate_4k_instances_enable | default(false) %}
-      "http://sonarr-4k:8989/?apikey={{ api_keys.sonarr_4k_key | default('') }}",
+      "http://sonarr:8989/?apikey={{ hmsdocker_api_keys.sonarr_key | default('') }}",
+      {% if hmsdocker_separate_4k_instances_enable | default(false) %}
+      "http://sonarr-4k:8989/?apikey={{ hmsdocker_api_keys.sonarr_4k_key | default('') }}",
       {% endif %}
     ],
     {% else %}
@@ -52,11 +52,11 @@ module.exports = {
      * You should order these in most likely to match -> the least likely order.
      * They are searched sequentially as they are listed.
      */
-    {% if 'radarr' in enabled_containers %}
+    {% if 'radarr' in hmsdocker_enabled_containers %}
     radarr: [
-      "http://radarr:7878/?apikey={{ api_keys.radarr_key | default('') }}",
-      {% if separate_4k_instances_enable | default(false) %}
-      "http://radarr-4k:7878/?apikey={{ api_keys.radarr_4k_key | default('') }}",
+      "http://radarr:7878/?apikey={{ hmsdocker_api_keys.radarr_key | default('') }}",
+      {% if hmsdocker_separate_4k_instances_enable | default(false) %}
+      "http://radarr-4k:7878/?apikey={{ hmsdocker_api_keys.radarr_4k_key | default('') }}",
       {% endif %}
     ],
     {% else %}
@@ -101,13 +101,13 @@ module.exports = {
      * https://www.cross-seed.org/docs/basics/options#torrentclients
      */
     torrentClients: [
-    {% if 'transmission' in enabled_containers %}
+    {% if 'transmission' in hmsdocker_enabled_containers %}
       "transmission:http://transmission:9091/transmission/rpc",
     {% endif %}
-    {% if 'qbittorrent' in enabled_containers %}
+    {% if 'qbittorrent' in hmsdocker_enabled_containers %}
       "qbittorrent:http://qbittorrent:8086",
     {% endif %}
-    {% if 'deluge' in enabled_containers %}
+    {% if 'deluge' in hmsdocker_enabled_containers %}
       "deluge:http://deluge:8112/json"
     {% endif %}
     ],

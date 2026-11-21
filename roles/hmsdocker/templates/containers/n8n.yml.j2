@@ -14,13 +14,13 @@ services:
     networks:
       - proxy_net
       - n8n_net
-    {% if 'n8n' in expose_ports_enabled_containers %}
+    {% if 'n8n' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - "5678:5678"
     {% endif %}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.n8n-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}`)
+      - traefik.http.routers.n8n-${COMPOSE_PROJECT}.rule=Host(`{{ hmsdocker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.n8n-${COMPOSE_PROJECT}.loadbalancer.server.port=5678
       - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.SSLRedirect=true
       - traefik.http.middlewares.n8n-${COMPOSE_PROJECT}.headers.STSSeconds=315360000
@@ -33,13 +33,13 @@ services:
       - traefik.http.routers.n8n-${COMPOSE_PROJECT}.middlewares=n8n-${COMPOSE_PROJECT}@docker
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      - N8N_HOST={{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}
+      - N8N_HOST={{ hmsdocker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_HIRING_BANNER_ENABLED=false
       - NODE_ENV=production
-      - N8N_WEBHOOK_URL=https://{{ hms_docker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}/
+      - N8N_WEBHOOK_URL=https://{{ hmsdocker_container_map['n8n']['proxy_host_rule'] | default('n8n') }}.${HMSD_DOMAIN}/
       - GENERIC_TIMEZONE=${TIMEZONE}
       - TZ=${TIMEZONE}
       - N8N_USER_FOLDER=/data

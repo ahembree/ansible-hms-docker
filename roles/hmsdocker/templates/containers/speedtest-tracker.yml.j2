@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   speedtest-tracker:
     image: lscr.io/linuxserver/speedtest-tracker:latest
@@ -12,7 +13,7 @@ services:
       driver: json-file
     networks:
       - proxy_net
-  {% if 'speedtest-tracker' in expose_ports_enabled_containers %}
+  {% if 'speedtest-tracker' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8090:80
       - 8444:443
@@ -21,32 +22,20 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - APP_KEY=${SPEEDTEST_API_KEY}
-      - APP_URL=http://{{ hms_docker_container_map['speedtest-tracker']['proxy_host_rule'] | default('speedtest') }}.${HMSD_DOMAIN}
+      - APP_URL=http://{{ hmsdocker_container_map['speedtest-tracker']['proxy_host_rule'] | default('speedtest') }}.${HMSD_DOMAIN}
       - DB_CONNECTION=sqlite
       - SPEEDTEST_SCHEDULE=${SPEEDTEST_SCHEDULE}
       - APP_TIMEZONE=${TIMEZONE}
       - DISPLAY_TIMEZONE=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/speedtest-tracker/config:/config
-    {% if 'speedtest-tracker' in traefik_enabled_containers or 'speedtest-tracker' in homepage_enabled_containers %}
+    {% if 'speedtest-tracker' in hmsdocker_traefik_enabled_containers or 'speedtest-tracker' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'speedtest-tracker' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.speedtest-${COMPOSE_PROJECT}.loadbalancer.server.port=80
-      - traefik.http.routers.speedtest-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['speedtest-tracker']['proxy_host_rule'] | default('speedtest') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.speedtest-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'speedtest-tracker' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-speedtest-midware@docker' if 'speedtest-tracker' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'speedtest-tracker' in tinyauth_protected_containers }}
+      {% if 'speedtest-tracker' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('speedtest-tracker', 80, router='speedtest') | indent(6) }}
       {% endif %}
-      {% if 'speedtest-tracker' in homepage_enabled_containers %}
-      - homepage.group=Infrastructure
-      - homepage.name=Speedtest Tracker
-      - homepage.icon=speedtest-tracker.png
-      - homepage.href=http://{{ hms_docker_container_map['speedtest-tracker']['proxy_host_rule'] | default('speedtest') }}.${HMSD_DOMAIN}
-      - homepage.description=Speedtest Tracker
-      - homepage.widget.type=speedtest
-      - homepage.widget.url=http://speedtest-tracker
-      - homepage.widget.version=2
-      - homepage.widget.key=${HOMEPAGE_SPEEDTEST_API_KEY}
-      - homepage.widget.bitratePrecision=1
+      {% if 'speedtest-tracker' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('speedtest-tracker', 'Infrastructure', 'Speedtest Tracker', 'Speedtest Tracker', host_default='speedtest', widget={'type': 'speedtest', 'url': 'http://speedtest-tracker', 'version': '2', 'key': '${HOMEPAGE_SPEEDTEST_API_KEY}', 'bitratePrecision': '1'}, stats=false) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

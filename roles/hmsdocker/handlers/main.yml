@@ -1,92 +1,128 @@
 ---
 - name: Restart traefik
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - traefik
+  # hmsdocker_traefik_crowdsec_bouncer_added: the CrowdSec postreqs added the bouncer to the running Traefik's config, which only
+  # takes effect after a restart, even on a run that created the certs directory
   when:
-    - not traefik_certs_dir.changed
+    - not hmsdocker_traefik_certs_dir.changed or (hmsdocker_traefik_crowdsec_bouncer_added | default(false) | bool)
     - not ansible_check_mode
+
+# Must stay after "Restart traefik", handlers run in the order they are defined
+- name: Remove CrowdSec bouncer middleware
+  ansible.builtin.file:
+    path: "{{ hmsdocker_traefik_static_config_location }}/hmsd_crowdsec.yml"
+    state: absent
+
+- name: Restart crowdsec
+  community.docker.docker_compose_v2:
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
+    state: restarted
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
+    services:
+      - crowdsec
+  when: not ansible_check_mode
+
+# Caddy reloads its config without dropping connections. Skipped while the container is not running,
+# it reads the new Caddyfile when it starts
+- name: Get caddy container
+  community.docker.docker_container_info:
+    name: caddy
+  register: hmsdocker_caddy_handler_container_info
+  listen: Reload caddy
+  when: not ansible_check_mode
+
+- name: Reload caddy config
+  community.docker.docker_container_exec:
+    container: caddy
+    command: caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+  listen: Reload caddy
+  when:
+    - not ansible_check_mode
+    - hmsdocker_caddy_handler_container_info.container.State.Running | default(false)
 
 - name: Restart sabnzbd
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - sabnzbd
   when: not ansible_check_mode
 
 - name: Restart checkrr
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - checkrr
   when: not ansible_check_mode
 
 - name: Restart radarr
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - radarr
   when: not ansible_check_mode
 
 - name: Restart radarr 4K
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - radarr-4k
   when: not ansible_check_mode
 
 - name: Restart sonarr
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - sonarr
   when: not ansible_check_mode
 
 - name: Restart sonarr 4K
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - sonarr-4k
   when: not ansible_check_mode
 
 - name: Restart lidarr
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - lidarr
   when: not ansible_check_mode
 
 - name: Restart tinyauth
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - tinyauth
   when: not ansible_check_mode

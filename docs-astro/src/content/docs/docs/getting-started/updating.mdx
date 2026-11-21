@@ -11,7 +11,17 @@ To easily update from this git repo _**and**_ update your custom variable names 
 make update
 ```
 
-Previous variable names will still work for at least a year after the change and will be noted as such within the default configs. Please update to resolve.
+Previous variable names will still work for at least a year after the change. While any are still in use, the playbook lists them in a warning at the start of each run. Please update to resolve.
+
+`make update` renames the variables in your `inventory/group_vars/all/*.yml` files, including where one variable is used in the value of another (`{{ ... }}`). The full list of renames is in [`migrations/variable_renames.yml`](https://github.com/ahembree/ansible-hms-docker/blob/master/migrations/variable_renames.yml). To only rename the variables and merge new container map entries, without pulling, run `make migrate-config`.
+
+:::note[Variable names]
+
+Every setting now starts with `hmsdocker_`, for example `hms_docker_domain` is now `hmsdocker_domain` and `container_uid` is now `hmsdocker_container_uid`.
+
+If you are updating from v1.20 or older, the first `make update` still runs the old update steps and does not rename them. Run `make update` a second time (or `make migrate-config`) to rename them. Until then the old names keep working.
+
+:::
 
 If any new containers or container controls were added since you last updated, your `container_map.yml` file will also be updated with the defaults for the new container(s) and controls. The defaults come from the version of the code you just pulled, so they always match what you are about to apply.
 
@@ -43,6 +53,14 @@ Both commands switch branches and run `make update` for you. Local edits such as
 :::caution[Switching back to stable]
 
 Moving from `develop` to `master` can roll back changes that were already applied to your host. If `develop` added a container that is not in the latest release yet, `make update` warns about it. Disable it in your `container_map.yml` before running `make apply`.
+
+If `develop` renamed settings, `make update` on `develop` already renamed them in your inventory, and the release on `master` does not know the new names yet. Whenever `make update` changes your config, it first saves a copy in `backups/inventory-<date>` and prints its path. After `make switch-stable`, restore the copy from before you switched to `develop` (the oldest one since then):
+
+```bash
+rm inventory/group_vars/all/*.yml && cp -p backups/inventory-<date>/*.yml inventory/group_vars/all/
+```
+
+Changes you made to your config on `develop` after that backup need to be made again.
 
 :::
 

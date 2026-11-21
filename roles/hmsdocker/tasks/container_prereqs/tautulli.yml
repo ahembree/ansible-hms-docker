@@ -5,12 +5,13 @@
       community.general.git_config:
         name: safe.directory
         scope: global
-        value: "{{ tautulli_jbops_install_path }}"
+        value: "{{ hmsdocker_tautulli_jbops_install_path }}"
 
-    - name: Ensure JBOPS repo
+    # JBOPS has no releases, so this follows its default branch
+    - name: Ensure JBOPS repo  # noqa: latest[git]
       ansible.builtin.git:
         repo: https://github.com/blacktwin/JBOPS
         clone: true
-        dest: "{{ tautulli_jbops_install_path }}"
+        dest: "{{ hmsdocker_tautulli_jbops_install_path }}"
       diff: false
       changed_when: false

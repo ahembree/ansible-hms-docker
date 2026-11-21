@@ -1,16 +1,16 @@
 ---
 - name: Sabnzbd Postreq - Check if config file exists
   ansible.builtin.stat:
-    path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
-  register: sabnzbd_config_path
+    path: "{{ hmsdocker_apps_path }}/sabnzbd/config/sabnzbd.ini"
+  register: hmsdocker_sabnzbd_config_path
 
 - name: Sabnzbd Postreq - restart sabnzbd inline if config not exist
-  when: not sabnzbd_config_path.stat.exists and not ansible_check_mode
+  when: not hmsdocker_sabnzbd_config_path.stat.exists and not ansible_check_mode
   community.docker.docker_compose_v2:
-    project_src: "{{ hms_docker_data_path }}"
-    project_name: "{{ project_name }}"
+    project_src: "{{ hmsdocker_data_path }}"
+    project_name: "{{ hmsdocker_project_name }}"
     state: restarted
-    remove_orphans: "{{ container_remove_orphans }}"
+    remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
     services:
       - sabnzbd
 
@@ -20,52 +20,52 @@
 
 - name: Sabnzbd Postreq - Check if config file exists after container restart
   ansible.builtin.stat:
-    path: "{{ hms_docker_apps_path }}/sabnzbd/config/sabnzbd.ini"
-  register: sabnzbd_config_path
+    path: "{{ hmsdocker_apps_path }}/sabnzbd/config/sabnzbd.ini"
+  register: hmsdocker_sabnzbd_config_path
 
 - name: Sabnzbd Postreq - Configure sabnzbd config file
-  when: sabnzbd_config_path.stat.exists
+  when: hmsdocker_sabnzbd_config_path.stat.exists
   block:
     # Adds `sabnzbd` to host_whitelist so that other apps can use it via internal docker network
     - name: Sabnzbd Postreq - Get current sabnzbd config file contents
       ansible.builtin.slurp:
-        path: "{{ sabnzbd_config_path.stat.path }}"
-      register: slurped_sabnzbd_data
+        path: "{{ hmsdocker_sabnzbd_config_path.stat.path }}"
+      register: hmsdocker_slurped_sabnzbd_data
       check_mode: false
-      no_log: "{{ not debug_mode }}"
+      no_log: "{{ not hmsdocker_debug_mode }}"
 
     - name: Sabnzbd Postreq - Pull current sabnzbd allowed hosts
       ansible.builtin.set_fact:
-        slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | regex_replace(', ', ',') | split(',') }}"
-      when: slurped_sabnzbd_data['content'] is defined
-      no_log: "{{ not debug_mode }}"
+        hmsdocker_slurped_sabnzbd_hostlist: "{{ hmsdocker_slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | regex_replace(', ', ',') | split(',') }}"
+      when: hmsdocker_slurped_sabnzbd_data['content'] is defined
+      no_log: "{{ not hmsdocker_debug_mode }}"
 
     - name: Sabnzbd Postreq - Ensure sabnzbd container config has allowlisted hostname
       ansible.builtin.replace:
-        path: "{{ sabnzbd_config_path.stat.path }}"
+        path: "{{ hmsdocker_sabnzbd_config_path.stat.path }}"
         regexp: '(?<=host_whitelist = ).*'
-        replace: "{{ slurped_sabnzbd_hostlist | join(',') }}sabnzbd,"
-      when: "'sabnzbd' not in slurped_sabnzbd_hostlist"
+        replace: "{{ hmsdocker_slurped_sabnzbd_hostlist | join(',') }}sabnzbd,"
+      when: "'sabnzbd' not in hmsdocker_slurped_sabnzbd_hostlist"
       notify: Restart sabnzbd
 
     # Adds the hostname used by Traefik
     - name: Sabnzbd Postreq - Get current sabnzbd config file contents
       ansible.builtin.slurp:
-        path: "{{ sabnzbd_config_path.stat.path }}"
-      register: slurped_sabnzbd_data
+        path: "{{ hmsdocker_sabnzbd_config_path.stat.path }}"
+      register: hmsdocker_slurped_sabnzbd_data
       check_mode: false
-      no_log: "{{ not debug_mode }}"
+      no_log: "{{ not hmsdocker_debug_mode }}"
 
     - name: Sabnzbd Postreq - Pull current sabnzbd allowed hosts
       ansible.builtin.set_fact:
-        slurped_sabnzbd_hostlist: "{{ slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | regex_replace(', ', ',') | split(',') }}"
-      when: slurped_sabnzbd_data['content'] is defined
-      no_log: "{{ not debug_mode }}"
+        hmsdocker_slurped_sabnzbd_hostlist: "{{ hmsdocker_slurped_sabnzbd_data['content'] | b64decode | regex_search('(?<=host_whitelist = ).*') | regex_replace(', ', ',') | split(',') }}"
+      when: hmsdocker_slurped_sabnzbd_data['content'] is defined
+      no_log: "{{ not hmsdocker_debug_mode }}"
 
     - name: Sabnzbd Postreq - Ensure sabnzbd container config has allowlisted hostname
       ansible.builtin.replace:
-        path: "{{ sabnzbd_config_path.stat.path }}"
+        path: "{{ hmsdocker_sabnzbd_config_path.stat.path }}"
         regexp: '(?<=host_whitelist = ).*'
-        replace: "{{ slurped_sabnzbd_hostlist | join(',') }}{{ hms_docker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') }}.{{ hms_docker_domain }},"
-      when: (hms_docker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') + "." + hms_docker_domain) not in slurped_sabnzbd_hostlist
+        replace: "{{ hmsdocker_slurped_sabnzbd_hostlist | join(',') }}{{ hmsdocker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') }}.{{ hmsdocker_domain }},"
+      when: (hmsdocker_container_map['sabnzbd']['proxy_host_rule'] | default('sabnzbd') + "." + hmsdocker_domain) not in hmsdocker_slurped_sabnzbd_hostlist
       notify: Restart sabnzbd

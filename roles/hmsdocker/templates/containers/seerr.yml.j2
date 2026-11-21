@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   seerr:
     image: ghcr.io/seerr-team/seerr:latest
@@ -18,7 +19,7 @@ services:
       - LOG_LEVEL=debug
       - TZ=${TIMEZONE}
       - PORT=5055 #optional
-    {% if 'seerr' in expose_ports_enabled_containers %}
+    {% if 'seerr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5055:5055
     {% endif %}
@@ -30,25 +31,12 @@ services:
       timeout: 3s
       interval: 15s
       retries: 3
-    {% if 'seerr' in traefik_enabled_containers or 'seerr' in homepage_enabled_containers %}
+    {% if 'seerr' in hmsdocker_traefik_enabled_containers or 'seerr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'seerr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.seerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
-      - traefik.http.routers.seerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['seerr']['proxy_host_rule'] | default('seerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.seerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'seerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-seerr-midware@docker' if 'seerr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'seerr' in tinyauth_protected_containers }}
+      {% if 'seerr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('seerr', 5055) | indent(6) }}
       {% endif %}
-      {% if 'seerr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Seerr
-      - homepage.icon=seerr.png
-      - homepage.href=http://{{ hms_docker_container_map['seerr']['proxy_host_rule'] | default('seerr') }}.${HMSD_DOMAIN}
-      - homepage.description=Request Manager
-      - homepage.widget.type=seerr
-      - homepage.widget.url=http://seerr:5055
-      - homepage.widget.key=${SEERR_KEY:-apikeyapikeyapikey}
-        {% if 'seerr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'seerr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('seerr', 'Managers', 'Seerr', 'Request Manager', widget={'type': 'seerr', 'url': 'http://seerr:5055', 'key': '${SEERR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

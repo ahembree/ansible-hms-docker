@@ -1,29 +1,29 @@
 http:
   routers:
-    {{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-{{ project_name }}:
+    {{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}-{{ hmsdocker_project_name }}:
       entryPoints:
-      {% if traefik_ssl_enabled %}
+      {% if hmsdocker_ssl_enabled %}
         - websecure
       {% else %}
         - web
       {% endif %}
       middlewares:
       {% if item.expose_publicly | default(false) %}
-        - external-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
+        - external-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}
       {% else %}
-        - internal-{{ 'secured' if traefik_security_hardening else 'ipallowlist' }}
+        - internal-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}
       {% endif %}
-      {% if ('authentik' in enabled_containers and traefik_ssl_enabled | default(False)) and item.authentik | default(False) %}
-        - authentik-proxy-{{ project_name }}-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}-midware@docker
+      {% if ('authentik' in hmsdocker_enabled_containers and hmsdocker_ssl_enabled | default(False)) and item.authentik | default(False) %}
+        - authentik-proxy-{{ hmsdocker_project_name }}-{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}-midware@docker
       {% endif %}
-      {% if 'tinyauth' in traefik_enabled_containers and item.tinyauth | default(False) %}
-        - tinyauth-{{ project_name }}@docker
+      {% if 'tinyauth' in hmsdocker_traefik_enabled_containers and item.tinyauth | default(False) %}
+        - tinyauth-{{ hmsdocker_project_name }}@docker
       {% endif %}
-      service: {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}
-      rule: Host(`{{ item.subdomain_name }}.{{ hms_docker_domain }}`)
+      service: {{ item.friendly_name + "_svc" | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}
+      rule: Host(`{{ item.subdomain_name }}.{{ hmsdocker_domain }}`)
 
   services:
-    {{ item.friendly_name + "_svc" | map('regex_replace', regex, replace) | list | join }}:
+    {{ item.friendly_name + "_svc" | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}:
       loadBalancer:
         servers:
           - url: {{ item.backend_url }}

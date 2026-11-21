@@ -1,0 +1,23 @@
+http:
+  middlewares:
+    crowdsec:
+      plugin:
+        crowdsec-bouncer:
+          enabled: true
+          crowdsecMode: stream
+          crowdsecLapiScheme: http
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiKey: "{{ hmsdocker_crowdsec_bouncer_key }}"
+          # keep serving traffic if CrowdSec can't be reached (restart, update, crash), instead of blocking every request
+          updateMaxFailure: -1
+          # LAN clients are never blocked, so the apps stay reachable if CrowdSec makes a bad decision
+          clientTrustedIPs:
+          {% for address in hmsdocker_proxy_allow_list | regex_replace(', ', ',') | split(',') %}
+            - "{{ address | trim }}"
+          {% endfor %}
+        {% if hmsdocker_proxy_trusted_proxies | default([], true) | length > 0 %}
+          forwardedHeadersTrustedIPs:
+          {% for ip in hmsdocker_proxy_trusted_proxies %}
+            - "{{ ip }}"
+          {% endfor %}
+        {% endif %}

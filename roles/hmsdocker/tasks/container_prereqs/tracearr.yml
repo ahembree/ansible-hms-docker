@@ -1,66 +1,66 @@
 - name: (Prereq - Tracearr) - Ensure postgres directory with correct ownership
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/tracearr/config/postgres"
+    path: "{{ hmsdocker_apps_path }}/tracearr/config/postgres"
     state: directory
     mode: '0700'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
 
 - name: (Prereq - Tracearr) - Ensure redis directory with correct ownership
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/tracearr/config/redis"
+    path: "{{ hmsdocker_apps_path }}/tracearr/config/redis"
     state: directory
     mode: '0755'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
 
 - name: (Prereq - Tracearr) - Generate JWT secret
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ hms_docker_apps_path + '/tracearr/config/.tracearr_jwt_secret' }}"
-    mode: 0600
-    backup: yes
-    force: no
-  no_log: "{{ not debug_mode }}"
-  register: prereq_tracearr_jwt_secret
+    dest: "{{ hmsdocker_apps_path + '/tracearr/config/.tracearr_jwt_secret' }}"
+    mode: '0600'
+    backup: true
+    force: false
+  no_log: "{{ not hmsdocker_debug_mode }}"
+  register: hmsdocker_prereq_tracearr_jwt_secret
   vars:
-    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+    hmsdocker_secret_key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
 
 - name: (Prereq - Tracearr) - Generate Cookie secret
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ hms_docker_apps_path + '/tracearr/config/.tracearr_cookie_secret' }}"
-    mode: 0600
-    backup: yes
-    force: no
-  no_log: "{{ not debug_mode }}"
-  register: prereq_tracearr_cookie_secret
+    dest: "{{ hmsdocker_apps_path + '/tracearr/config/.tracearr_cookie_secret' }}"
+    mode: '0600'
+    backup: true
+    force: false
+  no_log: "{{ not hmsdocker_debug_mode }}"
+  register: hmsdocker_prereq_tracearr_cookie_secret
   vars:
-    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
+    hmsdocker_secret_key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=64) }}"
 
 - name: (Prereq - Tracearr) - Slurp Tracearr JWT secret
   ansible.builtin.slurp:
-    src: "{{ prereq_tracearr_jwt_secret.dest }}"
-  register: prereq_tracearr_slurped_jwt_secret
+    src: "{{ hmsdocker_prereq_tracearr_jwt_secret.dest }}"
+  register: hmsdocker_prereq_tracearr_slurped_jwt_secret
   check_mode: false
-  when: prereq_tracearr_jwt_secret.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_prereq_tracearr_jwt_secret.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: (Prereq - Tracearr) - Slurp Tracearr Cookie secret
   ansible.builtin.slurp:
-    src: "{{ prereq_tracearr_cookie_secret.dest }}"
-  register: prereq_tracearr_slurped_cookie_secret
+    src: "{{ hmsdocker_prereq_tracearr_cookie_secret.dest }}"
+  register: hmsdocker_prereq_tracearr_slurped_cookie_secret
   check_mode: false
-  when: prereq_tracearr_cookie_secret.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_prereq_tracearr_cookie_secret.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: (Prereq - Tracearr) - Ensure backup and image cache directories with correct ownership
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/tracearr/config/{{ item }}"
+    path: "{{ hmsdocker_apps_path }}/tracearr/config/{{ item }}"
     state: directory
     mode: '0755'
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
   loop:
     - backup
     - image-cache

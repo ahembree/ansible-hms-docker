@@ -21,7 +21,7 @@ Enable `socket-proxy` in the [Container Map](/docs/container-list/#container-map
 For every supported container that is enabled, the playbook then:
 
 1. Creates a `socket-proxy-<container>` container (for example `socket-proxy-traefik`)
-2. Creates `<hms_docker_apps_path>/socket-proxy/<container>/`, where that proxy creates a filtered `docker.sock`
+2. Creates `<hmsdocker_apps_path>/socket-proxy/<container>/`, where that proxy creates a filtered `docker.sock`
 3. Mounts that folder into the container at `/var/run/socket-proxy`, instead of mounting `/var/run/docker.sock`
 4. Points the container at `/var/run/socket-proxy/docker.sock`
 
@@ -46,6 +46,7 @@ All paths also match their versioned form (e.g. `/v1.47/containers/json`). Every
 | Uptime Kuma | Read: version, info, container list and details | Docker host in the Uptime Kuma UI (see above) |
 | Tinyauth | Read: version, events, container list and details | `DOCKER_HOST` |
 | Beszel agent | Read: version, info, container list, details, stats and logs | `DOCKER_HOST` |
+| CrowdSec | Read: version, info, events, container list, details and logs | `DOCKER_HOST` |
 | Watchtower | Read: version, info, events, containers, images, networks. Write: pull images, create, start, stop, restart, rename and remove containers, remove images, connect containers to networks | `DOCKER_HOST` |
 | Authentik worker | Read: version, info, containers, images, networks. Write: pull images, create, start, stop, restart and remove containers. Containers it creates cannot bind mount any host folder | `DOCKER_HOST`, plus a blueprint that creates the "Local Docker connection" (see [below](#authentik)) |
 
@@ -77,7 +78,7 @@ Set `hmsdocker_socket_proxy_overrides` in `inventory/group_vars/all/container_se
 
 | Key | Values |
 |-|-|
-| `mode` | `proxy`: filtered socket (default). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy. Traefik, Homepage, Watchtower and Authentik cannot work without Docker, so they only accept `proxy` or `direct` |
+| `mode` | `proxy`: filtered socket (default). `none`: no Docker socket. `direct`: the unfiltered Docker socket, as without the socket proxy. Traefik, Homepage, Watchtower, Authentik and CrowdSec cannot work without Docker, so they only accept `proxy` or `direct` |
 | `allow` | Docker API path regexes per HTTP method (`get`, `head`, `post`, `put`, `patch`, `delete`). Setting a method replaces the built-in list for that method. Each regex is anchored (`^...$`) and matched against the path only, without the query string. Group alternatives, e.g. `(/version\|/_ping)` |
 | `bind_mount_from` | Host folders the container may bind mount into containers it creates |
 
@@ -120,4 +121,4 @@ If a container cannot reach Docker at all, check that its proxy is healthy (`doc
 
 The proxies use the `wollomatic/socket-proxy:1` image. Watchtower updates them like any other container, except the one it uses itself, which it must not stop. Instead, the playbook pulls the image on every run and recreates any proxy whose image changed.
 
-To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.
+To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `hmsdocker_container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.

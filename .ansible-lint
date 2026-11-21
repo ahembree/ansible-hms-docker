@@ -4,5 +4,9 @@ skip_list:
   - role-name[path]
 
 exclude_paths:
-  - ./galaxy-roles
-  - ./gen-docs
+  - galaxy-roles/
+  - .github/
+  - docs-astro/
+  # The user's own config (gitignored copies of the role defaults)
+  - inventory/group_vars/
+  - backups/

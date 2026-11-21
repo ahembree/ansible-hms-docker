@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   tailscale:
     image: tailscale/tailscale:latest
@@ -20,19 +21,13 @@ services:
     environment:
       - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
       - TS_STATE_DIR=/var/lib/tailscale
-    {% if tailscale_enable_subnet_routes %}
-      - TS_ROUTES={{ tailscale_subnet_routes }}
+    {% if hmsdocker_tailscale_enable_subnet_routes %}
+      - TS_ROUTES={{ hmsdocker_tailscale_subnet_routes }}
     {% endif %}
-    {% if tailscale_advertise_exit_node %}
+    {% if hmsdocker_tailscale_advertise_exit_node %}
       - TS_EXTRA_ARGS=--advertise-exit-node
     {% endif %}
-    {% if 'tailscale' in homepage_enabled_containers %}
+    {% if 'tailscale' in hmsdocker_homepage_enabled_containers %}
     labels:
-      - homepage.group=Infrastructure
-      - homepage.name=Tailscale
-      - homepage.icon=tailscale.png
-      - homepage.description=VPN
-      - homepage.widget.type=tailscale
-      - homepage.widget.deviceid=${TAILSCALE_DEVICE_ID}
-      - homepage.widget.key=${TAILSCALE_API_KEY}
+      {{ labels.homepage('tailscale', 'Infrastructure', 'Tailscale', 'VPN', href=none, widget={'type': 'tailscale', 'deviceid': '${TAILSCALE_DEVICE_ID}', 'key': '${TAILSCALE_API_KEY}'}, stats=false) | indent(6) }}
     {% endif %}

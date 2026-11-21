@@ -5,14 +5,14 @@ sidebar:
   label: Tinyauth and Pocket ID
 ---
 
-[Tinyauth](https://github.com/steveiliop56/tinyauth) is a lightweight sign-in page for Traefik: a service behind it can only be opened after signing in. [Pocket ID](https://github.com/pocket-id/pocket-id) is an OIDC provider that signs users in with passkeys. Together they are a lighter alternative to [Authentik](/docs/services/authentik/).
+[Tinyauth](https://github.com/steveiliop56/tinyauth) is a lightweight sign-in page for Traefik and [Caddy](/docs/services/caddy/#single-sign-on): a service behind it can only be opened after signing in. [Pocket ID](https://github.com/pocket-id/pocket-id) is an OIDC provider that signs users in with passkeys. Together they are a lighter alternative to [Authentik](/docs/services/authentik/).
 
 Both are optional and can be used on their own. The settings below are in `inventory/group_vars/all/sso.yml`, next to the Authentik settings.
 
 ## Requirements
 
-- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `traefik: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
-- Traefik with SSL (`traefik_ssl_enabled`) to sign in with Pocket ID, since passkeys only work over HTTPS (the playbook checks this). Tinyauth with only local users also runs without SSL, but its session cookie is then sent unencrypted, so use SSL whenever you can
+- `tinyauth` (and `pocketid`, to sign in with this project's Pocket ID) enabled in the [Container Map](/docs/container-list/#container-map) with `proxy: true`. To use a Pocket ID you already run, see [below](#using-a-pocket-id-you-already-run)
+- Traefik or Caddy with SSL (`hmsdocker_ssl_enabled`) to sign in with Pocket ID, since passkeys only work over HTTPS (the playbook checks this). Tinyauth with only local users also runs without SSL, but its session cookie is then sent unencrypted, so use SSL whenever you can
 
 ## Signing in with Pocket ID
 
@@ -98,7 +98,7 @@ hmsdocker_tinyauth_protected_containers:
   - prowlarr
 ```
 
-Each listed service must be enabled with `traefik: true`. Its Traefik router gets the Tinyauth middleware after the usual IP allowlist, so opening it redirects to Tinyauth until you sign in. Protecting `sonarr` or `radarr` also protects their 4K instances.
+Each listed service must be enabled with `proxy: true`. Its Traefik router (or Caddy route) gets the Tinyauth middleware after the usual IP allowlist, so opening it redirects to Tinyauth until you sign in. Protecting `sonarr` or `radarr` also protects their 4K instances.
 
 `tinyauth` and `pocketid` (which serve the sign-in), and `authentik` and `n8n` (which set their own Traefik middlewares) cannot be protected. A service that also has `authentik: true` would ask for both sign-ins, and the playbook warns about it.
 
@@ -106,10 +106,10 @@ Anything that reaches a protected service through its Traefik URL without a brow
 
 ### Services outside this project
 
-Routes to [external services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) in `traefik_ext_hosts_list` (in `inventory/group_vars/all/traefik.yml`) can require a Tinyauth sign-in too:
+Routes to [external services](/docs/services/traefik/other-svcs/#adding-external-services-to-traefik) in `hmsdocker_proxy_ext_hosts_list` (in `inventory/group_vars/all/reverse_proxy.yml`, or `traefik.yml` until you run `make update`) can require a Tinyauth sign-in too:
 
 ```yaml
-traefik_ext_hosts_list: [
+hmsdocker_proxy_ext_hosts_list: [
   {
     friendly_name: grafana,
     subdomain_name: grafana,
@@ -123,7 +123,7 @@ traefik_ext_hosts_list: [
 ]
 ```
 
-For a [container in another Compose project](/docs/services/traefik/other-svcs/#adding-other-containers-to-traefik) on the same host, add the Tinyauth middleware to its router yourself, after the IP allowlist. Replace `hms-docker` with your `project_name` if you changed it:
+For a [container in another Compose project](/docs/services/traefik/other-svcs/#adding-other-containers-to-traefik) on the same host, add the Tinyauth middleware to its router yourself, after the IP allowlist. Replace `hms-docker` with your `hmsdocker_project_name` if you changed it:
 
 ```yaml
 - traefik.http.routers.<container name>.middlewares=internal-ipallowlist@file,tinyauth-hms-docker@docker

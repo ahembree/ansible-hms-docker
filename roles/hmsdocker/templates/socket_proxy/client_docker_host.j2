@@ -1,6 +1,6 @@
 {# DOCKER_HOST for a container that uses the socket proxy.
    Set before including: socket_proxy_client. Set socket_proxy_env_map for `environment:` written as a mapping #}
-{% if socket_proxy_client in socket_proxy_enabled_containers %}
+{% if socket_proxy_client in hmsdocker_socket_proxy_enabled_containers %}
 {% if socket_proxy_env_map | default(false) %}
       DOCKER_HOST: unix://{{ hmsdocker_socket_proxy_client_dir }}/docker.sock
 {% else %}
