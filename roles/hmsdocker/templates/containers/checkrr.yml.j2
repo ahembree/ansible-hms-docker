@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   checkrr:
     image: aetaric/checkrr:latest
@@ -12,30 +13,20 @@ services:
       driver: json-file
     networks:
       - proxy_net
-    {% if 'checkrr' in expose_ports_enabled_containers %}
+    {% if 'checkrr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8585:8585
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/checkrr/config:/etc/checkrr
       - ${HMSD_MOUNT_PATH}:/data:ro
-    {% if 'checkrr' in traefik_enabled_containers or 'checkrr' in homepage_enabled_containers %}
+    {% if 'checkrr' in hmsdocker_traefik_enabled_containers or 'checkrr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'checkrr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.checkrr-${COMPOSE_PROJECT}.loadbalancer.server.port=8585
-      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.checkrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'checkrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-checkrr-midware@docker' if 'checkrr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'checkrr' in tinyauth_protected_containers }}
+      {% if 'checkrr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('checkrr', 8585) | indent(6) }}
       {% endif %}
-      {% if 'checkrr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Checkrr
-      - homepage.icon=checkrr.png
-      - homepage.href=https://{{ hms_docker_container_map['checkrr']['proxy_host_rule'] | default('checkrr') }}.${HMSD_DOMAIN}
-      - homepage.description=Media Integrity Scanner
-        {% if 'checkrr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'checkrr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('checkrr', 'Managers', 'Checkrr', 'Media Integrity Scanner', href='https') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

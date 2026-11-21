@@ -1,7 +1,7 @@
 ---
 - name: Obtain host current public IP
   community.general.ipify_facts:
-  register: public_ip
+  register: hmsdocker_public_ip
   ignore_errors: true
 
 - name: Wait 15 secs for VPNs to init
@@ -17,63 +17,63 @@
     - qbittorrent
     - deluge
   when:
-    - item in enabled_containers
-  register: vpn_public_ip
+    - item in hmsdocker_enabled_containers
+  register: hmsdocker_vpn_public_ip
   changed_when: false
 
 - name: Initialize empty variable for IP results
   ansible.builtin.set_fact:
-    slimmed_vpn_public_ip_results: []
-  no_log: "{{ not debug_mode }}"
+    hmsdocker_slimmed_vpn_public_ip_results: []
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: Append IP results to slim output
   ansible.builtin.set_fact:
-    slimmed_vpn_public_ip_results: "{{ slimmed_vpn_public_ip_results + [{'item': item.item | default(''), 'vpn_ip': item.stdout | default(''), 'skipped': item.skipped | default(false)}] }}"
-  loop: "{{ vpn_public_ip.results }}"
-  no_log: "{{ not debug_mode }}"
+    hmsdocker_slimmed_vpn_public_ip_results: "{{ hmsdocker_slimmed_vpn_public_ip_results + [{'item': item.item | default(''), 'vpn_ip': item.stdout | default(''), 'skipped': item.skipped | default(false)}] }}"
+  loop: "{{ hmsdocker_vpn_public_ip.results }}"
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 # Fail closed: a container stays running only if its VPN IP was positively
 # verified to differ from the host public IP; failed or empty lookups count
 # as unverified.
 - name: Validate VPN protection per download client
   vars:
-    hmsd_host_public_ip: "{{ ansible_facts['ipify_public_ip'] | default('') }}"
+    hmsdocker_host_public_ip: "{{ ansible_facts['ipify_public_ip'] | default('') }}"
   block:
     - name: Ensure public IP and VPN public IP are different
       ansible.builtin.debug:
         msg:
           - Your public IP is protected in {{ item.item }}!
-          - "Current public IP: {{ hmsd_host_public_ip }}"
+          - "Current public IP: {{ hmsdocker_host_public_ip }}"
           - "Current {{ item.item }} VPN IP: {{ item.vpn_ip }}"
       when:
         - not ansible_check_mode
         - not item.skipped
-        - hmsd_host_public_ip | length > 0
+        - hmsdocker_host_public_ip | length > 0
         - item.vpn_ip | length > 0
-        - hmsd_host_public_ip != item.vpn_ip
-      loop: "{{ slimmed_vpn_public_ip_results }}"
+        - hmsdocker_host_public_ip != item.vpn_ip
+      loop: "{{ hmsdocker_slimmed_vpn_public_ip_results }}"
 
     - name: Stop VPN container if protection could not be verified
       community.docker.docker_compose_v2:
-        project_src: "{{ hms_docker_data_path }}"
-        project_name: "{{ project_name }}"
+        project_src: "{{ hmsdocker_data_path }}"
+        project_name: "{{ hmsdocker_project_name }}"
         state: stopped
-        remove_orphans: "{{ container_remove_orphans }}"
+        remove_orphans: "{{ hmsdocker_container_remove_orphans }}"
         services:
           - "{{ item.item }}"
-      loop: "{{ slimmed_vpn_public_ip_results }}"
+      loop: "{{ hmsdocker_slimmed_vpn_public_ip_results }}"
       when:
         - not item.skipped
-        - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
+        - hmsdocker_host_public_ip == '' or item.vpn_ip == '' or hmsdocker_host_public_ip == item.vpn_ip
 
     - name: Print error message if VPN protection could not be verified
       ansible.builtin.debug:
         msg:
           - 🔴 Your public IP is NOT verified as protected in {{ item.item }}! 🔴
-          - "Current public IP: {{ hmsd_host_public_ip if hmsd_host_public_ip else '(lookup failed)' }}"
+          - "Current public IP: {{ hmsdocker_host_public_ip if hmsdocker_host_public_ip else '(lookup failed)' }}"
           - "Current {{ item.item }} VPN IP: {{ item.vpn_ip if item.vpn_ip else '(lookup failed)' }}"
           - 🔴 The {{ item.item }} container has been stopped 🔴
-      loop: "{{ slimmed_vpn_public_ip_results }}"
+      loop: "{{ hmsdocker_slimmed_vpn_public_ip_results }}"
       when:
         - not item.skipped
-        - hmsd_host_public_ip == '' or item.vpn_ip == '' or hmsd_host_public_ip == item.vpn_ip
+        - hmsdocker_host_public_ip == '' or item.vpn_ip == '' or hmsdocker_host_public_ip == item.vpn_ip

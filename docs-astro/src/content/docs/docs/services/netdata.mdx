@@ -33,7 +33,7 @@ In `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `ma
 {
   friendly_name: netdata,
   subdomain_name: netdata,
-  backend_url: "http://netdata.{{ hms_docker_domain }}:19999",
+  backend_url: "http://netdata.{{ hmsdocker_domain }}:19999",
   enabled: yes,
   expose_publicly: no,
   authentik: no,

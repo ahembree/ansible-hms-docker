@@ -10,11 +10,11 @@
 {% set site_prefix = '' if ssl else 'http://' %}
 {% set allow_list = ['127.0.0.1/32'] + (hmsdocker_proxy_allow_list | regex_replace(', ', ',') | split(',') | map('trim') | select | list) %}
 {% set seen = namespace(hosts=[]) %}
-{% set crowdsec = 'crowdsec' in enabled_containers %}
+{% set crowdsec = 'crowdsec' in hmsdocker_enabled_containers %}
 {% set access_logs = (hmsdocker_proxy_access_logs | default(false) | bool) or crowdsec %}
 {% macro site(address, upstream, allowlist=true, outpost='', tinyauth=false, headers={}, host_header='') %}
 {{ address }} {
-{% if (hmsdocker_proxy_access_logs | default(false) | bool) or 'crowdsec' in enabled_containers %}
+{% if (hmsdocker_proxy_access_logs | default(false) | bool) or 'crowdsec' in hmsdocker_enabled_containers %}
 	log
 {% endif %}
 {% if headers | length > 0 %}
@@ -25,7 +25,7 @@
 	}
 {% endif %}
 	route {
-{% if 'crowdsec' in enabled_containers %}
+{% if 'crowdsec' in hmsdocker_enabled_containers %}
 		import hmsd_crowdsec
 {% endif %}
 {% if allowlist %}
@@ -150,21 +150,21 @@
 }
 
 ### Containers
-{% for name in caddy_enabled_containers if name in hmsdocker_caddy_upstreams %}
+{% for name in hmsdocker_caddy_enabled_containers if name in hmsdocker_caddy_upstreams %}
 {% set up = hmsdocker_caddy_upstreams[name] %}
 {% set up_allowlist = up.allowlist | default(true) | bool %}
 {% set up_sso = up_allowlist and (up.sso | default(true) | bool) %}
-{% set instances = [''] + (['-4k'] if (up.separate_4k | default(false) and separate_4k_instances_enable | default(false)) else []) %}
+{% set instances = [''] + (['-4k'] if (up.separate_4k | default(false) and hmsdocker_separate_4k_instances_enable | default(false)) else []) %}
 {% for suffix in instances %}
-{% set host = (hms_docker_container_map[name]['proxy_host_rule'] | default(name)) ~ suffix ~ '.' ~ hms_docker_domain %}
+{% set host = (hmsdocker_container_map[name]['proxy_host_rule'] | default(name)) ~ suffix ~ '.' ~ hmsdocker_domain %}
 {% if host not in seen.hosts %}
 {% set seen.hosts = seen.hosts + [host] %}
 {{ site(
     address=site_prefix ~ host,
     upstream=(up.scheme | default('http')) ~ '://' ~ (up.host | default(name)) ~ suffix ~ ':' ~ up.port,
-    allowlist=(up_allowlist and name not in expose_public_enabled_containers),
-    outpost=('authentik-proxy-' ~ project_name ~ '-' ~ name ~ suffix) if (up_sso and name in authentik_enabled_containers) else '',
-    tinyauth=(up_sso and name in tinyauth_protected_containers),
+    allowlist=(up_allowlist and name not in hmsdocker_expose_public_enabled_containers),
+    outpost=('authentik-proxy-' ~ hmsdocker_project_name ~ '-' ~ name ~ suffix) if (up_sso and name in hmsdocker_authentik_enabled_containers) else '',
+    tinyauth=(up_sso and name in hmsdocker_tinyauth_applied_containers),
     headers=((hmsdocker_caddy_security_headers if (hmsdocker_proxy_security_hardening and up_allowlist) else {}) | combine(up.headers | default({})))
 ) }}
 {% endif %}
@@ -174,7 +174,7 @@
 ### External hosts (hmsdocker_proxy_ext_hosts_list)
 {% for item in hmsdocker_proxy_ext_hosts_list | default([], true) %}
 {% if item.enabled | default(false) and (item.friendly_name | default('')) != '' and (item.subdomain_name | default('')) != '' and (item.backend_url | default('')) != '' %}
-{% set host = item.subdomain_name ~ '.' ~ hms_docker_domain %}
+{% set host = item.subdomain_name ~ '.' ~ hmsdocker_domain %}
 {% if host not in seen.hosts %}
 {% set seen.hosts = seen.hosts + [host] %}
 # {{ item.friendly_name }}
@@ -182,8 +182,8 @@
     address=site_prefix ~ host,
     upstream=item.backend_url | regex_replace('^([A-Za-z][A-Za-z0-9+.-]*://[^/?#]+).*$', '\\1'),
     allowlist=not (item.expose_publicly | default(false)),
-    outpost=('authentik-proxy-' ~ project_name ~ '-' ~ (item.friendly_name | regex_replace(regex, replace))) if ('authentik' in enabled_containers and ssl and item.authentik | default(false)) else '',
-    tinyauth=('tinyauth' in proxy_enabled_containers and item.tinyauth | default(false)),
+    outpost=('authentik-proxy-' ~ hmsdocker_project_name ~ '-' ~ (item.friendly_name | regex_replace(hmsdocker_sanitize_regex, hmsdocker_sanitize_replace))) if ('authentik' in hmsdocker_enabled_containers and ssl and item.authentik | default(false)) else '',
+    tinyauth=('tinyauth' in hmsdocker_proxy_enabled_containers and item.tinyauth | default(false)),
     headers=(hmsdocker_caddy_security_headers if hmsdocker_proxy_security_hardening else {}),
     host_header=item.backend_url | regex_replace('^[A-Za-z][A-Za-z0-9+.-]*://([^/?#@]*@)?([^/?#]+).*$', '\\2')
 ) }}

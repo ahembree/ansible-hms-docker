@@ -9,18 +9,18 @@
 - name: (Postreq - CrowdSec) - Register the bouncer API key
   when: not ansible_check_mode
   vars:
-    crowdsec_registered_key_file: "{{ hms_docker_apps_path }}/crowdsec/.bouncer_key_registered"
+    hmsdocker_crowdsec_registered_key_file: "{{ hmsdocker_apps_path }}/crowdsec/.bouncer_key_registered"
     # Traefik keeps the format from before Caddy support, so existing installs do not register the bouncer again
-    crowdsec_bouncer_key_hash: >-
+    hmsdocker_crowdsec_bouncer_key_hash: >-
       {{
         ('' if hmsdocker_crowdsec_bouncer_name == 'traefik' else hmsdocker_crowdsec_bouncer_name ~ ' ')
-        ~ (prereq_crowdsec_slurped_bouncer_key.content | b64decode | trim | hash('sha256'))
+        ~ (hmsdocker_prereq_crowdsec_slurped_bouncer_key.content | b64decode | trim | hash('sha256'))
       }}
   block:
     - name: (Postreq - CrowdSec) - Read the hash of the registered bouncer key
       ansible.builtin.slurp:
-        src: "{{ crowdsec_registered_key_file }}"
-      register: postreq_crowdsec_registered_key
+        src: "{{ hmsdocker_crowdsec_registered_key_file }}"
+      register: hmsdocker_postreq_crowdsec_registered_key
       failed_when: false
 
     - name: (Postreq - CrowdSec) - Replace the bouncer registration with the current key
@@ -32,52 +32,52 @@
           - >-
             cscli bouncers delete traefik caddy --ignore-missing
             && cscli bouncers add {{ hmsdocker_crowdsec_bouncer_name }} -k "$BOUNCER_KEY_{{ hmsdocker_crowdsec_bouncer_name }}" > /dev/null
-      register: postreq_crowdsec_bouncer
+      register: hmsdocker_postreq_crowdsec_bouncer
       # The container may still be starting after it was created or recreated with the key
-      until: postreq_crowdsec_bouncer.rc | default(1) == 0
+      until: hmsdocker_postreq_crowdsec_bouncer.rc | default(1) == 0
       retries: 12
       delay: 5
       changed_when: true
-      no_log: "{{ not debug_mode }}"
-      when: (postreq_crowdsec_registered_key.content | default('') | b64decode | trim) != crowdsec_bouncer_key_hash
+      no_log: "{{ not hmsdocker_debug_mode }}"
+      when: (hmsdocker_postreq_crowdsec_registered_key.content | default('') | b64decode | trim) != hmsdocker_crowdsec_bouncer_key_hash
 
     - name: (Postreq - CrowdSec) - Record the registered bouncer key
       ansible.builtin.copy:
-        dest: "{{ crowdsec_registered_key_file }}"
-        content: "{{ crowdsec_bouncer_key_hash }}\n"
+        dest: "{{ hmsdocker_crowdsec_registered_key_file }}"
+        content: "{{ hmsdocker_crowdsec_bouncer_key_hash }}\n"
         mode: '0600'
 
 # The Traefik prereqs leave the bouncer out of Traefik's config while the running Traefik container does not have the
 # plugin mounted (CrowdSec was just enabled on an existing install). Compose has now recreated Traefik with the mount,
 # so the bouncer is added to its config, and Traefik is restarted with it at the end of the run.
 # This is decided once, before the block: a block's `when` is checked again for every task in it, and the tasks in it
-# change traefik_crowdsec_bouncer_active
+# change hmsdocker_traefik_crowdsec_bouncer_active
 - name: (Postreq - CrowdSec) - Check whether the bouncer still has to be added to Traefik
   ansible.builtin.set_fact:
-    postreq_crowdsec_add_bouncer: "{{ 'traefik' in enabled_containers and not (traefik_crowdsec_bouncer_active | default(false) | bool) }}"
+    hmsdocker_postreq_crowdsec_add_bouncer: "{{ 'traefik' in hmsdocker_enabled_containers and not (hmsdocker_traefik_crowdsec_bouncer_active | default(false) | bool) }}"
 
 - name: (Postreq - CrowdSec) - Add the bouncer to Traefik
-  when: postreq_crowdsec_add_bouncer | bool
+  when: hmsdocker_postreq_crowdsec_add_bouncer | bool
   block:
     - name: (Postreq - CrowdSec) - Get Traefik container
       community.docker.docker_container_info:
         name: traefik
-      register: postreq_crowdsec_traefik_info
+      register: hmsdocker_postreq_crowdsec_traefik_info
 
     # In check mode Compose did not run, so assume it would have recreated Traefik with the mount.
-    # traefik_crowdsec_bouncer_added also makes the Traefik restart handler run on a run that created the certs directory
+    # hmsdocker_traefik_crowdsec_bouncer_added also makes the Traefik restart handler run on a run that created the certs directory
     - name: (Postreq - CrowdSec) - Check that Traefik now has the plugin mounted
       ansible.builtin.set_fact:
-        traefik_crowdsec_bouncer_active: "{{ postreq_crowdsec_plugin_mounted }}"
-        traefik_crowdsec_bouncer_added: "{{ postreq_crowdsec_plugin_mounted }}"
+        hmsdocker_traefik_crowdsec_bouncer_active: "{{ hmsdocker_postreq_crowdsec_plugin_mounted }}"
+        hmsdocker_traefik_crowdsec_bouncer_added: "{{ hmsdocker_postreq_crowdsec_plugin_mounted }}"
       vars:
-        postreq_crowdsec_plugin_mounted: >-
+        hmsdocker_postreq_crowdsec_plugin_mounted: >-
           {{
             ansible_check_mode
-            or (postreq_crowdsec_traefik_info.container.Mounts | default([])
+            or (hmsdocker_postreq_crowdsec_traefik_info.container.Mounts | default([])
                 | selectattr('Destination', 'equalto', hmsdocker_crowdsec_bouncer_plugin_mount) | list | length > 0)
           }}
 
     - name: (Postreq - CrowdSec) - Ensure Traefik config with the bouncer
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/traefik_config.yml"
-      when: traefik_crowdsec_bouncer_active | bool
+      when: hmsdocker_traefik_crowdsec_bouncer_active | bool

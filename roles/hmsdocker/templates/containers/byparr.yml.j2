@@ -14,7 +14,7 @@ services:
       - "download_net"
     environment:
       - TZ=${TIMEZONE}
-    {% if 'byparr' in expose_ports_enabled_containers %}
+    {% if 'byparr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8192:8191
     {% endif %}

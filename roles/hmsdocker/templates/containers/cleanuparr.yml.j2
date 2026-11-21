@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
@@ -5,7 +6,7 @@ services:
     restart: ${RESTART_POLICY}
     security_opt:
       - no-new-privileges:true
-    {% if 'cleanuparr' in expose_ports_enabled_containers %}
+    {% if 'cleanuparr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - "11011:11011"
     {% endif %}
@@ -21,12 +22,9 @@ services:
       - PGID=${PGID}
       - UMASK=022
       - TZ=${TIMEZONE}
-    {% if 'cleanuparr' in traefik_enabled_containers %}
+    {% if 'cleanuparr' in hmsdocker_traefik_enabled_containers %}
     labels:
-      - traefik.enable=true
-      - traefik.http.services.cleanuparr-${COMPOSE_PROJECT}.loadbalancer.server.port=11011
-      - traefik.http.routers.cleanuparr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['cleanuparr']['proxy_host_rule'] | default('cleanuparr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.cleanuparr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'cleanuparr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-cleanuparr-midware@docker' if 'cleanuparr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'cleanuparr' in tinyauth_protected_containers }}
+      {{ labels.traefik('cleanuparr', 11011) | indent(6) }}
     {% endif %}
     # Health check configuration
     healthcheck:

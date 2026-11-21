@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   autobrr:
     container_name: autobrr
@@ -18,30 +19,17 @@ services:
       - TZ=${TIMEZONE}
     volumes:
       - ${HMSD_APPS_PATH}/autobrr/config:/config
-    {% if 'autobrr' in expose_ports_enabled_containers %}
+    {% if 'autobrr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 7474:7474
     {% endif %}
-    {% if 'autobrr' in traefik_enabled_containers or 'autobrr' in homepage_enabled_containers %}
+    {% if 'autobrr' in hmsdocker_traefik_enabled_containers or 'autobrr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'autobrr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.autobrr-${COMPOSE_PROJECT}.loadbalancer.server.port=7474
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.autobrr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'autobrr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-autobrr-midware@docker' if 'autobrr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'autobrr' in tinyauth_protected_containers }}
+      {% if 'autobrr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('autobrr', 7474) | indent(6) }}
       {% endif %}
-      {% if 'autobrr' in homepage_enabled_containers %}
-      - homepage.group=Downloads
-      - homepage.name=Autobrr
-      - homepage.icon=autobrr.png
-      - homepage.href=http://{{ hms_docker_container_map['autobrr']['proxy_host_rule'] | default('autobrr') }}.${HMSD_DOMAIN}
-      - homepage.description=Torrent Automation
-      - homepage.widget.type=autobrr
-      - homepage.widget.url=http://autobrr:7474
-      - homepage.widget.key=${AUTOBRR_KEY:-apikeyapikeyapikey}
-        {% if 'autobrr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'autobrr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('autobrr', 'Downloads', 'Autobrr', 'Torrent Automation', widget={'type': 'autobrr', 'url': 'http://autobrr:7474', 'key': '${AUTOBRR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

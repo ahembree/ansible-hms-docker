@@ -5,25 +5,25 @@
 ### HMS-Docker settings
 
 # The domain used for the reverse proxy (Traefik or Caddy) Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
-hms_docker_domain: home.local
+hmsdocker_domain: home.local
 
 # The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"
 # Options:
 #    `local`: local folder path
 #    `cifs`: CIFS or SMB share
 #    `nfs`: NFS share
-hms_docker_media_share_type: local
+hmsdocker_media_share_type: local
 
-# The path where all media-related data (including external shares) will be mounted as subdirectories // default: "/mnt/{{ project_name }}"
-hms_docker_mount_path: "/mnt/{{ project_name }}"
+# The path where all media-related data (including external shares) will be mounted as subdirectories // default: "/mnt/{{ hmsdocker_project_name }}"
+hmsdocker_mount_path: "/mnt/{{ hmsdocker_project_name }}"
 
-# The name of the "primary" mounted folder 
-hms_docker_primary_mount_name: "media_data"
+# The name of the "primary" mounted folder
+hmsdocker_primary_mount_name: "media_data"
 
 # The name of the folder that will have the library folders defined below // default: "_library"
-hms_docker_library_folder_name: "_library"
+hmsdocker_library_folder_name: "_library"
 # The name of the folder that will store the usenet and torrent downloads // default: "_downloads"
-hms_docker_downloads_folder_name: "_downloads"
+hmsdocker_downloads_folder_name: "_downloads"
 
 # The name of the library folders that will be created within the library folder that was defined above
 #  Valid `type` values are:
@@ -31,7 +31,7 @@ hms_docker_downloads_folder_name: "_downloads"
 #   `tv_shows`
 
 # The `folder_name` is the name of the folder that will be created for that `type` of library
-hms_docker_library_folders:
+hmsdocker_library_folders:
   [
     {
       type: "movies",

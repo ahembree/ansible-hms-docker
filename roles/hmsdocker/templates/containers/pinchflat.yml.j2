@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   pinchflat:
     image: ghcr.io/kieraneglin/pinchflat:latest
@@ -14,30 +15,20 @@ services:
       - proxy_net
     environment:
       - TZ=${TIMEZONE}
-    {% if 'pinchflat' in expose_ports_enabled_containers %}
+    {% if 'pinchflat' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8945:8945
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/pinchflat/config:/config
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/pinchflat:/downloads
-    {% if 'pinchflat' in traefik_enabled_containers or 'pinchflat' in homepage_enabled_containers %}
+      - ${HMSD_MOUNT_PATH}/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_library_folder_name }}/youtube/pinchflat:/downloads
+    {% if 'pinchflat' in hmsdocker_traefik_enabled_containers or 'pinchflat' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'pinchflat' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.pinchflat-${COMPOSE_PROJECT}.loadbalancer.server.port=8945
-      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.pinchflat-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'pinchflat' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-pinchflat-midware@docker' if 'pinchflat' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'pinchflat' in tinyauth_protected_containers }}
+      {% if 'pinchflat' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('pinchflat', 8945) | indent(6) }}
       {% endif %}
-      {% if 'pinchflat' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Pinchflat
-      - homepage.icon=pinchflat.png
-      - homepage.href=https://{{ hms_docker_container_map['pinchflat']['proxy_host_rule'] | default('pinchflat') }}.${HMSD_DOMAIN}
-      - homepage.description=YouTube Archiver
-        {% if 'pinchflat' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'pinchflat' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('pinchflat', 'Managers', 'Pinchflat', 'YouTube Archiver', href='https') | indent(6) }}
       {% endif %}
     {% endif %}
     healthcheck:

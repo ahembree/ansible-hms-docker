@@ -5,9 +5,9 @@
       - python3-venv
     state: present
 
-- name: Custom Scripts - Ensure pip is updated first
+- name: Custom Scripts - Ensure pip is updated first  # noqa: package-latest
   ansible.builtin.pip:
-    virtualenv: "{{ hms_docker_data_path }}/.venv"
+    virtualenv: "{{ hmsdocker_data_path }}/.venv"
     virtualenv_command: "{{ ansible_python_interpreter }} -m venv"
     name:
       - pip
@@ -15,7 +15,7 @@
 
 - name: Custom Scripts - Ensure pip environment
   ansible.builtin.pip:
-    virtualenv: "{{ hms_docker_data_path }}/.venv"
+    virtualenv: "{{ hmsdocker_data_path }}/.venv"
     virtualenv_site_packages: true
     name:
       - requests
@@ -28,69 +28,69 @@
 
 - name: Custom Scripts - Ensure scripts folder
   ansible.builtin.file:
-    path: "{{ hms_docker_data_path }}/scripts"
+    path: "{{ hmsdocker_data_path }}/scripts"
     state: directory
     owner: root
     group: root
-    mode: 0755
-  register: scripts_path
+    mode: '0755'
+  register: hmsdocker_scripts_path
 
 - name: Custom Scripts - Ensure env symlink
   ansible.builtin.file:
     state: link
-    src: "{{ compose_env.dest | default(hms_docker_data_path + '/.env') }}"
-    dest: "{{ scripts_path.path }}/.env"
+    src: "{{ hmsdocker_compose_env.dest | default(hmsdocker_data_path + '/.env') }}"
+    dest: "{{ hmsdocker_scripts_path.path }}/.env"
     force: "{{ ansible_check_mode }}"
 
 - name: Custom Scripts - Plex SSL - Ensure Plex SSL script and resources
-  when: hms_docker_plex_ssl_enabled and hmsdocker_ssl_enabled
+  when: hmsdocker_plex_ssl_enabled and hmsdocker_ssl_enabled
   block:
     - name: Custom Scripts - Plex SSL - Ensure pkcs12 script
       ansible.builtin.copy:
         src: scripts/traefik_cert_convert.py
-        dest: "{{ scripts_path.path }}"
+        dest: "{{ hmsdocker_scripts_path.path }}"
         mode: '700'
         # Executed by root's crontab, so it must not be writable by the unprivileged container user
         owner: root
         group: root
-      register: cert_script
+      register: hmsdocker_cert_script
 
     - name: Custom Scripts - Plex SSL - Ensure cron job
       ansible.builtin.cron:
-        name: "{{ project_name }}-plex-ssl"
+        name: "{{ hmsdocker_project_name }}-plex-ssl"
         user: root
-        job: "{{ hms_docker_data_path }}/.venv/bin/python {{ cert_script.dest | default(hms_docker_data_path + '/scripts/traefik_cert_convert.py') }}"
+        job: "{{ hmsdocker_data_path }}/.venv/bin/python {{ hmsdocker_cert_script.dest | default(hmsdocker_data_path + '/scripts/traefik_cert_convert.py') }}"
         minute: 0
         hour: 5
 
 - name: Custom Scripts - Ensure monitoring scripts
-  when: monitoring_scripts_enabled | default(false)
+  when: hmsdocker_monitoring_scripts_enabled | default(false)
   block:
     - name: Custom Scripts - Ensure monitoring directory
       ansible.builtin.file:
-        path: "{{ scripts_path.path }}/monitoring"
+        path: "{{ hmsdocker_scripts_path.path }}/monitoring"
         state: directory
         owner: root
         group: root
-        mode: 0755
-      register: monitoring_scripts_path
+        mode: '0755'
+      register: hmsdocker_monitoring_scripts_path
 
     - name: Custom Scripts - Ensure env symlink
       ansible.builtin.file:
         state: link
-        src: "{{ compose_env.dest | default(hms_docker_data_path + '/.env') }}"
-        dest: "{{ monitoring_scripts_path.path }}/.env"
+        src: "{{ hmsdocker_compose_env.dest | default(hmsdocker_data_path + '/.env') }}"
+        dest: "{{ hmsdocker_monitoring_scripts_path.path }}/.env"
         force: "{{ ansible_check_mode }}"
 
     - name: Custom Scripts - Ensure monitoring scripts
       ansible.builtin.copy:
         src: scripts/monitoring
-        dest: "{{ scripts_path.path }}"
-        mode: 0700
+        dest: "{{ hmsdocker_scripts_path.path }}"
+        mode: '0700'
 
     - name: Custom Scripts - Ensure media availability cron
       ansible.builtin.cron:
-        name: "{{ project_name }}-media-availability-monitoring"
+        name: "{{ hmsdocker_project_name }}-media-availability-monitoring"
         user: root
-        job: "{{ hms_docker_data_path }}/.venv/bin/python3 {{ monitoring_scripts_path.path }}/check_media_availability.py"
+        job: "{{ hmsdocker_data_path }}/.venv/bin/python3 {{ hmsdocker_monitoring_scripts_path.path }}/check_media_availability.py"
         minute: "*"

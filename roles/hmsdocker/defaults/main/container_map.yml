@@ -12,7 +12,7 @@
 #  `proxy`: Enables or disables accessing the container via the reverse proxy, Traefik or Caddy (whichever is enabled). Called `traefik` in earlier releases, `make update` renames it
 #  `proxy_host_rules`: Sets the host rules for the container (so you can access the container via "http://<host>.<domain>")
 
-hms_docker_container_map:
+hmsdocker_container_map:
   audiobookshelf:
     authentik: false
     directory: true
@@ -300,7 +300,7 @@ hms_docker_container_map:
   overseerr:
     authentik: false
     directory: true
-    enabled: true
+    enabled: false
     expose_ports: false
     expose_to_public: false
     homepage: true
@@ -421,7 +421,7 @@ hms_docker_container_map:
   seerr:
     authentik: false
     directory: true
-    enabled: false
+    enabled: true
     expose_ports: false
     expose_to_public: false
     homepage: true

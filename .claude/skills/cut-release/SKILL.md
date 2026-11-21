@@ -1,6 +1,6 @@
 ---
 name: cut-release
-description: Cut a new hms-docker release — decide the semver bump (new feature/container = minor, bug fix = patch, major never), bump hmsd_current_version, write the release-notes section, verify the release workflow will find it, and commit on a branch. Use when asked to cut a release, release a version, ship a release, or bump the version.
+description: Cut a new hms-docker release — decide the semver bump (new feature/container = minor, bug fix = patch, major never), bump hmsdocker_current_version, write the release-notes section, verify the release workflow will find it, and commit on a branch. Use when asked to cut a release, release a version, ship a release, or bump the version.
 ---
 
 # Cutting an hms-docker release
@@ -9,7 +9,7 @@ Two files, always the same two:
 
 | | File |
 |-|-|
-| Required | `hms-docker.yml` — bump `hmsd_current_version` (line 8) |
+| Required | `hms-docker.yml` — bump `hmsdocker_current_version` (line 8) |
 | Required | `docs-astro/src/content/docs/docs/release-notes/v<major>.<minor>.md` |
 
 The notes file gets a `## v<version>` section. `master` holds released code only and is
@@ -26,7 +26,7 @@ is not optional.
 ## 1. Establish what is unreleased
 
 ```bash
-./bin/yq '.[0].vars.hmsd_current_version' hms-docker.yml   # e.g. 1.18.7
+./bin/yq '.[0].vars.hmsdocker_current_version' hms-docker.yml   # e.g. 1.18.7
 git tag --list 'v*' | sort -V | tail -1                     # e.g. v1.18.7
 git fetch -q origin develop master
 git log --oneline "$(git tag --list 'v*' | sort -V | tail -1)"..origin/develop
@@ -103,7 +103,7 @@ No [astro.config.mjs](../../../docs-astro/astro.config.mjs) edit — the Release
 is `autogenerate`d from the directory (lines 95–99).
 
 **The header must be exactly `## v<version>`**, character for character equal to
-`hmsd_current_version`. The workflow matches on whole-line equality (`$0 == "## " v`), so no
+`hmsdocker_current_version`. The workflow matches on whole-line equality (`$0 == "## " v`), so no
 date, no trailing text, no trailing whitespace. A `###` sub-heading is safe; the section
 runs until the next line starting `## `.
 
@@ -126,7 +126,7 @@ Style — copy [v1.18.md](../../../docs-astro/src/content/docs/docs/release-note
 release needs manual steps the playbook cannot do itself. Blocks key on the **old** version:
 
 ```yaml
-when: last_version is version('1.19.0', '<', version_type='semver')
+when: hmsdocker_last_version is version('1.19.0', '<', version_type='semver')
 ```
 
 Precedent at lines 68 (hardlink paths) and 86 (Authentik upgrade). Do not add one just to
@@ -138,7 +138,7 @@ Lifted from [release.yml](../../../.github/workflows/release.yml) lines 38–47.
 editing, before committing:
 
 ```bash
-VERSION=$(./bin/yq '.[0].vars.hmsd_current_version' hms-docker.yml)
+VERSION=$(./bin/yq '.[0].vars.hmsdocker_current_version' hms-docker.yml)
 FILE="docs-astro/src/content/docs/docs/release-notes/v$(echo "$VERSION" | cut -d. -f1,2).md"
 
 # the job derives this path; if it is missing, awk fails AFTER the tag is already pushed
@@ -201,7 +201,7 @@ pushed, not when it merges to `develop`, and not when a PR is opened.
 Each of these is a real property of
 [release.yml](../../../.github/workflows/release.yml) or of this repo's history:
 
-- **A `## v<version>` header that does not match `hmsd_current_version` exactly.** The match
+- **A `## v<version>` header that does not match `hmsdocker_current_version` exactly.** The match
   is whole-line equality. The release is still published — with an empty body, no error, no
   warning.
 - **Bumping the minor without creating the new notes file.** `awk` cannot open it, so the

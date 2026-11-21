@@ -1,7 +1,7 @@
 # No owner is set: the CrowdSec image runs as root and has no PUID/PGID support
 - name: (Prereq - CrowdSec) - Ensure data and acquisition directories
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/crowdsec/{{ item }}"
+    path: "{{ hmsdocker_apps_path }}/crowdsec/{{ item }}"
     state: directory
     mode: '0755'
   loop:
@@ -12,7 +12,7 @@
 # Reads the logs of the reverse proxy the bouncer runs in (Traefik or Caddy)
 - name: (Prereq - CrowdSec) - Ensure reverse proxy log acquisition
   ansible.builtin.copy:
-    dest: "{{ hms_docker_apps_path }}/crowdsec/config/acquis.d/{{ hmsdocker_crowdsec_bouncer_name }}.yaml"
+    dest: "{{ hmsdocker_apps_path }}/crowdsec/config/acquis.d/{{ hmsdocker_crowdsec_bouncer_name }}.yaml"
     mode: '0644'
     content: |
       source: docker
@@ -24,7 +24,7 @@
 
 - name: (Prereq - CrowdSec) - Remove the log acquisition of the other reverse proxy
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/crowdsec/config/acquis.d/{{ item }}.yaml"
+    path: "{{ hmsdocker_apps_path }}/crowdsec/config/acquis.d/{{ item }}.yaml"
     state: absent
   loop: "{{ ['traefik', 'caddy'] | difference([hmsdocker_crowdsec_bouncer_name]) }}"
   notify: Restart crowdsec
@@ -32,23 +32,23 @@
 - name: (Prereq - CrowdSec) - Generate bouncer API key
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ hms_docker_apps_path }}/crowdsec/.bouncer_key"
+    dest: "{{ hmsdocker_apps_path }}/crowdsec/.bouncer_key"
     mode: '0600'
-    force: no
-  no_log: "{{ not debug_mode }}"
-  register: prereq_crowdsec_bouncer_key
+    force: false
+  no_log: "{{ not hmsdocker_debug_mode }}"
+  register: hmsdocker_prereq_crowdsec_bouncer_key
   vars:
-    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=48) }}"
+    hmsdocker_secret_key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=48) }}"
 
 - name: (Prereq - CrowdSec) - Slurp bouncer API key
   ansible.builtin.slurp:
-    src: "{{ prereq_crowdsec_bouncer_key.dest }}"
-  register: prereq_crowdsec_slurped_bouncer_key
+    src: "{{ hmsdocker_prereq_crowdsec_bouncer_key.dest }}"
+  register: hmsdocker_prereq_crowdsec_slurped_bouncer_key
   check_mode: false
   # The key file does not exist yet during a first run in check mode
   ignore_errors: "{{ ansible_check_mode }}"
-  when: prereq_crowdsec_bouncer_key.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_prereq_crowdsec_bouncer_key.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 # Same task as in the Traefik prereqs. Prereqs run in container map order, and a user's map can list
 # crowdsec before traefik (e.g. after `make update` merges new services), so on a fresh install the
@@ -59,7 +59,7 @@
     state: directory
     mode: '0755'
     group: docker
-  when: "'traefik' in enabled_containers"
+  when: "'traefik' in hmsdocker_enabled_containers"
 
 - name: (Prereq - CrowdSec) - Ensure CrowdSec bouncer middleware for Traefik
   ansible.builtin.template:
@@ -67,30 +67,30 @@
     dest: "{{ hmsdocker_traefik_static_config_location }}/hmsd_crowdsec.yml"
     mode: '0640'
     group: docker
-    lstrip_blocks: yes
-    trim_blocks: yes
-  no_log: "{{ not debug_mode }}"
-  when: "'traefik' in enabled_containers"
+    lstrip_blocks: true
+    trim_blocks: true
+  no_log: "{{ not hmsdocker_debug_mode }}"
+  when: "'traefik' in hmsdocker_enabled_containers"
   vars:
-    crowdsec_bouncer_key: "{{ (prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
+    hmsdocker_crowdsec_bouncer_key: "{{ (hmsdocker_prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if hmsdocker_prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
 
 # Traefik loads the bouncer plugin from this copy (experimental.localPlugins) instead of the Traefik plugin catalog.
 # From the catalog, Traefik downloads the plugin every time its container is created, and when that fails every route
 # on ports 80 and 443 breaks, because the bouncer is applied to the whole entrypoint. Each version is cloned once into
 # its own folder, and a new folder makes Compose recreate Traefik with it
 - name: (Prereq - CrowdSec) - Ensure Traefik bouncer plugin
-  when: "'traefik' in enabled_containers"
+  when: "'traefik' in hmsdocker_enabled_containers"
   block:
     - name: (Prereq - CrowdSec) - Ensure bouncer plugin directory
       ansible.builtin.file:
-        path: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin"
+        path: "{{ hmsdocker_apps_path }}/crowdsec/bouncer-plugin"
         state: directory
         mode: '0755'
 
     - name: (Prereq - CrowdSec) - Ensure bouncer plugin source
       ansible.builtin.git:
         repo: "https://{{ hmsdocker_crowdsec_bouncer_plugin_module }}.git"
-        dest: "{{ hms_docker_apps_path }}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
+        dest: "{{ hmsdocker_apps_path }}/crowdsec/bouncer-plugin/{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
         version: "{{ hmsdocker_crowdsec_bouncer_plugin_version }}"
         update: false
       diff: false

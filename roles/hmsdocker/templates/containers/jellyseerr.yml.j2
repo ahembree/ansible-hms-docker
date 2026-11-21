@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   jellyseerr:
     image: ghcr.io/seerr-team/seerr:latest
@@ -17,31 +18,18 @@ services:
     environment:
       - LOG_LEVEL=info
       - TZ=${TIMEZONE}
-    {% if 'jellyseerr' in traefik_enabled_containers or 'jellyseerr' in homepage_enabled_containers %}
+    {% if 'jellyseerr' in hmsdocker_traefik_enabled_containers or 'jellyseerr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'jellyseerr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.jellyseerr-${COMPOSE_PROJECT}.loadbalancer.server.port=5055
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.jellyseerr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'jellyseerr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-jellyseerr-midware@docker' if 'jellyseerr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'jellyseerr' in tinyauth_protected_containers }}
+      {% if 'jellyseerr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('jellyseerr', 5055) | indent(6) }}
       {% endif %}
-      {% if 'jellyseerr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Jellyseerr
-      - homepage.icon=jellyseerr.png
-      - homepage.href=http://{{ hms_docker_container_map['jellyseerr']['proxy_host_rule'] | default('jellyseerr') }}.${HMSD_DOMAIN}
-      - homepage.description=Request Manager
-      - homepage.widget.type=seerr
-      - homepage.widget.url=http://jellyseerr:5055
-      - homepage.widget.key=${JELLYSEERR_KEY:-apikeyapikeyapikey}
-        {% if 'jellyseerr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'jellyseerr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('jellyseerr', 'Managers', 'Jellyseerr', 'Request Manager', widget={'type': 'seerr', 'url': 'http://jellyseerr:5055', 'key': '${JELLYSEERR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
     volumes:
       - ${HMSD_APPS_PATH}/jellyseerr/config:/app/config
-    {% if 'jellyseerr' in expose_ports_enabled_containers %}
+    {% if 'jellyseerr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 5056:5055
     {% endif %}

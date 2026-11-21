@@ -131,21 +131,21 @@ The default variable files are found in `roles/hmsdocker/defaults/main/`
 
 1. Modify `inventory/group_vars/all/main.yml` to set the following variables
 
-2. `hms_docker_domain` : the local domain name of the server to be used for proxy rules and (if enabled) SSL certificates (e.g. `home.local`)
+2. `hmsdocker_domain` : the local domain name of the server to be used for proxy rules and (if enabled) SSL certificates (e.g. `home.local`)
 
-3. `hms_docker_media_share_type` : the type of network share (`cifs`, `nfs`, `local`)
+3. `hmsdocker_media_share_type` : the type of network share (`cifs`, `nfs`, `local`)
 
     - See [the NAS setup page](/docs/getting-started/nas/) if using `nfs` or `cifs`
     - `nfs` if using an NFS share/mount
     - `cifs` if using Samba or a Windows file share
     - `local` if using a local drive/directory on the same system
     
-4. `hms_docker_mount_path` : This is where the media and download folders will be mounted on the host. Recommended to change if using a network share and/or other drive in the system. This path is mounted to `/data` within the containers.
+4. `hmsdocker_mount_path` : This is where the media and download folders will be mounted on the host. Recommended to change if using a network share and/or other drive in the system. This path is mounted to `/data` within the containers.
 
 5. <Badge text="Plex" variant="caution"/> If you have Plex enabled:
 
     - Modify `inventory/group_vars/all/plex.yml` and set:
-    - `plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
+    - `hmsdocker_plex_claim_token` : your Plex claim code from [Plex's website](https://plex.tv/claim)
 
 6. <Badge text="VPN Download Client" variant="success"/> If torrent download clients are enabled, see the [Download Clients and VPNs](/docs/getting-started/vpn-and-dl-clients/) documentation for the required variables
 
@@ -170,7 +170,7 @@ sudo make apply
 
 ### Debug mode
 
-There is a `debug_mode` you can control from a variable in `hms-docker.yml`
+There is a `hmsdocker_debug_mode` you can control from a variable in `hms-docker.yml`
 
 :::caution[Warning]
 

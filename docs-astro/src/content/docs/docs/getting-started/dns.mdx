@@ -14,7 +14,7 @@ It is recommended to use an internal DNS server (such as a Pi-hole or AdGuard Ho
 
 :::
 
-The domain used is defined in the variable `hms_docker_domain` in `inventory/group_vars/all/main.yml`
+The domain used is defined in the variable `hmsdocker_domain` in `inventory/group_vars/all/main.yml`
 
 ## UniFi DNS Role
 
@@ -79,7 +79,7 @@ nslookup <container>.<domain>
 nslookup <container>.<domain> <DNS server IP>
 ```
 
-Once DNS resolves correctly, access containers at `<name>.<domain>` where `<name>` is the `proxy_host_rule` value from the container map and `<domain>` is the value of `hms_docker_domain`.
+Once DNS resolves correctly, access containers at `<name>.<domain>` where `<name>` is the `proxy_host_rule` value from the container map and `<domain>` is the value of `hmsdocker_domain`.
 
 You can customize the subdomain for each application by changing its `proxy_host_rule` value in the container map.
 
@@ -87,7 +87,7 @@ You can customize the subdomain for each application by changing its `proxy_host
 
 For external access, if you enabled Cloudflare DDNS, a `request.<domain>` public `A` record will be created automatically that points to your network's public IP.
 
-- This default `A` record can be changed in the `cloudflare_ddns_subdomain` variable located in `inventory/group_vars/all/cloudflare.yml`.
+- This default `A` record can be changed in the `hmsdocker_cloudflare_ddns_subdomain` variable located in `inventory/group_vars/all/cloudflare.yml`.
 
 Unless port `80` and/or `443` are port forwarded on the router to your host, accessing this public address from outside your main network **will not work**.
 
@@ -101,7 +101,7 @@ To grant public access to containers, you will need to:
 
     * `A` record that points to the public IP
 
-    * `CNAME` record that points to the `<cloudflare_ddns_subdomain>.<domain>` (eg. `seerr.example.com`)
+    * `CNAME` record that points to the `<hmsdocker_cloudflare_ddns_subdomain>.<domain>` (eg. `seerr.example.com`)
 
 3. Set the `expose_to_public` value to `yes` for the specific container in the [Container Map](/docs/container-list/#container-map)
 

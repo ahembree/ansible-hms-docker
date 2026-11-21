@@ -4,154 +4,163 @@
 - name: Authentik Prereq - Get running Authentik server container
   community.docker.docker_container_info:
     name: authentik-server
-  register: authentik_server_info
+  register: hmsdocker_authentik_server_info
 
 - name: Authentik Prereq - Ensure Authentik is not upgraded past a required release
   vars:
-    authentik_upgrade_path: ['2025.2', '2025.4', '2025.6', '2025.8', '2025.10', '2025.12', '2026.2', '2026.5', '2026.8']
-    authentik_running_version: "{{ authentik_server_info.container.Config.Image.split(':')[-1] | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
-    authentik_target_version: "{{ hmsdocker_authentik_version | string | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
-    authentik_next_version: "{{ authentik_upgrade_path | select('version', authentik_running_version, '>') | first | default(authentik_target_version) }}"
+    hmsdocker_authentik_upgrade_path: ['2025.2', '2025.4', '2025.6', '2025.8', '2025.10', '2025.12', '2026.2', '2026.5', '2026.8']
+    hmsdocker_authentik_running_version: "{{ hmsdocker_authentik_server_info.container.Config.Image.split(':')[-1] | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
+    hmsdocker_authentik_target_version: "{{ hmsdocker_authentik_version | string | regex_search('^[0-9]{4}[.][0-9]+') | default('', true) }}"
+    hmsdocker_authentik_next_version: "{{ hmsdocker_authentik_upgrade_path | select('version', hmsdocker_authentik_running_version, '>') | first | default(hmsdocker_authentik_target_version) }}"
   ansible.builtin.assert:
     that:
-      - authentik_target_version is version(authentik_next_version, '<=')
+      - hmsdocker_authentik_target_version is version(hmsdocker_authentik_next_version, '<=')
     fail_msg: >-
-      Authentik {{ authentik_running_version }} is running, and upgrading straight to {{ authentik_target_version }} skips
-      at least one release, which Authentik does not allow. Set `hmsdocker_authentik_version: "{{ authentik_next_version }}"`
+      Authentik {{ hmsdocker_authentik_running_version }} is running, and upgrading straight to {{ hmsdocker_authentik_target_version }} skips
+      at least one release, which Authentik does not allow. Set `hmsdocker_authentik_version: "{{ hmsdocker_authentik_next_version }}"`
       in inventory/group_vars/all/sso.yml (authentik.yml on older installs), run the playbook, and repeat with each next release
-      ({{ authentik_upgrade_path | select('version', authentik_running_version, '>') | select('version', authentik_target_version, '<=') | join(' -> ') }}) until you reach
-      {{ authentik_target_version }}, then set it back to the default (or remove it).
+      ({{ hmsdocker_authentik_upgrade_path | select('version', hmsdocker_authentik_running_version, '>') | select('version', hmsdocker_authentik_target_version, '<=') | join(' -> ') }}) until you reach
+      {{ hmsdocker_authentik_target_version }}, then set it back to the default (or remove it).
     quiet: true
   when:
-    - authentik_server_info.exists
-    - authentik_running_version | length > 0
-    - authentik_target_version | length > 0
+    - hmsdocker_authentik_server_info.exists
+    - hmsdocker_authentik_running_version | length > 0
+    - hmsdocker_authentik_target_version | length > 0
 
 - name: Authentik Prereq - Ensure authentik secret key file
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ authentik_key_path }}"
-    mode: 0600
+    dest: "{{ hmsdocker_authentik_key_path }}"
+    mode: '0600'
     owner: root
     group: root
-    backup: yes
-    force: no
-  register: authentik_key_template_output
-  no_log: "{{ not debug_mode }}"
+    backup: true
+    force: false
+  register: hmsdocker_authentik_key_template_output
+  no_log: "{{ not hmsdocker_debug_mode }}"
   vars:
-    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
+    hmsdocker_secret_key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
 - name: Authentik Prereq - Ensure authentik postgres password file
   ansible.builtin.template:
     src: secret_key_file.j2
-    dest: "{{ authentik_pgpass_path }}"
-    mode: 0600
+    dest: "{{ hmsdocker_authentik_pgpass_path }}"
+    mode: '0600'
     owner: root
     group: root
-    backup: yes
-    force: no
-  register: authentik_pgpass_template_output
-  no_log: "{{ not debug_mode }}"
+    backup: true
+    force: false
+  register: hmsdocker_authentik_pgpass_template_output
+  no_log: "{{ not hmsdocker_debug_mode }}"
   vars:
-    key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
+    hmsdocker_secret_key: "{{ lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=50) }}"
 
 - name: Authentik Prereq - Slurp authentik secret key data
   ansible.builtin.slurp:
-    src: "{{ authentik_key_template_output.dest }}"
-  register: slurped_key_data
+    src: "{{ hmsdocker_authentik_key_template_output.dest }}"
+  register: hmsdocker_slurped_key_data
   check_mode: false
-  when: authentik_key_template_output.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_authentik_key_template_output.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: Authentik Prereq - Slurp authentik postgres password data
   ansible.builtin.slurp:
-    src: "{{ authentik_pgpass_template_output.dest }}"
-  register: slurped_pg_pass_data
+    src: "{{ hmsdocker_authentik_pgpass_template_output.dest }}"
+  register: hmsdocker_slurped_pg_pass_data
   check_mode: false
-  when: authentik_pgpass_template_output.dest is defined
-  no_log: "{{ not debug_mode }}"
+  when: hmsdocker_authentik_pgpass_template_output.dest is defined
+  no_log: "{{ not hmsdocker_debug_mode }}"
 
 - name: Authentik Prereq - Ensure Outposts directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/authentik/outposts"
+    path: "{{ hmsdocker_apps_path }}/authentik/outposts"
     state: directory
-    mode: 0755
+    mode: '0755'
     owner: root
     group: root
 
 - name: Debug for GitHub Actions
-  when: is_github_runner
+  when: hmsdocker_is_github_runner
   ansible.builtin.debug:
-    msg: "{{ authentik_proxy_enabled_containers }}"
+    msg: "{{ hmsdocker_authentik_proxy_enabled_containers }}"
 
 - name: Authentik Prereq - Ensure authentik Outpost configs
   ansible.builtin.template:
     src: authentik/authentik_outpost.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}.outpost.yml"
-    mode: 0644
-  loop: "{{ authentik_proxy_enabled_containers }}"
+    dest: "{{ hmsdocker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
+  loop: "{{ hmsdocker_authentik_proxy_enabled_containers }}"
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.name }}"
+    hmsdocker_authentik_outpost_host: "{{ item.proxy_host_rule }}"
 
 - name: Authentik Prereq - Ensure authentik Outpost configs for static traefik configs
   ansible.builtin.template:
-    src: authentik/authentik_outpost_ext_host.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.friendly_name | map('regex_replace', regex, replace) | list | join }}.outpost.yml"
-    mode: 0644
-  with_items: "{{ hmsdocker_proxy_ext_hosts_list }}"
+    src: authentik/authentik_outpost.j2
+    dest: "{{ hmsdocker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
+  loop: "{{ hmsdocker_proxy_ext_hosts_list }}"
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}"
+    hmsdocker_authentik_outpost_host: "{{ item.subdomain_name }}"
   when:
     - item.enabled | default(false)
-    - item.authentik | default(false) 
+    - item.authentik | default(false)
     - item.authentik_provider_type | default('proxy') == 'proxy'
 
 - name: Authentik Prereq - Ensure authentik Outpost configs for 4K containers
   ansible.builtin.template:
-    src: authentik/authentik_outpost_4k.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/outposts/authentik-{{ item.name }}-4k.outpost.yml"
-    mode: 0644
-  loop: "{{ authentik_proxy_enabled_containers }}"
-  when: 
+    src: authentik/authentik_outpost.j2
+    dest: "{{ hmsdocker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
+    mode: '0644'
+  loop: "{{ hmsdocker_authentik_proxy_enabled_containers }}"
+  vars:
+    hmsdocker_authentik_outpost_name: "{{ item.name }}-4k"
+    hmsdocker_authentik_outpost_host: "{{ item.proxy_host_rule }}-4k"
+  when:
     - item.name in ['sonarr', 'radarr']
-    - separate_4k_instances_enable | default(false)
+    - hmsdocker_separate_4k_instances_enable | default(false)
 
 # With the socket proxy the worker has no /var/run/docker.sock, so authentik does not create its
 # "Local Docker connection" on its own. This blueprint creates it (and leaves an existing one alone).
 - name: Authentik Prereq - Ensure blueprints directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/authentik/blueprints"
+    path: "{{ hmsdocker_apps_path }}/authentik/blueprints"
     state: directory
-    mode: 0755
-  when: "'authentik' in socket_proxy_enabled_containers"
+    mode: '0755'
+  when: "'authentik' in hmsdocker_socket_proxy_enabled_containers"
 
 - name: Authentik Prereq - Ensure Docker connection blueprint for the socket proxy
   ansible.builtin.template:
     src: authentik/hmsd_docker_connection.yaml.j2
-    dest: "{{ hms_docker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
-    mode: 0644
-  when: "'authentik' in socket_proxy_enabled_containers"
+    dest: "{{ hmsdocker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
+    mode: '0644'
+  when: "'authentik' in hmsdocker_socket_proxy_enabled_containers"
 
 - name: Authentik Prereq - Remove Docker connection blueprint when the socket proxy is not used
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
+    path: "{{ hmsdocker_apps_path }}/authentik/blueprints/hmsd-docker-connection.yaml"
     state: absent
-  when: "'authentik' not in socket_proxy_enabled_containers"
+  when: "'authentik' not in hmsdocker_socket_proxy_enabled_containers"
 
 # Authentik 2025.12+ stores files under a /data mount instead of /media
 # (https://docs.goauthentik.io/releases/2025.12/#storage-mount-changes).
 # Move existing media into the new location so uploaded icons/branding survive.
 - name: Authentik Prereq - Check for legacy media directory
   ansible.builtin.stat:
-    path: "{{ hms_docker_apps_path }}/authentik/media"
-  register: authentik_legacy_media_dir
+    path: "{{ hmsdocker_apps_path }}/authentik/media"
+  register: hmsdocker_authentik_legacy_media_dir
 
 - name: Authentik Prereq - Ensure data directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/authentik/data"
+    path: "{{ hmsdocker_apps_path }}/authentik/data"
     state: directory
-    mode: 0755
+    mode: '0755'
 
 - name: Authentik Prereq - Move legacy media directory into data directory
   ansible.builtin.command:
-    cmd: mv "{{ hms_docker_apps_path }}/authentik/media" "{{ hms_docker_apps_path }}/authentik/data/media"
-    creates: "{{ hms_docker_apps_path }}/authentik/data/media"
+    cmd: mv "{{ hmsdocker_apps_path }}/authentik/media" "{{ hmsdocker_apps_path }}/authentik/data/media"
+    creates: "{{ hmsdocker_apps_path }}/authentik/data/media"
   when:
-    - authentik_legacy_media_dir.stat.exists
-    - authentik_legacy_media_dir.stat.isdir
+    - hmsdocker_authentik_legacy_media_dir.stat.exists
+    - hmsdocker_authentik_legacy_media_dir.stat.isdir

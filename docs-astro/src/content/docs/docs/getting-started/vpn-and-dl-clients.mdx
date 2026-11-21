@@ -30,14 +30,14 @@ For supported providers, you can change the server location and/or type.
 
 2. Find your VPN providers folder in [this github repo](https://github.com/haugene/vpn-configs-contrib/tree/main/openvpn)
 
-3. Find the correct VPN config you want to use, and use this as the value for `transmission_ovpn_config_file`, and remove the `.ovpn` from the end
+3. Find the correct VPN config you want to use, and use this as the value for `hmsdocker_transmission_ovpn_config_file`, and remove the `.ovpn` from the end
 
 For example, if you wanted to use the US Chicago server for mullvad:
 
 ```yml
 hmsdocker_vpn_provider: MULLVAD
 ...
-transmission_ovpn_config_file: us_chi
+hmsdocker_transmission_ovpn_config_file: us_chi
 ```
 
 #### Custom Provider
@@ -46,17 +46,17 @@ transmission_ovpn_config_file: us_chi
 
 1. Change `hmsdocker_vpn_provider` to `custom`
 
-2. Change `transmission_ovpn_config_file` to the `.ovpn` file name, and remove the `.ovpn` from the end
+2. Change `hmsdocker_transmission_ovpn_config_file` to the `.ovpn` file name, and remove the `.ovpn` from the end
 
-3. Change `transmission_ovpn_config_local_dir` to the folder path where the above file is stored
+3. Change `hmsdocker_transmission_ovpn_config_local_dir` to the folder path where the above file is stored
 
     a. If needed by your provider/server, make sure certificate files and any others are also in the same folder
 
 For example, if you had a custom file named `test-vpn.ovpn` located in `/opt/hms-docker/vpn_configs` (this folder does not exist by default, just an example):
 
 ```yml
-transmission_ovpn_config_file: test-vpn
-transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
+hmsdocker_transmission_ovpn_config_file: test-vpn
+hmsdocker_transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 ```
 
 ##### Using a fork of the upstream config repo
@@ -64,7 +64,7 @@ transmission_ovpn_config_local_dir: /opt/hms-docker/vpn_configs
 If you are using a published provider but want to source the `.ovpn` files from a fork of [haugene/vpn-configs-contrib](https://github.com/haugene/vpn-configs-contrib) instead of the upstream repo, set:
 
 ```yml
-transmission_ovpn_config_source_repo: https://github.com/<your-fork>/vpn-configs-contrib
+hmsdocker_transmission_ovpn_config_source_repo: https://github.com/<your-fork>/vpn-configs-contrib
 ```
 
 Leave blank to use the configs bundled with the container.

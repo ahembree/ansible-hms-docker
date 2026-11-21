@@ -1,16 +1,16 @@
 - name: Checkrr Postreq - Ensure config file exists
   ansible.builtin.template:
     src: "container_configs/checkrr_config.yaml.j2"
-    dest: "{{ hms_docker_apps_path }}/checkrr/config/checkrr.yaml"
-    owner: "{{ container_uid }}"
-    group: "{{ container_gid }}"
+    dest: "{{ hmsdocker_apps_path }}/checkrr/config/checkrr.yaml"
+    owner: "{{ hmsdocker_container_uid }}"
+    group: "{{ hmsdocker_container_gid }}"
     mode: '600'
     lstrip_blocks: true
     trim_blocks: true
   vars:
-    sonarr_key: "{{ api_keys.sonarr_key | default('') }}"
-    sonarr_4k_key: "{{ api_keys.sonarr_4k_key | default('') }}"
-    radarr_key: "{{ api_keys.radarr_key | default('') }}"
-    radarr_4k_key: "{{ api_keys.radarr_4k_key | default('') }}"
-    lidarr_key: "{{ api_keys.lidarr_key | default('') }}"
+    hmsdocker_sonarr_key: "{{ hmsdocker_api_keys.sonarr_key | default('') }}"
+    hmsdocker_sonarr_4k_key: "{{ hmsdocker_api_keys.sonarr_4k_key | default('') }}"
+    hmsdocker_radarr_key: "{{ hmsdocker_api_keys.radarr_key | default('') }}"
+    hmsdocker_radarr_4k_key: "{{ hmsdocker_api_keys.radarr_4k_key | default('') }}"
+    hmsdocker_lidarr_key: "{{ hmsdocker_api_keys.lidarr_key | default('') }}"
   notify: Restart checkrr

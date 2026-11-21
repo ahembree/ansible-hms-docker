@@ -21,7 +21,7 @@ Enable `socket-proxy` in the [Container Map](/docs/container-list/#container-map
 For every supported container that is enabled, the playbook then:
 
 1. Creates a `socket-proxy-<container>` container (for example `socket-proxy-traefik`)
-2. Creates `<hms_docker_apps_path>/socket-proxy/<container>/`, where that proxy creates a filtered `docker.sock`
+2. Creates `<hmsdocker_apps_path>/socket-proxy/<container>/`, where that proxy creates a filtered `docker.sock`
 3. Mounts that folder into the container at `/var/run/socket-proxy`, instead of mounting `/var/run/docker.sock`
 4. Points the container at `/var/run/socket-proxy/docker.sock`
 
@@ -121,4 +121,4 @@ If a container cannot reach Docker at all, check that its proxy is healthy (`doc
 
 The proxies use the `wollomatic/socket-proxy:1` image. Watchtower updates them like any other container, except the one it uses itself, which it must not stop. Instead, the playbook pulls the image on every run and recreates any proxy whose image changed.
 
-To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.
+To turn the socket proxy off, disable `socket-proxy` in the container map and run the playbook. All containers go back to the Docker socket, and the proxy containers are removed (with `hmsdocker_container_remove_orphans` enabled, the default). For Uptime Kuma, change the Docker host path back to `/var/run/docker.sock`.

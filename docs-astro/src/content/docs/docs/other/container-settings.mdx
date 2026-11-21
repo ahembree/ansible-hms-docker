@@ -10,7 +10,7 @@ These settings apply to all containers and are configured in `inventory/group_va
 ### Container State
 
 ```yaml
-hms_docker_compose_container_state: present
+hmsdocker_compose_container_state: present
 ```
 
 Controls whether containers should exist. Valid values: `present`, `absent`. Setting to `absent` will remove all containers.
@@ -18,7 +18,7 @@ Controls whether containers should exist. Valid values: `present`, `absent`. Set
 ### Restart Policy
 
 ```yaml
-container_restart_policy: unless-stopped
+hmsdocker_container_restart_policy: unless-stopped
 ```
 
 Controls how containers behave when the Docker daemon or server restarts. Valid values:
@@ -30,7 +30,7 @@ Controls how containers behave when the Docker daemon or server restarts. Valid 
 ### Auto-Update Schedule
 
 ```yaml
-container_auto_update_schedule: "0 0 9 * * *"
+hmsdocker_container_auto_update_schedule: "0 0 9 * * *"
 ```
 
 The cron schedule (in UTC) for Watchtower to check for container image updates. The default checks daily at 9:00 AM UTC.
@@ -38,7 +38,7 @@ The cron schedule (in UTC) for Watchtower to check for container image updates. 
 ### Remove Orphans
 
 ```yaml
-container_remove_orphans: yes
+hmsdocker_container_remove_orphans: yes
 ```
 
 When enabled, containers that are disabled in the container map will be automatically stopped and removed on the next playbook run.
@@ -46,7 +46,7 @@ When enabled, containers that are disabled in the container map will be automati
 ### Timezone
 
 ```yaml
-container_timezone: America/New_York
+hmsdocker_container_timezone: America/New_York
 ```
 
 The timezone passed to containers via the `TZ` environment variable. Use a valid [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
@@ -54,8 +54,8 @@ The timezone passed to containers via the `TZ` environment variable. Use a valid
 ### User and Group IDs
 
 ```yaml
-container_uid: 1234
-container_gid: 1234
+hmsdocker_container_uid: 1234
+hmsdocker_container_gid: 1234
 ```
 
 The UID and GID used for running processes inside containers. These should match the user that owns your media files to avoid permission issues.
@@ -69,7 +69,7 @@ Changing these values after initial setup may cause permission issues with exist
 ### Global Port Exposure
 
 ```yaml
-container_expose_ports: no
+hmsdocker_container_expose_ports: no
 ```
 
 When set to `yes`, all container ports will be exposed on the host. If neither Traefik nor Caddy is enabled in the container map, this is automatically overridden to `yes`.
@@ -82,7 +82,7 @@ For per-container port exposure, use the `expose_ports` setting in the [Containe
 hmsdocker_readonly_media_containers: []
 ```
 
-A list of containers that get the media share (`hms_docker_mount_path`) mounted read-only, for example:
+A list of containers that get the media share (`hmsdocker_mount_path`) mounted read-only, for example:
 
 ```yaml
 hmsdocker_readonly_media_containers: ["plex", "jellyfin"]
@@ -135,7 +135,7 @@ Playback, library scans, and anything the app stores in its own config folder (w
 
 :::caution[Additional NAS shares on older kernels]
 
-If you mount [additional NAS shares](/docs/getting-started/nas/#additional-nas-mounts) inside `hms_docker_mount_path` (the recommended setup), they only become read-only on Linux kernel 5.12 or later (with Docker 25 or later, which the playbook installs). On older kernels (for example Alma/Rocky/RHEL 8 or Debian 11), Docker cannot make the shares mounted under `/data` read-only, so containers listed here can still write to them. The playbook shows a preflight warning when this applies.
+If you mount [additional NAS shares](/docs/getting-started/nas/#additional-nas-mounts) inside `hmsdocker_mount_path` (the recommended setup), they only become read-only on Linux kernel 5.12 or later (with Docker 25 or later, which the playbook installs). On older kernels (for example Alma/Rocky/RHEL 8 or Debian 11), Docker cannot make the shares mounted under `/data` read-only, so containers listed here can still write to them. The playbook shows a preflight warning when this applies.
 
 :::
 
@@ -175,19 +175,19 @@ These settings are configured in `inventory/group_vars/all/hmsd_advanced.yml`
 ### Project Name
 
 ```yaml
-project_name: hms-docker
+hmsdocker_project_name: hms-docker
 ```
 
 Controls the base folder name used for the project. This affects:
 
-- Data path: `/opt/<project_name>/`
+- Data path: `/opt/<hmsdocker_project_name>/`
 - Docker Compose project name
-- Docker network names (e.g., `<project_name>_proxy_net`)
+- Docker network names (e.g., `<hmsdocker_project_name>_proxy_net`)
 
 ### Data Path
 
 ```yaml
-hms_docker_data_path: "/opt/{{ project_name }}"
+hmsdocker_data_path: "/opt/{{ hmsdocker_project_name }}"
 ```
 
 Where all container data, configs, compose files, and secrets are stored. See the [File/Folder Layout](/docs/other/paths/) docs for the full directory structure.
@@ -195,10 +195,10 @@ Where all container data, configs, compose files, and secrets are stored. See th
 ### Apps Path
 
 ```yaml
-hms_docker_apps_path: "{{ hms_docker_data_path }}/apps"
+hmsdocker_apps_path: "{{ hmsdocker_data_path }}/apps"
 ```
 
-The directory where each container's per-app data and configuration is stored (one subdirectory per container, e.g. `apps/sonarr/config`). Defaults to a subdirectory of `hms_docker_data_path` and rarely needs to be changed.
+The directory where each container's per-app data and configuration is stored (one subdirectory per container, e.g. `apps/sonarr/config`). Defaults to a subdirectory of `hmsdocker_data_path` and rarely needs to be changed.
 
 ### Docker Network Subnet
 
@@ -211,7 +211,7 @@ The IP range used for all Docker networks. Individual `/24` subnets are provisio
 ### Host Network Settings
 
 ```yaml
-hms_docker_subnet_mask: "24"
+hmsdocker_subnet_mask: "24"
 ```
 
 Your local network subnet mask (e.g., for a `192.168.1.0/24` network, use `24`). Used to generate the Traefik/Caddy IP allowlist rules and configure how some containers (Plex, Transmission) treat local network traffic.
@@ -219,9 +219,9 @@ Your local network subnet mask (e.g., for a `192.168.1.0/24` network, use `24`).
 ### Secrets File Permissions
 
 ```yaml
-secrets_env_user: root
-secrets_env_group: root
-secrets_env_mode: "0600"
+hmsdocker_secrets_env_user: root
+hmsdocker_secrets_env_group: root
+hmsdocker_secrets_env_mode: "0600"
 ```
 
 Controls the ownership and permissions of the `.env` file containing API keys and secrets. See the [Secrets files](/docs/other/paths/#secrets-files) section in the File/Folder Layout docs for more details on adjusting these.

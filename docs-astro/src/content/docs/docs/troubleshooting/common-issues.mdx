@@ -22,8 +22,8 @@ If containers cannot read or write files, this is typically a UID/GID mismatch.
 **Check your current settings** in `inventory/group_vars/all/container_settings.yml`:
 
 ```yaml
-container_uid: 1234
-container_gid: 1234
+hmsdocker_container_uid: 1234
+hmsdocker_container_gid: 1234
 ```
 
 These should match the owner of your media files. To check file ownership:

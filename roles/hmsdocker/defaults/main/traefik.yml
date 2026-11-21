@@ -8,17 +8,17 @@ hmsdocker_traefik_version: v3.7.17
 
 # The DNS provider to use for SSL generation, check this for supported providers: https://go-acme.github.io/lego/dns/
 # Its environment variables go in hmsdocker_ssl_dns_provider_environment_vars (reverse_proxy.yml)
-traefik_ssl_dns_provider_code: ""
+hmsdocker_traefik_ssl_dns_provider_code: ""
 
-# The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hms_docker_domain }}"
-traefik_ssl_dns_provider_zone: "{{ hms_docker_domain }}"
+# The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hmsdocker_domain }}"
+hmsdocker_traefik_ssl_dns_provider_zone: "{{ hmsdocker_domain }}"
 
 # Where static config files are stored for Traefik (middlewares and external hosts)
 # Deprecation notice:
 # the `traefik_ext_hosts_configs_path` variable was removed on 5/31/2024 but will still work for the time being.
 # It will be removed at least 1 year from the deprecation date (6/1/2025) and then will be fully removed and no longer work
 # To fix: run `make update`
-hmsdocker_traefik_static_config_location: "{{ traefik_ext_hosts_configs_path | default(hms_docker_apps_path + '/traefik/config/static_confs/') }}"
+hmsdocker_traefik_static_config_location: "{{ traefik_ext_hosts_configs_path | default(hmsdocker_apps_path + '/traefik/config/static_confs/') }}"
 
 # The Traefik log level, helpful for troubleshooting SSL issues // default: "INFO"
-traefik_log_level: "INFO"
+hmsdocker_traefik_log_level: "INFO"

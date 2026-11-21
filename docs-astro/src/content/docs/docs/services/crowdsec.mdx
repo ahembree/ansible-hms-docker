@@ -20,7 +20,7 @@ Enable `crowdsec` in the [Container Map](/docs/container-list/#container-map) an
 3. Install the bouncer plugin in Traefik and apply it to the `web` and `websecure` entrypoints (ports `80` and `443`), so every route through those ports is covered
 4. Turn on Traefik access logs, which CrowdSec needs
 
-The playbook downloads the plugin from GitHub into `<hms_docker_apps_path>/crowdsec/bouncer-plugin/` (once per version), and Traefik loads it from there. Traefik does not use the Traefik plugin catalog, so it starts without internet access.
+The playbook downloads the plugin from GitHub into `<hmsdocker_apps_path>/crowdsec/bouncer-plugin/` (once per version), and Traefik loads it from there. Traefik does not use the Traefik plugin catalog, so it starts without internet access.
 
 When you enable CrowdSec on a server where Traefik is already running, the playbook first recreates Traefik with the plugin, then adds the bouncer to its config and restarts Traefik at the end of the run. If the run stops before that, Traefik keeps working without the bouncer, and the next run adds it.
 
@@ -50,7 +50,7 @@ CrowdSec reads the client IP from the `X-Forwarded-For` header that the proxy se
 - If CrowdSec can't be reached (while it restarts, is updated by Watchtower, or has crashed), the bouncer lets all traffic through instead of blocking it, and keeps using the last list of bans it received. Blocking resumes once CrowdSec is back. Traefik logs `crowdsecQuery:unreachable` errors in the meantime.
 - Disabling `crowdsec` removes the bouncer from Traefik on the next playbook run. The middleware file is removed after Traefik has restarted, so routes keep working throughout.
 - After re-enabling, `cscli bouncers list` may show an extra `traefik@<ip>` entry. This is the same bouncer reconnecting from a new container IP and can be ignored, or removed with `cscli bouncers delete`.
-- The bouncer API key is stored in `<hms_docker_apps_path>/crowdsec/.bouncer_key`. If you delete that file, the next playbook run generates a new key and replaces the old one in CrowdSec. The playbook keeps a hash of the registered key in `.bouncer_key_registered` next to it, so this also works if a run stops partway.
+- The bouncer API key is stored in `<hmsdocker_apps_path>/crowdsec/.bouncer_key`. If you delete that file, the next playbook run generates a new key and replaces the old one in CrowdSec. The playbook keeps a hash of the registered key in `.bouncer_key_registered` next to it, so this also works if a run stops partway.
 - Traefik's access log includes the full URL of every request, so tokens that apps put in URLs (such as Plex's `X-Plex-Token` or an `apikey` parameter) are written to Traefik's container logs (`docker logs traefik`), which CrowdSec reads.
 
 ## CrowdSec with Caddy
@@ -73,9 +73,9 @@ Caddy logs `layer4.matchers.crowdsec module is not available` when it starts. Th
 The bouncer only runs on Traefik's `web` and `websecure` entrypoints (ports `80` and `443`). Traffic that reaches an app any other way is not checked:
 
 - [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/), which connects `cloudflared` straight to the container without going through Traefik.
-- Host ports opened with `expose_ports` in the [Container Map](/docs/container-list/#container-map) or with `container_expose_ports`.
+- Host ports opened with `expose_ports` in the [Container Map](/docs/container-list/#container-map) or with `hmsdocker_container_expose_ports`.
 - Traefik's own dashboard on port `8080`. It is published when `hmsdocker_proxy_security_hardening` is off (the default) and Traefik's ports are exposed, and it has no authentication in that case. Enable `hmsdocker_proxy_security_hardening`, or don't expose Traefik's ports, if the server can be reached from the internet.
-- Clients that connect over IPv6. The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway as the client. That address is normally in `hmsdocker_proxy_allow_list`, so the bouncer never blocks it and CrowdSec never bans it. If the server has a public IPv6 address (for example with `cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall.
+- Clients that connect over IPv6. The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway as the client. That address is normally in `hmsdocker_proxy_allow_list`, so the bouncer never blocks it and CrowdSec never bans it. If the server has a public IPv6 address (for example with `hmsdocker_cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall.
 
 CrowdSec also only detects attacks in Traefik's access logs, so it doesn't see traffic that skips Traefik either.
 

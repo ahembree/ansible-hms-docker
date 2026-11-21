@@ -2,7 +2,7 @@
 # Computed variables
 #######################################################################
 ### Misc
-hmsdocker_primary_mount_path: "{{ hms_docker_mount_path }}/{{ hms_docker_primary_mount_name }}"
+hmsdocker_primary_mount_path: "{{ hmsdocker_mount_path }}/{{ hmsdocker_primary_mount_name }}"
 # hmsdocker_library_path is in defaults/main/hmsd_advanced.yml — as a role
 # var here it would shadow inventory overrides.
 #######################################################################
@@ -168,7 +168,7 @@ hmsdocker_crowdsec_caddy_bouncer_module: "github.com/hslatman/caddy-crowdsec-bou
 
 # The reverse proxy the CrowdSec bouncer runs in, and the name it is registered with in CrowdSec. CrowdSec reads this
 # proxy's logs (with the crowdsecurity/<name> collection)
-hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hms_docker_container_map['caddy']['enabled'] | default(false) | bool) else 'traefik' }}"
+hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool) else 'traefik' }}"
 
 # Caddy (`caddy` in the container map) routes each container with `proxy: true` to the upstream below, the same
 # container and port that its Traefik labels use. Containers with `proxy: true` but no entry here (no web UI,
@@ -176,7 +176,7 @@ hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hms_docker_container_map['caddy
 #   host:        container name on proxy_net // default: the container map key
 #   port:        web UI port inside the container
 #   scheme:      https when the container only serves HTTPS, its certificate is not verified // default: http
-#   separate_4k: also routes `<proxy_host_rule>-4k` to `<host>-4k` while separate_4k_instances_enable is on
+#   separate_4k: also routes `<proxy_host_rule>-4k` to `<host>-4k` while hmsdocker_separate_4k_instances_enable is on
 #   allowlist:   false skips the IP allowlist and the sign-ins, like the Traefik router of n8n // default: true
 #   sso:         false never puts Authentik or Tinyauth in front of it (Authentik itself) // default: true
 #   headers:     response headers to set
@@ -266,7 +266,7 @@ hmsdocker_caddy_authentik_headers:
 hmsdocker_caddy_build_modules: >-
   {{
     ([hmsdocker_caddy_dns_provider_module] if (hmsdocker_ssl_enabled | default(false) | bool) else [])
-    + ([hmsdocker_crowdsec_caddy_bouncer_module] if (hms_docker_container_map['crowdsec']['enabled'] | default(false) | bool) else [])
+    + ([hmsdocker_crowdsec_caddy_bouncer_module] if (hmsdocker_container_map['crowdsec']['enabled'] | default(false) | bool) else [])
     + (hmsdocker_caddy_extra_modules | default([], true))
   }}
 hmsdocker_caddy_image: >-

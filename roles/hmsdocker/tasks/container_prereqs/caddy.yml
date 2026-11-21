@@ -2,19 +2,19 @@
 # Same list Traefik builds in its prereqs, used to verify the routes (hmsdocker_proxy_verify_endpoints)
 - name: Caddy Prereq - Extend subdomain hosts list with external hosts
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [item.subdomain_name] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [item.subdomain_name] }}"
   when:
     - hmsdocker_proxy_ext_hosts_enabled
     - item.enabled
-    - item.subdomain_name not in traefik_enabled_subdomains
+    - item.subdomain_name not in hmsdocker_traefik_enabled_subdomains
   loop: '{{ hmsdocker_proxy_ext_hosts_list }}'
 
 - name: Caddy Prereq - Extend subdomain hosts list if 4K instances are enabled
   ansible.builtin.set_fact:
-    traefik_enabled_subdomains: "{{ traefik_enabled_subdomains + [hms_docker_container_map[item]['proxy_host_rule'] | default(item) ~ '-4k'] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_traefik_enabled_subdomains + [hmsdocker_container_map[item]['proxy_host_rule'] | default(item) ~ '-4k'] }}"
   when:
-    - separate_4k_instances_enable
-    - item in caddy_enabled_containers
+    - hmsdocker_separate_4k_instances_enable
+    - item in hmsdocker_caddy_enabled_containers
   loop:
     - sonarr
     - radarr
@@ -24,23 +24,23 @@
   ansible.builtin.debug:
     msg: >-
       These hosts are used by more than one container or external host, Caddy only routes the first one:
-      {{ caddy_duplicate_hosts | join(', ') }}. Give each a unique proxy_host_rule or subdomain_name.
-  when: caddy_duplicate_hosts | length > 0
+      {{ hmsdocker_caddy_duplicate_hosts | join(', ') }}. Give each a unique proxy_host_rule or subdomain_name.
+  when: hmsdocker_caddy_duplicate_hosts | length > 0
   vars:
-    caddy_container_hosts: >-
+    hmsdocker_caddy_container_hosts: >-
       {{
-        caddy_enabled_containers | select('in', hmsdocker_caddy_upstreams.keys() | list)
-        | map('extract', hms_docker_container_map) | map(attribute='proxy_host_rule', default='') | list
+        hmsdocker_caddy_enabled_containers | select('in', hmsdocker_caddy_upstreams.keys() | list)
+        | map('extract', hmsdocker_container_map) | map(attribute='proxy_host_rule', default='') | list
       }}
-    caddy_ext_hosts: >-
+    hmsdocker_caddy_ext_hosts: >-
       {{
         (hmsdocker_proxy_ext_hosts_list | default([], true) | selectattr('enabled', 'defined') | selectattr('enabled')
           | map(attribute='subdomain_name') | list)
         if (hmsdocker_proxy_ext_hosts_enabled | default(false)) else []
       }}
-    caddy_duplicate_hosts: >-
+    hmsdocker_caddy_duplicate_hosts: >-
       {{
-        (caddy_container_hosts + caddy_ext_hosts) | reject('equalto', '') | community.general.counter
+        (hmsdocker_caddy_container_hosts + hmsdocker_caddy_ext_hosts) | reject('equalto', '') | community.general.counter
         | dict2items | selectattr('value', 'gt', 1) | map(attribute='key') | list
       }}
 
@@ -53,14 +53,14 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ hms_docker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}"
-    - "{{ hms_docker_apps_path }}/caddy/data"
+    - "{{ hmsdocker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}"
+    - "{{ hmsdocker_apps_path }}/caddy/data"
     - "{{ hmsdocker_caddy_custom_config_location }}"
 
 - name: Caddy Prereq - Ensure Caddyfile
   ansible.builtin.template:
     src: caddy/Caddyfile.j2
-    dest: "{{ hms_docker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}/Caddyfile"
+    dest: "{{ hmsdocker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}/Caddyfile"
     mode: '0640'
     group: docker
     backup: true
@@ -74,14 +74,14 @@
   block:
     - name: Caddy Prereq - Ensure Caddy build directory
       ansible.builtin.file:
-        path: "{{ hms_docker_apps_path }}/caddy/build"
+        path: "{{ hmsdocker_apps_path }}/caddy/build"
         state: directory
         mode: '0755'
 
     - name: Caddy Prereq - Ensure Caddy Dockerfile
       ansible.builtin.template:
         src: caddy/Dockerfile.j2
-        dest: "{{ hms_docker_apps_path }}/caddy/build/Dockerfile"
+        dest: "{{ hmsdocker_apps_path }}/caddy/build/Dockerfile"
         mode: '0644'
         trim_blocks: true
         lstrip_blocks: true
@@ -91,7 +91,7 @@
       community.docker.docker_image_build:
         name: "{{ hmsdocker_caddy_image.split(':')[0] }}"
         tag: "{{ hmsdocker_caddy_image.split(':')[1] }}"
-        path: "{{ hms_docker_apps_path }}/caddy/build"
+        path: "{{ hmsdocker_apps_path }}/caddy/build"
         pull: true
         rebuild: never
       when: not ansible_check_mode

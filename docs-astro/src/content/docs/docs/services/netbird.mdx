@@ -30,7 +30,7 @@ The server then shows up under **Peers** in the NetBird dashboard.
 
 ## Notes
 
-- The setup key is only used to register the server the first time. NetBird stores the peer's identity in `<hms_docker_apps_path>/netbird/state`. If the key later expires or is revoked, the server stays connected. If you delete the state folder, the server registers again and needs a valid key.
+- The setup key is only used to register the server the first time. NetBird stores the peer's identity in `<hmsdocker_apps_path>/netbird/state`. If the key later expires or is revoked, the server stays connected. If you delete the state folder, the server registers again and needs a valid key.
 - If the key is invalid, the container keeps restarting. Check `docker logs netbird` for the reason.
 - The container runs on its own Docker network, not the host network. To reach your server or other devices on its network from other NetBird peers, add a **Network** in the NetBird dashboard with this server as the routing peer, and add your server's IP or local subnet as a resource.
 

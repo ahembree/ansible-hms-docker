@@ -14,15 +14,15 @@ hmsdocker_authentik_enabled_through_cftunnel: false
 hmsdocker_authentik_version: "2026.8"
 
 # Advanced Authentik settings
-authentik_pg_user: authentik
-authentik_pg_db: authentik
-authentik_key_path: "{{ hms_docker_data_path }}/.authentik.key"
-authentik_pgpass_path: "{{ hms_docker_data_path }}/.authentik.pgpass"
-authentik_external_host: 'https://{{ hms_docker_container_map["authentik"]["proxy_host_rule"] }}.{{ hms_docker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
+hmsdocker_authentik_pg_user: authentik
+hmsdocker_authentik_pg_db: authentik
+hmsdocker_authentik_key_path: "{{ hmsdocker_data_path }}/.authentik.key"
+hmsdocker_authentik_pgpass_path: "{{ hmsdocker_data_path }}/.authentik.pgpass"
+hmsdocker_authentik_external_host: 'https://{{ hmsdocker_container_map["authentik"]["proxy_host_rule"] }}.{{ hmsdocker_domain }}' # This needs to match the host rule that routes traffic to the Authentik container
 
 # These are not required if not using GeoIP
-authentik_geoip_account_id: ""
-authentik_geoip_license_key: ""
+hmsdocker_authentik_geoip_account_id: ""
+hmsdocker_authentik_geoip_license_key: ""
 ### End Authentik settings
 #######################################################################
 

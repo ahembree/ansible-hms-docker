@@ -6,22 +6,22 @@
   ansible.builtin.stat:
     path: /var/run/docker.sock
     follow: true
-  register: socket_proxy_docker_socket
+  register: hmsdocker_socket_proxy_docker_socket
 
 - name: Socket Proxy Prereq - Fail if the Docker socket is missing
   ansible.builtin.fail:
     msg: /var/run/docker.sock does not exist, so the socket proxies cannot reach Docker. Make sure Docker is installed and running.
   when:
-    - not socket_proxy_docker_socket.stat.exists
+    - not hmsdocker_socket_proxy_docker_socket.stat.exists
     - not ansible_check_mode
 
 - name: Socket Proxy Prereq - Set Docker socket group
   ansible.builtin.set_fact:
-    socket_proxy_docker_gid: "{{ socket_proxy_docker_socket.stat.gid if socket_proxy_docker_socket.stat.exists else 'DOCKER_GID' }}"
+    hmsdocker_socket_proxy_docker_gid: "{{ hmsdocker_socket_proxy_docker_socket.stat.gid if hmsdocker_socket_proxy_docker_socket.stat.exists else 'DOCKER_GID' }}"
 
 - name: Socket Proxy Prereq - Ensure socket proxy directory
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/socket-proxy"
+    path: "{{ hmsdocker_apps_path }}/socket-proxy"
     state: directory
     owner: root
     group: root
@@ -30,9 +30,9 @@
 # One directory per client: the proxy creates its filtered socket here and only that client mounts it.
 - name: Socket Proxy Prereq - Ensure per-container socket directories
   ansible.builtin.file:
-    path: "{{ hms_docker_apps_path }}/socket-proxy/{{ item }}"
+    path: "{{ hmsdocker_apps_path }}/socket-proxy/{{ item }}"
     state: directory
     owner: '65534'
-    group: "{{ socket_proxy_docker_gid if socket_proxy_docker_socket.stat.exists else omit }}"
+    group: "{{ hmsdocker_socket_proxy_docker_gid if hmsdocker_socket_proxy_docker_socket.stat.exists else omit }}"
     mode: '0750'
-  loop: "{{ socket_proxy_enabled_containers }}"
+  loop: "{{ hmsdocker_socket_proxy_enabled_containers }}"

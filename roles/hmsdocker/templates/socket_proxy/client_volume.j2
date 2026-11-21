@@ -1,7 +1,7 @@
 {# Docker socket mount of a container that can use the socket proxy (templates/containers/socket-proxy.yml.j2).
    Set before including: socket_proxy_client (container map key), socket_proxy_direct_mount (mount without the proxy) #}
-{% if socket_proxy_client in socket_proxy_enabled_containers %}
+{% if socket_proxy_client in hmsdocker_socket_proxy_enabled_containers %}
       - ${HMSD_APPS_PATH}/socket-proxy/{{ socket_proxy_client }}:{{ hmsdocker_socket_proxy_client_dir }}:ro
-{% elif socket_proxy_client not in socket_proxy_no_access_containers %}
+{% elif socket_proxy_client not in hmsdocker_socket_proxy_no_access_containers %}
       - {{ socket_proxy_direct_mount }}
 {% endif %}

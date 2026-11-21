@@ -27,7 +27,7 @@ services:
       - BOUNCER_KEY_{{ hmsdocker_crowdsec_bouncer_name }}=${CROWDSEC_BOUNCER_KEY}
     {% if hmsdocker_crowdsec_enroll_key | default('', true) | length > 0 %}
       - ENROLL_KEY=${CROWDSEC_ENROLL_KEY}
-      - ENROLL_INSTANCE_NAME={{ project_name }}
+      - ENROLL_INSTANCE_NAME={{ hmsdocker_project_name }}
     {% endif %}
     {% include 'socket_proxy/client_docker_host.j2' %}
     healthcheck:

@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 {% set socket_proxy_client = 'watchtower' %}
 {% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock' %}
 services:
@@ -12,27 +13,21 @@ services:
         max-size: "12m"
         max-file: "5"
       driver: json-file
-    command: --cleanup --schedule "{{ container_auto_update_schedule }}"
+    command: --cleanup --schedule "{{ hmsdocker_container_auto_update_schedule }}"
     {% include 'socket_proxy/client_depends_on.j2' %}
     volumes:
     {% include 'socket_proxy/client_volume.j2' %}
-    {% if 'watchtower' in homepage_enabled_containers or 'watchtower' in socket_proxy_enabled_containers %}
+    {% if 'watchtower' in hmsdocker_homepage_enabled_containers or 'watchtower' in hmsdocker_socket_proxy_enabled_containers %}
     environment:
     {% include 'socket_proxy/client_docker_host.j2' %}
-      {% if 'watchtower' in homepage_enabled_containers %}
+      {% if 'watchtower' in hmsdocker_homepage_enabled_containers %}
       - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_KEY}
       - WATCHTOWER_HTTP_API_ENDPOINTS=metrics
       {% endif %}
     {% endif %}
-    {% if 'watchtower' in homepage_enabled_containers %}
+    {% if 'watchtower' in hmsdocker_homepage_enabled_containers %}
     networks:
       - proxy_net
     labels:
-      - homepage.group=Infrastructure
-      - homepage.name=Watchtower
-      - homepage.icon=watchtower.png
-      - homepage.description=Container Updates
-      - homepage.widget.type=watchtower
-      - homepage.widget.url=http://watchtower:8080
-      - homepage.widget.key=${WATCHTOWER_KEY:-apikeyapikeyapikey}
+      {{ labels.homepage('watchtower', 'Infrastructure', 'Watchtower', 'Container Updates', href=none, widget={'type': 'watchtower', 'url': 'http://watchtower:8080', 'key': '${WATCHTOWER_KEY:-apikeyapikeyapikey}'}, stats=false) | indent(6) }}
     {% endif %}

@@ -11,7 +11,7 @@ By default, Traefik is configured with an allowlist that only permits private IP
 
 **Exception:** If you route a container through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/), the traffic goes directly to the container and bypasses Traefik entirely. Traefik allowlists and middlewares do not apply to Tunnel traffic.
 
-**IPv6:** The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway, a private address, as the client. The private allowlist therefore lets every IPv6 client through. If the server has a public IPv6 address (for example with `cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall unless every app reachable that way is meant to be public.
+**IPv6:** The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway, a private address, as the client. The private allowlist therefore lets every IPv6 client through. If the server has a public IPv6 address (for example with `hmsdocker_cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall unless every app reachable that way is meant to be public.
 
 This is controlled on a per-container basis in the `inventory/group_vars/all/container_map.yml` file as the `expose_to_public` variable for each container. If you set this to `true`, it will allow all IPs (`0.0.0.0/0`) to access them.
 

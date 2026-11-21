@@ -65,7 +65,7 @@ Everything else is shared with Traefik and stays in `inventory/group_vars/all/re
 | `hmsdocker_proxy_verify_endpoints` | checking every route at the end of the run |
 | `hmsdocker_proxy_trusted_proxies` | proxies in front of Caddy, whose `X-Forwarded-For` header gives the client IP |
 
-`traefik_ssl_dns_provider_code`, `traefik_log_level` and the Traefik dashboard settings are not used by Caddy.
+`hmsdocker_traefik_ssl_dns_provider_code`, `hmsdocker_traefik_log_level` and the Traefik dashboard settings are not used by Caddy.
 
 ## SSL Certificates
 
@@ -75,7 +75,7 @@ Caddy uses a DNS provider module from [caddy-dns](https://github.com/caddy-dns) 
 
 ```yaml
 #inventory/group_vars/all/caddy.yml
-hmsdocker_caddy_dns_provider: cloudflare              # the module name from https://github.com/caddy-dns (defaults to traefik_ssl_dns_provider_code)
+hmsdocker_caddy_dns_provider: cloudflare              # the module name from https://github.com/caddy-dns (defaults to hmsdocker_traefik_ssl_dns_provider_code)
 hmsdocker_caddy_dns_provider_config: "{env.CF_DNS_API_TOKEN}"  # what the provider's README puts after `dns <provider>`
 ```
 
@@ -83,7 +83,7 @@ hmsdocker_caddy_dns_provider_config: "{env.CF_DNS_API_TOKEN}"  # what the provid
 
 :::tip
 
-The defaults already work with Cloudflare: set `cloudflare_api_token` in `inventory/group_vars/all/cloudflare.yml` and `traefik_ssl_dns_provider_code: cloudflare` (or `hmsdocker_caddy_dns_provider: cloudflare`). The token needs the `Zone.Zone:Read` and `Zone.DNS:Edit` permissions.
+The defaults already work with Cloudflare: set `hmsdocker_cloudflare_api_token` in `inventory/group_vars/all/cloudflare.yml` and `hmsdocker_traefik_ssl_dns_provider_code: cloudflare` (or `hmsdocker_caddy_dns_provider: cloudflare`). The token needs the `Zone.Zone:Read` and `Zone.DNS:Edit` permissions.
 
 :::
 
@@ -148,7 +148,7 @@ Every `*.caddy` file in `hmsdocker_caddy_custom_config_location` (default `<apps
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
-The container must be on the `hms-docker_proxy_net` network (use your `project_name` if you changed it), see the [Traefik example](/docs/services/traefik/other-svcs/#adding-other-containers-to-traefik) for the network settings. You can use the same protections as the built-in routes:
+The container must be on the `hms-docker_proxy_net` network (use your `hmsdocker_project_name` if you changed it), see the [Traefik example](/docs/services/traefik/other-svcs/#adding-other-containers-to-traefik) for the network settings. You can use the same protections as the built-in routes:
 
 ```txt
 # <apps path>/caddy/custom/myapp.caddy
@@ -181,7 +181,7 @@ With `homepage: true` on `caddy` in the container map, Homepage shows Caddy with
 
 ## Plex Certificate
 
-The [Plex SSL script](/docs/services/custom-scripts/) (`hms_docker_plex_ssl_enabled`) uses Caddy's certificate while Caddy is enabled. It picks the newest certificate that covers `hms_docker_plex_ssl_public_hostname`, preferring production over staging certificates.
+The [Plex SSL script](/docs/services/custom-scripts/) (`hmsdocker_plex_ssl_enabled`) uses Caddy's certificate while Caddy is enabled. It picks the newest certificate that covers `hmsdocker_plex_ssl_public_hostname`, preferring production over staging certificates.
 
 ## Settings
 
@@ -189,11 +189,11 @@ The [Plex SSL script](/docs/services/custom-scripts/) (`hms_docker_plex_ssl_enab
 #inventory/group_vars/all/caddy.yml
 hmsdocker_caddy_version: "2.11.9"                          # Caddy release, 2.11.6 or newer
 hmsdocker_caddy_log_level: "INFO"                          # DEBUG, INFO, WARN or ERROR
-hmsdocker_caddy_dns_provider: "{{ traefik_ssl_dns_provider_code }}"
+hmsdocker_caddy_dns_provider: "{{ hmsdocker_traefik_ssl_dns_provider_code }}"
 hmsdocker_caddy_dns_provider_module: "github.com/caddy-dns/{{ hmsdocker_caddy_dns_provider }}"  # only change for a provider outside github.com/caddy-dns
 hmsdocker_caddy_dns_provider_config: "{env.CF_DNS_API_TOKEN}"
 hmsdocker_caddy_extra_modules: []                          # more Caddy modules to build in, e.g. ["github.com/mholt/caddy-ratelimit"]
-hmsdocker_caddy_custom_config_location: "{{ hms_docker_apps_path }}/caddy/custom"
+hmsdocker_caddy_custom_config_location: "{{ hmsdocker_apps_path }}/caddy/custom"
 ```
 
 ## Troubleshooting

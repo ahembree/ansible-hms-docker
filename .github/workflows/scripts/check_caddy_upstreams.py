@@ -5,6 +5,9 @@ Caddy is configured from `hmsdocker_caddy_upstreams` in roles/hmsdocker/vars/mai
 This compares each template's Traefik service port and scheme (and the container that carries the labels) with
 that table, so a container added with Traefik labels but without a Caddy upstream (or with a different port)
 fails CI.
+
+The labels are read from the `labels.traefik(...)` and `arr.service(...)` macro calls (templates/macros/), and
+from plain `traefik.http.services...` lines in the few templates that write their labels by hand.
 """
 import glob
 import os
@@ -30,11 +33,23 @@ def template_routes() -> dict:
             match = re.match(r'^\s+container_name:\s*(\S+)', line)
             if match and service:
                 container_names[service] = match.group(1)
+            # {{ arr.service('<app>', '<title>', '<description>', <port>, ...) }}: a whole Sonarr/Radarr service,
+            # named after the app (the 4K instance is a second call with instance_4k=true)
+            match = re.search(r"arr\.service\(\s*'([^']+)'\s*,\s*'[^']*'\s*,\s*'[^']*'\s*,\s*(\d+)([^)]*)\)", line)
+            if match and 'instance_4k=true' not in match.group(3):
+                container_names[match.group(1)] = match.group(1)
+                routes[key] = {'scheme': 'http', 'port': int(match.group(2)), 'service': match.group(1)}
             if service is None or service.endswith('-4k'):
                 continue
             match = re.search(r'traefik\.http\.services\.[^.]+\.loadbalancer\.server\.port=(\d+)', line)
             if match:
                 routes.setdefault(key, {'scheme': 'http'}).update({'port': int(match.group(1)), 'service': service})
+            # {{ labels.traefik('<key>', <port>[, scheme='https']) }}: the labels of this service
+            match = re.search(r"labels\.traefik\(\s*'[^']+'\s*,\s*(\d+)([^)]*)\)", line)
+            if match and "suffix='-4k'" not in match.group(2):
+                scheme = re.search(r"scheme='(\w+)'", match.group(2))
+                routes.setdefault(key, {}).update({'port': int(match.group(1)), 'service': service,
+                                                   'scheme': scheme.group(1) if scheme else 'http'})
             match = re.search(r'traefik\.http\.services\.[^.]+\.loadbalancer\.server\.scheme=(\w+)', line)
             if match:
                 routes.setdefault(key, {})['scheme'] = match.group(1)

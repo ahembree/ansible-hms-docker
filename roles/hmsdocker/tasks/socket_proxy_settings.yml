@@ -14,6 +14,6 @@
             | items2dict,
             recursive=True
           )
-        if (hms_docker_container_map['socket-proxy']['enabled'] | default(false) | bool)
+        if (hmsdocker_container_map['socket-proxy']['enabled'] | default(false) | bool)
         else hmsdocker_socket_proxy_builtin_clients
       }}

@@ -8,7 +8,7 @@ the generic skeleton. Paths are relative to `roles/hmsdocker/templates/container
 Intel QSV/VAAPI and Nvidia are separate flags; a template can support both.
 
 ```jinja
-    {% if enable_intel_gpu %}
+    {% if hmsdocker_enable_intel_gpu %}
     devices:
       - /dev/dri:/dev/dri
     {% endif %}
@@ -16,7 +16,7 @@ Intel QSV/VAAPI and Nvidia are separate flags; a template can support both.
       - TZ=${TIMEZONE}
       - PUID=${PUID}
       - PGID=${PGID}
-    {% if enable_nvidia_gpu %}
+    {% if hmsdocker_enable_nvidia_gpu %}
       - NVIDIA_VISIBLE_DEVICES=all
     runtime: nvidia
     {% endif %}
@@ -30,7 +30,7 @@ Transcode scratch space, same file:
 ```jinja
     volumes:
       {% if not hmsdocker_transcode_tmpfs_enabled | default(false) %}
-      - {{ plex_transcode_folder }}/cache:/cache
+      - {{ hmsdocker_plex_transcode_folder }}/cache:/cache
       {% endif %}
     {% if hmsdocker_transcode_tmpfs_enabled | default(false) %}
     tmpfs:
@@ -61,7 +61,7 @@ indirection. WireGuard and OpenVPN need different capabilities:
       - VPN_PASS=${VPN_PASS}
       - VPN_PROV={{ (hmsdocker_vpn_provider | default('', true) | lower) if (hmsdocker_vpn_provider | default('', true) | lower) in ['pia', 'airvpn', 'protonvpn', 'custom'] else 'custom' }}
       - VPN_CLIENT={{ hmsdocker_vpn_type }}
-      - LAN_NETWORK={{ hms_docker_network_subnet }}
+      - LAN_NETWORK={{ hmsdocker_network_subnet }}
 ```
 
 `tasks/main.yml` gates VPN validation on `transmission`/`deluge`/`qbittorrent` specifically
@@ -135,18 +135,17 @@ error on unknown vars.
 
 ## Homepage widget with username/password — `dockhand.yml.j2`, `beszel.yml.j2`
 
-```yaml
-      - homepage.widget.username=${DOCKHAND_USER:-dockhanduserisblank}
-      - homepage.widget.password=${DOCKHAND_PASS:-dockhandpasswordisblank}
+```jinja
+      {{ labels.homepage('dockhand', 'Infrastructure', 'Dockhand', 'Container Management', widget={'type': 'dockhand', 'url': 'http://dockhand:3000', 'username': '${DOCKHAND_USER:-dockhanduserisblank}', 'password': '${DOCKHAND_PASS:-dockhandpasswordisblank}'}) | indent(6) }}
 ```
 
-Beszel additionally pins `- homepage.widget.version=2`. These vars need a line in
+Beszel additionally pins `'version': '2'` in its `widget`. These vars need a line in
 `templates/env.j2` and a blank default in `defaults/main/homepage_api_keys.yml`
 (`hmsdocker_homepage_dockhand_user:` etc.).
 
 For a key that can be scraped from the app's own config on disk, add a `stat` + `slurp`
-block plus an entry in the `api_keys` dict in `tasks/app_api_key_reader.yml` and reference
-it as `{{ api_keys.<key>_key | default('') }}` in `env.j2` — that is the sonarr/sabnzbd
+block plus an entry in the `hmsdocker_api_keys` dict in `tasks/app_api_key_reader.yml` and reference
+it as `{{ hmsdocker_api_keys.<key>_key | default('') }}` in `env.j2` — that is the sonarr/sabnzbd
 pattern.
 
 ## Custom Traefik middleware — `n8n.yml.j2`
@@ -154,17 +153,17 @@ pattern.
 n8n defines its own headers middleware chain in labels instead of using the shared
 `internal-*@file` middlewares. This is an exception; do not copy it unless the app has a
 specific requirement (n8n needs `SSLHost`/HSTS headers). Its labels are also unconditional,
-which is why n8n has no `traefik_enabled_containers` gate — also not a pattern to copy.
+which is why n8n has no `hmsdocker_traefik_enabled_containers` gate — also not a pattern to copy.
 
 ## Conditional on another service — `notifiarr.yml.j2`
 
 ```jinja
-    {% if 'sabnzbd' in enabled_containers %}
+    {% if 'sabnzbd' in hmsdocker_enabled_containers %}
       - DN_SABNZBD_0_NAME=SABnzbd
       - DN_SABNZBD_0_URL=http://sabnzbd:8080
       - DN_SABNZBD_0_API_KEY=${SABNZBD_KEY}
     {% endif %}
 ```
 
-Use `enabled_containers` (not the raw map) when one service needs to know whether another
+Use `hmsdocker_enabled_containers` (not the raw map) when one service needs to know whether another
 is running.

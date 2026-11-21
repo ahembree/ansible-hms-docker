@@ -17,8 +17,8 @@ hmsdocker_caddy_log_level: "INFO"
 ### SSL, only used when hmsdocker_ssl_enabled is on
 # Caddy gets the certificates with the Let's Encrypt DNS challenge through a DNS provider module, which the playbook
 # builds into the Caddy image. Find your provider and its settings at https://github.com/caddy-dns
-# e.g. "cloudflare" for https://github.com/caddy-dns/cloudflare // default: same as traefik_ssl_dns_provider_code
-hmsdocker_caddy_dns_provider: "{{ traefik_ssl_dns_provider_code }}"
+# e.g. "cloudflare" for https://github.com/caddy-dns/cloudflare // default: same as hmsdocker_traefik_ssl_dns_provider_code
+hmsdocker_caddy_dns_provider: "{{ hmsdocker_traefik_ssl_dns_provider_code }}"
 
 # Go module of the DNS provider, only change this for a provider that is not under github.com/caddy-dns
 hmsdocker_caddy_dns_provider_module: "github.com/caddy-dns/{{ hmsdocker_caddy_dns_provider }}"
@@ -41,4 +41,4 @@ hmsdocker_caddy_extra_modules: []
 
 # Where your own Caddy configs are stored, every `*.caddy` file in this folder is imported into the Caddyfile
 # Use it to proxy containers outside of this project, see the Caddy docs page
-hmsdocker_caddy_custom_config_location: "{{ hms_docker_apps_path }}/caddy/custom"
+hmsdocker_caddy_custom_config_location: "{{ hmsdocker_apps_path }}/caddy/custom"

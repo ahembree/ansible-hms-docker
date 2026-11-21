@@ -2,7 +2,7 @@ name: Automate Release
 
 on:
   push:
-    branches: 
+    branches:
       - master
     paths:
       - 'hms-docker.yml'
@@ -23,7 +23,7 @@ jobs:
       id: version
       uses: mikefarah/yq@master
       with:
-        cmd: yq '.[0].vars.hmsd_current_version' 'hms-docker.yml'
+        cmd: yq '.[0].vars.hmsdocker_current_version' 'hms-docker.yml'
 
     # The workflow fires on any push touching hms-docker.yml, not just version
     # bumps — skip releasing when this version is already tagged.

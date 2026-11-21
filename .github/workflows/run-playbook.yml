@@ -11,6 +11,15 @@ on:
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
+      - 'Makefile'
+      - 'migrations/**'
+      - 'inventory/hosts.yml'
+      - 'ansible.cfg'
+      - '.ansible-lint'
+      - 'galaxy-requirements.yml'
+      - '.github/extra-vars.yml'
+      - '.github/workflows/run-playbook.yml'
+      - '.github/workflows/scripts/**'
   pull_request:
     branches:
       - master
@@ -19,6 +28,15 @@ on:
     paths:
       - 'roles/**'
       - 'hms-docker.yml'
+      - 'Makefile'
+      - 'migrations/**'
+      - 'inventory/hosts.yml'
+      - 'ansible.cfg'
+      - '.ansible-lint'
+      - 'galaxy-requirements.yml'
+      - '.github/extra-vars.yml'
+      - '.github/workflows/run-playbook.yml'
+      - '.github/workflows/scripts/**'
   schedule:
     - cron:  '23 9 * * 0'
 
@@ -30,6 +48,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repo code
+        uses: actions/checkout@v6
+
+      - name: Install ansible-lint
+        # A venv of its own, so that ansible-lint and the ansible-galaxy that `make lint` calls
+        # come from the same install, whatever Ansible the runner image ships with
+        run: |
+          python3 -m venv "$HOME/ansible-lint-venv"
+          "$HOME/ansible-lint-venv/bin/pip" install ansible-lint
+          echo "$HOME/ansible-lint-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Run ansible-lint
+        run: make lint
+
   # Caddy is configured from hmsdocker_caddy_upstreams instead of container labels, so it must match the Traefik labels
   caddy-upstreams:
     name: Check Caddy upstreams
@@ -62,13 +99,18 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Add hosts to /etc/hosts
+        # One entry per subdomain in the CI container map (plus the 4K instances), so a container
+        # added to .github/extra-vars.yml needs no change here
         run: |
-            for name in sonarr radarr sonarr-4k radarr-4k prowlarr spottarr transmission bazarr plex overseerr requestrr traefik nzbget sabnzbd authentik tautulli tdarr homepage uptime-kuma qbittorrent deluge lidarr tunarr nexroll audiobookshelf ersatztv pocketid tinyauth; do echo "127.0.0.1 $name.home.local" | sudo tee -a /etc/hosts; done
+            domain=$(yq -r '.hmsdocker_domain' .github/extra-vars.yml)
+            names=$(yq -r '.hmsdocker_container_map[].proxy_host_rule | select(. != null)' .github/extra-vars.yml)
+            test -n "$names"
+            for name in $names sonarr-4k radarr-4k; do echo "127.0.0.1 $name.$domain" | sudo tee -a /etc/hosts; done
 
       - name: Install ansible
         run: |
           sudo apt update
-          sudo sudo apt install software-properties-common
+          sudo apt install software-properties-common
           sudo add-apt-repository --yes --update ppa:ansible/ansible
           sudo apt install ansible
 
@@ -80,12 +122,19 @@ jobs:
           chmod 0600 ./inventory/group_vars/all/*.yml
           make install-reqs
 
+      - name: Check the variable migrations leave the current defaults alone
+        # The inventory above is a copy of the current defaults, so a rename that fires here
+        # has an `old` name that is still in use
+        run: |
+          python3 migrations/apply_renames.py inventory/group_vars/all --check | tee /tmp/renames.txt
+          grep -q 'already up to date' /tmp/renames.txt
+
       - name: Build extra vars for the reverse proxy
         run: |
           python3 - "${{ matrix.proxy }}" <<'PY'
           import sys, yaml
           extra_vars = yaml.safe_load(open('.github/extra-vars.yml'))
-          container_map = extra_vars['hms_docker_container_map']
+          container_map = extra_vars['hmsdocker_container_map']
           container_map['traefik']['enabled'] = sys.argv[1] == 'traefik'
           container_map['caddy'] = {'enabled': sys.argv[1] == 'caddy', 'directory': True, 'homepage': True, 'homepage_stats': False}
           yaml.safe_dump(extra_vars, open('.github/extra-vars-run.yml', 'w'))

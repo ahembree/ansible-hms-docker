@@ -35,7 +35,16 @@ jobs:
       - name: Copy container_map config to site
         run: |
           mkdir -p docs-astro/public/configs
-          cp roles/hmsdocker/defaults/main/container_map.yml docs-astro/public/configs/container_map.yml
+          # Only Makefiles up to v1.20 download this file: their `make update` merges it into the user's
+          # container map, adds the keys the user's entries lack and deletes the ones this file lacks.
+          # So it is published the way those Makefiles know the map: under its old top-level key, and
+          # with the per-container `proxy` key under its old name `traefik`. Published with `proxy`, that
+          # merge would delete the user's `traefik` setting and add `proxy` with the default value.
+          # The playbook and the next `make update` then rename `traefik` to `proxy`, keeping the value.
+          sed -E 's/^hmsdocker_container_map:/hms_docker_container_map:/; s/^(    )proxy:/\1traefik:/' roles/hmsdocker/defaults/main/container_map.yml > docs-astro/public/configs/container_map.yml
+          grep -q '^hms_docker_container_map:' docs-astro/public/configs/container_map.yml
+          grep -q '^    traefik:' docs-astro/public/configs/container_map.yml
+          if grep -q '^    proxy:' docs-astro/public/configs/container_map.yml; then echo "a proxy key was left in the published map"; exit 1; fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

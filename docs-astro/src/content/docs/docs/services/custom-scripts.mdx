@@ -35,9 +35,9 @@ To enable the Traefik-to-Plex Certificate script:
 
 <Steps>
 
-1. Change `hms_docker_plex_ssl_enabled` to `true`
+1. Change `hmsdocker_plex_ssl_enabled` to `true`
 
-2. Set `hms_docker_plex_ssl_public_hostname` to the publicly-accessible FQDN/hostname used to access Plex, such as `plex.example.com` or `media.public.example.com`
+2. Set `hmsdocker_plex_ssl_public_hostname` to the publicly-accessible FQDN/hostname used to access Plex, such as `plex.example.com` or `media.public.example.com`
 
     a. NOTE: It **must** match a hostname, wildcard, or SAN covered by the Traefik certificate. If it is not and you want to add a SAN, see the [Traefik SSL docs](/docs/services/traefik/ssl/#changing-ssl-certificate-sans)
 
@@ -47,9 +47,9 @@ To enable the Traefik-to-Plex Certificate script:
 
 The following settings are optional:
 
-- `hms_docker_plex_ssl_update_config` : If the script should auto-update the Plex config file with the certificate path and passphrase (if applicable)
-- `hms_docker_plex_ssl_restart_plex` : If the script should restart the Plex container after the config has been updated
-- `hms_docker_plex_ssl_cert_pass` : The passphrase for the certificate if you want to further secure it, but it is not necessary
+- `hmsdocker_plex_ssl_update_config` : If the script should auto-update the Plex config file with the certificate path and passphrase (if applicable)
+- `hmsdocker_plex_ssl_restart_plex` : If the script should restart the Plex container after the config has been updated
+- `hmsdocker_plex_ssl_cert_pass` : The passphrase for the certificate if you want to further secure it, but it is not necessary
 
 ### Running Manually
 
@@ -80,9 +80,9 @@ To enable the script:
 1.
     ```yaml
     #inventory/group_vars/all/scripts.yml
-    monitoring_scripts_enabled: true
-    media_avail_script_enabled: true
-    media_avail_kuma_push_url: <URL from step 2 below> # remove `?status=up&msg=OK&ping=` from the end
+    hmsdocker_monitoring_scripts_enabled: true
+    hmsdocker_media_avail_script_enabled: true
+    hmsdocker_media_avail_kuma_push_url: <URL from step 2 below> # remove `?status=up&msg=OK&ping=` from the end
     ```
 
 2. Create a "Push Monitor" within Uptime-Kuma, I recommend the following settings:

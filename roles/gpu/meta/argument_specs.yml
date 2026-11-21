@@ -6,7 +6,7 @@ argument_specs:
   main:
     short_description: Installs and validates Nvidia container runtime support.
     options:
-      enable_nvidia_gpu:
+      hmsdocker_enable_nvidia_gpu:
         type: bool
         description: Master toggle - the role is only imported when true.
       gpu_prereq_packages_state:

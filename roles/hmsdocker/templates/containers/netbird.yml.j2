@@ -24,7 +24,7 @@ services:
     {% if hmsdocker_netbird_management_url | default('', true) | length > 0 %}
       - NB_MANAGEMENT_URL={{ hmsdocker_netbird_management_url }}
     {% endif %}
-    {% if 'netbird' in homepage_enabled_containers %}
+    {% if 'netbird' in hmsdocker_homepage_enabled_containers %}
     labels:
       - homepage.group=Infrastructure
       - homepage.name=NetBird

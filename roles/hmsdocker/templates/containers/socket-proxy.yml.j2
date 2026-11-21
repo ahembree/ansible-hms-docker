@@ -1,18 +1,18 @@
 {# One socket-proxy per client container. Each one exposes a filtered Docker socket in
    apps/socket-proxy/<client>/ that only allows the Docker API requests that client needs.
    Settings: hmsdocker_socket_proxy_builtin_clients (vars/main.yml) + hmsdocker_socket_proxy_overrides #}
-{% if socket_proxy_enabled_containers | length == 0 %}
+{% if hmsdocker_socket_proxy_enabled_containers | length == 0 %}
 services: {}
 {% else %}
 services:
-{% for client in socket_proxy_enabled_containers %}
+{% for client in hmsdocker_socket_proxy_enabled_containers %}
   {% set profile = hmsdocker_socket_proxy_clients[client] %}
   socket-proxy-{{ client }}:
     image: {{ hmsdocker_socket_proxy_image }}
     container_name: socket-proxy-{{ client }}
     restart: ${RESTART_POLICY}
     # nobody, with the group that owns the Docker socket
-    user: "65534:{{ socket_proxy_docker_gid }}"
+    user: "65534:{{ hmsdocker_socket_proxy_docker_gid }}"
     read_only: true
     cap_drop:
       - ALL

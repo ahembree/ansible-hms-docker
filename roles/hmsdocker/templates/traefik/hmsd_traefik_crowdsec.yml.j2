@@ -7,7 +7,7 @@ http:
           crowdsecMode: stream
           crowdsecLapiScheme: http
           crowdsecLapiHost: crowdsec:8080
-          crowdsecLapiKey: "{{ crowdsec_bouncer_key }}"
+          crowdsecLapiKey: "{{ hmsdocker_crowdsec_bouncer_key }}"
           # keep serving traffic if CrowdSec can't be reached (restart, update, crash), instead of blocking every request
           updateMaxFailure: -1
           # LAN clients are never blocked, so the apps stay reachable if CrowdSec makes a bad decision

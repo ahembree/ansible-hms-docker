@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   tubearchivist:
     image: bbilly1/tubearchivist
@@ -13,19 +14,19 @@ services:
     networks:
       - proxy_net
       - tubearchivist_net
-    {% if 'tubearchivist' in expose_ports_enabled_containers %}
+    {% if 'tubearchivist' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 8001:8001
     {% endif %}
     volumes:
-      - ${HMSD_MOUNT_PATH}/{{ hms_docker_primary_mount_name }}/{{ hms_docker_library_folder_name }}/youtube/tubearchivist:/youtube
+      - ${HMSD_MOUNT_PATH}/{{ hmsdocker_primary_mount_name }}/{{ hmsdocker_library_folder_name }}/youtube/tubearchivist:/youtube
       - ${HMSD_APPS_PATH}/tubearchivist/config/cache:/cache
     environment:
       - ES_URL=http://tubearchivist-es:9200
       - REDIS_CON=redis://tubearchivist-redis:6379
       - PUID=${PUID}
       - PGID=${PGID}
-      - TA_HOST=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if 'tubearchivist' in expose_ports_enabled_containers }}  # set your host name with protocol and port
+      - TA_HOST=https://{{ hmsdocker_container_map['tubearchivist']['proxy_host_rule'] | default(ansible_default_ipv4.address) }}.${HMSD_DOMAIN}{{ ':8001' if 'tubearchivist' in hmsdocker_expose_ports_enabled_containers }}  # set your host name with protocol and port
       - TA_USERNAME=${TUBEARCHIVIST_USERNAME}
       - TA_PASSWORD=${TUBEARCHIVIST_PASSWORD}
       - ELASTIC_PASSWORD=tub3@rch1v1sts00p3rs3cr3tp@ssw0rd
@@ -40,26 +41,13 @@ services:
     depends_on:
       - tubearchivist-es
       - tubearchivist-redis
-    {% if 'tubearchivist' in traefik_enabled_containers or 'tubearchivist' in homepage_enabled_containers %}
+    {% if 'tubearchivist' in hmsdocker_traefik_enabled_containers or 'tubearchivist' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'tubearchivist' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.tubearchivist-${COMPOSE_PROJECT}.loadbalancer.server.port=8001
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.tubearchivist-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'tubearchivist' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-tubearchivist-midware@docker' if 'tubearchivist' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'tubearchivist' in tinyauth_protected_containers }}
+      {% if 'tubearchivist' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('tubearchivist', 8001) | indent(6) }}
       {% endif %}
-      {% if 'tubearchivist' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Tubearchivist
-      - homepage.icon=tubearchivist.png
-      - homepage.href=https://{{ hms_docker_container_map['tubearchivist']['proxy_host_rule'] | default('tubearchivist') }}.${HMSD_DOMAIN}
-      - homepage.description=YouTube Archiver
-      - homepage.widget.type=tubearchivist
-      - homepage.widget.url=http://tubearchivist:8001
-      - homepage.widget.key=${TUBEARCHIVIST_API_KEY:-apikeyapikeyapikey}
-        {% if 'tubearchivist' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'tubearchivist' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('tubearchivist', 'Managers', 'Tubearchivist', 'YouTube Archiver', href='https', widget={'type': 'tubearchivist', 'url': 'http://tubearchivist:8001', 'key': '${TUBEARCHIVIST_API_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}
 

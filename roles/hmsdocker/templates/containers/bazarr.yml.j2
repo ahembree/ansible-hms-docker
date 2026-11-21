@@ -1,3 +1,4 @@
+{% import 'macros/labels.j2' as labels with context %}
 services:
   bazarr:
     image: linuxserver/bazarr:latest
@@ -18,7 +19,7 @@ services:
       timeout: 2s
       retries: 3
       start_period: 20s
-    {% if 'bazarr' in expose_ports_enabled_containers %}
+    {% if 'bazarr' in hmsdocker_expose_ports_enabled_containers %}
     ports:
       - 6767:6767
     {% endif %}
@@ -29,25 +30,12 @@ services:
     volumes:
       - ${HMSD_APPS_PATH}/bazarr/config:/config
       - ${HMSD_MOUNT_PATH}:/data
-    {% if 'bazarr' in traefik_enabled_containers or 'bazarr' in homepage_enabled_containers %}
+    {% if 'bazarr' in hmsdocker_traefik_enabled_containers or 'bazarr' in hmsdocker_homepage_enabled_containers %}
     labels:
-      {% if 'bazarr' in traefik_enabled_containers %}
-      - traefik.enable=true
-      - traefik.http.services.bazarr-${COMPOSE_PROJECT}.loadbalancer.server.port=6767
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.rule=Host(`{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}`)
-      - traefik.http.routers.bazarr-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'bazarr' in expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-bazarr-midware@docker' if 'bazarr' in authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'bazarr' in tinyauth_protected_containers }}
+      {% if 'bazarr' in hmsdocker_traefik_enabled_containers %}
+      {{ labels.traefik('bazarr', 6767) | indent(6) }}
       {% endif %}
-      {% if 'bazarr' in homepage_enabled_containers %}
-      - homepage.group=Managers
-      - homepage.name=Bazarr
-      - homepage.icon=bazarr.png
-      - homepage.href=http://{{ hms_docker_container_map['bazarr']['proxy_host_rule'] | default('bazarr') }}.${HMSD_DOMAIN}
-      - homepage.description=Subtitle Manager
-      - homepage.widget.type=bazarr
-      - homepage.widget.url=http://bazarr:6767
-      - homepage.widget.key=${BAZARR_KEY:-apikeyapikeyapikey}
-        {% if 'bazarr' in homepage_stats_enabled_containers %}
-      - homepage.showStats=true
-        {% endif %}
+      {% if 'bazarr' in hmsdocker_homepage_enabled_containers %}
+      {{ labels.homepage('bazarr', 'Managers', 'Bazarr', 'Subtitle Manager', widget={'type': 'bazarr', 'url': 'http://bazarr:6767', 'key': '${BAZARR_KEY:-apikeyapikeyapikey}'}) | indent(6) }}
       {% endif %}
     {% endif %}

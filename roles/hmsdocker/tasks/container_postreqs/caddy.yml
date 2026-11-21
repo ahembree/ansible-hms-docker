@@ -3,34 +3,34 @@
 - name: Caddy Postreq - Ensure Caddy is running
   when:
     - not ansible_check_mode
-    - hms_docker_compose_container_state | default('present') == 'present'
+    - hmsdocker_compose_container_state | default('present') == 'present'
   block:
     - name: Caddy Postreq - Wait for the Caddy container
       community.docker.docker_container_info:
         name: caddy
-      register: caddy_container_info
-      until: caddy_running | bool
+      register: hmsdocker_caddy_container_info
+      until: hmsdocker_caddy_running | bool
       retries: 10
       delay: 3
       failed_when: false
       vars:
-        caddy_running: >-
+        hmsdocker_caddy_running: >-
           {{
-            caddy_container_info.exists | default(false)
-            and caddy_container_info.container.State.Running
-            and not caddy_container_info.container.State.Restarting
+            hmsdocker_caddy_container_info.exists | default(false)
+            and hmsdocker_caddy_container_info.container.State.Running
+            and not hmsdocker_caddy_container_info.container.State.Restarting
           }}
 
     - name: Caddy Postreq - Check the Caddy container is running
       ansible.builtin.assert:
         that:
-          - caddy_container_info.exists | default(false)
-          - caddy_container_info.container.State.Running
-          - not caddy_container_info.container.State.Restarting
+          - hmsdocker_caddy_container_info.exists | default(false)
+          - hmsdocker_caddy_container_info.container.State.Running
+          - not hmsdocker_caddy_container_info.container.State.Restarting
         fail_msg: >-
           The caddy container is not running. Run `docker logs caddy` to see why, usually Caddy could not load
           its config (e.g. hmsdocker_caddy_dns_provider_config does not match the DNS provider).
-          The generated config is {{ hms_docker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}/Caddyfile.
+          The generated config is {{ hmsdocker_apps_path }}/caddy/config/{{ hmsdocker_caddy_config_name }}/Caddyfile.
         quiet: true
 
 # Once Caddy runs the current image, the Caddyfile folders of other images (and the Caddyfile that earlier versions of
@@ -39,12 +39,12 @@
 - name: Caddy Postreq - Remove what earlier Caddy images used
   when:
     - not ansible_check_mode
-    - caddy_container_info.container.Config.Image | default('') == hmsdocker_caddy_image
+    - hmsdocker_caddy_container_info.container.Config.Image | default('') == hmsdocker_caddy_image
   block:
     # Only names the playbook creates: <version> or <version>-<module hash> folders, and Caddyfile (with its backups)
     - name: Caddy Postreq - Find Caddyfile folders and files of other images
       ansible.builtin.find:
-        paths: "{{ hms_docker_apps_path }}/caddy/config"
+        paths: "{{ hmsdocker_apps_path }}/caddy/config"
         file_type: any
         use_regex: true
         patterns:
@@ -52,13 +52,13 @@
           - '^Caddyfile([.].*)?$'
         excludes:
           - '^{{ hmsdocker_caddy_config_name | regex_escape }}$'
-      register: caddy_old_configs
+      register: hmsdocker_caddy_old_configs
 
     - name: Caddy Postreq - Remove Caddyfile folders and files of other images
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
-      loop: "{{ caddy_old_configs.files }}"
+      loop: "{{ hmsdocker_caddy_old_configs.files }}"
       loop_control:
         label: "{{ item.path }}"
 
@@ -67,7 +67,7 @@
         images: true
         images_filters:
           reference: hmsd-caddy
-      register: caddy_built_images
+      register: hmsdocker_caddy_built_images
 
     # An image that another container still uses is left alone
     - name: Caddy Postreq - Remove images built for an earlier Caddy version or module list
@@ -76,18 +76,18 @@
         state: absent
       loop: >-
         {{
-          caddy_built_images.images | default([]) | map(attribute='RepoTags') | select | flatten
+          hmsdocker_caddy_built_images.images | default([]) | map(attribute='RepoTags') | select | flatten
           | select('match', 'hmsd-caddy:') | reject('equalto', hmsdocker_caddy_image) | list
         }}
       failed_when: false
 
 - name: Caddy Postreq - Verify all Caddy endpoints are accessible
   ansible.builtin.uri:
-    url: http://{{ item }}.{{ hms_docker_domain }}
+    url: http://{{ item }}.{{ hmsdocker_domain }}
     status_code: 200,302,308,401,403
     validate_certs: false
-  loop: "{{ traefik_enabled_subdomains }}"
+  loop: "{{ hmsdocker_traefik_enabled_subdomains }}"
   when:
     - hmsdocker_proxy_verify_endpoints | default(false)
   ignore_errors: true
-  register: caddy_successful_endpoints
+  register: hmsdocker_caddy_successful_endpoints
