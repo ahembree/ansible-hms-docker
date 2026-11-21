@@ -2,6 +2,7 @@
    hmsdocker_authentik_outpost_name: name of the outpost, used in its container and Traefik object names
    hmsdocker_authentik_outpost_host: subdomain the outpost protects #}
 log_level: info
+{% if 'traefik' in hmsdocker_enabled_containers %}
 docker_labels:
   traefik.enable: "true"
   traefik.http.services.authentik-proxy-{{ hmsdocker_project_name }}-{{ hmsdocker_authentik_outpost_name }}-service.loadbalancer.server.port: "9000"
@@ -9,6 +10,10 @@ docker_labels:
   traefik.http.middlewares.authentik-proxy-{{ hmsdocker_project_name }}-{{ hmsdocker_authentik_outpost_name }}-midware.forwardauth.address: http://authentik-proxy-{{ hmsdocker_project_name }}-{{ hmsdocker_authentik_outpost_name }}:9000/outpost.goauthentik.io/auth/traefik
   traefik.http.middlewares.authentik-proxy-{{ hmsdocker_project_name }}-{{ hmsdocker_authentik_outpost_name }}-midware.forwardauth.trustForwardHeader: "true"
   traefik.http.middlewares.authentik-proxy-{{ hmsdocker_project_name }}-{{ hmsdocker_authentik_outpost_name }}-midware.forwardauth.authResponseHeaders: X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version
+{% else %}
+# Caddy reaches the outpost by its container name, no labels needed
+docker_labels: {}
+{% endif %}
 authentik_host: https://authentik-server:9443
 authentik_host_insecure: true
 authentik_host_browser: {{ hmsdocker_authentik_external_host }}

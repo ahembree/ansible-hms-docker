@@ -11,7 +11,24 @@ By default, Traefik is configured with an allowlist that only permits private IP
 
 **Exception:** If you route a container through [Cloudflare Tunnel](/docs/services/cloudflare/tunnel/), the traffic goes directly to the container and bypasses Traefik entirely. Traefik allowlists and middlewares do not apply to Tunnel traffic.
 
+**IPv6:** The project's Docker network is IPv4-only, so Docker forwards IPv6 connections to Traefik through its userland proxy, and Traefik sees the Docker network's gateway, a private address, as the client. The private allowlist therefore lets every IPv6 client through. If the server has a public IPv6 address (for example with `hmsdocker_cloudflare_ddns_create_ipv6_aaaa_record` enabled), block incoming IPv6 traffic to ports `80` and `443` on your router or firewall unless every app reachable that way is meant to be public.
+
 This is controlled on a per-container basis in the `inventory/group_vars/all/container_map.yml` file as the `expose_to_public` variable for each container. If you set this to `true`, it will allow all IPs (`0.0.0.0/0`) to access them.
+
+## Proxies in front of Traefik
+
+If another proxy sits in front of Traefik, such as a load balancer, Traefik sees that proxy's IP as the client IP. To log the real client IP instead, add the proxy's IP or subnet to `hmsdocker_proxy_trusted_proxies` in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`):
+
+```yaml
+hmsdocker_proxy_trusted_proxies:
+  - 192.168.1.10
+```
+
+Traefik then keeps the `X-Forwarded-For` header sent by these proxies on the `web` and `websecure` entrypoints (ports `80` and `443`) and logs the client IP from it. [CrowdSec](/docs/services/crowdsec/) uses the same list. The allowlists above still check the IP that connects to Traefik.
+
+Traefik logs that header exactly as received, so the proxy must set it to the client's IP only, replacing any value the client sent (for example `proxy_set_header X-Forwarded-For $remote_addr;` in nginx, or `http-request set-header X-Forwarded-For %[src]` in HAProxy). A proxy that adds the client's IP to an existing header lets clients put any IP they like in Traefik's access log.
+
+Only list proxies you control. Any client in these ranges can set its own `X-Forwarded-For` header.
 
 ## SSO
 
@@ -19,7 +36,7 @@ To configure SSO (Single Sign-On) for certain containers, see the [Authentik doc
 
 ## Security Hardening
 
-There is a `hmsdocker_traefik_security_hardening` variable in `inventory/group_vars/all/traefik.yml` that will do the following if enabled:
+There is a `hmsdocker_proxy_security_hardening` variable in `inventory/group_vars/all/reverse_proxy.yml` (`traefik.yml` until you run `make update`) that will do the following if enabled:
 
 - Enforce HTTPS only requests
 - Enforce Traefik dashboard over secure connection
@@ -37,7 +54,7 @@ The following middlewares are available:
 
 - `internal-secured`: A chain, applies the `internal-ipallowlist`, `https-only`, `secure-headers`
 - `external-secured`: A chain, applies the `external-ipallowlist`, `https-only`, `secure-headers`
-- `internal-ipallowlist`: Allows only RFC1918 private address space and any other IPs/ranges defined in the `hmsdocker_traefik_subnet_allow_list` variable
+- `internal-ipallowlist`: Allows only RFC1918 private address space and any other IPs/ranges defined in the `hmsdocker_proxy_allow_list` variable
 - `external-ipallowlist`: Allows all traffic from `0.0.0.0/0`
 - `https-only`: Configures permanent redirection to HTTPS
 - `secure-headers`: Applies headers to prevent iFrame embedding, blocks requests if MIME types do not match certain criteria, and only allows Host headers for applications that are enabled within this project

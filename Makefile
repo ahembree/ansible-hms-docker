@@ -19,6 +19,10 @@ DEFAULT_CONTAINER_MAP = roles/hmsdocker/defaults/main/container_map.yml
 # The playbook version, under its current name or the one releases up to v1.21 used
 # ('make update' reads it both before and after pulling)
 VERSION_QUERY = .[0].vars.hmsdocker_current_version // .[0].vars.hmsd_current_version
+# Settings shared by Traefik and Caddy, moved out of traefik.yml by 'make update'
+SHARED_PROXY_DEFAULTS = roles/hmsdocker/defaults/main/reverse_proxy.yml
+# Where 'make update' keeps a copy of the config from before it changed it
+CONF_BACKUP_DIR = backups
 
 # No longer used by this Makefile, but DO NOT REMOVE: older Makefiles' 'make update'
 # recipe keeps running after 'git pull' and greps this line out of the freshly
@@ -170,8 +174,63 @@ update: $(YQ_LOCAL)
 # and default container map of the branch that is checked out (so they always match the
 # code that will be applied).
 migrate-config: $(YQ_LOCAL)
+	@# Snapshot the config. If this run changes it, the snapshot is kept as a backup (see the end of this recipe),
+	@# e.g. to restore the old variable names after switching back to a branch that does not know the new ones
+	@rm -rf "$(CONF_BACKUP_DIR)/.pending"; \
+	if ls $(CUSTOM_CONF_DIR)/*.yml >/dev/null 2>&1; then \
+		mkdir -p "$(CONF_BACKUP_DIR)/.pending" && chmod 700 "$(CONF_BACKUP_DIR)" && cp -p $(CUSTOM_CONF_DIR)/*.yml "$(CONF_BACKUP_DIR)/.pending/"; \
+	fi
 	@echo "Applying variable renames from migrations/variable_renames.yml..."
 	@python3 migrations/apply_renames.py $(CUSTOM_CONF_DIR)
+
+	@# The settings Traefik shares with Caddy moved from traefik.yml to reverse_proxy.yml. Move them in the inventory
+	@# too: group_vars files load in alphabetical order, so values left in traefik.yml would override reverse_proxy.yml
+	@src="$(CUSTOM_CONF_DIR)/traefik.yml"; dst="$(CUSTOM_CONF_DIR)/reverse_proxy.yml"; \
+	[ -f "$$src" ] || exit 0; \
+	shared=$$($(YQ_LOCAL) -r 'keys | .[]' "$(SHARED_PROXY_DEFAULTS)"); \
+	moving=""; \
+	for key in $$shared; do \
+		if [ "$$($(YQ_LOCAL) eval 'has("'$$key'")' "$$src" 2>/dev/null)" = "true" ]; then moving="$$moving $$key"; fi; \
+	done; \
+	[ -n "$$moving" ] || exit 0; \
+	echo "Moving the settings shared by Traefik and Caddy from traefik.yml to reverse_proxy.yml..."; \
+	created=0; \
+	if [ ! -f "$$dst" ]; then \
+		cp "$(SHARED_PROXY_DEFAULTS)" "$$dst" && chmod 0600 "$$dst"; \
+		created=1; \
+		for key in $$shared; do \
+			case " $$moving " in *" $$key "*) ;; *) $(YQ_LOCAL) eval -i 'del(."'$$key'")' "$$dst" ;; esac; \
+		done; \
+	fi; \
+	for key in $$moving; do \
+		if [ "$$created" = 0 ] && [ "$$($(YQ_LOCAL) eval 'has("'$$key'")' "$$dst" 2>/dev/null)" = "true" ]; then \
+			printf $(_WARN) "WARN" "$$key is set in both traefik.yml and reverse_proxy.yml, the value in traefik.yml is used (it loads later). Remove it from one of them"; \
+			continue; \
+		fi; \
+		if $(YQ_LOCAL) eval -i '."'$$key'" = load("'"$$src"'")."'$$key'"' "$$dst" \
+			&& [ "$$($(YQ_LOCAL) -o=json '."'$$key'"' "$$dst")" = "$$($(YQ_LOCAL) -o=json '."'$$key'"' "$$src")" ]; then \
+			$(YQ_LOCAL) eval -i 'del(."'$$key'")' "$$src"; \
+			echo "  moved $$key"; \
+		else \
+			printf $(_WARN) "WARN" "Could not copy $$key to reverse_proxy.yml, it stays in traefik.yml"; \
+		fi; \
+	done
+
+	@# The per-container `traefik` key of the container map was renamed to `proxy`, in every file that defines the map
+	@for f in $(CUSTOM_CONF_DIR)/*.yml; do \
+		[ -f "$$f" ] || continue; \
+		[ "$$($(YQ_LOCAL) eval '.hmsdocker_container_map | tag == "!!map"' "$$f" 2>/dev/null)" = "true" ] || continue; \
+		$(YQ_LOCAL) -r '.hmsdocker_container_map | to_entries | .[] | select(.value | tag == "!!map") | select(.value | has("traefik")) | .key' "$$f" | while read service; do \
+			hasproxy=$$($(YQ_LOCAL) eval '.hmsdocker_container_map."'$$service'" | has("proxy")' "$$f"); \
+			if [ "$$hasproxy" = "true" ]; then \
+				$(YQ_LOCAL) eval -i 'del(.hmsdocker_container_map."'$$service'".traefik)' "$$f"; \
+				echo "  $$service: removed traefik in $$(basename "$$f"), it already has proxy"; \
+			else \
+				$(YQ_LOCAL) eval -i '(.hmsdocker_container_map."'$$service'".traefik | key) = "proxy"' "$$f"; \
+				echo "  renamed $$service.traefik -> $$service.proxy in $$(basename "$$f")"; \
+			fi; \
+		done; \
+	done
 
 	@if [ ! -f "$(CUSTOM_CONF_DIR)/container_map.yml" ]; then \
 		echo "No $(CUSTOM_CONF_DIR)/container_map.yml found, skipping container map merge (run 'make config' first)"; \
@@ -214,6 +273,25 @@ migrate-config: $(YQ_LOCAL)
 	done; \
 	$(YQ_LOCAL) eval -i 'sort_keys(.hmsdocker_container_map)' "$(CUSTOM_CONF_DIR)/container_map.yml"; \
 	echo "Update finished"
+	@pending="$(CONF_BACKUP_DIR)/.pending"; \
+	[ -d "$$pending" ] || exit 0; \
+	changed=0; \
+	for f in $(CUSTOM_CONF_DIR)/*.yml; do \
+		[ -f "$$f" ] || continue; \
+		cmp -s "$$f" "$$pending/$$(basename "$$f")" || changed=1; \
+	done; \
+	for f in "$$pending"/*.yml; do \
+		[ -f "$(CUSTOM_CONF_DIR)/$$(basename "$$f")" ] || changed=1; \
+	done; \
+	if [ "$$changed" = 1 ]; then \
+		backup="$(CONF_BACKUP_DIR)/inventory-$$(date +%Y%m%d-%H%M%S)"; \
+		mv "$$pending" "$$backup"; \
+		printf $(_TITLE) "INFO" "Your config from before this update is saved in $$backup"; \
+		echo "  To go back to it (e.g. after 'make switch-stable' to a release without these changes):"; \
+		echo "  rm $(CUSTOM_CONF_DIR)/*.yml && cp -p $$backup/*.yml $(CUSTOM_CONF_DIR)/"; \
+	else \
+		rm -rf "$$pending"; \
+	fi
 	@echo "Version Now: $$($(YQ_LOCAL) '$(VERSION_QUERY)' hms-docker.yml)"
 
 # Checks out a release channel branch (creating a local tracking branch if it

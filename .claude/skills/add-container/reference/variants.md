@@ -71,10 +71,10 @@ indirection. WireGuard and OpenVPN need different capabilities:
 
 `network_mode: host` replaces `networks:` entirely and makes `ports:` meaningless. A
 host-networked service cannot be Traefik-routed through `proxy_net`, so it **omits the
-`traefik` key** from its map entry — no entry in the map ever writes `traefik: false`,
-because the derived fact filters on `selectattr('value.traefik', 'defined')` first, so an
+`proxy` key** from its map entry — no entry in the map ever writes `proxy: false`,
+because the derived fact filters on `selectattr('value.proxy', 'defined')` first, so an
 absent key is enough. Such entries are minimal; netdata's is just `enabled`, `homepage`,
-`homepage_stats`. The alternative, as with beszel, is a `traefik: true` hub on `proxy_net`
+`homepage_stats`. The alternative, as with beszel, is a `proxy: true` hub on `proxy_net`
 with only the agent host-networked.
 
 ## Device passthrough with a loop — `scrutiny.yml.j2`, `beszel.yml.j2` (agent)

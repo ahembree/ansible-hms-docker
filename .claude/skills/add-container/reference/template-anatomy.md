@@ -99,7 +99,7 @@ Both `proxy_net` and `download_net` are defined in
 `user: ${PUID}:${PGID}` at the service level instead (autobrr, n8n).
 
 Env values can be computed from Ansible vars — beszel builds its `APP_URL` from
-`hmsdocker_traefik_ssl_enabled`, the map's `proxy_host_rule`, and `hmsdocker_expose_ports_enabled_containers`.
+`hmsdocker_ssl_enabled`, the map's `proxy_host_rule`, and `hmsdocker_expose_ports_enabled_containers`.
 
 Compose interpolation defaults work and are used for optional secrets:
 `${BESZEL_TOKEN:-}`, `${CAPTCHA_SOLVER:-none}`.

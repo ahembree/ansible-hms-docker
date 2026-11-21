@@ -15,7 +15,7 @@
 
 - name: Arr bootstrap - Set facts ({{ hmsdocker_arr_label }})
   ansible.builtin.set_fact:
-    hmsdocker_arr_url: "http{{ 's' if hmsdocker_traefik_ssl_enabled and not hmsdocker_arr_app in hmsdocker_expose_ports_enabled_containers }}://{{ hmsdocker_container_map[hmsdocker_arr_app]['proxy_host_rule'] }}{{ hmsdocker_arr_host_suffix }}.{{ hmsdocker_domain }}{{ (':' ~ hmsdocker_arr_published_port) if hmsdocker_arr_app in hmsdocker_expose_ports_enabled_containers }}/api"
+    hmsdocker_arr_url: "http{{ 's' if hmsdocker_ssl_enabled and not hmsdocker_arr_app in hmsdocker_expose_ports_enabled_containers }}://{{ hmsdocker_container_map[hmsdocker_arr_app]['proxy_host_rule'] }}{{ hmsdocker_arr_host_suffix }}.{{ hmsdocker_domain }}{{ (':' ~ hmsdocker_arr_published_port) if hmsdocker_arr_app in hmsdocker_expose_ports_enabled_containers }}/api"
 
 - name: Arr bootstrap - Precheck API Key ({{ hmsdocker_arr_label }})
   ansible.builtin.uri:

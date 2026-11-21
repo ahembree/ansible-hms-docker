@@ -9,4 +9,4 @@ exclude_paths:
   - docs-astro/
   # The user's own config (gitignored copies of the role defaults)
   - inventory/group_vars/
-  - inventory/backups/
+  - backups/

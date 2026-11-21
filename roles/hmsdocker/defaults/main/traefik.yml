@@ -1,47 +1,17 @@
+# Traefik settings. The settings Traefik shares with Caddy (SSL, allow-list, hardening, external hosts, access logs)
+# are in reverse_proxy.yml
+
 # Traefik image tag to deploy (e.g. "v3.7.17", or "latest" to always pull the newest) // default: "v3.7.17"
 hmsdocker_traefik_version: v3.7.17
 
-### SSL and Traefik settings
-
-# Enables or Disables SSL wildcard certificate generation // default: "no"
-hmsdocker_traefik_ssl_enabled: false
-
-# This option implements a number of additional security features for Traefik, such as:
-# * Minimum TLS1.2
-hmsdocker_traefik_security_hardening: false # default: no
-
-# Whether to use the staging/testing URL or production URL // default: "yes"
-# If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
-hmsdocker_traefik_ssl_use_letsencrypt_staging_url: true
-
-# SANs (Subject Alternative Names) to also provision certificates for
-# By default, this will create a "wildcard" (*) certificate
-# If you wish to create a certificate for another subdomain (such as '*.public'), you can add them here
-hmsdocker_traefik_ssl_sans: [
-  '*.{{ hmsdocker_domain }}',
-]
+### SSL (the general SSL settings are in reverse_proxy.yml)
 
 # The DNS provider to use for SSL generation, check this for supported providers: https://go-acme.github.io/lego/dns/
+# Its environment variables go in hmsdocker_ssl_dns_provider_environment_vars (reverse_proxy.yml)
 hmsdocker_traefik_ssl_dns_provider_code: ""
 
 # The DNS zone to use for SSL generation, this will use the domain defined above // default: "{{ hmsdocker_domain }}"
 hmsdocker_traefik_ssl_dns_provider_zone: "{{ hmsdocker_domain }}"
-
-# The environment variables for your DNS provider found at the provider link above
-# This is an example if using Cloudflare
-hmsdocker_traefik_ssl_dns_provider_environment_vars:
-  {
-    "CF_DNS_API_TOKEN": "{{ hmsdocker_cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
-    "CF_ZONE_API_TOKEN": "{{ hmsdocker_cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
-  }
-
-# The DNS servers to use when generating your SSL certificate
-# Recommended to set to your DNS providers servers
-hmsdocker_traefik_ssl_dns_resolver_1: "1.1.1.1"
-hmsdocker_traefik_ssl_dns_resolver_2: "1.0.0.1"
-
-# Required for Let's Encrypt, the email address to use when generating your SSL certificate
-hmsdocker_traefik_ssl_letsencrypt_email: ""
 
 # Where static config files are stored for Traefik (middlewares and external hosts)
 # Deprecation notice:
@@ -50,59 +20,5 @@ hmsdocker_traefik_ssl_letsencrypt_email: ""
 # To fix: run `make update`
 hmsdocker_traefik_static_config_location: "{{ traefik_ext_hosts_configs_path | default(hmsdocker_apps_path + '/traefik/config/static_confs/') }}"
 
-# Enables or Disables watching a directory for Traefik static file configs, see https://doc.traefik.io/traefik/providers/file/#configuration-examples // default: "no"
-hmsdocker_traefik_ext_hosts_enabled: false
-# Settings for each external host:
-#    friendly_name: host1,              # just a friendly name for it
-#    subdomain_name: sub-example,       # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hmsdocker_domain you defined above)
-#    backend_url: http://example.com,   # the url of the service you want to proxy through traefik
-#    enabled: true,                      # enables or disables the route
-#    expose_publicly: false,               # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
-#    authentik: false,                     # whether or not to apply authentik settings to the service
-#    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
-#    tinyauth: no,                      # whether or not to require a Tinyauth sign-in (needs the tinyauth container with traefik: true)
-
-hmsdocker_traefik_ext_hosts_list: [
-  {
-    friendly_name: host1,
-    subdomain_name: example-sub,
-    backend_url: "http://example.com",
-    enabled: true,
-    expose_publicly: false,
-    authentik: false,
-    authentik_provider_type: proxy,
-    tinyauth: false
-  },
-  # {
-  #  friendly_name: host2,
-  #  subdomain_name: sub-2,
-  #  backend_url: http://example.com,
-  #  enabled: yes,
-  #  expose_publicly: no,
-  #  authentik: no,
-  #  authentik_provider_type: proxy
-  # },
-  # {
-  #  friendly_name: netdata,
-  #  subdomain_name: netdata,
-  #  backend_url: "http://netdata.{{ hmsdocker_domain }}:19999",
-  #  enabled: yes,
-  #  expose_publicly: no,
-  #  authentik: no,
-  #  authentik_provider_type: proxy
-  # },
-]
-
-
 # The Traefik log level, helpful for troubleshooting SSL issues // default: "INFO"
 hmsdocker_traefik_log_level: "INFO"
-
-# Enable or disable to check if all possible Traefik routes are available (requires all FQDN DNS records to be valid) // default: "no"
-hmsdocker_traefik_verify_endpoints: false
-
-# Enable or disable full request logging
-hmsdocker_traefik_enable_access_logs: false
-
-# The Traefik allow-list for all containers except Traefik itself
-# This allows all private addresses (RFC1918) by default, you can change this to further restrict or allow greater access
-hmsdocker_traefik_subnet_allow_list: "{{ hmsdocker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"

@@ -18,10 +18,10 @@ hmsdocker_transcode_tmpfs_size: "4g"
 # For RAM-backed transcoding, enable hmsdocker_transcode_tmpfs_enabled above instead.
 hmsdocker_plex_transcode_folder: "/tmp/{{ hmsdocker_project_name }}/plex_transcode" # default: "/tmp/{{ hmsdocker_project_name }}/plex_transcode"
 
-# Adds a script to convert a Traefik certificate file to a Plex-supported certificate file so you can define a custom certificate for Plex
+# Adds a script to convert the Traefik or Caddy certificate to a Plex-supported certificate file so you can define a custom certificate for Plex
 # This script will also automatically update the Plex config file to point to the converted certificate file (if enabled a little further below)
 # This script runs at 5am
-# NOTE: You must also have `hmsdocker_traefik_ssl_enabled` set to `true`
+# NOTE: You must also have "hmsdocker_ssl_enabled" set to "yes"
 # Enables the script and other resources // default: no // valid: yes, no
 hmsdocker_plex_ssl_enabled: false
 # The hostname that will be published to Plex and is within scope of the certificates being generated // default: "plex.{{ hmsdocker_domain }}"

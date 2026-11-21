@@ -19,12 +19,14 @@
 # its earlier entries too.
 #
 # Entries describe top-level YAML keys. Nested-key renames need bespoke
-# handling and are not covered by this file.
+# handling and are not covered by this file (e.g. the per-container
+# `traefik` -> `proxy` key in the container map, handled in compat_shim.yml
+# and the Makefile `migrate-config` target).
 
 # DO NOT EDIT OR REMOVE. Makefiles up to v1.20 keep running their own
 # 'make update' recipe after 'git pull' and rename the keys listed here with
-# sed, without updating references to them. It is frozen at the renames those
-# releases shipped with; everything newer belongs in `renames`.
+# sed, without updating references to them. It is frozen at the renames that
+# shipped up to v1.22; everything newer belongs in `renames`.
 variable_renames:
   - { old: traefik_ext_hosts_configs_path, new: hmsdocker_traefik_static_config_location }
   - { old: hms_docker_library_path, new: hmsdocker_library_path }
@@ -33,6 +35,20 @@ variable_renames:
   - { old: transmission_vpn_pass, new: hmsdocker_vpn_pass }
   - { old: transmission_ovpn_config_local_path, new: transmission_ovpn_config_local_dir }
   - { old: hms_docker_plex_ssl_subdomain, new: hms_docker_plex_ssl_public_hostname }
+  - { old: traefik_ssl_enabled, new: hmsdocker_ssl_enabled }
+  - { old: traefik_ssl_use_letsencrypt_staging_url, new: hmsdocker_ssl_letsencrypt_staging }
+  - { old: traefik_ssl_letsencrypt_email, new: hmsdocker_ssl_letsencrypt_email }
+  - { old: traefik_ssl_sans, new: hmsdocker_ssl_sans }
+  - { old: traefik_ssl_dns_provider_environment_vars, new: hmsdocker_ssl_dns_provider_environment_vars }
+  - { old: traefik_ssl_dns_resolver_1, new: hmsdocker_ssl_dns_resolver_1 }
+  - { old: traefik_ssl_dns_resolver_2, new: hmsdocker_ssl_dns_resolver_2 }
+  - { old: traefik_security_hardening, new: hmsdocker_proxy_security_hardening }
+  - { old: traefik_subnet_allow_list, new: hmsdocker_proxy_allow_list }
+  - { old: traefik_ext_hosts_enabled, new: hmsdocker_proxy_ext_hosts_enabled }
+  - { old: traefik_ext_hosts_list, new: hmsdocker_proxy_ext_hosts_list }
+  - { old: traefik_enable_access_logs, new: hmsdocker_proxy_access_logs }
+  - { old: traefik_verify_endpoints, new: hmsdocker_proxy_verify_endpoints }
+  - { old: hmsdocker_traefik_trusted_proxies, new: hmsdocker_proxy_trusted_proxies }
 
 renames:
   - { old: authentik_external_host, new: hmsdocker_authentik_external_host }
@@ -81,6 +97,7 @@ renames:
   - { old: hms_docker_plex_ssl_update_config, new: hmsdocker_plex_ssl_update_config }
   - { old: hms_docker_primary_mount_name, new: hmsdocker_primary_mount_name }
   - { old: hms_docker_subnet_mask, new: hmsdocker_subnet_mask }
+  - { old: hmsdocker_traefik_trusted_proxies, new: hmsdocker_proxy_trusted_proxies }
   - { old: homepage_authentik_key, new: hmsdocker_homepage_authentik_key }
   - { old: homepage_autobrr_key, new: hmsdocker_homepage_autobrr_key }
   - { old: homepage_emby_key, new: hmsdocker_homepage_emby_key }
@@ -116,23 +133,23 @@ renames:
   - { old: tautulli_include_jbops, new: hmsdocker_tautulli_include_jbops }
   - { old: tautulli_jbops_install_path, new: hmsdocker_tautulli_jbops_install_path }
   - { old: tdarr_enable_node_server, new: hmsdocker_tdarr_enable_node_server }
-  - { old: traefik_enable_access_logs, new: hmsdocker_traefik_enable_access_logs }
+  - { old: traefik_enable_access_logs, new: hmsdocker_proxy_access_logs }
   - { old: traefik_ext_hosts_configs_path, new: hmsdocker_traefik_static_config_location }
-  - { old: traefik_ext_hosts_enabled, new: hmsdocker_traefik_ext_hosts_enabled }
-  - { old: traefik_ext_hosts_list, new: hmsdocker_traefik_ext_hosts_list }
+  - { old: traefik_ext_hosts_enabled, new: hmsdocker_proxy_ext_hosts_enabled }
+  - { old: traefik_ext_hosts_list, new: hmsdocker_proxy_ext_hosts_list }
   - { old: traefik_log_level, new: hmsdocker_traefik_log_level }
-  - { old: traefik_security_hardening, new: hmsdocker_traefik_security_hardening }
+  - { old: traefik_security_hardening, new: hmsdocker_proxy_security_hardening }
   - { old: traefik_ssl_dns_provider_code, new: hmsdocker_traefik_ssl_dns_provider_code }
-  - { old: traefik_ssl_dns_provider_environment_vars, new: hmsdocker_traefik_ssl_dns_provider_environment_vars }
+  - { old: traefik_ssl_dns_provider_environment_vars, new: hmsdocker_ssl_dns_provider_environment_vars }
   - { old: traefik_ssl_dns_provider_zone, new: hmsdocker_traefik_ssl_dns_provider_zone }
-  - { old: traefik_ssl_dns_resolver_1, new: hmsdocker_traefik_ssl_dns_resolver_1 }
-  - { old: traefik_ssl_dns_resolver_2, new: hmsdocker_traefik_ssl_dns_resolver_2 }
-  - { old: traefik_ssl_enabled, new: hmsdocker_traefik_ssl_enabled }
-  - { old: traefik_ssl_letsencrypt_email, new: hmsdocker_traefik_ssl_letsencrypt_email }
-  - { old: traefik_ssl_sans, new: hmsdocker_traefik_ssl_sans }
-  - { old: traefik_ssl_use_letsencrypt_staging_url, new: hmsdocker_traefik_ssl_use_letsencrypt_staging_url }
-  - { old: traefik_subnet_allow_list, new: hmsdocker_traefik_subnet_allow_list }
-  - { old: traefik_verify_endpoints, new: hmsdocker_traefik_verify_endpoints }
+  - { old: traefik_ssl_dns_resolver_1, new: hmsdocker_ssl_dns_resolver_1 }
+  - { old: traefik_ssl_dns_resolver_2, new: hmsdocker_ssl_dns_resolver_2 }
+  - { old: traefik_ssl_enabled, new: hmsdocker_ssl_enabled }
+  - { old: traefik_ssl_letsencrypt_email, new: hmsdocker_ssl_letsencrypt_email }
+  - { old: traefik_ssl_sans, new: hmsdocker_ssl_sans }
+  - { old: traefik_ssl_use_letsencrypt_staging_url, new: hmsdocker_ssl_letsencrypt_staging }
+  - { old: traefik_subnet_allow_list, new: hmsdocker_proxy_allow_list }
+  - { old: traefik_verify_endpoints, new: hmsdocker_proxy_verify_endpoints }
   - { old: transmission_additional_env_vars, new: hmsdocker_transmission_additional_env_vars }
   - { old: transmission_ovpn_config_file, new: hmsdocker_transmission_ovpn_config_file }
   - { old: transmission_ovpn_config_local_dir, new: hmsdocker_transmission_ovpn_config_local_dir }

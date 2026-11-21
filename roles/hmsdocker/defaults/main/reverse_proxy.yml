@@ -1,0 +1,109 @@
+### Reverse proxy settings, used by Traefik and Caddy (whichever is enabled in the container map)
+# Settings only one of them uses are in traefik.yml and caddy.yml.
+# These were named traefik_* in earlier releases; `make update` renames them in your inventory, and the old names keep
+# working until then (with a warning)
+
+### SSL
+
+# Enables or Disables SSL wildcard certificate generation // default: "no"
+hmsdocker_ssl_enabled: false
+
+# Whether to use the staging/testing URL or production URL // default: "yes"
+# If SSL is enabled and this is set to yes, check to make sure the generated certificate is issued from the "STAGING" certificate authority before changing this to "no"
+hmsdocker_ssl_letsencrypt_staging: true
+
+# Required for Let's Encrypt, the email address to use when generating your SSL certificate
+hmsdocker_ssl_letsencrypt_email: ""
+
+# SANs (Subject Alternative Names) to also provision certificates for
+# By default, this will create a "wildcard" (*) certificate
+# If you wish to create a certificate for another subdomain (such as '*.public'), you can add them here
+hmsdocker_ssl_sans: [
+  '*.{{ hmsdocker_domain }}',
+]
+
+# The environment variables for your DNS provider, passed to the reverse proxy for the DNS challenge
+# Traefik: see the provider at https://go-acme.github.io/lego/dns/ (set its code in hmsdocker_traefik_ssl_dns_provider_code, traefik.yml)
+# Caddy: read them in hmsdocker_caddy_dns_provider_config with {env.NAME} (caddy.yml)
+# This is an example if using Cloudflare
+hmsdocker_ssl_dns_provider_environment_vars:
+  {
+    "CF_DNS_API_TOKEN": "{{ hmsdocker_cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
+    "CF_ZONE_API_TOKEN": "{{ hmsdocker_cloudflare_api_token }}", # Example cloudflare environment variable, this uses the same API token as the one for DDNS defined in `cloudflare.yml`
+  }
+
+# The DNS servers to use when generating your SSL certificate
+# Recommended to set to your DNS providers servers
+hmsdocker_ssl_dns_resolver_1: "1.1.1.1"
+hmsdocker_ssl_dns_resolver_2: "1.0.0.1"
+
+### Access control
+
+# The allow-list for all containers behind the reverse proxy (except those with `expose_to_public: true`)
+# This allows all private addresses (RFC1918) by default, you can change this to further restrict or allow greater access
+hmsdocker_proxy_allow_list: "{{ hmsdocker_network_subnet }}, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
+
+# This option implements a number of additional security features, such as:
+# * Minimum TLS1.2
+# * HTTPS only, and security headers
+hmsdocker_proxy_security_hardening: false # default: no
+
+# IPs or subnets of proxies in front of Traefik or Caddy (such as a load balancer). The reverse proxy reads the client IP
+# from the X-Forwarded-For header they send, so its access log (and CrowdSec, if enabled) shows the real client IP
+# instead of the proxy's IP. The proxy must set X-Forwarded-For to the client IP only (replace, not append), because Traefik
+# logs the header as received. Only list proxies you control, any client in these ranges can set its own X-Forwarded-For // default: []
+# Example: ["192.168.1.10"]
+hmsdocker_proxy_trusted_proxies: []
+
+### External hosts
+
+# Enables or Disables routing to the external hosts below // default: "no"
+hmsdocker_proxy_ext_hosts_enabled: false
+# Settings for each external host:
+#    friendly_name: host1,              # just a friendly name for it
+#    subdomain_name: sub-example,       # the subdomain that will be used to access the service (such as sub-example.example.com, where example.com is the hmsdocker_domain you defined above)
+#    backend_url: http://example.com,   # the url of the service you want to proxy through the reverse proxy
+#    enabled: yes,                      # enables or disables the route
+#    expose_publicly: no,               # enables or disables the IP allowlist to allow requests from anywhere (0.0.0.0/0)
+#    authentik: no,                     # whether or not to apply authentik settings to the service
+#    authentik_provider_type: proxy,    # typically proxy unless you know it's oauth2
+#    tinyauth: no,                      # whether or not to require a Tinyauth sign-in (needs the tinyauth container with proxy: true)
+
+hmsdocker_proxy_ext_hosts_list: [
+  {
+    friendly_name: host1,
+    subdomain_name: example-sub,
+    backend_url: "http://example.com",
+    enabled: true,
+    expose_publicly: false,
+    authentik: false,
+    authentik_provider_type: proxy,
+    tinyauth: false
+  },
+  # {
+  #  friendly_name: host2,
+  #  subdomain_name: sub-2,
+  #  backend_url: http://example.com,
+  #  enabled: yes,
+  #  expose_publicly: no,
+  #  authentik: no,
+  #  authentik_provider_type: proxy
+  # },
+  # {
+  #  friendly_name: netdata,
+  #  subdomain_name: netdata,
+  #  backend_url: "http://netdata.{{ hmsdocker_domain }}:19999",
+  #  enabled: yes,
+  #  expose_publicly: no,
+  #  authentik: no,
+  #  authentik_provider_type: proxy
+  # },
+]
+
+### Logging and checks
+
+# Enable or disable full request logging (access logs) // default: "no"
+hmsdocker_proxy_access_logs: false
+
+# Enable or disable to check if all possible routes are available at the end of the run (requires all FQDN DNS records to be valid) // default: "no"
+hmsdocker_proxy_verify_endpoints: false

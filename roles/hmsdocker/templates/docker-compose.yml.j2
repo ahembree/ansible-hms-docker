@@ -5,7 +5,7 @@ include:
   - {{ file.dest | default(hmsdocker_compose_dir.path + '/' + file.item + '.yml') }}
   {% endif %}
 {% endfor %}
-{% if 'authentik' in hmsdocker_enabled_containers and hmsdocker_traefik_ssl_enabled | default(False) and hmsdocker_authentik_compose_file_path is defined | default(False) %}
+{% if 'authentik' in hmsdocker_enabled_containers and hmsdocker_ssl_enabled | default(False) and hmsdocker_authentik_compose_file_path is defined | default(False) %}
   - {{ hmsdocker_authentik_compose_file_path.dest | default(hmsdocker_compose_dir.path + '/authentik.yml') }}
 {% endif %}
 

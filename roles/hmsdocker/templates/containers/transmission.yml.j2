@@ -92,7 +92,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.transmission-${COMPOSE_PROJECT}.rule=Host(`{{ hmsdocker_container_map['transmission']['proxy_host_rule'] | default('transmission') }}.${HMSD_DOMAIN}`)
       - traefik.http.services.transmission-${COMPOSE_PROJECT}.loadbalancer.server.port=8080
-      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_traefik_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in hmsdocker_authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'transmission' in hmsdocker_tinyauth_applied_containers }}
+      - traefik.http.routers.transmission-${COMPOSE_PROJECT}.middlewares={{ 'external' if 'transmission' in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ ',authentik-proxy-${COMPOSE_PROJECT}-transmission-midware@docker' if 'transmission' in hmsdocker_authentik_enabled_containers }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if 'transmission' in hmsdocker_tinyauth_applied_containers }}
       {% endif %}
       {% if 'transmission' in hmsdocker_homepage_enabled_containers %}
       {{ labels.homepage('transmission', 'Downloads', 'Transmission', 'Torrent Management', widget={'type': 'transmission', 'url': 'http://transmission-proxy:8080'}, stats=false) | indent(6) }}

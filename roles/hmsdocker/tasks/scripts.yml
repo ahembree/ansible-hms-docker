@@ -21,7 +21,8 @@
       - requests
       - python-dotenv
       - xmltodict
-      - cryptography
+      # traefik_cert_convert.py needs pkcs12.load_pkcs12 (36+); an older system-wide copy would otherwise satisfy pip
+      - cryptography>=36
       - docker
       - defusedxml
 
@@ -42,15 +43,16 @@
     force: "{{ ansible_check_mode }}"
 
 - name: Custom Scripts - Plex SSL - Ensure Plex SSL script and resources
-  when: hmsdocker_plex_ssl_enabled and hmsdocker_traefik_ssl_enabled
+  when: hmsdocker_plex_ssl_enabled and hmsdocker_ssl_enabled
   block:
     - name: Custom Scripts - Plex SSL - Ensure pkcs12 script
       ansible.builtin.copy:
         src: scripts/traefik_cert_convert.py
         dest: "{{ hmsdocker_scripts_path.path }}"
         mode: '700'
-        owner: "{{ hmsdocker_container_uid }}"
-        group: "{{ hmsdocker_container_gid }}"
+        # Executed by root's crontab, so it must not be writable by the unprivileged container user
+        owner: root
+        group: root
       register: hmsdocker_cert_script
 
     - name: Custom Scripts - Plex SSL - Ensure cron job

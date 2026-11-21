@@ -1,5 +1,5 @@
 - name: Generate Docker Compose files for Authentik
-  when: "'authentik' in hmsdocker_enabled_containers and hmsdocker_traefik_ssl_enabled | default(False)"
+  when: "'authentik' in hmsdocker_enabled_containers and hmsdocker_ssl_enabled | default(False)"
   ansible.builtin.template:
     src: containers/authentik.yml.j2
     dest: "{{ hmsdocker_compose_dir.dest | default(hmsdocker_data_path + '/compose_files') }}/authentik.yml"

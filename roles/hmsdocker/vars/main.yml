@@ -44,7 +44,7 @@ hmsdocker_readonly_media_supported_containers:
 #                    the URL path only (no query string). `(/v1\.\d+)?` covers versioned and unversioned paths.
 #   bind_mount_from: host directories allowed as bind mount sources when the client creates containers
 #   labels:          extra labels for the client's socket-proxy container
-#   requires_ssl:    the client container only runs when hmsdocker_traefik_ssl_enabled is on
+#   requires_ssl:    the client container only runs when hmsdocker_ssl_enabled is on
 # Left out on purpose:
 #   netdata          mounts the host root (/), which already contains the Docker socket
 #   portainer, dockhand  container management UIs that need the whole Docker API
@@ -79,6 +79,15 @@ hmsdocker_socket_proxy_builtin_clients:
       get:
         - '(/v1\.\d+)?/(_ping|version|info|containers/json|containers/[^/]+/(json|stats|logs))'
         - '(/v1\.\d+)?/images/.+/json'
+      head:
+        - '(/v1\.\d+)?/_ping'
+  # CrowdSec: Docker log acquisition (finds the traefik or caddy container through the container list and events, then reads its logs)
+  crowdsec:
+    mode: proxy
+    modes: [proxy, direct]
+    allow:
+      get:
+        - '(/v1\.\d+)?/(_ping|version|info|events|containers/json|containers/[^/]+/(json|logs))'
       head:
         - '(/v1\.\d+)?/_ping'
   # Homepage: container discovery, status and stats
@@ -148,3 +157,145 @@ hmsdocker_tinyauth_pocketid_external: "{{ (hmsdocker_tinyauth_pocketid_enabled |
 hmsdocker_tinyauth_pocketid_local: "{{ (hmsdocker_tinyauth_pocketid_enabled | default(false) | bool) and (hmsdocker_tinyauth_pocketid_base_url | length == 0) }}"
 # The playbook creates the OIDC client itself, unless an external Pocket ID has no API key to do it with
 hmsdocker_tinyauth_pocketid_manage_client: "{{ (hmsdocker_tinyauth_pocketid_local | bool) or ((hmsdocker_tinyauth_pocketid_external | bool) and (hmsdocker_tinyauth_pocketid_api_key | default('', true) | length > 0)) }}"
+
+# CrowdSec bouncer Traefik plugin. Traefik loads it as a local plugin from /plugins-local/src/<module>, which is a
+# mount of apps/crowdsec/bouncer-plugin/<version>. A new version changes the mount, so Compose recreates Traefik with it
+hmsdocker_crowdsec_bouncer_plugin_module: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+hmsdocker_crowdsec_bouncer_plugin_mount: "/plugins-local/src/{{ hmsdocker_crowdsec_bouncer_plugin_module }}"
+
+# CrowdSec bouncer Caddy module, built into the Caddy image (with the AppSec module it always pulls in)
+hmsdocker_crowdsec_caddy_bouncer_module: "github.com/hslatman/caddy-crowdsec-bouncer/http@{{ hmsdocker_crowdsec_caddy_bouncer_version }}"
+
+# The reverse proxy the CrowdSec bouncer runs in, and the name it is registered with in CrowdSec. CrowdSec reads this
+# proxy's logs (with the crowdsecurity/<name> collection)
+hmsdocker_crowdsec_bouncer_name: "{{ 'caddy' if (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool) else 'traefik' }}"
+
+# Caddy (`caddy` in the container map) routes each container with `proxy: true` to the upstream below, the same
+# container and port that its Traefik labels use. Containers with `proxy: true` but no entry here (no web UI,
+# e.g. unpackerr) get no Caddy route. When adding a container with a web UI, add it here as well.
+#   host:        container name on proxy_net // default: the container map key
+#   port:        web UI port inside the container
+#   scheme:      https when the container only serves HTTPS, its certificate is not verified // default: http
+#   separate_4k: also routes `<proxy_host_rule>-4k` to `<host>-4k` while hmsdocker_separate_4k_instances_enable is on
+#   allowlist:   false skips the IP allowlist and the sign-ins, like the Traefik router of n8n // default: true
+#   sso:         false never puts Authentik or Tinyauth in front of it (Authentik itself) // default: true
+#   headers:     response headers to set
+hmsdocker_caddy_upstreams:
+  audiobookshelf: { port: 80 }
+  authentik: { host: authentik-server, port: 9443, scheme: https, sso: false }
+  autobrr: { port: 7474 }
+  backrest: { port: 9898 }
+  bazarr: { port: 6767 }
+  beszel: { port: 8090 }
+  calibre: { port: 8181, scheme: https }
+  checkrr: { port: 8585 }
+  cleanuparr: { port: 11011 }
+  deluge: { port: 8112 }
+  dispatcharr: { port: 9191 }
+  dockhand: { port: 3000 }
+  emby: { port: 8096 }
+  ersatztv: { port: 8409 }
+  fileflows: { port: 5000 }
+  heimdall: { port: 443, scheme: https }
+  homepage: { port: 3000 }
+  jellyfin: { port: 8096 }
+  jellyseerr: { port: 5055 }
+  kavita: { port: 5000 }
+  librariarr: { port: 3000 }
+  lidarr: { port: 8686 }
+  maintainerr: { port: 6246 }
+  n8n:
+    port: 5678
+    allowlist: false
+    headers:
+      Strict-Transport-Security: "max-age=315360000; includeSubDomains; preload"
+      X-XSS-Protection: "1; mode=block"
+      X-Content-Type-Options: nosniff
+  nexroll: { port: 9393 }
+  notifiarr: { port: 5454 }
+  nzbget: { port: 6789 }
+  overseerr: { port: 5055 }
+  pasta: { port: 80 }
+  pinchflat: { port: 8945 }
+  plex: { port: 32400, scheme: https }
+  pocketid: { port: 1411 }
+  portainer: { port: 9000 }
+  prowlarr: { port: 9696 }
+  qbittorrent: { port: 8086 }
+  radarr: { port: 7878, separate_4k: true }
+  requestrr: { port: 4545 }
+  sabnzbd: { port: 8080 }
+  scrutiny: { port: 8080 }
+  seerr: { port: 5055 }
+  sonarr: { port: 8989, separate_4k: true }
+  speedtest-tracker: { port: 80 }
+  spottarr: { port: 8383 }
+  tautulli: { port: 8181 }
+  tdarr: { port: 8265 }
+  tinyauth: { port: 3000 }
+  tinymediamanager: { port: 4000 }
+  tracearr: { port: 3000 }
+  transmission: { host: transmission-proxy, port: 8080 }
+  tubearchivist: { port: 8001 }
+  tunarr: { port: 8000 }
+  unmanic: { port: 8888 }
+  uptimekuma: { host: uptime-kuma, port: 3001 }
+  wizarr: { port: 5690 }
+
+# Response headers Caddy adds to every route while hmsdocker_proxy_security_hardening is on (Traefik's secure-headers middleware)
+hmsdocker_caddy_security_headers:
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+
+# Headers the Authentik outpost returns that Caddy passes to the service (capitalization matters)
+hmsdocker_caddy_authentik_headers:
+  - X-Authentik-Username
+  - X-Authentik-Groups
+  - X-Authentik-Entitlements
+  - X-Authentik-Email
+  - X-Authentik-Name
+  - X-Authentik-Uid
+  - X-Authentik-Jwt
+  - X-Authentik-Meta-Jwks
+  - X-Authentik-Meta-Outpost
+  - X-Authentik-Meta-Provider
+  - X-Authentik-Meta-App
+  - X-Authentik-Meta-Version
+
+# Image Caddy runs: the official image, or one built with the DNS provider (SSL), the CrowdSec bouncer and extra modules
+hmsdocker_caddy_build_modules: >-
+  {{
+    ([hmsdocker_caddy_dns_provider_module] if (hmsdocker_ssl_enabled | default(false) | bool) else [])
+    + ([hmsdocker_crowdsec_caddy_bouncer_module] if (hmsdocker_container_map['crowdsec']['enabled'] | default(false) | bool) else [])
+    + (hmsdocker_caddy_extra_modules | default([], true))
+  }}
+hmsdocker_caddy_image: >-
+  {{
+    ('hmsd-caddy:' ~ hmsdocker_caddy_version ~ '-' ~ (hmsdocker_caddy_build_modules | join(' ') | hash('sha1'))[:12])
+    if (hmsdocker_caddy_build_modules | length > 0)
+    else ('docker.io/library/caddy:' ~ hmsdocker_caddy_version)
+  }}
+
+# Each Caddy image gets its own Caddyfile folder (apps/caddy/config/<image tag>), mounted at /etc/caddy. A new image
+# (Caddy version, SSL, CrowdSec or extra modules changed) therefore also changes the mount, so Compose switches the
+# image and the Caddyfile together. A Caddy container that still runs the previous image keeps its own Caddyfile, which
+# that image can load, even if the run stops before Compose recreates it
+hmsdocker_caddy_config_name: "{{ hmsdocker_caddy_image.split(':')[-1] }}"
+
+# Headers and query parameters removed from Caddy's access logs (hmsdocker_proxy_access_logs, CrowdSec), so API keys and
+# tokens that apps send through Caddy are not written to `docker logs caddy`. Cookie and Authorization headers are
+# already removed by Caddy. Header names in their canonical form
+hmsdocker_caddy_log_redacted_headers:
+  - X-Api-Key
+  - X-Plex-Token
+  - X-Emby-Token
+  - X-Emby-Authorization
+  - X-Mediabrowser-Token
+hmsdocker_caddy_log_redacted_query:
+  - apikey
+  - api_key
+  - ApiKey
+  - X-Plex-Token
+  - X-Emby-Token
+  - token
+  - access_token

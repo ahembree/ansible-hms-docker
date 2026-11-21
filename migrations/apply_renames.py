@@ -9,18 +9,17 @@ Reads the `renames` list of migrations/variable_renames.yml and, for every
   - renames references to those variables inside {{ ... }} and {% ... %}.
 Everything else (values, comments, formatting) is left as it is.
 
-Before the first change the inventory files are copied to
-inventory/backups/<timestamp>/. Running it again is safe: files that are
-already up to date are not touched. `--check` only reports what would change.
+Running it again is safe: files that are already up to date are not touched.
+`--check` only reports what would change. It keeps no copy of the files it
+changes: `make update` / `make migrate-config` snapshot the inventory before
+they run it and keep the snapshot in backups/ when anything changed.
 
 Uses only the Python standard library, so it runs with any python3.
 """
 import glob
 import os
 import re
-import shutil
 import sys
-import time
 
 RENAMES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "variable_renames.yml")
 ENTRY = re.compile(r"^\s*-\s*\{\s*old:\s*([A-Za-z_][A-Za-z0-9_]*)\s*,\s*new:\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*(#.*)?$")
@@ -119,14 +118,10 @@ def main(argv):
         print("  %d variable(s) in %d file(s) would be renamed" % (total, len(changes)))
         return 0
 
-    backup = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(inventory))), "backups", time.strftime("%Y%m%d-%H%M%S"))
-    os.makedirs(backup, exist_ok=True)
-    for path in files:
-        shutil.copy2(path, backup)
     for path, new_text in changes.items():
         with open(path, "w") as handle:
             handle.write(new_text)
-    print("  %d variable(s) renamed in %d file(s), the previous files were saved to %s" % (total, len(changes), backup))
+    print("  %d variable(s) renamed in %d file(s)" % (total, len(changes)))
     return 0
 
 

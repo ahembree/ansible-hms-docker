@@ -31,7 +31,7 @@
       }}
   loop:
     - directory
-    - traefik
+    - proxy
     - authentik
     - homepage
     - homepage_stats
@@ -42,21 +42,23 @@
 - name: Build additional facts of enabled containers to slim play output
   ansible.builtin.set_fact:
     hmsdocker_enabled_containers_config_dirs: "{{ hmsdocker_containers_with.directory }}"
-    hmsdocker_traefik_enabled_containers: "{{ hmsdocker_containers_with.traefik if 'traefik' in hmsdocker_enabled_containers else [] }}"
-    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_containers_with.traefik | map('extract', hmsdocker_container_map, 'proxy_host_rule') | list }}"
+    hmsdocker_traefik_enabled_containers: "{{ hmsdocker_containers_with.proxy if 'traefik' in hmsdocker_enabled_containers else [] }}"
+    # Caddy routes the same containers as Traefik (`proxy: true`), only one of the two runs
+    hmsdocker_caddy_enabled_containers: "{{ hmsdocker_containers_with.proxy if 'caddy' in hmsdocker_enabled_containers else [] }}"
+    hmsdocker_traefik_enabled_subdomains: "{{ hmsdocker_containers_with.proxy | map('extract', hmsdocker_container_map, 'proxy_host_rule') | list }}"
     hmsdocker_traefik_enabled_external_hosts: >-
           {{
-            hmsdocker_traefik_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
+            hmsdocker_proxy_ext_hosts_list | json_query('[?enabled==true].subdomain_name')
           }}
     hmsdocker_authentik_enabled_containers: >-
           {{
             (
               hmsdocker_enabled_containers
-              if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in hmsdocker_enabled_containers and hmsdocker_traefik_ssl_enabled
+              if hmsdocker_authentik_enabled_through_cftunnel and 'authentik' in hmsdocker_enabled_containers and hmsdocker_ssl_enabled
               else
               (
                 hmsdocker_containers_with.authentik
-                if ('authentik' in hmsdocker_enabled_containers and hmsdocker_traefik_ssl_enabled)
+                if ('authentik' in hmsdocker_enabled_containers and hmsdocker_ssl_enabled)
                 else []
               )
             )
@@ -66,7 +68,7 @@
     hmsdocker_authentik_proxy_enabled_containers: >-
           {{
             hmsdocker_container_map | dict2items |
-            selectattr('key', 'in', hmsdocker_containers_with.traefik) |
+            selectattr('key', 'in', hmsdocker_containers_with.proxy) |
             selectattr('key', 'in', hmsdocker_containers_with.authentik) |
             selectattr('value.proxy_host_rule', 'defined') |
             map('community.general.json_query', '{name: key, proxy_host_rule: value.proxy_host_rule}') |
@@ -79,9 +81,31 @@
     hmsdocker_expose_ports_enabled_containers: >-
           {{
             hmsdocker_enabled_containers
-            if ('traefik' not in hmsdocker_enabled_containers or hmsdocker_container_expose_ports)
+            if (('traefik' not in hmsdocker_enabled_containers and 'caddy' not in hmsdocker_enabled_containers) or hmsdocker_container_expose_ports)
             else hmsdocker_containers_with.expose_ports
           }}
+
+# Containers reachable through the reverse proxy, whichever of Traefik or Caddy is enabled
+- name: Build reverse proxy facts
+  ansible.builtin.set_fact:
+    hmsdocker_proxy_enabled_containers: "{{ hmsdocker_traefik_enabled_containers + hmsdocker_caddy_enabled_containers }}"
+
+# Containers whose Traefik router (or Caddy route) gets the Tinyauth forward auth. Tinyauth and Pocket ID are
+# left out (they serve the sign-in itself), as are containers whose routers do not use the shared middlewares.
+# Built before the container prereqs, which render the Caddyfile
+- name: Build Tinyauth protected containers fact
+  ansible.builtin.set_fact:
+    hmsdocker_tinyauth_applied_containers: >-
+      {{
+        (
+          hmsdocker_tinyauth_protected_containers | default([], true) |
+          select('in', hmsdocker_proxy_enabled_containers) |
+          reject('in', hmsdocker_tinyauth_unsupported_containers) |
+          list
+        )
+        if ('tinyauth' in hmsdocker_proxy_enabled_containers)
+        else []
+      }}
 
 - name: Build Docker socket proxy settings
   ansible.builtin.import_tasks: "socket_proxy_settings.yml"
@@ -120,7 +144,7 @@
     hmsdocker_socket_proxy_unavailable: >-
       {{
         []
-        if (hmsdocker_traefik_ssl_enabled | default(false) | bool)
+        if (hmsdocker_ssl_enabled | default(false) | bool)
         else (
           hmsdocker_socket_proxy_clients | dict2items |
           selectattr('value.requires_ssl', 'defined') |
@@ -304,22 +328,7 @@
     hmsdocker_tracearr_cookie_secret: "{{ (hmsdocker_prereq_tracearr_slurped_cookie_secret['content'] | b64decode) if hmsdocker_prereq_tracearr_slurped_cookie_secret['content'] is defined else '### Will be obtained during full run ###' }}"
     hmsdocker_tdarr_api_key: "{{ (hmsdocker_prereq_tdarr_slurped_api_key['content'] | b64decode | trim) if hmsdocker_prereq_tdarr_slurped_api_key['content'] is defined else '' }}"
     hmsdocker_n8n_encryption_key: "{{ (hmsdocker_prereq_n8n_slurped_encryption_key['content'] | b64decode) if hmsdocker_prereq_n8n_slurped_encryption_key['content'] is defined else '### Will be obtained during full run ###' }}"
-
-# Containers whose Traefik router gets the Tinyauth forward-auth middleware. Tinyauth and Pocket ID are
-# left out (they serve the sign-in itself), as are containers whose routers do not use the shared middlewares
-- name: Build Tinyauth protected containers fact
-  ansible.builtin.set_fact:
-    hmsdocker_tinyauth_applied_containers: >-
-      {{
-        (
-          hmsdocker_tinyauth_protected_containers | default([], true) |
-          select('in', hmsdocker_traefik_enabled_containers) |
-          reject('in', hmsdocker_tinyauth_unsupported_containers) |
-          list
-        )
-        if ('tinyauth' in hmsdocker_traefik_enabled_containers)
-        else []
-      }}
+    hmsdocker_crowdsec_bouncer_key: "{{ (hmsdocker_prereq_crowdsec_slurped_bouncer_key['content'] | b64decode | trim) if hmsdocker_prereq_crowdsec_slurped_bouncer_key['content'] is defined else '' }}"
 
 - name: Ensure compose_files directory exists
   ansible.builtin.file:

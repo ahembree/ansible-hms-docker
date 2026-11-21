@@ -1,0 +1,38 @@
+{% set socket_proxy_client = 'crowdsec' %}
+{% set socket_proxy_direct_mount = '/var/run/docker.sock:/var/run/docker.sock:ro' %}
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+      driver: json-file
+    networks:
+      - proxy_net
+    {% include 'socket_proxy/client_depends_on.j2' %}
+    volumes:
+      - ${HMSD_APPS_PATH}/crowdsec/config:/etc/crowdsec
+      - ${HMSD_APPS_PATH}/crowdsec/data:/var/lib/crowdsec/data
+      # used to read the reverse proxy container's logs (config/acquis.d/{{ hmsdocker_crowdsec_bouncer_name }}.yaml)
+    {% include 'socket_proxy/client_volume.j2' %}
+    environment:
+      - TZ=${TIMEZONE}
+      - COLLECTIONS=crowdsecurity/{{ hmsdocker_crowdsec_bouncer_name }}
+      # registers the bouncer of the reverse proxy (Traefik or Caddy) with the generated key
+      - BOUNCER_KEY_{{ hmsdocker_crowdsec_bouncer_name }}=${CROWDSEC_BOUNCER_KEY}
+    {% if hmsdocker_crowdsec_enroll_key | default('', true) | length > 0 %}
+      - ENROLL_KEY=${CROWDSEC_ENROLL_KEY}
+      - ENROLL_INSTANCE_NAME={{ hmsdocker_project_name }}
+    {% endif %}
+    {% include 'socket_proxy/client_docker_host.j2' %}
+    healthcheck:
+      test: ["CMD", "cscli", "lapi", "status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

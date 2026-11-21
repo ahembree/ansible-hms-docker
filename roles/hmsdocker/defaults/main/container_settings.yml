@@ -20,7 +20,7 @@ hmsdocker_container_uid: 1234
 hmsdocker_container_gid: 1234
 
 # This will expose each containers individual ports on the host (check the README for more info on which ports map to which containers) // default: "no"
-# If you disable traefik within the container map, the playbook will automatically override this setting and expose the ports
+# If neither traefik nor caddy is enabled in the container map, the playbook will automatically override this setting and expose the ports
 hmsdocker_container_expose_ports: false
 
 # Containers that get the media share (hmsdocker_mount_path) mounted read-only, so they can read the library but cannot change or delete it // default: []

@@ -10,7 +10,8 @@
 {# Traefik router and service labels of a container.
    name:         container map key
    port:         port the app listens on inside the container
-   router:       name of the Traefik router and service, default: name
+   router:       name of the Traefik router and service, default: name (the Authentik middleware is
+                 always named after the container map key, like its outpost)
    host_default: subdomain used when the container map entry has no proxy_host_rule, default: router
    suffix:       added to the router name and the subdomain, e.g. '-4k'
    scheme:       'https' when the app only answers HTTPS on that port
@@ -25,7 +26,7 @@
 - traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme={{ scheme }}
 {% endif %}
 - traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.rule=Host(`{{ hmsdocker_container_map[name]['proxy_host_rule'] | default(host_default or router or name) }}{{ suffix }}.${HMSD_DOMAIN}`)
-- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_traefik_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ router_name ~ '-midware@docker') if authentik and name in hmsdocker_authentik_enabled_containers else '' }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if tinyauth and name in hmsdocker_tinyauth_applied_containers else '' }}
+- traefik.http.routers.{{ router_name }}-${COMPOSE_PROJECT}.middlewares={{ 'external' if name in hmsdocker_expose_public_enabled_containers else 'internal' }}-{{ 'secured' if hmsdocker_proxy_security_hardening else 'ipallowlist' }}@file{{ (',authentik-proxy-${COMPOSE_PROJECT}-' ~ name ~ suffix ~ '-midware@docker') if authentik and name in hmsdocker_authentik_enabled_containers else '' }}{{ ',tinyauth-${COMPOSE_PROJECT}@docker' if tinyauth and name in hmsdocker_tinyauth_applied_containers else '' }}
 {% endfilter %}
 {% endmacro %}
 

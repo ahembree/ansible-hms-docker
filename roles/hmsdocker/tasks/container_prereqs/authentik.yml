@@ -99,7 +99,7 @@
     src: authentik/authentik_outpost.j2
     dest: "{{ hmsdocker_apps_path }}/authentik/outposts/authentik-{{ hmsdocker_authentik_outpost_name }}.outpost.yml"
     mode: '0644'
-  loop: "{{ hmsdocker_traefik_ext_hosts_list }}"
+  loop: "{{ hmsdocker_proxy_ext_hosts_list }}"
   vars:
     hmsdocker_authentik_outpost_name: "{{ item.friendly_name | map('regex_replace', hmsdocker_sanitize_regex, hmsdocker_sanitize_replace) | list | join }}"
     hmsdocker_authentik_outpost_host: "{{ item.subdomain_name }}"

@@ -4,7 +4,7 @@
 #######################################################################
 ### HMS-Docker settings
 
-# The domain used for the Traefik proxy Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
+# The domain used for the reverse proxy (Traefik or Caddy) Host rules, SSL certificate (if enabled), and DDNS (if enabled) // default: "home.local"
 hmsdocker_domain: home.local
 
 # The type of "media share" (if using a NAS) to use for reading/writing media data, such as movies and tv // default: "local"

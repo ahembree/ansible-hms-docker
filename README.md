@@ -30,13 +30,14 @@ Ansible Playbook to setup an automated Home Media Server stack running on Docker
 - Automatic App Initialization (Sonarr, Radarr, Prowlarr, etc.)
 - Dynamic DNS updates with Cloudflare
 - Wildcard SSL certificate generation
+- Reverse proxy with Traefik or Caddy
 - Support for multiple network shares
 - Single Sign-On with Authentik
 - Support for separate 4K instances of Sonarr and Radarr
 - Automated dashboard configuration in [Homepage](https://gethomepage.dev/)
 - Custom scripts
   - Advanced monitoring script(s) for Uptime-Kuma to detect if media is actually accessible by the Plex container
-  - Convert Traefik certificate file to a Plex-supported certificate file (PKCS12)
+  - Convert the Traefik or Caddy certificate to a Plex-supported certificate file (PKCS12)
 
 ## Getting Started
 

@@ -126,6 +126,69 @@
     hmsdocker_migrations_old_only: "{{ hmsdocker_active_migrations | rejectattr('new', 'in', hmsdocker_user_set_new_names) | list }}"
   when: hmsdocker_active_migrations | length > 0
 
+# The per-container `traefik` key of the container map was renamed to `proxy`. Nested keys are not covered by
+# migrations/variable_renames.yml, so entries that still use `traefik` get a `proxy` key with its value here
+# (an entry that already has `proxy` keeps it). `make update` renames the key in the inventory files.
+- name: (compat) Find container map entries that still use the traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_container_map_traefik_key: >-
+      {{
+        hmsdocker_container_map | default({}, true) | dict2items
+        | selectattr('value', 'mapping') | selectattr('value.traefik', 'defined')
+        | map(attribute='key') | list
+      }}
+
+- name: (compat) Rename the traefik key of container map entries to proxy
+  ansible.builtin.set_fact:
+    hmsdocker_container_map: "{{ hmsdocker_container_map | combine(hmsdocker_compat_proxy_keys, recursive=True) }}"
+  vars:
+    hmsdocker_compat_entries: >-
+      {{
+        hmsdocker_container_map | dict2items
+        | selectattr('key', 'in', hmsdocker_container_map_traefik_key)
+        | rejectattr('value.proxy', 'defined') | list
+      }}
+    hmsdocker_compat_proxy_keys: >-
+      {{
+        dict(hmsdocker_compat_entries | map(attribute='key')
+          | zip(hmsdocker_compat_entries | map(attribute='value.traefik') | map('community.general.dict_kv', 'proxy')))
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+# Extra vars outrank set_fact, so the rename above has no effect on a container map passed with -e. Without `proxy`,
+# none of those containers would be routed, so stop here instead
+- name: (compat) Check that the container map traefik key was renamed
+  ansible.builtin.assert:
+    that:
+      - hmsdocker_compat_unrenamed | length == 0
+    fail_msg: >-
+      The `traefik` key of container map entries has been renamed to `proxy`, and these entries still use it:
+      {{ hmsdocker_compat_unrenamed | join(', ') }}. The container map comes from extra vars (-e / --extra-vars), which the
+      playbook cannot change, so rename `traefik` to `proxy` in the file or value you pass with -e.
+    quiet: true
+  vars:
+    hmsdocker_compat_unrenamed: >-
+      {{
+        hmsdocker_container_map | dict2items
+        | selectattr('key', 'in', hmsdocker_container_map_traefik_key)
+        | rejectattr('value.proxy', 'defined')
+        | map(attribute='key') | list
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
+- name: (compat) Record deprecation warning for the container map traefik key
+  ansible.builtin.set_fact:
+    hmsdocker_preflight_warnings: >-
+      {{
+        hmsdocker_preflight_warnings
+        + ["DEPRECATED: the `traefik` key of container map entries has been renamed to `proxy` (reachable through "
+           ~ "Traefik or Caddy). These entries still use it: " ~ (hmsdocker_container_map_traefik_key | join(', '))
+           ~ ". Run `make update` to rename it in your inventory (inventory/group_vars/all/*.yml; an entry that has "
+           ~ "both keys uses `proxy`), or rename it by hand wherever else you define hmsdocker_container_map"
+           ~ " - the old key will be removed in a future release."]
+      }}
+  when: hmsdocker_container_map_traefik_key | length > 0
+
 # debug_mode and is_github_runner are play variables in hms-docker.yml that default to false, so
 # they are only true here when they were passed with -e under their old name.
 - name: (compat) Record deprecation warnings for renamed command line switches
