@@ -30,6 +30,7 @@ services:
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
       - TRUST_PROXY=true
       - LOG_LEVEL=${TRACEARR_LOG_LEVEL:-info} # Log level (debug, info, warn, error)
+      - TIMESCALEDB_AUTO_UPDATE=true
       # - DATABASE_POOL_MAX=50  # Database connection pool size (default: 50)
     volumes:
       - ${HMSD_APPS_PATH}/tracearr/config/backup:/data/backup
@@ -72,7 +73,6 @@ services:
       - POSTGRES_USER=tracearr
       - POSTGRES_PASSWORD=${TRACEARR_DB_PASSWORD:-tracearr}
       - POSTGRES_DB=tracearr
-      - TIMESCALEDB_AUTO_UPDATE=true
     volumes:
       - ${HMSD_APPS_PATH}/tracearr/config/postgres:/home/postgres/pgdata/data
     healthcheck:
