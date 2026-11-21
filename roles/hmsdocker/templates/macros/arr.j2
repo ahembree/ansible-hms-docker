@@ -51,10 +51,10 @@
     {% endif %}
     {% if app in hmsdocker_expose_ports_enabled_containers %}
     ports:
-      - {{ port + 1 if instance_4k else port }}:{{ port }}
+      - {{ (port + 1 if instance_4k else port) | string }}:{{ port | string }}
     {% endif %}
     healthcheck:
-      test: curl -f http://127.0.0.1:{{ port }}/health || exit 1
+      test: curl -f http://127.0.0.1:{{ port | string }}/health || exit 1
       interval: 5s
       timeout: 2s
       retries: 3

@@ -5,7 +5,10 @@
 
    Each macro returns its lines without indentation and without a trailing newline, so the
    call site decides the indentation: put the call at the indentation of the first label
-   and pass the same width to `indent`. #}
+   and pass the same width to `indent`.
+
+   Everything a macro prints must be a string (note `port | string`): the Jinja2 3.0 that
+   Ubuntu 22.04 ships fails with "expected str instance, int found" on anything else. #}
 
 {# Traefik router and service labels of a container.
    name:         container map key
@@ -21,7 +24,7 @@
 {% filter trim %}
 {% set router_name = (router or name) ~ suffix %}
 - traefik.enable=true
-- traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port }}
+- traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.port={{ port | string }}
 {% if scheme %}
 - traefik.http.services.{{ router_name }}-${COMPOSE_PROJECT}.loadbalancer.server.scheme={{ scheme }}
 {% endif %}

@@ -215,10 +215,11 @@
     quiet: true
   when:
     - hmsdocker_ssl_enabled | default(false) | bool
+    # In parentheses: Ansible before 2.19 cannot parse a bare `a if b else c` condition
     - >-
-      (hmsdocker_caddy_dns_provider | default('', true)) == 'cloudflare'
+      ((hmsdocker_caddy_dns_provider | default('', true)) == 'cloudflare'
       if (hmsdocker_container_map['caddy']['enabled'] | default(false) | bool)
-      else (hmsdocker_traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare'
+      else (hmsdocker_traefik_ssl_dns_provider_code | default('', true)) == 'cloudflare')
     - not hmsdocker_is_github_runner
 
 # ---------------------------------------------------------------------------
